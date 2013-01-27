@@ -13,6 +13,8 @@
         
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
         camera.position.y = world.y(0, 0) + 2;
+		camera.position.x = 0;
+		camera.position.z = 0;
         
         controls = new THREE.FirstPersonControls(camera, container);
         

@@ -31,8 +31,8 @@ var Chunk = (function () {
 	return Chunk;
 	
 	function Chunk(data) {
-		var cx = -CHUNK_DEPTH / 2;
-		var cz = -CHUNK_WIDTH / 2;
+		var cx = 0;//-CHUNK_DEPTH / 2;
+		var cz = 0;//-CHUNK_WIDTH / 2;
 		var self = this;
 
 		function getY(x, z) {
@@ -146,8 +146,8 @@ function World() {
 	}
 	
 	self.y = function (x, z) {
-		var realX = x + 32;
-		var realZ = z + 32;
+		var realX = x;
+		var realZ = z;
 		var chunkX = realX / 64 | 0;
 		var chunkZ = realZ / 64 | 0;
 		var localX = realX % 64 | 0;
