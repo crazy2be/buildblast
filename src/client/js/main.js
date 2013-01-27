@@ -20,7 +20,7 @@
 		camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 20000);
 		camera.position.y = getY(worldHalfWidth, worldHalfDepth) * 100 + 100;
 		
-		controls = new THREE.FirstPersonControls(camera);
+		controls = new THREE.FirstPersonControls(camera, container);
 		
 		controls.movementSpeed = 1000;
 		controls.lookSpeed = 0.125;
@@ -171,7 +171,6 @@
 			}
 			quality *= 4
 		}
-		console.log(data);
 		return data;
 	}
 
