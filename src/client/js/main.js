@@ -6,18 +6,18 @@
     var mesh;
 
     var clock = new THREE.Clock();
-	var world;
+    var world;
 
     function init() {
         container = document.getElementById('container');
         
         scene = new THREE.Scene();
         world = new World(scene);
-		
+        
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
         camera.position.y = world.y(0, 0) + 2;
-		camera.position.x = 0;
-		camera.position.z = 0;
+        camera.position.x = 0;
+        camera.position.z = 0;
         
         controls = new THREE.FirstPersonControls(camera, container);
         
@@ -58,7 +58,7 @@
         
         controls.handleResize();
     }
-	
+    
     function minMag(a, b) {
         return Math.abs(a) < Math.abs(b) ? a : b;
     }
@@ -84,5 +84,5 @@
     }
     
     init();
-	animate();
+    animate();
 }());
