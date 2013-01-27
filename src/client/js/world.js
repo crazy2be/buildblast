@@ -93,8 +93,33 @@ var Chunk = (function () {
 	}
 }());
 
-function World(data) {
+function World() {
 	var self = this;
+
+    function generateHeight(width, height) {
+        var data = [];
+        var perlin = new ImprovedNoise();
+        var size = width * height;
+        var quality = 2;
+        var z = Math.random() * 100;
+        
+        for (var i = 0; i < size; i++) {
+            data[i] = 0;
+        }
+        
+        for (var i = 0; i < 4; i++) {
+            for (var j = 0; j < size; j++) {
+                var x = j % width
+                var y = (j / width) | 0;
+                
+                data[j] += perlin.noise(x / quality, y / quality, z) * quality;
+            }
+            quality *= 4
+        }
+        return data;
+    }
+    
+    var data = generateHeight(64, 64);
 	var chunk = new Chunk(data);
 	var geometry = chunk.createGeometry();
 		
@@ -121,6 +146,12 @@ function World(data) {
 	}
 	
 	self.y = function (x, z) {
-		return chunk.y(x, z);
+		var realX = x + 32;
+		var realZ = z + 32;
+		var chunkX = realX / 64 | 0;
+		var chunkZ = realZ / 64 | 0;
+		var localX = realX % 64 | 0;
+		var localZ = realZ % 64 | 0;
+		return chunk.y(realX | 0, realZ | 0);
 	}
 }

@@ -6,12 +6,13 @@
     var mesh;
 
     var clock = new THREE.Clock();
+	var world = new World();
 
     function init() {
         container = document.getElementById('container');
         
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
-        camera.position.y = getWorldY(0, 0) + 2;
+        camera.position.y = world.y(0, 0) + 2;
         
         controls = new THREE.FirstPersonControls(camera, container);
         
@@ -57,40 +58,7 @@
         
         controls.handleResize();
     }
-
-    function generateHeight(width, height) {
-        var data = [];
-        var perlin = new ImprovedNoise();
-        var size = width * height;
-        var quality = 2;
-        var z = Math.random() * 100;
-        
-        for (var i = 0; i < size; i++) {
-            data[i] = 0;
-        }
-        
-        for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < size; j++) {
-                var x = j % width
-                var y = (j / width) | 0;
-                
-                data[j] += perlin.noise(x / quality, y / quality, z) * quality;
-            }
-            quality *= 4
-        }
-        return data;
-    }
-    
-    var data = generateHeight(64, 64);
-	var world = new World(data);
-    
-    function getWorldY(x, z) {
-        var gx = (x + 32) | 0;
-        var gz = (z + 32) | 0;
-        var gy = world.y(gx, gz);
-        return gy;
-    }
-
+	
     function minMag(a, b) {
         return Math.abs(a) < Math.abs(b) ? a : b;
     }
@@ -102,7 +70,7 @@
         controls.update(dt);
         
         var p = camera.position;
-        var y = getWorldY(p.x, p.z) + 2;
+        var y = world.y(p.x, p.z) + 2;
         if (p.y < y) {
             camera.translateY(y - p.y);
             playerV = 0;
