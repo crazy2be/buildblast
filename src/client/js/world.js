@@ -152,11 +152,16 @@ function World(scene) {
 		scene.add(mesh);
 	}
 	
+	function mod(a, b) {
+		return ((a % b) + b) % b;
+	}
+	
 	self.y = function (x, z) {
-		var chunkX = x / 64 | 0;
-		var chunkZ = z / 64 | 0;
-		var localX = x % 64 | 0;
-		var localZ = z % 64 | 0;
+		var chunkX = Math.floor(x / 64);
+		var chunkZ = Math.floor(z / 64);
+		var localX = mod(x, 64) | 0;
+		var localZ = mod(z, 64) | 0;
+		console.log(x, z, chunkX, chunkZ);
 		return chunkAt(chunkX, chunkZ).y(localX, localZ);
 	}
 }

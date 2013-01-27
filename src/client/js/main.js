@@ -27,9 +27,6 @@
         controls.constrainVertical = true;
         controls.heightSpeed = 1;
         
-// 		var mesh = world.generateMesh();
-//         scene.add(mesh);
-        
         var ambientLight = new THREE.AmbientLight(0xcccccc);
         scene.add(ambientLight);
         
