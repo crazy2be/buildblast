@@ -6,11 +6,14 @@
     var mesh;
 
     var clock = new THREE.Clock();
-	var world = new World();
+	var world;
 
     function init() {
         container = document.getElementById('container');
         
+        scene = new THREE.Scene();
+        world = new World(scene);
+		
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
         camera.position.y = world.y(0, 0) + 2;
 		camera.position.x = 0;
@@ -24,10 +27,8 @@
         controls.constrainVertical = true;
         controls.heightSpeed = 1;
         
-        scene = new THREE.Scene();
-        
-		var mesh = world.generateMesh();
-        scene.add(mesh);
+// 		var mesh = world.generateMesh();
+//         scene.add(mesh);
         
         var ambientLight = new THREE.AmbientLight(0xcccccc);
         scene.add(ambientLight);

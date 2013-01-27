@@ -30,9 +30,7 @@ var Chunk = (function () {
 	
 	return Chunk;
 	
-	function Chunk(data) {
-		var cx = 0;//-CHUNK_DEPTH / 2;
-		var cz = 0;//-CHUNK_WIDTH / 2;
+	function Chunk(data, cx, cz) {
 		var self = this;
 
 		function getY(x, z) {
@@ -93,35 +91,31 @@ var Chunk = (function () {
 	}
 }());
 
-function World() {
+function World(scene) {
 	var self = this;
 
-    function generateHeight(width, height) {
+	var perlin = new ImprovedNoise();
+    function generateHeight(xs, zs, width, depth) {
         var data = [];
-        var perlin = new ImprovedNoise();
-        var size = width * height;
         var quality = 2;
-        var z = Math.random() * 100;
+        var y = Math.random() * 100;
         
-        for (var i = 0; i < size; i++) {
-            data[i] = 0;
+        for (var x = xs; x < xs + width; x++) {
+			for (var z = zs; z < zs + depth; z++) {
+				data[x*width + z] = 0;
+			}
         }
         
         for (var i = 0; i < 4; i++) {
-            for (var j = 0; j < size; j++) {
-                var x = j % width
-                var y = (j / width) | 0;
-                
-                data[j] += perlin.noise(x / quality, y / quality, z) * quality;
-            }
-            quality *= 4
+			for (var x = xs; x < xs + width; x++) {
+				for (var z = zs; z < zs + depth; z++) {
+					data[x*width + z] = perlin.noise(x / quality, z/quality, y) * quality;
+				}
+			}
+			quality *= 4;
         }
         return data;
     }
-    
-    var data = generateHeight(64, 64);
-	var chunk = new Chunk(data);
-	var geometry = chunk.createGeometry();
 		
 	var textureGrass = THREE.ImageUtils.loadTexture('img/minecraft/grass.png');
 	textureGrass.magFilter = THREE.NearestFilter;
@@ -140,18 +134,29 @@ function World() {
 		ambient: 0xbbbbbb
 	});
 	
-	self.generateMesh = function () {
+	var chunks = {};
+	function chunkAt(x, z) {
+		var existing = chunks[x + ',' + z];
+		if (existing) return existing;
+		
+		var data = generateHeight(x * 64, z * 64, 64, 64);
+		var chunk = new Chunk(data, x * 64, z * 64);
+		var geometry = chunk.createGeometry();
+		addMesh(geometry);
+		chunks[x + "," + z] = chunk;
+		return chunk;
+	}
+	
+	function addMesh(geometry) {
 		var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material1, material2]));
-		return mesh;
+		scene.add(mesh);
 	}
 	
 	self.y = function (x, z) {
-		var realX = x;
-		var realZ = z;
-		var chunkX = realX / 64 | 0;
-		var chunkZ = realZ / 64 | 0;
-		var localX = realX % 64 | 0;
-		var localZ = realZ % 64 | 0;
-		return chunk.y(realX | 0, realZ | 0);
+		var chunkX = x / 64 | 0;
+		var chunkZ = z / 64 | 0;
+		var localX = x % 64 | 0;
+		var localZ = z % 64 | 0;
+		return chunkAt(chunkX, chunkZ).y(localX, localZ);
 	}
 }
