@@ -1,26 +1,29 @@
 function World(scene) {
     var self = this;
 
+    var seed = Math.random() * 100;
     var perlin = new ImprovedNoise();
     function generateHeight(xs, zs, width, depth) {
         var data = [];
         var quality = 2;
-        var y = Math.random() * 100;
         
-        for (var x = xs; x < xs + width; x++) {
-            for (var z = zs; z < zs + depth; z++) {
-                data[x*width + z] = 0;
+        for (var x = 0; x < width; x++) {
+            for (var z = 0; z < depth; z++) {
+                data[x * width + z] = 0;
             }
         }
         
         for (var i = 0; i < 4; i++) {
-            for (var x = xs; x < xs + width; x++) {
-                for (var z = zs; z < zs + depth; z++) {
-                    data[x*width + z] = perlin.noise(x / quality, z/quality, y) * quality;
+            for (var x = 0; x < width; x++) {
+                for (var z = 0; z < depth; z++) {
+                    var xTemp = xs + (x * width + z) % width;
+                    var zTemp = zs + ((x * width + z) / width ) | 0;
+                    data[x * width + z] = perlin.noise(xTemp / quality, zTemp / quality, seed) * quality;
                 }
             }
             quality *= 4;
         }
+        console.log(data);
         return data;
     }
         
@@ -68,7 +71,7 @@ function World(scene) {
         var chunkZ = Math.floor(z / 64);
         var localX = mod(x, 64) | 0;
         var localZ = mod(z, 64) | 0;
-        console.log(x, z, chunkX, chunkZ);
+        //console.log(x, z, chunkX, chunkZ);
         return chunkAt(chunkX, chunkZ).y(localX, localZ);
     }
 }

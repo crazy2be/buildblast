@@ -43,7 +43,7 @@ var ImprovedNoise = function () {
 
 		noise: function (x, y, z) {
 
-			var floorX = ~~x, floorY = ~~y, floorZ = ~~z;
+			var floorX = Math.floor(x), floorY = Math.floor(y), floorZ = Math.floor(z);
 
 			var X = floorX & 255, Y = floorY & 255, Z = floorZ & 255;
 
