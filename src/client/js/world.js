@@ -26,7 +26,7 @@ function World(scene) {
         console.log(data);
         return data;
     }
-        
+    
     var textureGrass = THREE.ImageUtils.loadTexture('img/minecraft/grass.png');
     textureGrass.magFilter = THREE.NearestFilter;
     textureGrass.minFilter = THREE.LinearMipMapLinearFilter;
@@ -48,22 +48,21 @@ function World(scene) {
     function chunkAt(x, z) {
         var existing = chunks[x + ',' + z];
         if (existing) return existing;
-        
-        var data = generateHeight(x * 64, z * 64, 64, 64);
-        var chunk = new Chunk(data, x * 64, z * 64);
-        var geometry = chunk.createGeometry();
-        addMesh(geometry);
-        chunks[x + "," + z] = chunk;
-        return chunk;
-    }
-    
-    function addMesh(geometry) {
-        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material1, material2]));
-        scene.add(mesh);
+        else return self.loadChunk(x, z);
     }
     
     function mod(a, b) {
         return ((a % b) + b) % b;
+    }
+    
+    self.loadChunk = function (x, z) {
+        var data = generateHeight(x * 64, z * 64, 64, 64);
+        var chunk = new Chunk(data, x * 64, z * 64);
+        var geometry = chunk.createGeometry();
+        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material1, material2]));
+        scene.add(mesh);
+        chunks[x + "," + z] = chunk;
+        return chunk;
     }
     
     self.y = function (x, z) {

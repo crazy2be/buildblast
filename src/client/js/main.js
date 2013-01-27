@@ -2,6 +2,7 @@
     var container, stats;
 
     var camera, controls, scene, renderer;
+    container = document.getElementById('container');
 
     var mesh;
 
@@ -9,10 +10,13 @@
     var world;
 
     function init() {
-        container = document.getElementById('container');
         
         scene = new THREE.Scene();
         world = new World(scene);
+        world.loadChunk(0, 0);
+        world.loadChunk(-1, 0);
+        world.loadChunk(0, -1);
+        world.loadChunk(-1, -1);
         
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
         camera.position.y = world.y(0, 0) + 2;
@@ -59,6 +63,12 @@
         controls.handleResize();
     }
     
+    container.addEventListener('keydown', function (ev) {
+        if (ev.keyCode == 32) {
+            playerV = 3;
+        }
+    }, false);
+    
     function minMag(a, b) {
         return Math.abs(a) < Math.abs(b) ? a : b;
     }
@@ -75,7 +85,7 @@
             camera.translateY(y - p.y);
             playerV = 0;
         } else {
-            camera.translateY(minMag(y - p.y, playerV));
+            camera.translateY(Math.max(y - p.y, playerV));
             playerV += dt * -9.81;
         }
         

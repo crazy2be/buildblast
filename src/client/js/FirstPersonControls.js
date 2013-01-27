@@ -137,13 +137,12 @@ THREE.FirstPersonControls = function (object, domElement) {
         }
     };
 
-    this.update = function(delta) {
-        var actualMoveSpeed = delta * this.movementSpeed;
+    this.update = function(dt) {
+        var actualMoveSpeed = dt * this.movementSpeed;
 
         if (this.moveForward) {
             this.object.translateZ(-actualMoveSpeed);
         }
-        
         if (this.moveBackward) {
             this.object.translateZ(actualMoveSpeed);
         }
@@ -154,15 +153,8 @@ THREE.FirstPersonControls = function (object, domElement) {
         if (this.moveRight) {
             this.object.translateX(actualMoveSpeed);
         }
-
-        if (this.moveUp) {
-            this.object.translateY(actualMoveSpeed);
-        }
-        if (this.moveDown) {
-            this.object.translateY(- actualMoveSpeed);
-        }
-
-        var actualLookSpeed = delta * this.lookSpeed;
+        
+        var actualLookSpeed = dt * this.lookSpeed;
 
         this.lon += this.movementX * 20 * actualLookSpeed;
         
