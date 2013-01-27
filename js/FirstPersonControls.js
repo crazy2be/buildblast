@@ -50,98 +50,63 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 	this.viewHalfX = 0;
 	this.viewHalfY = 0;
 
-	if ( this.domElement !== document ) {
-
+	if (this.domElement !== document) {
 		this.domElement.setAttribute( 'tabindex', -1 );
-
 	}
 
-	//
-
 	this.handleResize = function () {
-
-		if ( this.domElement === document ) {
-
+		if (this.domElement === document) {
 			this.viewHalfX = window.innerWidth / 2;
 			this.viewHalfY = window.innerHeight / 2;
-
 		} else {
-
 			this.viewHalfX = this.domElement.offsetWidth / 2;
 			this.viewHalfY = this.domElement.offsetHeight / 2;
-
 		}
-
 	};
 
-	this.onMouseDown = function ( event ) {
-
-		if ( this.domElement !== document ) {
-
+	this.onMouseDown = function (event) {
+		if (this.domElement !== document) {
 			this.domElement.focus();
-
 		}
 
 		event.preventDefault();
 		event.stopPropagation();
 
-		if ( this.activeLook ) {
-
-			switch ( event.button ) {
-
+		if (this.activeLook) {
+			switch (event.button) {
 				case 0: this.moveForward = true; break;
 				case 2: this.moveBackward = true; break;
-
 			}
-
 		}
 
 		this.mouseDragOn = true;
-
 	};
 
 	this.onMouseUp = function ( event ) {
-
 		event.preventDefault();
 		event.stopPropagation();
-
+		
 		if ( this.activeLook ) {
-
 			switch ( event.button ) {
-
 				case 0: this.moveForward = false; break;
 				case 2: this.moveBackward = false; break;
-
 			}
-
 		}
-
 		this.mouseDragOn = false;
-
 	};
 
 	this.onMouseMove = function ( event ) {
-
 		if ( this.domElement === document ) {
-
 			this.mouseX = event.pageX - this.viewHalfX;
 			this.mouseY = event.pageY - this.viewHalfY;
-
 		} else {
-
 			this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
 			this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
-
 		}
-
 	};
 
 	this.onKeyDown = function ( event ) {
-
-		//event.preventDefault();
-
 		switch ( event.keyCode ) {
-
 			case 38: /*up*/
 			case 87: /*W*/ this.moveForward = true; break;
 
@@ -158,15 +123,11 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 			case 70: /*F*/ this.moveDown = true; break;
 
 			case 81: /*Q*/ this.freeze = !this.freeze; break;
-
 		}
-
 	};
 
 	this.onKeyUp = function ( event ) {
-
 		switch( event.keyCode ) {
-
 			case 38: /*up*/
 			case 87: /*W*/ this.moveForward = false; break;
 
@@ -181,30 +142,21 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 			case 82: /*R*/ this.moveUp = false; break;
 			case 70: /*F*/ this.moveDown = false; break;
-
 		}
-
 	};
 
-	this.update = function( delta ) {
-
-		if ( this.freeze ) {
-
+	this.update = function(delta) {
+		if (this.freeze) {
 			return;
-
 		}
 
-		if ( this.heightSpeed ) {
-
-			var y = THREE.Math.clamp( this.object.position.y, this.heightMin, this.heightMax );
+		if (this.heightSpeed) {
+			var y = THREE.Math.clamp(this.object.position.y, this.heightMin, this.heightMax);
 			var heightDelta = y - this.heightMin;
 
-			this.autoSpeedFactor = delta * ( heightDelta * this.heightCoef );
-
+			this.autoSpeedFactor = delta * (heightDelta * this.heightCoef);
 		} else {
-
 			this.autoSpeedFactor = 0.0;
-
 		}
 
 		var actualMoveSpeed = delta * this.movementSpeed;
@@ -221,17 +173,13 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 		var actualLookSpeed = delta * this.lookSpeed;
 
 		if ( !this.activeLook ) {
-
 			actualLookSpeed = 0;
-
 		}
 
 		var verticalLookRatio = 1;
 
 		if ( this.constrainVertical ) {
-
 			verticalLookRatio = Math.PI / ( this.verticalMax - this.verticalMin );
-
 		}
 
 		this.lon += this.mouseX * actualLookSpeed;
