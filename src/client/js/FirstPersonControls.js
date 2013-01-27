@@ -13,22 +13,12 @@ THREE.FirstPersonControls = function (object, domElement) {
     this.movementSpeed = 1.0;
     this.lookSpeed = 0.005;
 
-    this.lookVertical = true;
-    this.autoForward = false;
-    this.invertVertical = false;
-
-    this.activeLook = true;
-
-    this.heightSpeed = false;
     this.heightCoef = 1.0;
     this.heightMin = 0.0;
     this.heightMax = 1.0;
 
-    this.constrainVertical = true;
     this.verticalMin = -Math.PI * 0.9;
     this.verticalMax = Math.PI * 0.9;
-
-    this.autoSpeedFactor = 0.0;
 
     this.movementX = 0;
     this.movementY = 0;
@@ -69,7 +59,9 @@ THREE.FirstPersonControls = function (object, domElement) {
         this.domElement.requestPointerLock = this.domElement.requestPointerLock ||
                 this.domElement.mozRequestPointerLock ||
                 this.domElement.webkitRequestPointerLock;
-    } // TODO: Do something if they don't have it.
+    } else {
+        alert("You should probably use the latest Chrome or Firefox. Pointer lock is required");
+    }
 
     this.onMouseDown = function (event) {
         if (this.domElement !== document) {
@@ -126,11 +118,6 @@ THREE.FirstPersonControls = function (object, domElement) {
 
             case 39: /*right*/
             case 68: /*D*/ this.moveRight = true; break;
-
-            case 82: /*R*/ this.moveUp = true; break;
-            case 70: /*F*/ this.moveDown = true; break;
-
-            case 81: /*Q*/ this.freeze = !this.freeze; break;
         }
     };
 
@@ -147,31 +134,16 @@ THREE.FirstPersonControls = function (object, domElement) {
 
             case 39: /*right*/
             case 68: /*D*/ this.moveRight = false; break;
-
-            case 82: /*R*/ this.moveUp = false; break;
-            case 70: /*F*/ this.moveDown = false; break;
         }
     };
 
     this.update = function(delta) {
-        if (this.freeze) {
-            return;
-        }
-
-        if (this.heightSpeed) {
-            var y = THREE.Math.clamp(this.object.position.y, this.heightMin, this.heightMax);
-            var heightDelta = y - this.heightMin;
-
-            this.autoSpeedFactor = delta * (heightDelta * this.heightCoef);
-        } else {
-            this.autoSpeedFactor = 0.0;
-        }
-
         var actualMoveSpeed = delta * this.movementSpeed;
 
-        if (this.moveForward || (this.autoForward && !this.moveBackward)) {
-            this.object.translateZ(-(actualMoveSpeed + this.autoSpeedFactor));
+        if (this.moveForward) {
+            this.object.translateZ(-actualMoveSpeed);
         }
+        
         if (this.moveBackward) {
             this.object.translateZ(actualMoveSpeed);
         }
@@ -192,35 +164,22 @@ THREE.FirstPersonControls = function (object, domElement) {
 
         var actualLookSpeed = delta * this.lookSpeed;
 
-        if (!this.activeLook) {
-            actualLookSpeed = 0;
-        }
-
-        var verticalLookRatio = 1;
-
-        if (this.constrainVertical) {
-            verticalLookRatio = Math.PI / (this.verticalMax - this.verticalMin);
-        }
-
         this.lon += this.movementX * 20 * actualLookSpeed;
-        this.movementX = 0;
         
-        if (this.lookVertical) {
-            this.lat -= this.movementY * 20 * actualLookSpeed * verticalLookRatio;
-        }
+        var verticalLookRatio = Math.PI / (this.verticalMax - this.verticalMin);
+        this.lat -= this.movementY * 20 * actualLookSpeed * verticalLookRatio;
+        
+        this.movementX = 0;
         this.movementY = 0;
 
         this.lat = Math.max(-85, Math.min(85, this.lat));
         this.phi = THREE.Math.degToRad(90 - this.lat);
 
         this.theta = THREE.Math.degToRad(this.lon);
+        this.phi = THREE.Math.mapLinear(this.phi, 0, Math.PI, this.verticalMin, this.verticalMax);
 
-        if (this.constrainVertical) {
-            this.phi = THREE.Math.mapLinear(this.phi, 0, Math.PI, this.verticalMin, this.verticalMax);
-        }
-
-        var targetPosition = this.target,
-            position = this.object.position;
+        var targetPosition = this.target;
+        var position = this.object.position;
 
         targetPosition.x = position.x + 100 * Math.sin(this.phi) * Math.cos(this.theta);
         targetPosition.y = position.y + 100 * Math.cos(this.phi);
