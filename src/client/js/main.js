@@ -17,12 +17,12 @@
     function init() {
         container = document.getElementById('container');
         
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 20000);
-        camera.position.y = getY(worldHalfWidth, worldHalfDepth) * 100 + 100;
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
+        camera.position.y = getY(worldHalfWidth, worldHalfDepth) + 1;
         
         controls = new THREE.FirstPersonControls(camera, container);
         
-        controls.movementSpeed = 1000;
+        controls.movementSpeed = 10;
         controls.lookSpeed = 0.125;
         controls.lookVertical = true;
         controls.constrainVertical = true;
@@ -34,29 +34,29 @@
         
         var matrix = new THREE.Matrix4();
         
-        var pxGeometry = new THREE.PlaneGeometry(100, 100);
+        var pxGeometry = new THREE.PlaneGeometry(1, 1);
         pxGeometry.faces[0].materialIndex = 1;
         pxGeometry.applyMatrix(matrix.makeRotationY(Math.PI / 2));
-        pxGeometry.applyMatrix(matrix.makeTranslation(50, 0, 0));
+        pxGeometry.applyMatrix(matrix.makeTranslation(0.5, 0, 0));
         
-        var nxGeometry = new THREE.PlaneGeometry(100, 100);
+        var nxGeometry = new THREE.PlaneGeometry(1, 1);
         nxGeometry.faces[0].materialIndex = 1;
         nxGeometry.applyMatrix(matrix.makeRotationY(-Math.PI/2));
-        nxGeometry.applyMatrix(matrix.makeTranslation(-50, 0, 0));
+        nxGeometry.applyMatrix(matrix.makeTranslation(-0.5, 0, 0));
         
-        var pyGeometry = new THREE.PlaneGeometry(100, 100);
+        var pyGeometry = new THREE.PlaneGeometry(1, 1);
         pyGeometry.faces[0].materialIndex = 0;
         pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI/2));
-        pyGeometry.applyMatrix(matrix.makeTranslation(0, 50, 0));
+        pyGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0));
         
-        var pzGeometry = new THREE.PlaneGeometry(100, 100);
+        var pzGeometry = new THREE.PlaneGeometry(1, 1);
         pzGeometry.faces[0].materialIndex = 1;
-        pzGeometry.applyMatrix(matrix.makeTranslation(0, 0, 50));
+        pzGeometry.applyMatrix(matrix.makeTranslation(0, 0, 0.5));
         
-        var nzGeometry = new THREE.PlaneGeometry(100, 100);
+        var nzGeometry = new THREE.PlaneGeometry(1, 1);
         nzGeometry.faces[0].materialIndex = 1;
         nzGeometry.applyMatrix(matrix.makeRotationY(Math.PI));
-        nzGeometry.applyMatrix(matrix.makeTranslation(0, 0, -50));
+        nzGeometry.applyMatrix(matrix.makeTranslation(0, 0, -0.5));
         
         var geometry = new THREE.Geometry();
         var dummy = new THREE.Mesh();
@@ -65,9 +65,9 @@
             for (var x = 0; x < worldWidth; x++) {
                 var h = getY(x, z);
                 
-                dummy.position.x = x * 100 - worldHalfWidth * 100;
-                dummy.position.y = h * 100;
-                dummy.position.z = z * 100 - worldHalfDepth * 100;
+                dummy.position.x = x - worldHalfWidth;
+                dummy.position.y = h;
+                dummy.position.z = z - worldHalfDepth;
                 
                 var px = getY(x + 1, z);
                 var nx = getY(x - 1, z);
@@ -179,10 +179,10 @@
     }
     
     function getWorldY(x, z) {
-        var gx = (x + worldHalfWidth * 100) / 100 | 0;
-        var gz = (z + worldHalfDepth * 100) / 100 | 0;
+        var gx = (x + worldHalfWidth) | 0;
+        var gz = (z + worldHalfDepth) | 0;
         var gy = getY(gx, gz);
-        return gy * 100;
+        return gy;
     }
 
     function minMag(a, b) {
@@ -196,13 +196,13 @@
         controls.update(dt);
         
         var p = camera.position;
-        var y = getWorldY(p.x, p.z) + 200;
+        var y = getWorldY(p.x, p.z) + 2;
         if (p.y < y) {
             camera.translateY(y - p.y);
             playerV = 0;
         } else {
             camera.translateY(minMag(y - p.y, playerV));
-            playerV += dt * 10 * -9.81;
+            playerV += dt * -9.81;
         }
         
         renderer.render(scene, camera);
