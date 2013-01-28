@@ -116,15 +116,18 @@ THREE.FirstPersonControls = function (object, domElement) {
 
     this.onKeyDown = function (event) {
         switch (event.keyCode) {
+            case 188: /*comma*/
             case 38: /*up*/
             case 87: /*W*/ this.moveForward = true; break;
 
             case 37: /*left*/
             case 65: /*A*/ this.moveLeft = true; break;
 
+            case 79: /*O*/
             case 40: /*down*/
             case 83: /*S*/ this.moveBackward = true; break;
 
+            case 69: /*E*/
             case 39: /*right*/
             case 68: /*D*/ this.moveRight = true; break;
             
