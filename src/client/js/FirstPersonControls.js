@@ -32,7 +32,8 @@ THREE.FirstPersonControls = function (object, domElement) {
     this.moveBackward = false;
     this.moveLeft = false;
     this.moveRight = false;
-    this.freeze = false;
+    
+    var jumping = { pressed : false, released : true };
 
     this.viewHalfX = 0;
     this.viewHalfY = 0;
@@ -40,6 +41,14 @@ THREE.FirstPersonControls = function (object, domElement) {
     if (this.domElement !== document) {
         this.domElement.setAttribute('tabindex', -1);
     }
+    
+    this.isJumping = function () {
+        return jumping.pressed;
+    };
+    
+    this.jumped = function () {
+        jumping.pressed = false;
+    };
 
     this.handleResize = function () {
         if (this.domElement === document) {
@@ -118,6 +127,13 @@ THREE.FirstPersonControls = function (object, domElement) {
 
             case 39: /*right*/
             case 68: /*D*/ this.moveRight = true; break;
+            
+            case 32: /*space*/
+                if (jumping.released) {
+                    jumping.pressed = true;
+                    jumping.released = false;
+                }
+                break;
         }
     };
 
@@ -134,6 +150,8 @@ THREE.FirstPersonControls = function (object, domElement) {
 
             case 39: /*right*/
             case 68: /*D*/ this.moveRight = false; break;
+            
+            case 32: /*space*/ jumping.released = true; break;
         }
     };
 

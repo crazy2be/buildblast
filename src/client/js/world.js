@@ -23,7 +23,6 @@ function World(scene) {
             }
             quality *= 4;
         }
-        console.log(data);
         return data;
     }
     
@@ -70,7 +69,6 @@ function World(scene) {
         var chunkZ = Math.floor(z / 64);
         var localX = mod(x, 64) | 0;
         var localZ = mod(z, 64) | 0;
-        //console.log(x, z, chunkX, chunkZ);
         return chunkAt(chunkX, chunkZ).y(localX, localZ);
     }
 }
