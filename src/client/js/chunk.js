@@ -8,12 +8,12 @@ var Chunk = (function () {
     
     var nxGeometry = new THREE.PlaneGeometry(1, 1);
     nxGeometry.faces[0].materialIndex = 1;
-    nxGeometry.applyMatrix(matrix.makeRotationY(-Math.PI/2));
+    nxGeometry.applyMatrix(matrix.makeRotationY(-Math.PI / 2));
     nxGeometry.applyMatrix(matrix.makeTranslation(-0.5, 0, 0));
     
     var pyGeometry = new THREE.PlaneGeometry(1, 1);
     pyGeometry.faces[0].materialIndex = 0;
-    pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI/2));
+    pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
     pyGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0));
     
     var pzGeometry = new THREE.PlaneGeometry(1, 1);
@@ -34,7 +34,7 @@ var Chunk = (function () {
         var self = this;
         
         function getY(x, z) {
-            return (data[x + z*CHUNK_WIDTH] * 0.2) | 0;
+            return (data[x + z * CHUNK_WIDTH] * 0.2) | 0;
         }
         
         function addBlockGeometry(geometry, dummy, x, z) {
@@ -52,22 +52,22 @@ var Chunk = (function () {
             dummy.geometry = pyGeometry;
             THREE.GeometryUtils.merge(geometry, dummy);
             
-            if ((px != h && px != h + 1) || x == 0) {
+            if ((px == h - 1) || x == CHUNK_WIDTH - 1) {
                 dummy.geometry = pxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
             
-            if ((nx != h && nx != h + 1) || x == CHUNK_WIDTH - 1) {
+            if ((nx == h - 1) || x == 0) {
                 dummy.geometry = nxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
             
-            if ((pz != h && pz != h + 1) || z == CHUNK_DEPTH - 1) {
+            if ((pz == h - 1) || z == CHUNK_DEPTH - 1) {
                 dummy.geometry = pzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
             
-            if ((nz != h && nz != h + 1) || z == 0) {
+            if ((nz == h - 1) || z == 0) {
                 dummy.geometry = nzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }    
