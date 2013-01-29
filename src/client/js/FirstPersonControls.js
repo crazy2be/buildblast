@@ -137,6 +137,8 @@ THREE.FirstPersonControls = function (object, domElement) {
                     jumping.released = false;
                 }
                 break;
+            default:
+                console.log("Warning: Unrecognized keyCode: " + event.keyCode);
         }
     };
 
