@@ -3,41 +3,49 @@ function World(scene) {
 
     var seed = Math.random() * 100;
     var perlin = new ImprovedNoise();
-    function generateHeight(xs, zs, width, depth) {
-        var data = [];
+    function generateHeightMap(xs, zs, width, depth) {
+        var heightMap = [];
         var quality = 2;
         
         for (var x = 0; x < width; x++) {
+            heightMap[x] = [];
             for (var z = 0; z < depth; z++) {
-                data[x * width + z] = 0;
+                heightMap[x][z] = 0;
             }
         }
         
         for (var i = 0; i < 4; i++) {
             for (var x = 0; x < width; x++) {
                 for (var z = 0; z < depth; z++) {
-                    var xTemp = xs + (x * width + z) % width;
-                    var zTemp = zs + ((x * width + z) / width ) | 0;
-                    data[x * width + z] = perlin.noise(xTemp / quality, zTemp / quality, seed) * quality;
+                    var wx = xs + x;
+                    var wz = zs + z;
+                    heightMap[x][z] = perlin.noise(wx / quality, wz / quality, seed) * quality;
                 }
             }
             quality *= 4;
         }
-        return data;
+        
+        for (var x = 0; x < width; x++) {
+            for (var z = 0; z < depth; z++) {
+                heightMap[x][z] *= 0.2;
+            }
+        }
+        return heightMap;
     }
     
     function generateChunk(cx, cy, cz) {
-        var data = generateHeight(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH);
+        var heightMap = generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH);
+        
         var blocks = [];
-        for (var x = 0; x < CHUNK_WIDTH; x++) {
-            blocks[x] = [];
-            for (var y = 0; y < CHUNK_HEIGHT; y++) {
-                blocks[x][y] = [];
-                for (var z = 0; z < CHUNK_HEIGHT; z++) {
-                    if (data[x + z * CHUNK_WIDTH] * 0.2 > y + cy*CHUNK_HEIGHT) {
-                        blocks[x][y][z] = {type: 'dirt'};
+        for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
+            blocks[ox] = [];
+            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
+                blocks[ox][oy] = [];
+                for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
+                    if (heightMap[ox][oz] > oy + cy*CHUNK_HEIGHT) {
+                        blocks[ox][oy][oz] = {type: 'dirt'};
                     } else {
-                        blocks[x][y][z] = {type: 'air'};
+                        blocks[ox][oy][oz] = {type: 'air'};
                     }
                 }
             }
@@ -53,11 +61,11 @@ function World(scene) {
     textureGrassDirt.magFilter = THREE.NearestFilter;
     textureGrassDirt.minFilter = THREE.LinearMipMapLinearFilter;
     
-    var material1 = new THREE.MeshLambertMaterial({
+    var material0 = new THREE.MeshLambertMaterial({
         map: textureGrass,
         ambient: 0xbbbbbb
     });
-    var material2 = new THREE.MeshLambertMaterial({
+    var material1 = new THREE.MeshLambertMaterial({
         map: textureGrassDirt,
         ambient: 0xbbbbbb
     });
@@ -76,18 +84,21 @@ function World(scene) {
     self.loadChunk = function (cx, cy, cz) {
         var chunk = generateChunk(cx, cy, cz);
         var geometry = chunk.createGeometry();
-        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material1, material2]));
+        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
         scene.add(mesh);
         chunks[cx + "," + cy + "," + cz] = chunk;
         return chunk;
     }
     
-    self.y = function (x, y, z) {
-        var cx = Math.floor(x / CHUNK_WIDTH);
-        var cy = Math.floor(y / CHUNK_HEIGHT);
-        var cz = Math.floor(z / CHUNK_DEPTH);
-        var ox = mod(x, CHUNK_WIDTH);
-        var oz = mod(z, CHUNK_DEPTH);
-        return chunkAt(cx, cy, cz).y(ox, oz);
+    self.y = function (wx, wy, wz) {
+        var cx = Math.floor(wx / CHUNK_WIDTH);
+        var cy = Math.floor(wy / CHUNK_HEIGHT);
+        var cz = Math.floor(wz / CHUNK_DEPTH);
+        var ox = mod(wx, CHUNK_WIDTH);
+        var oz = mod(wz, CHUNK_DEPTH);
+        
+        var chunk = chunkAt(cx, cy, cz);
+        var oy = chunk.y(ox, oz);
+        return oy;
     }
 }

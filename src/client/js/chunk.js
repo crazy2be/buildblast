@@ -43,19 +43,19 @@ var Chunk = (function () {
             }
         }
         
-        function addBlockGeometry(geometry, dummy, x, y, z) {
-            dummy.position.x = x + cx*CHUNK_WIDTH;
-            dummy.position.y = y + cy*CHUNK_HEIGHT;
-            dummy.position.z = z + cz*CHUNK_DEPTH;
+        function addBlockGeometry(geometry, dummy, ox, oy, oz) {
+            dummy.position.x = ox + cx*CHUNK_WIDTH;
+            dummy.position.y = oy + cy*CHUNK_HEIGHT;
+            dummy.position.z = oz + cz*CHUNK_DEPTH;
             
-            if (block(x, y, z).type == 'air') return;
+            if (block(ox, oy, oz).type == 'air') return;
             
-            var px = block(x + 1, y, z);
-            var nx = block(x - 1, y, z);
-            var pz = block(x, y, z + 1);
-            var nz = block(x, y, z - 1);
-            var py = block(x, y + 1, z);
-            var ny = block(x, y - 1, z);
+            var px = block(ox + 1, oy, oz);
+            var nx = block(ox - 1, oy, oz);
+            var pz = block(ox, oy, oz + 1);
+            var nz = block(ox, oy, oz - 1);
+            var py = block(ox, oy + 1, oz);
+            var ny = block(ox, oy - 1, oz);
             
             if (py.type != 'dirt') {
                 dummy.geometry = pyGeometry;
@@ -83,20 +83,20 @@ var Chunk = (function () {
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
             
-            for (var x = 0; x < CHUNK_WIDTH; x++) {
-                for (var y = 0; y < CHUNK_HEIGHT; y++) {
-                    for (var z = 0; z < CHUNK_DEPTH; z++) {
-                        addBlockGeometry(geometry, dummy, x, y, z);
+            for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
+                for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
+                    for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
+                        addBlockGeometry(geometry, dummy, ox, oy, oz);
                     }
                 }
             }
             return geometry;
         }
         
-        self.y = function (x, z) {
-            for (var y = 0; y < CHUNK_HEIGHT; y++) {
-                if (block(x, y, z).type == 'air') {
-                    return y + 1;
+        self.y = function (ox, oz) {
+            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
+                if (block(ox, oy, oz).type == 'air') {
+                    return oy + 1;
                 }
             }
         }
