@@ -14,13 +14,13 @@
     function init() {
         scene = new THREE.Scene();
         world = new World(scene);
-        world.loadChunk(0, 0);
-        world.loadChunk(-1, 0);
-        world.loadChunk(0, -1);
-        world.loadChunk(-1, -1);
+        world.loadChunk(0, 0, 0);
+        world.loadChunk(-1, 0, 0);
+        world.loadChunk(0, 0, -1);
+        world.loadChunk(-1, 0, -1);
         
         var position = {};
-        position.y = world.y(0, 0) + 2;
+        position.y = world.y(0, 0, 0) + 2;
         position.x = 0;
         position.z = 0;
         

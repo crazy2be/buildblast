@@ -163,6 +163,7 @@ THREE.FirstPersonControls = function (object, domElement) {
         }
     };
 
+    var info = document.getElementById('info');
     this.update = function(dt) {
         var actualMoveSpeed = dt * this.movementSpeed;
 
@@ -204,6 +205,12 @@ THREE.FirstPersonControls = function (object, domElement) {
         targetPosition.z = position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
 
         this.object.lookAt(targetPosition);
+        var p = this.object.position;
+        info.innerHTML = JSON.stringify({
+            x: round(p.x, 2),
+            y: round(p.y, 2),
+            z: round(p.z, 2)
+        });
     };
 
     document.addEventListener('pointerlockchange', bind(this, this.onPointerLockChange), false);
@@ -222,6 +229,11 @@ THREE.FirstPersonControls = function (object, domElement) {
             fn.apply(scope, arguments);
         };
     };
+    
+    function round(n, digits) {
+        var factor = Math.pow(10, digits);
+        return Math.round(n * factor) / factor;
+    }
 
     this.handleResize();
 };

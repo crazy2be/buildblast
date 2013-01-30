@@ -26,6 +26,25 @@ function World(scene) {
         return data;
     }
     
+    function generateChunk(cx, cy, cz) {
+        var data = generateHeight(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH);
+        var blocks = [];
+        for (var x = 0; x < CHUNK_WIDTH; x++) {
+            blocks[x] = [];
+            for (var y = 0; y < CHUNK_HEIGHT; y++) {
+                blocks[x][y] = [];
+                for (var z = 0; z < CHUNK_HEIGHT; z++) {
+                    if (data[x + z * CHUNK_WIDTH] * 0.2 > y + cy*CHUNK_HEIGHT) {
+                        blocks[x][y][z] = {type: 'dirt'};
+                    } else {
+                        blocks[x][y][z] = {type: 'air'};
+                    }
+                }
+            }
+        }
+        return new Chunk(blocks, cx, cy, cz);
+    }
+    
     var textureGrass = THREE.ImageUtils.loadTexture('img/minecraft/grass.png');
     textureGrass.magFilter = THREE.NearestFilter;
     textureGrass.minFilter = THREE.LinearMipMapLinearFilter;
@@ -44,31 +63,31 @@ function World(scene) {
     });
     
     var chunks = {};
-    function chunkAt(x, z) {
-        var existing = chunks[x + ',' + z];
+    function chunkAt(cx, cy, cz) {
+        var existing = chunks[cx + ',' + cy + ',' + cz];
         if (existing) return existing;
-        else return self.loadChunk(x, z);
+        else return self.loadChunk(cx, cy, cz);
     }
     
     function mod(a, b) {
-        return ((a % b) + b) % b;
+        return (((a % b) + b) % b) | 0;
     }
     
-    self.loadChunk = function (x, z) {
-        var data = generateHeight(x * 64, z * 64, 64, 64);
-        var chunk = new Chunk(data, x * 64, z * 64);
+    self.loadChunk = function (cx, cy, cz) {
+        var chunk = generateChunk(cx, cy, cz);
         var geometry = chunk.createGeometry();
         var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material1, material2]));
         scene.add(mesh);
-        chunks[x + "," + z] = chunk;
+        chunks[cx + "," + cy + "," + cz] = chunk;
         return chunk;
     }
     
-    self.y = function (x, z) {
-        var chunkX = Math.floor(x / 64);
-        var chunkZ = Math.floor(z / 64);
-        var localX = mod(x, 64) | 0;
-        var localZ = mod(z, 64) | 0;
-        return chunkAt(chunkX, chunkZ).y(localX, localZ);
+    self.y = function (x, y, z) {
+        var cx = Math.floor(x / CHUNK_WIDTH);
+        var cy = Math.floor(y / CHUNK_HEIGHT);
+        var cz = Math.floor(z / CHUNK_DEPTH);
+        var ox = mod(x, CHUNK_WIDTH);
+        var oz = mod(z, CHUNK_DEPTH);
+        return chunkAt(cx, cy, cz).y(ox, oz);
     }
 }
