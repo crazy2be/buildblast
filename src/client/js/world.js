@@ -43,9 +43,9 @@ function World(scene) {
                 blocks[ox][oy] = [];
                 for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
                     if (heightMap[ox][oz] > oy + cy*CHUNK_HEIGHT) {
-                        blocks[ox][oy][oz] = {type: 'dirt'};
+                        blocks[ox][oy][oz] = new Block(Block.DIRT);
                     } else {
-                        blocks[ox][oy][oz] = {type: 'air'};
+                        blocks[ox][oy][oz] = new Block(Block.AIR);
                     }
                 }
             }
@@ -90,7 +90,8 @@ function World(scene) {
         var oz = mod(wz, CHUNK_DEPTH);
         
         var chunk = chunkAt(cx, cy, cz);
-        if (chunk.blockAt(ox, oy, oz).type == 'air') {
+        var block;
+        if (chunk.blockAt(ox, oy, oz).isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
                 if (oy-- < 0) {
@@ -98,11 +99,12 @@ function World(scene) {
                     cy--;
                     chunk = chunkAt(cx, cy, cz);
                 }
-                if (chunk.blockAt(ox, oy, oz).type == 'dirt') {
+                block = chunk.blockAt(ox, oy, oz);
+                if (block && block.isType(Block.DIRT)) {
                     return oy + cy * CHUNK_HEIGHT;
                 }
             }
-        } else if (chunk.blockAt(ox, oy, oz).type == 'dirt') {
+        } else if (chunk.blockAt(ox, oy, oz).isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
                 if (oy++ >= CHUNK_HEIGHT) {
@@ -110,7 +112,8 @@ function World(scene) {
                     cy++;
                     chunk = chunkAt(cx, cy, cz);
                 }
-                if (chunk.blockAt(ox, oy, oz).type == 'air') {
+                block = chunk.blockAt(ox, oy, oz);
+                if (block && block.isType(Block.AIR)) {
                     return oy - 1 + cy * CHUNK_HEIGHT;
                 }
             }

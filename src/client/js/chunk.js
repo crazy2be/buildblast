@@ -38,9 +38,8 @@ var Chunk = (function () {
         function block(ox, oy, oz) {
             if (blocks[ox] && blocks[ox][oy] && blocks[ox][oy][oz]) {
                 return blocks[ox][oy][oz];
-            } else {
-                return {};
             }
+            return null;
         }
         
         function addBlockGeometry(geometry, dummy, ox, oy, oz) {
@@ -48,7 +47,7 @@ var Chunk = (function () {
             dummy.position.y = oy + cy*CHUNK_HEIGHT;
             dummy.position.z = oz + cz*CHUNK_DEPTH;
             
-            if (block(ox, oy, oz).type == 'air') return;
+            if (block(ox, oy, oz).isType(Block.AIR)) return;
             
             var px = block(ox + 1, oy, oz);
             var nx = block(ox - 1, oy, oz);
@@ -57,23 +56,23 @@ var Chunk = (function () {
             var py = block(ox, oy + 1, oz);
             var ny = block(ox, oy - 1, oz);
             
-            if (py.type != 'dirt') {
+            if (py && !py.isType(Block.DIRT)) {
                 dummy.geometry = pyGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (px.type == 'air') {
+            if (px && px.isType(Block.AIR)) {
                 dummy.geometry = pxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nx.type == 'air') {
+            if (nx && nx.isType(Block.AIR)) {
                 dummy.geometry = nxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (pz.type == 'air') {
+            if (pz && pz.isType(Block.AIR)) {
                 dummy.geometry = pzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nz.type == 'air') {
+            if (nz && nz.isType(Block.AIR)) {
                 dummy.geometry = nzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }    
