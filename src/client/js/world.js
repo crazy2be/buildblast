@@ -2,56 +2,6 @@ function World(scene) {
     var self = this;
 
     var seed = Math.random() * 100;
-    var perlin = new ImprovedNoise();
-    function generateHeightMap(xs, zs, width, depth) {
-        var heightMap = [];
-        var quality = 2;
-        
-        for (var x = 0; x < width; x++) {
-            heightMap[x] = [];
-            for (var z = 0; z < depth; z++) {
-                heightMap[x][z] = 0;
-            }
-        }
-        
-        for (var i = 0; i < 4; i++) {
-            for (var x = 0; x < width; x++) {
-                for (var z = 0; z < depth; z++) {
-                    var wx = xs + x;
-                    var wz = zs + z;
-                    heightMap[x][z] = perlin.noise(wx / quality, wz / quality, seed) * quality;
-                }
-            }
-            quality *= 4;
-        }
-        
-        for (var x = 0; x < width; x++) {
-            for (var z = 0; z < depth; z++) {
-                heightMap[x][z] *= 0.2;
-            }
-        }
-        return heightMap;
-    }
-    
-    function generateChunk(cx, cy, cz) {
-        var heightMap = generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH);
-        
-        var blocks = [];
-        for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
-            blocks[ox] = [];
-            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
-                blocks[ox][oy] = [];
-                for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
-                    if (heightMap[ox][oz] > oy + cy*CHUNK_HEIGHT) {
-                        blocks[ox][oy][oz] = new Block(Block.DIRT);
-                    } else {
-                        blocks[ox][oy][oz] = new Block(Block.AIR);
-                    }
-                }
-            }
-        }
-        return new Chunk(blocks, cx, cy, cz);
-    }
     
     var material0 = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
@@ -73,7 +23,7 @@ function World(scene) {
     }
     
     self.loadChunk = function (cx, cy, cz) {
-        var chunk = generateChunk(cx, cy, cz);
+        var chunk = Chunk.generateChunk(cx, cy, cz, seed);
         var geometry = chunk.createGeometry();
         var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
         scene.add(mesh);
