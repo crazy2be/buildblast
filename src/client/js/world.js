@@ -43,9 +43,9 @@ function World(scene) {
                 blocks[ox][oy] = [];
                 for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
                     if (heightMap[ox][oz] > oy + cy*CHUNK_HEIGHT) {
-                        blocks[ox][oy][oz] = {type: 'dirt'};
+                        blocks[ox][oy][oz] = new Block(Block.DIRT);
                     } else {
-                        blocks[ox][oy][oz] = {type: 'air'};
+                        blocks[ox][oy][oz] = new Block(Block.AIR);
                     }
                 }
             }
