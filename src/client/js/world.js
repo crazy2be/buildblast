@@ -53,21 +53,12 @@ function World(scene) {
         return new Chunk(blocks, cx, cy, cz);
     }
     
-    var textureGrass = THREE.ImageUtils.loadTexture('img/minecraft/grass.png');
-    textureGrass.magFilter = THREE.NearestFilter;
-    textureGrass.minFilter = THREE.LinearMipMapLinearFilter;
-    
-    var textureGrassDirt = THREE.ImageUtils.loadTexture('img/minecraft/grass_dirt.png');
-    textureGrassDirt.magFilter = THREE.NearestFilter;
-    textureGrassDirt.minFilter = THREE.LinearMipMapLinearFilter;
-    
-    var material0 = new THREE.MeshLambertMaterial({
-        map: textureGrass,
-        ambient: 0xbbbbbb
+    var material0 = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: true
     });
-    var material1 = new THREE.MeshLambertMaterial({
-        map: textureGrassDirt,
-        ambient: 0xbbbbbb
+    var material1 = new THREE.MeshBasicMaterial({
+        color: 0xA52A2A
     });
     
     var chunks = {};
