@@ -93,12 +93,8 @@ var Chunk = (function () {
             return geometry;
         }
         
-        self.y = function (ox, oz) {
-            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
-                if (block(ox, oy, oz).type == 'air') {
-                    return oy + 1;
-                }
-            }
+        self.blockAt = function (ox, oy, oz) {
+            return block(ox, oy, oz);
         }
     }
 }());

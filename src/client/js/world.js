@@ -81,15 +81,41 @@ function World(scene) {
         return chunk;
     }
     
-    self.y = function (wx, wy, wz) {
+    self.findClosestGround = function (wx, wy, wz) {
         var cx = Math.floor(wx / CHUNK_WIDTH);
         var cy = Math.floor(wy / CHUNK_HEIGHT);
         var cz = Math.floor(wz / CHUNK_DEPTH);
         var ox = mod(wx, CHUNK_WIDTH);
+        var oy = mod(wy, CHUNK_HEIGHT);
         var oz = mod(wz, CHUNK_DEPTH);
         
         var chunk = chunkAt(cx, cy, cz);
-        var oy = chunk.y(ox, oz);
-        return oy;
+        if (chunk.blockAt(ox, oy, oz).type == 'air') {
+            // Try and find ground below
+            while (true) {
+                if (oy-- < 0) {
+                    oy = CHUNK_HEIGHT;
+                    cy--;
+                    chunk = chunkAt(cx, cy, cz);
+                }
+                if (chunk.blockAt(ox, oy, oz).type == 'dirt') {
+                    return oy + cy * CHUNK_HEIGHT;
+                }
+            }
+        } else if (chunk.blockAt(ox, oy, oz).type == 'dirt') {
+            // Try and find air above
+            while (true) {
+                if (oy++ >= CHUNK_HEIGHT) {
+                    oy = 0;
+                    cy++;
+                    chunk = chunkAt(cx, cy, cz);
+                }
+                if (chunk.blockAt(ox, oy, oz).type == 'air') {
+                    return oy - 1 + cy * CHUNK_HEIGHT;
+                }
+            }
+        } else {
+            throw "findClosestGround only knows how to deal with ground and air blocks.";
+        }
     }
 }
