@@ -47,7 +47,6 @@ function World(scene) {
         var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
         cube.position = position;
         scene.add(cube);
-        console.log("Done", position);
     }
     
     self.loadChunk = function (cx, cy, cz) {
