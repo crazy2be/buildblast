@@ -20,7 +20,7 @@
         world.loadChunk(-1, 0, -1);
         
         var position = {};
-        position.y = world.findClosestGround(0, 0, 0) + 2;
+        position.y = world.findClosestGround(0, 0, 0);
         position.x = 0;
         position.z = 0;
         

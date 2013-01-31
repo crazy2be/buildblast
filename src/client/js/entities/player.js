@@ -28,7 +28,7 @@ var Player = function (position, world, container) {
         controls.update(dt);
         
         var p = camera.position;
-        var y = world.findClosestGround(p.x, p.y, p.z) + 3;
+        var y = world.findClosestGround(p.x, p.y, p.z) + 2;
         
         if (p.y < y) {
             camera.translateY(y - p.y);
