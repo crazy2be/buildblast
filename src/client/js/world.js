@@ -27,8 +27,7 @@ function World(scene) {
     
     function displayChunk(chunk) {
         if (chunk.isDisplayed()) return;
-        var geometry = chunk.createGeometry();
-        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
+        var mesh = chunk.createMesh(new THREE.MeshFaceMaterial([material0, material1]));
         scene.add(mesh);
     }
     
@@ -40,8 +39,24 @@ function World(scene) {
         return seed;
     }
     
+    self.getChunks = function () {
+        return chunks;
+    }
+    
+    self.addItem = function (position) {
+        var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
+        cube.position = position;
+        scene.add(cube);
+        console.log("Done", position);
+    }
+    
     self.loadChunk = function (cx, cy, cz) {
         var chunk = chunkAt(cx, cy, cz, true);
+    }
+    
+    self.unloadChunk = function (cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz, false);
+        chunk.remove(scene);
     }
     
     self.blockAt = function (wx, wy, wz) {

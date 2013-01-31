@@ -7,7 +7,7 @@ var Player = function (position, world, container) {
     camera.position.x = position.x;
     camera.position.z = position.z;
         
-    var controls = new THREE.FirstPersonControls(camera, container);
+    var controls = new THREE.FirstPersonControls(world, camera, container);
     controls.movementSpeed = 10;
     controls.lookSpeed = 0.125;
     controls.lookVertical = true;

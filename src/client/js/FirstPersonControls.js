@@ -4,9 +4,12 @@
  * @author paulirish / http://paulirish.com/
  */
 
-THREE.FirstPersonControls = function (object, domElement) {
+THREE.FirstPersonControls = function (world, object, domElement) {
+    this.world = world;
     this.object = object;
     this.target = new THREE.Vector3(0, 0, 0);
+
+    this.projector = new THREE.Projector();
 
     this.domElement = (domElement !== undefined) ? domElement : document;
 
@@ -81,6 +84,18 @@ THREE.FirstPersonControls = function (object, domElement) {
         event.stopPropagation();
         
         this.domElement.requestPointerLock();
+        
+        var vector = new THREE.Vector3(0, 0, 0);
+        this.projector.unprojectVector(vector, this.object);
+        var raycaster = new THREE.Raycaster(this.object.position, vector.sub(this.object.position).normalize());
+        for (var key in this.world.getChunks()) {
+            var chunk = this.world.getChunks()[key];
+            var intersects = raycaster.intersectObject(chunk.getMesh());
+            if (intersects.length > 0) {
+                this.world.addItem(intersects[0].point);
+                return;
+            }
+        }
     };
 
     this.onMouseUp = function (event) {

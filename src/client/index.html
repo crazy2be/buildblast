@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>three.js webgl - geometry - minecraft</title>
+        <title>BuildShoot</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <style>
@@ -33,11 +33,22 @@
                 margin-top:10em !important;
             }
             #oldie a { color:#fff }
-
+            
+            div#xHair {
+                position: absolute;
+                -moz-border-radius: 5px;
+                -webkit-border-radius: 5px;
+                border-radius: 5px;
+                border: solid 2px #000000;
+                width: 5px;
+                height: 5px;
+                top: 50%;
+                left: 50%;
+            }
         </style>
     </head>
     <body>
-
+        <div id="xHair"></div>
         <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
         <div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - <a href="http://www.minecraft.net/" target="_blank">minecraft</a> demo. featuring <a href="http://painterlypack.net/" target="_blank">painterly pack</a></div>
 

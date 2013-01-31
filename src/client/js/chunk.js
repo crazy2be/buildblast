@@ -34,6 +34,7 @@ var Chunk = (function () {
     function Chunk(world, blocks, cx, cy, cz) {
         var self = this;
         var isDisplayed = false;
+        var mesh;
         
         // Offset relative to chunk
         function block(ox, oy, oz) {
@@ -86,7 +87,7 @@ var Chunk = (function () {
             return isDisplayed;
         }
         
-        self.createGeometry = function () {
+        self.createMesh = function (material) {
             isDisplayed = true;
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
@@ -98,7 +99,17 @@ var Chunk = (function () {
                     }
                 }
             }
-            return geometry;
+            mesh = new THREE.Mesh(geometry, material);
+            return mesh;
+        }
+        
+        self.getMesh = function () {
+            return mesh;
+        }
+        
+        self.remove = function (scene) {
+            scene.remove(mesh);
+            isDisplayed = false;
         }
         
         self.blockAt = function (ox, oy, oz) {
