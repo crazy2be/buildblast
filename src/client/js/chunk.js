@@ -54,30 +54,41 @@ var Chunk = (function () {
             
             if (world.blockAt(wx, wy, wz).isType(Block.AIR)) return;
             
-            var px = world.blockAt(wx + 1, wy, wz);
-            var nx = world.blockAt(wx - 1, wy, wz);
-            var pz = world.blockAt(wx, wy, wz + 1);
-            var nz = world.blockAt(wx, wy, wz - 1);
-            var py = world.blockAt(wx, wy + 1, wz);
-            var ny = world.blockAt(wx, wy - 1, wz);
+            var px = block(ox + 1, oy, oz);
+            if (!px) px = world.blockAt(wx + 1, wy, wz);
             
-            if (py && !py.isType(Block.DIRT)) {
+            var nx = block(ox - 1, oy, oz);
+            if (!nx) nx = world.blockAt(wx - 1, wy, wz);
+            
+            var pz = block(ox, oy, oz + 1);
+            if (!pz) pz = world.blockAt(wx, wy, wz + 1);
+            
+            var nz = block(ox, oy, oz - 1);
+            if (!nz) nz = world.blockAt(wx, wy, wz - 1);
+            
+            var py = block(ox, oy + 1, oz);
+            if (!py) py = world.blockAt(wx, wy + 1, wz);
+            
+            var ny = block(ox, oy - 1, oz);
+            if (!ny) ny = world.blockAt(wx, wy - 1, wz);
+            
+            if (!py.isType(Block.DIRT)) {
                 dummy.geometry = pyGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (px && px.isType(Block.AIR)) {
+            if (px.isType(Block.AIR)) {
                 dummy.geometry = pxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nx && nx.isType(Block.AIR)) {
+            if (nx.isType(Block.AIR)) {
                 dummy.geometry = nxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (pz && pz.isType(Block.AIR)) {
+            if (pz.isType(Block.AIR)) {
                 dummy.geometry = pzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nz && nz.isType(Block.AIR)) {
+            if (nz.isType(Block.AIR)) {
                 dummy.geometry = nzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }    
