@@ -1,3 +1,6 @@
+// This variable exists only so we can test running things
+// on world from the console. Code should never use this!
+var WORLD;
 (function () {
     var container, stats;
 
@@ -6,14 +9,15 @@
     container = document.getElementById('container');
 
     var mesh;
+    var world;
 
     var clock = new THREE.Clock();
-    var world;
     var player;
 
     function init() {
         scene = new THREE.Scene();
         world = new World(scene);
+        WORLD = world;
         world.loadChunk(0, 0, 0);
         world.loadChunk(-1, 0, 0);
         world.loadChunk(0, 0, -1);

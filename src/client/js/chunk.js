@@ -29,6 +29,14 @@ var Chunk = (function () {
     nzGeometry.applyMatrix(matrix.makeRotationY(Math.PI));
     nzGeometry.applyMatrix(matrix.makeTranslation(0, 0, -0.5));
     
+    var material0 = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: true
+    });
+    var material1 = new THREE.MeshBasicMaterial({
+        color: 0xA52A2A
+    });
+    
     return Chunk;
     
     function Chunk(world, blocks, cx, cy, cz) {
@@ -110,7 +118,7 @@ var Chunk = (function () {
                     }
                 }
             }
-            mesh = new THREE.Mesh(geometry, material);
+            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
             return mesh;
         }
         

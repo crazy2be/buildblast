@@ -1,66 +1,44 @@
-/**
- * @author mrdoob / http://mrdoob.com/
- * @author alteredq / http://alteredqualia.com/
- * @author paulirish / http://paulirish.com/
- */
+function FirstPersonControls(world, camera, element) {
+    var self = this;
+    
+    var target = new THREE.Vector3(0, 0, 0);
+    var projector = new THREE.Projector();
 
-THREE.FirstPersonControls = function (world, object, domElement) {
-    this.world = world;
-    this.object = object;
-    this.target = new THREE.Vector3(0, 0, 0);
+    var movementSpeed = 10;
+    var lookSpeed = 0.125;
 
-    this.projector = new THREE.Projector();
+    var verticalMin = -Math.PI * 0.9;
+    var verticalMax = Math.PI * 0.9;
 
-    this.domElement = (domElement !== undefined) ? domElement : document;
+    var movementX = 0;
+    var movementY = 0;
 
-    this.movementSpeed = 1.0;
-    this.lookSpeed = 0.005;
+    var lat = -45;
+    var lon = 0;
+    var phi = 0;
+    var theta = 0;
 
-    this.heightCoef = 1.0;
-    this.heightMin = 0.0;
-    this.heightMax = 1.0;
-
-    this.verticalMin = -Math.PI * 0.9;
-    this.verticalMax = Math.PI * 0.9;
-
-    this.movementX = 0;
-    this.movementY = 0;
-
-    this.lat = -45;
-    this.lon = 0;
-    this.phi = 0;
-    this.theta = 0;
-
-    this.moveForward = false;
-    this.moveBackward = false;
-    this.moveLeft = false;
-    this.moveRight = false;
+    var movingForward = false;
+    var movingBack = false;
+    var movingLeft = false;
+    var movingRight = false;
     
     var jumping = { pressed : false, released : true };
 
-    this.viewHalfX = 0;
-    this.viewHalfY = 0;
-
-    if (this.domElement !== document) {
-        this.domElement.setAttribute('tabindex', -1);
-    }
+    var viewHalfX = 0;
+    var viewHalfY = 0;
     
-    this.isJumping = function () {
+    self.isJumping = function () {
         return jumping.pressed;
     };
     
-    this.jumped = function () {
+    self.jumped = function () {
         jumping.pressed = false;
     };
 
-    this.handleResize = function () {
-        if (this.domElement === document) {
-            this.viewHalfX = window.innerWidth / 2;
-            this.viewHalfY = window.innerHeight / 2;
-        } else {
-            this.viewHalfX = this.domElement.offsetWidth / 2;
-            this.viewHalfY = this.domElement.offsetHeight / 2;
-        }
+    self.handleResize = function () {
+        viewHalfX = element.offsetWidth / 2;
+        viewHalfY = element.offsetHeight / 2;
     };
     
     var havePointerLock = 'pointerLockElement' in document ||
@@ -68,83 +46,79 @@ THREE.FirstPersonControls = function (world, object, domElement) {
             'webkitPointerLockElement' in document;
     
     if (havePointerLock) {
-        this.domElement.requestPointerLock = this.domElement.requestPointerLock ||
-                this.domElement.mozRequestPointerLock ||
-                this.domElement.webkitRequestPointerLock;
+        element.requestPointerLock = element.requestPointerLock ||
+                element.mozRequestPointerLock ||
+                element.webkitRequestPointerLock;
     } else {
         alert("You should probably use the latest Chrome or Firefox. Pointer lock is required");
     }
 
-    this.onMouseDown = function (event) {
-        if (this.domElement !== document) {
-            this.domElement.focus();
-        }
+    function mouseDown(event) {
+        element.focus();
 
         event.preventDefault();
         event.stopPropagation();
         
-        this.domElement.requestPointerLock();
+        element.requestPointerLock();
         
         var vector = new THREE.Vector3(0, 0, 0);
-        this.projector.unprojectVector(vector, this.object);
-        var raycaster = new THREE.Raycaster(this.object.position, vector.sub(this.object.position).normalize());
-        for (var key in this.world.getChunks()) {
-            var chunk = this.world.getChunks()[key];
+        projector.unprojectVector(vector, camera);
+        var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        for (var key in world.getChunks()) {
+            var chunk = world.getChunks()[key];
             var intersects = raycaster.intersectObject(chunk.getMesh());
             if (intersects.length > 0) {
-                this.world.addItem(intersects[0].point);
+                world.addItem(intersects[0].point);
                 return;
             }
         }
     };
 
-    this.onMouseUp = function (event) {
+    function mouseUp(event) {
         event.preventDefault();
         event.stopPropagation();
         // TODO: Add use for this?
     };
 
-    this.onMouseMove = function (event) {
-        this.movementX += event.movementX ||
+    function mouseMove(event) {
+        movementX += event.movementX ||
                 event.mozMovementX        ||
                 event.webkitMovementX     ||
                 0;
-        this.movementY += event.movementY ||
+        movementY += event.movementY ||
                 event.mozMovementY        ||
                 event.webkitMovementY     ||
                 0;
     };
     
-    this.mouseMoveFunction = bind(this, this.onMouseMove);
-    
-    this.onPointerLockChange = function () {
-        if (document.pointerLockElement === this.domElement ||
-                document.mozPointerLockElement === this.domElement ||
-                document.webkitPointerLockElement === this.domElement) {
+    function pointerLockChange() {
+        if (document.pointerLockElement === element ||
+                document.mozPointerLockElement === element ||
+                document.webkitPointerLockElement === element) {
             // Pointer was just locked, enable the mousemove listener
-            this.domElement.addEventListener('mousemove', this.mouseMoveFunction, false);
+            element.addEventListener('mousemove', mouseMove, false);
         } else {
             // Pointer was just unlocked, disable the mousemove listener
-            this.domElement.removeEventListener('mousemove', this.mouseMoveFunction, false);
+            element.removeEventListener('mousemove', mouseMove, false);
         }
     };
 
-    this.onKeyDown = function (event) {
+    function keyDown(event) {
         switch (event.keyCode) {
             case 188: /*comma*/
             case 38: /*up*/
-            case 87: /*W*/ this.moveForward = true; break;
+            case 87: /*W*/ movingForward = true; break;
 
             case 37: /*left*/
-            case 65: /*A*/ this.moveLeft = true; break;
+            case 65: /*A*/ movingLeft = true; break;
 
             case 79: /*O*/
             case 40: /*down*/
-            case 83: /*S*/ this.moveBackward = true; break;
+            case 83: /*S*/ movingBack = true; break;
 
             case 69: /*E*/
             case 39: /*right*/
-            case 68: /*D*/ this.moveRight = true; break;
+            case 68: /*D*/ movingRight = true; break;
             
             case 32: /*space*/
                 if (jumping.released) {
@@ -157,70 +131,63 @@ THREE.FirstPersonControls = function (world, object, domElement) {
         }
     };
 
-    this.onKeyUp = function (event) {
+    function keyUp(event) {
         switch(event.keyCode) {
             case 188: /*comma*/
             case 38: /*up*/
-            case 87: /*W*/ this.moveForward = false; break;
+            case 87: /*W*/ movingForward = false; break;
 
             case 37: /*left*/
-            case 65: /*A*/ this.moveLeft = false; break;
+            case 65: /*A*/ movingLeft = false; break;
 
             case 79: /*O*/
             case 40: /*down*/
-            case 83: /*S*/ this.moveBackward = false; break;
+            case 83: /*S*/ movingBack = false; break;
 
             case 69: /*E*/
             case 39: /*right*/
-            case 68: /*D*/ this.moveRight = false; break;
+            case 68: /*D*/ movingRight = false; break;
             
             case 32: /*space*/ jumping.released = true; break;
         }
     };
 
     var info = document.getElementById('info');
-    this.update = function(dt) {
-        var actualMoveSpeed = dt * this.movementSpeed;
+    self.update = function(dt) {
+        var ds = dt * movementSpeed;
 
-        if (this.moveForward) {
-            this.object.translateZ(-actualMoveSpeed);
-        }
-        if (this.moveBackward) {
-            this.object.translateZ(actualMoveSpeed);
-        }
+        if (movingForward) camera.translateZ(-ds);
+        if (movingBack) camera.translateZ(ds);
 
-        if (this.moveLeft) {
-            this.object.translateX(-actualMoveSpeed);
-        }
-        if (this.moveRight) {
-            this.object.translateX(actualMoveSpeed);
-        }
+        if (movingLeft) camera.translateX(-ds);
+        if (movingRight) camera.translateX(ds);
         
-        var actualLookSpeed = dt * this.lookSpeed;
-
-        this.lon += this.movementX * 20 * actualLookSpeed;
         
-        var verticalLookRatio = Math.PI / (this.verticalMax - this.verticalMin);
-        this.lat -= this.movementY * 20 * actualLookSpeed * verticalLookRatio;
+        var actualLookSpeed = dt * lookSpeed;
+
+        lon += movementX * 20 * actualLookSpeed;
         
-        this.movementX = 0;
-        this.movementY = 0;
+        var verticalLookRatio = Math.PI / (verticalMax - verticalMin);
+        lat -= movementY * 20 * actualLookSpeed * verticalLookRatio;
+        
+        movementX = 0;
+        movementY = 0;
 
-        this.lat = Math.max(-85, Math.min(85, this.lat));
-        this.phi = THREE.Math.degToRad(90 - this.lat);
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.Math.degToRad(90 - lat);
 
-        this.theta = THREE.Math.degToRad(this.lon);
-        this.phi = THREE.Math.mapLinear(this.phi, 0, Math.PI, this.verticalMin, this.verticalMax);
+        theta = THREE.Math.degToRad(lon);
+        phi = THREE.Math.mapLinear(phi, 0, Math.PI, verticalMin, verticalMax);
 
-        var targetPosition = this.target;
-        var position = this.object.position;
+        var targetPosition = target;
+        var position = camera.position;
 
-        targetPosition.x = position.x + 100 * Math.sin(this.phi) * Math.cos(this.theta);
-        targetPosition.y = position.y + 100 * Math.cos(this.phi);
-        targetPosition.z = position.z + 100 * Math.sin(this.phi) * Math.sin(this.theta);
+        targetPosition.x = position.x + 100 * Math.sin(phi) * Math.cos(theta);
+        targetPosition.y = position.y + 100 * Math.cos(phi);
+        targetPosition.z = position.z + 100 * Math.sin(phi) * Math.sin(theta);
 
-        this.object.lookAt(targetPosition);
-        var p = this.object.position;
+        camera.lookAt(targetPosition);
+        var p = camera.position;
         info.innerHTML = JSON.stringify({
             x: round(p.x, 2),
             y: round(p.y, 2),
@@ -228,27 +195,24 @@ THREE.FirstPersonControls = function (world, object, domElement) {
         });
     };
 
-    document.addEventListener('pointerlockchange', bind(this, this.onPointerLockChange), false);
-    document.addEventListener('mozpointerlockchange', bind(this, this.onPointerLockChange), false);
-    document.addEventListener('webkitpointerlockchange', bind(this, this.onPointerLockChange), false); 
+    document.addEventListener('pointerlockchange', pointerLockChange, false);
+    document.addEventListener('mozpointerlockchange', pointerLockChange, false);
+    document.addEventListener('webkitpointerlockchange', pointerLockChange, false); 
 
-    this.domElement.addEventListener('contextmenu', function (event) { event.preventDefault(); }, false);
     
-    this.domElement.addEventListener('mousedown', bind(this, this.onMouseDown), false);
-    this.domElement.addEventListener('mouseup', bind(this, this.onMouseUp), false);
-    this.domElement.addEventListener('keydown', bind(this, this.onKeyDown), false);
-    this.domElement.addEventListener('keyup', bind(this, this.onKeyUp), false);
-
-    function bind(scope, fn) {
-        return function () {
-            fn.apply(scope, arguments);
-        };
-    };
+    element.tabIndex = "-1";
+    element.addEventListener('contextmenu', function (event) { 
+        event.preventDefault();
+    }, false);
+    element.addEventListener('mousedown', mouseDown, false);
+    element.addEventListener('mouseup', mouseUp, false);
+    element.addEventListener('keydown', keyDown, false);
+    element.addEventListener('keyup', keyUp, false);
     
     function round(n, digits) {
         var factor = Math.pow(10, digits);
         return Math.round(n * factor) / factor;
     }
 
-    this.handleResize();
+    self.handleResize();
 };

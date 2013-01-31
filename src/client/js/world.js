@@ -3,32 +3,28 @@ function World(scene) {
 
     var seed = Math.random() * 100;
     
-    var material0 = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: true
-    });
-    var material1 = new THREE.MeshBasicMaterial({
-        color: 0xA52A2A
-    });
-    
     var chunks = {};
     
-    function chunkAt(cx, cy, cz, display) {
+    function chunkAt(cx, cy, cz) {
         var chunk = chunks[cx + ',' + cy + ',' + cz];
+        return chunk;
+    }
+    
+    function loadChunk(cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz);
         if (!chunk) {
             chunk = Chunk.generateChunk(cx, cy, cz, self);
             chunks[cx + "," + cy + "," + cz] = chunk;
         }
-        if (display) {
-            displayChunk(chunk);
-        }
         return chunk;
     }
     
-    function displayChunk(chunk) {
-        if (chunk.isDisplayed()) return;
-        var mesh = chunk.createMesh(new THREE.MeshFaceMaterial([material0, material1]));
+    function displayChunk(cx, cy, cz) {
+        var chunk = loadChunk(cx, cy, cz);
+        if (chunk.isDisplayed()) return chunk;
+        var mesh = chunk.createMesh();
         scene.add(mesh);
+        return chunk;
     }
     
     function mod(a, b) {
@@ -50,11 +46,11 @@ function World(scene) {
     }
     
     self.loadChunk = function (cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz, true);
+        displayChunk(cx, cy, cz);
     }
     
-    self.unloadChunk = function (cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz, false);
+    self.hideChunk = function (cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz);
         chunk.remove(scene);
     }
     
@@ -66,7 +62,8 @@ function World(scene) {
         var oy = mod(wy, CHUNK_HEIGHT);
         var oz = mod(wz, CHUNK_DEPTH);
         
-        return chunkAt(cx, cy, cz, false).blockAt(ox, oy, oz);
+        var chunk = loadChunk(cx, cy, cz);
+        return chunk.blockAt(ox, oy, oz);
     }
     
     self.findClosestGround = function (wx, wy, wz) {
@@ -77,7 +74,7 @@ function World(scene) {
         var oy = mod(wy, CHUNK_HEIGHT);
         var oz = mod(wz, CHUNK_DEPTH);
         
-        var chunk = chunkAt(cx, cy, cz, true);
+        var chunk = displayChunk(cx, cy, cz);
         var block;
         if (chunk.blockAt(ox, oy, oz).isType(Block.AIR)) {
             // Try and find ground below
@@ -85,7 +82,7 @@ function World(scene) {
                 if (oy-- < 0) {
                     oy = CHUNK_HEIGHT;
                     cy--;
-                    chunk = chunkAt(cx, cy, cz, true);
+                    chunk = displayChunk(cx, cy, cz);
                 }
                 block = chunk.blockAt(ox, oy, oz);
                 if (block && block.isType(Block.DIRT)) {
@@ -98,7 +95,7 @@ function World(scene) {
                 if (oy++ >= CHUNK_HEIGHT) {
                     oy = 0;
                     cy++;
-                    chunk = chunkAt(cx, cy, cz, true);
+                    chunk = displayChunk(cx, cy, cz);
                 }
                 block = chunk.blockAt(ox, oy, oz);
                 if (block && block.isType(Block.AIR)) {

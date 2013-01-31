@@ -7,12 +7,7 @@ var Player = function (position, world, container) {
     camera.position.x = position.x;
     camera.position.z = position.z;
         
-    var controls = new THREE.FirstPersonControls(world, camera, container);
-    controls.movementSpeed = 10;
-    controls.lookSpeed = 0.125;
-    controls.lookVertical = true;
-    controls.constrainVertical = true;
-    controls.heightSpeed = 1;
+    var controls = new FirstPersonControls(world, camera, container);
     
     this.getHeight = function () {
         return height;
