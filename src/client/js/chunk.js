@@ -31,8 +31,9 @@ var Chunk = (function () {
     
     return Chunk;
     
-    function Chunk(blocks, cx, cy, cz) {
+    function Chunk(world, blocks, cx, cy, cz) {
         var self = this;
+        var isDisplayed = false;
         
         // Offset relative to chunk
         function block(ox, oy, oz) {
@@ -43,18 +44,21 @@ var Chunk = (function () {
         }
         
         function addBlockGeometry(geometry, dummy, ox, oy, oz) {
-            dummy.position.x = ox + cx*CHUNK_WIDTH;
-            dummy.position.y = oy + cy*CHUNK_HEIGHT;
-            dummy.position.z = oz + cz*CHUNK_DEPTH;
+            var wx = ox + cx*CHUNK_WIDTH;
+            var wy = oy + cy*CHUNK_HEIGHT;
+            var wz = oz + cz*CHUNK_DEPTH;
+            dummy.position.x = wx;
+            dummy.position.y = wy;
+            dummy.position.z = wz;
             
-            if (block(ox, oy, oz).isType(Block.AIR)) return;
+            if (world.blockAt(wx, wy, wz).isType(Block.AIR)) return;
             
-            var px = block(ox + 1, oy, oz);
-            var nx = block(ox - 1, oy, oz);
-            var pz = block(ox, oy, oz + 1);
-            var nz = block(ox, oy, oz - 1);
-            var py = block(ox, oy + 1, oz);
-            var ny = block(ox, oy - 1, oz);
+            var px = world.blockAt(wx + 1, wy, wz);
+            var nx = world.blockAt(wx - 1, wy, wz);
+            var pz = world.blockAt(wx, wy, wz + 1);
+            var nz = world.blockAt(wx, wy, wz - 1);
+            var py = world.blockAt(wx, wy + 1, wz);
+            var ny = world.blockAt(wx, wy - 1, wz);
             
             if (py && !py.isType(Block.DIRT)) {
                 dummy.geometry = pyGeometry;
@@ -78,7 +82,12 @@ var Chunk = (function () {
             }    
         }
         
+        self.isDisplayed = function () {
+            return isDisplayed;
+        }
+        
         self.createGeometry = function () {
+            isDisplayed = true;
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
             
@@ -98,8 +107,8 @@ var Chunk = (function () {
     }
 }());
 
-Chunk.generateChunk = function(cx, cy, cz, seed) {
-    var heightMap = Generator.generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, seed);
+Chunk.generateChunk = function(cx, cy, cz, world) {
+    var heightMap = Generator.generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, world.getSeed());
 
     var blocks = [];
     for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
@@ -115,6 +124,6 @@ Chunk.generateChunk = function(cx, cy, cz, seed) {
             }
         }
     }
-    return new Chunk(blocks, cx, cy, cz);
+    return new Chunk(world, blocks, cx, cy, cz);
 }
 

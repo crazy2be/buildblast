@@ -12,23 +12,47 @@ function World(scene) {
     });
     
     var chunks = {};
-    function chunkAt(cx, cy, cz) {
-        var existing = chunks[cx + ',' + cy + ',' + cz];
-        if (existing) return existing;
-        else return self.loadChunk(cx, cy, cz);
+    
+    function chunkAt(cx, cy, cz, display) {
+        var chunk = chunks[cx + ',' + cy + ',' + cz];
+        if (!chunk) {
+            chunk = Chunk.generateChunk(cx, cy, cz, self);
+            chunks[cx + "," + cy + "," + cz] = chunk;
+        }
+        if (display) {
+            displayChunk(chunk);
+        }
+        return chunk;
+    }
+    
+    function displayChunk(chunk) {
+        if (chunk.isDisplayed()) return;
+        var geometry = chunk.createGeometry();
+        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
+        scene.add(mesh);
     }
     
     function mod(a, b) {
         return (((a % b) + b) % b) | 0;
     }
     
+    self.getSeed = function () {
+        return seed;
+    }
+    
     self.loadChunk = function (cx, cy, cz) {
-        var chunk = Chunk.generateChunk(cx, cy, cz, seed);
-        var geometry = chunk.createGeometry();
-        var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
-        scene.add(mesh);
-        chunks[cx + "," + cy + "," + cz] = chunk;
-        return chunk;
+        var chunk = chunkAt(cx, cy, cz, true);
+    }
+    
+    self.blockAt = function (wx, wy, wz) {
+        var cx = Math.floor(wx / CHUNK_WIDTH);
+        var cy = Math.floor(wy / CHUNK_HEIGHT);
+        var cz = Math.floor(wz / CHUNK_DEPTH);
+        var ox = mod(wx, CHUNK_WIDTH);
+        var oy = mod(wy, CHUNK_HEIGHT);
+        var oz = mod(wz, CHUNK_DEPTH);
+        
+        return chunkAt(cx, cy, cz, false).blockAt(ox, oy, oz);
     }
     
     self.findClosestGround = function (wx, wy, wz) {
@@ -39,7 +63,7 @@ function World(scene) {
         var oy = mod(wy, CHUNK_HEIGHT);
         var oz = mod(wz, CHUNK_DEPTH);
         
-        var chunk = chunkAt(cx, cy, cz);
+        var chunk = chunkAt(cx, cy, cz, true);
         var block;
         if (chunk.blockAt(ox, oy, oz).isType(Block.AIR)) {
             // Try and find ground below
@@ -47,7 +71,7 @@ function World(scene) {
                 if (oy-- < 0) {
                     oy = CHUNK_HEIGHT;
                     cy--;
-                    chunk = chunkAt(cx, cy, cz);
+                    chunk = chunkAt(cx, cy, cz, true);
                 }
                 block = chunk.blockAt(ox, oy, oz);
                 if (block && block.isType(Block.DIRT)) {
@@ -60,7 +84,7 @@ function World(scene) {
                 if (oy++ >= CHUNK_HEIGHT) {
                     oy = 0;
                     cy++;
-                    chunk = chunkAt(cx, cy, cz);
+                    chunk = chunkAt(cx, cy, cz, true);
                 }
                 block = chunk.blockAt(ox, oy, oz);
                 if (block && block.isType(Block.AIR)) {
