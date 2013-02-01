@@ -140,6 +140,11 @@ var Chunk = (function () {
             scene.remove(mesh);
             isDisplayed = false;
         }
+
+        self.refresh = function (scene) {
+            self.removeFrom(scene);
+            self.addTo(scene);
+        }
         
         self.blockAt = function (ox, oy, oz) {
             return block(ox, oy, oz);

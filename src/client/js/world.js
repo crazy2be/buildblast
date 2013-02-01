@@ -180,7 +180,6 @@ function World(scene) {
         if (!block) throw "Cannot find block within chunk!";
         block.setType(Block.AIR);
         
-        chunk.removeFrom(scene);
-        chunk.addTo(scene);
+        chunk.refresh(scene);
     }
 }

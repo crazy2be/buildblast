@@ -128,11 +128,11 @@ function FirstPersonControls(world, camera, element) {
                     jumping.released = false;
                 }
                 break;
-            
+            case 49: /*1*/
             case 55: // 1 on prgmr dvorak
                 select('gun');
                 break;
-                
+            case 50: /*2*/
             case 219: // 2 on prgmr dvorak
                 select('shovel');
                 break;
