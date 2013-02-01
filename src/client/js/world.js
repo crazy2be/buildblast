@@ -54,9 +54,9 @@ function World(scene) {
         var cx = Math.floor(wx / CHUNK_WIDTH);
         var cy = Math.floor(wy / CHUNK_HEIGHT);
         var cz = Math.floor(wz / CHUNK_DEPTH);
-        var ox = mod(wx, CHUNK_WIDTH) | 0;
-        var oy = mod(wy, CHUNK_HEIGHT) | 0;
-        var oz = mod(wz, CHUNK_DEPTH) | 0;
+        var ox = Math.floor(mod(wx, CHUNK_WIDTH));
+        var oy = Math.floor(mod(wy, CHUNK_HEIGHT));
+        var oz = Math.floor(mod(wz, CHUNK_DEPTH));
         
         var chunk = loadChunk(cx, cy, cz);
         var block = chunk.blockAt(ox, oy, oz);
@@ -68,9 +68,9 @@ function World(scene) {
         var cx = Math.floor(wx / CHUNK_WIDTH);
         var cy = Math.floor(wy / CHUNK_HEIGHT);
         var cz = Math.floor(wz / CHUNK_DEPTH);
-        var ox = mod(wx, CHUNK_WIDTH) | 0;
-        var oy = mod(wy, CHUNK_HEIGHT) | 0;
-        var oz = mod(wz, CHUNK_DEPTH) | 0;
+        var ox = Math.floor(mod(wx, CHUNK_WIDTH));
+        var oy = Math.floor(mod(wy, CHUNK_HEIGHT));
+        var oz = Math.floor(mod(wz, CHUNK_DEPTH));
         
         var chunk = displayChunk(cx, cy, cz);
         var block;
@@ -109,7 +109,9 @@ function World(scene) {
         var vector = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(vector, camera);
-        var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        vector.sub(camera.position).normalize();
+        
+        var raycaster = new THREE.Raycaster(camera.position, vector);
         for (var key in chunks) {
             var chunk = chunks[key];
             var intersects = raycaster.intersectObject(chunk.getMesh());
@@ -130,26 +132,33 @@ function World(scene) {
             return self.blockAt(x, y, z);
         }
         
-        if (abs(x % 0.5) < 0.001) {
+        if (onFace(x)) {
             if (b(x + 0.5, y, z).isType(Block.DIRT)) {
                 removeBlock(x + 0.5, y, z);
             } else {
                 removeBlock(x - 0.5, y, z);
             }
-        } else if (abs(y % 0.5) < 0.001) {
+        } else if (onFace(y)) {
             if (b(x, y + 0.5, z).isType(Block.DIRT)) {
                 removeBlock(x, y + 0.5, z);
             } else {
                 removeBlock(x, y - 0.5, z);
             }
-        } else {
+        } else if (onFace(z)) {
             if (b(x, y, z + 0.5).isType(Block.DIRT)) {
                 removeBlock(x, y, z + 0.5);
             } else {
                 removeBlock(x, y, z - 0.5);
             }
+        } else {
+            console.log("Could not find looked at block!");
         }
         console.log(p);
+    }
+    
+    function onFace(n) {
+        if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001) return true;
+        else return false;
     }
     
     function abs(n) {
@@ -160,9 +169,9 @@ function World(scene) {
         var cx = Math.floor(wx / CHUNK_WIDTH);
         var cy = Math.floor(wy / CHUNK_HEIGHT);
         var cz = Math.floor(wz / CHUNK_DEPTH);
-        var ox = mod(wx, CHUNK_WIDTH) + 0.5 | 0;
-        var oy = mod(wy, CHUNK_HEIGHT) + 0.5 | 0;
-        var oz = mod(wz, CHUNK_DEPTH) + 0.5 | 0;
+        var ox = Math.floor(mod(wx, CHUNK_WIDTH));
+        var oy = Math.floor(mod(wy, CHUNK_HEIGHT));
+        var oz = Math.floor(mod(wz, CHUNK_DEPTH));
         
         console.log("Would remove block at ", wx, wy, wz, cx, cy, cz, ox, oy, oz);
         var chunk = chunkAt(cx, cy, cz);

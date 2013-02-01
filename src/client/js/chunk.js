@@ -8,26 +8,31 @@ var Chunk = (function () {
     var pxGeometry = new THREE.PlaneGeometry(1, 1);
     pxGeometry.faces[0].materialIndex = 1;
     pxGeometry.applyMatrix(matrix.makeRotationY(Math.PI / 2));
-    pxGeometry.applyMatrix(matrix.makeTranslation(0.5, 0, 0));
+    pxGeometry.applyMatrix(matrix.makeTranslation(1, 0.5, 0.5));
     
     var nxGeometry = new THREE.PlaneGeometry(1, 1);
     nxGeometry.faces[0].materialIndex = 1;
     nxGeometry.applyMatrix(matrix.makeRotationY(-Math.PI / 2));
-    nxGeometry.applyMatrix(matrix.makeTranslation(-0.5, 0, 0));
+    nxGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0.5));
     
     var pyGeometry = new THREE.PlaneGeometry(1, 1);
     pyGeometry.faces[0].materialIndex = 0;
     pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
-    pyGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0));
+    pyGeometry.applyMatrix(matrix.makeTranslation(0.5, 1, 0.5));
+    
+    var nyGeometry = new THREE.PlaneGeometry(1, 1);
+    nyGeometry.faces[0].materialIndex = 0;
+    nyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
+    nyGeometry.applyMatrix(matrix.makeTranslation(0.5, 0, 0.5));
     
     var pzGeometry = new THREE.PlaneGeometry(1, 1);
     pzGeometry.faces[0].materialIndex = 1;
-    pzGeometry.applyMatrix(matrix.makeTranslation(0, 0, 0.5));
+    pzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 1));
     
     var nzGeometry = new THREE.PlaneGeometry(1, 1);
     nzGeometry.faces[0].materialIndex = 1;
     nzGeometry.applyMatrix(matrix.makeRotationY(Math.PI));
-    nzGeometry.applyMatrix(matrix.makeTranslation(0, 0, -0.5));
+    nzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 0));
     
     var material0 = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
@@ -80,8 +85,12 @@ var Chunk = (function () {
             var ny = block(ox, oy - 1, oz);
             if (!ny) ny = world.blockAt(wx, wy - 1, wz);
             
-            if (!py.isType(Block.DIRT)) {
+            if (py.isType(Block.AIR)) {
                 dummy.geometry = pyGeometry;
+                THREE.GeometryUtils.merge(geometry, dummy);
+            }
+            if (ny.isType(Block.AIR)) {
+                dummy.geometry = nyGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
             if (px.isType(Block.AIR)) {
