@@ -2,7 +2,6 @@ function FirstPersonControls(world, camera, element) {
     var self = this;
     
     var target = new THREE.Vector3(0, 0, 0);
-    var projector = new THREE.Projector();
 
     var movementSpeed = 10;
     var lookSpeed = 0.125;
@@ -27,6 +26,8 @@ function FirstPersonControls(world, camera, element) {
 
     var viewHalfX = 0;
     var viewHalfY = 0;
+    
+    var selectedItem = 'gun';
     
     self.isJumping = function () {
         return jumping.pressed;
@@ -61,16 +62,13 @@ function FirstPersonControls(world, camera, element) {
         
         element.requestPointerLock();
         
-        var vector = new THREE.Vector3(0, 0, 0);
-        projector.unprojectVector(vector, camera);
-        var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-        for (var key in world.getChunks()) {
-            var chunk = world.getChunks()[key];
-            var intersects = raycaster.intersectObject(chunk.getMesh());
-            if (intersects.length > 0) {
-                world.addItem(intersects[0].point);
-                return;
-            }
+        if (selectedItem == 'gun') {
+            var point = world.findWorldIntersection(camera);
+            if (point) world.addSmallCube(point);
+        } else if (selectedItem == 'shovel') {
+            world.removeLookedAtBlock(camera);
+        } else {
+            throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
         }
     };
 
@@ -90,6 +88,10 @@ function FirstPersonControls(world, camera, element) {
                 event.webkitMovementY     ||
                 0;
     };
+    
+    function select(item) {
+        selectedItem = item;
+    }
     
     function pointerLockChange() {
         if (document.pointerLockElement === element ||
@@ -126,6 +128,15 @@ function FirstPersonControls(world, camera, element) {
                     jumping.released = false;
                 }
                 break;
+            
+            case 55: // 1 on prgmr dvorak
+                select('gun');
+                break;
+                
+            case 219: // 2 on prgmr dvorak
+                select('shovel');
+                break;
+                
             default:
                 console.log("Warning: Unrecognized keyCode: " + event.keyCode);
         }

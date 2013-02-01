@@ -106,8 +106,7 @@ var Chunk = (function () {
             return isDisplayed;
         }
         
-        self.createMesh = function (material) {
-            isDisplayed = true;
+        self.addTo = function (scene) {
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
             
@@ -119,14 +118,16 @@ var Chunk = (function () {
                 }
             }
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
-            return mesh;
+            scene.add(mesh);
+            isDisplayed = true;
+            return self;
         }
         
         self.getMesh = function () {
             return mesh;
         }
         
-        self.remove = function (scene) {
+        self.removeFrom = function (scene) {
             scene.remove(mesh);
             isDisplayed = false;
         }
