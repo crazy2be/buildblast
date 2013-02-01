@@ -157,7 +157,7 @@ function World(scene) {
     }
     
     function onFace(n) {
-        if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001) return true;
+        if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001 || abs(n % 1 + 1) < 0.001) return true;
         else return false;
     }
     
