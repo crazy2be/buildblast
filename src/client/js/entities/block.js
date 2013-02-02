@@ -1,17 +1,17 @@
 function Block(type) {
     var self = this;
-    var m_type = type;
+    self.type = type;
 
     self.getType = function () {
-        return m_type;
+        return self.type;
     }
     
     self.setType = function (newType) {
-        m_type = newType;
+        self.type = newType;
     }
 
     self.isType = function (type) {
-        return m_type == type;
+        return self.type == type;
     }
 }
 

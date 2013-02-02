@@ -1,6 +1,6 @@
-var CHUNK_WIDTH = 32;
-var CHUNK_DEPTH = 32;
-var CHUNK_HEIGHT = 32;
+var CHUNK_WIDTH = 16;
+var CHUNK_DEPTH = 16;
+var CHUNK_HEIGHT = 16;
 
 var Chunk = (function () {
     var matrix = new THREE.Matrix4();
@@ -80,6 +80,13 @@ var Chunk = (function () {
         var mesh;
         var wireMesh;
         
+        var nxc;
+        var pxc;
+        var nyc;
+        var pyc;
+        var nzc;
+        var pzc;
+        
         // Offset relative to chunk
         function block(ox, oy, oz) {
             if (blocks[ox] && blocks[ox][oy] && blocks[ox][oy][oz]) {
@@ -96,25 +103,25 @@ var Chunk = (function () {
             dummy.position.y = wy;
             dummy.position.z = wz;
             
-            if (world.blockAt(wx, wy, wz).isType(Block.AIR)) return;
+            if (block(ox, oy, oz).isType(Block.AIR)) return;
             
             var px = block(ox + 1, oy, oz);
-            if (!px) px = world.blockAt(wx + 1, wy, wz);
+            if (!px) px = pxc.blockAt(0, oy, oz);
             
             var nx = block(ox - 1, oy, oz);
-            if (!nx) nx = world.blockAt(wx - 1, wy, wz);
+            if (!nx) nx = nxc.blockAt(CHUNK_WIDTH - 1, oy, oz);
             
             var pz = block(ox, oy, oz + 1);
-            if (!pz) pz = world.blockAt(wx, wy, wz + 1);
+            if (!pz) pz = pzc.blockAt(ox, oy, 0);
             
             var nz = block(ox, oy, oz - 1);
-            if (!nz) nz = world.blockAt(wx, wy, wz - 1);
+            if (!nz) nz = nzc.blockAt(ox, oy, CHUNK_DEPTH - 1);
             
             var py = block(ox, oy + 1, oz);
-            if (!py) py = world.blockAt(wx, wy + 1, wz);
+            if (!py) py = pyc.blockAt(ox, 0, oz);
             
             var ny = block(ox, oy - 1, oz);
-            if (!ny) ny = world.blockAt(wx, wy - 1, wz);
+            if (!ny) ny = nyc.blockAt(ox, CHUNK_HEIGHT - 1, oz);
             
             if (py.isType(Block.AIR)) {
                 dummy.geometry = pyGeometry;
@@ -150,6 +157,13 @@ var Chunk = (function () {
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
             
+            if (!nxc) nxc = world.createChunk(cx - 1, cy, cz);
+            if (!pxc) pxc = world.createChunk(cx + 1, cy, cz);
+            if (!nyc) nyc = world.createChunk(cx, cy - 1, cz);
+            if (!pyc) pyc = world.createChunk(cx, cy + 1, cz);
+            if (!nzc) nzc = world.createChunk(cx, cy, cz - 1);
+            if (!pzc) pzc = world.createChunk(cx, cy, cz + 1);
+            
             for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
                 for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
                     for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
@@ -181,8 +195,8 @@ var Chunk = (function () {
             self.addTo(scene);
         }
         
-        self.blockAt = function (o) {
-            return block(o.x, o.y, o.z);
+        self.blockAt = function (ox, oy, oz) {
+            return block(ox, oy, oz);
         }
     }
 }());

@@ -5,22 +5,24 @@ function World(scene) {
     
     var chunks = {};
     
-    function chunkAt(c) {
-        var chunk = chunks[c.str()];
+    function chunkAt(cx, cy, cz) {
+        var chunk = chunks[cx + "," + cy + "," + cz];
         return chunk;
     }
     
-    function createChunk(c) {
-        var chunk = chunkAt(c);
+    function createChunk(cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz);
         if (!chunk) {
-            chunk = Chunk.generateChunk(c.x, c.y, c.z, self);
-            chunks[c.str()] = chunk;
+            chunk = Chunk.generateChunk(cx, cy, cz, self);
+            chunks[cx + "," + cy + "," + cz] = chunk;
         }
         return chunk;
     }
     
-    function displayChunk(c) {
-        var chunk = createChunk(c);
+    self.createChunk = createChunk;
+    
+    function displayChunk(cx, cy, cz) {
+        var chunk = createChunk(cx, cy, cz);
         if (chunk.isDisplayed()) return chunk;
         chunk.addTo(scene);
         return chunk;
@@ -43,9 +45,11 @@ function World(scene) {
     
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
+        var o = cords.o;
+        var c = cords.c;
         
-        var chunk = createChunk(cords.c);
-        var block = chunk.blockAt(cords.o);
+        var chunk = createChunk(c.x, c.y, c.z);
+        var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
     }
@@ -55,30 +59,30 @@ function World(scene) {
         var c = cords.c;
         var o = cords.o;
         
-        var chunk = displayChunk(c);
+        var chunk = displayChunk(c.x, c.y, c.z);
         var block;
-        if (chunk.blockAt(o).isType(Block.AIR)) {
+        if (chunk.blockAt(o.x, o.y, o.z).isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
                 if (o.y-- < 0) {
                     o.y = CHUNK_HEIGHT;
                     c.y--;
-                    chunk = displayChunk(c);
+                    chunk = displayChunk(c.x, c.y, c.z);
                 }
-                block = chunk.blockAt(o);
+                block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.DIRT)) {
                     return o.y + c.y * CHUNK_HEIGHT;
                 }
             }
-        } else if (chunk.blockAt(o).isType(Block.DIRT)) {
+        } else if (chunk.blockAt(o.x, o.y, o.z).isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
                 if (o.y++ >= CHUNK_HEIGHT) {
                     o.y = 0;
                     c.y++;
-                    chunk = displayChunk(c);
+                    chunk = displayChunk(c.x, c.y, c.z);
                 }
-                block = chunk.blockAt(o);
+                block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.AIR)) {
                     return o.y - 1 + c.y * CHUNK_HEIGHT;
                 }
@@ -152,9 +156,9 @@ function World(scene) {
         var c = cords.c;
         var o = cords.o;
         
-        var chunk = chunkAt(c);
+        var chunk = chunkAt(c.x, c.y, c.z);
         if (!chunk) throw "Cannot find chunk to remove from!";
-        var block = chunk.blockAt(o);
+        var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Cannot find block within chunk!";
         block.setType(Block.AIR);
         
@@ -181,7 +185,8 @@ function World(scene) {
         addToSet(changedChunks, cords.c);
         
         for (var i = 0; i < changedChunks.length; i++) {
-            createChunk(changedChunks[i]).refresh(scene);
+            var c = changedChunks[i]
+            createChunk(c.x, c.y, c.z).refresh(scene);
         }
     }
     
