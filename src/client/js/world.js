@@ -99,13 +99,20 @@ function World(scene) {
         vector.sub(camera.position).normalize();
         
         var raycaster = new THREE.Raycaster(camera.position, vector);
+        var closest = {
+            distance: 100,
+        }
         for (var key in chunks) {
             var chunk = chunks[key];
             var intersects = raycaster.intersectObject(chunk.getMesh());
-            if (intersects.length > 0) {
-                return intersects[0].point;
+            for (var i = 0; i < intersects.length; i++) {
+                var intersect = intersects[i];
+                if (intersect.distance < closest.distance) {
+                    closest = intersect;
+                }
             }
         }
+        return closest.point;
     }
     
     self.removeLookedAtBlock = function (camera) {

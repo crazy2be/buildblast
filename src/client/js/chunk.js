@@ -103,7 +103,7 @@ var Chunk = (function () {
             dummy.position.y = wy;
             dummy.position.z = wz;
             
-            if (block[ox][oy][pz].isType(Block.AIR)) return;
+            if (blocks[ox][oy][oz].isType(Block.AIR)) return;
             
             var px = block(ox + 1, oy, oz);
             if (!px) px = pxc.blockAt(0, oy, oz);
