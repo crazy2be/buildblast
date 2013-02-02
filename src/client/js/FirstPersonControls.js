@@ -6,15 +6,11 @@ function FirstPersonControls(world, camera, element) {
     var movementSpeed = 10;
     var lookSpeed = 0.1;
 
-    var verticalMin = -Math.PI * 0.9;
-    var verticalMax = Math.PI * 0.9;
-
     var movementX = 0;
     var movementY = 0;
 
-    var lat = -Math.PI/4;
-    var lon = Math.PI/4;
-    var phi = 0;
+    var lat = -1/2 * Math.PI;
+    var lon = -3/4 * Math.PI;
 
     var movingForward = false;
     var movingBack = false;
@@ -171,29 +167,21 @@ function FirstPersonControls(world, camera, element) {
 
         if (movingForward) camera.translateZ(-ds);
         if (movingBack) camera.translateZ(ds);
-
+        
         if (movingLeft) camera.translateX(-ds);
         if (movingRight) camera.translateX(ds);
         
-   
-        var pi = Math.PI;
-        var da = dt * lookSpeed;
         
-        lon += movementX * da;
-        lat -= movementY * da;
-        lat = clamp(lat, -pi/2.1, pi/2.1);
-        phi = pi/2 - lat;
+        lon += movementX * dt * lookSpeed;
+        lat -= movementY * dt * lookSpeed;
+        lat = clamp(lat, -Math.PI + 0.01, -0.01);
         movementX = 0;
         movementY = 0;
         
-
-        
         var p = camera.position;
-
-        target.x = p.x + Math.sin(phi) * Math.cos(lon);
-        target.y = p.y + Math.cos(phi);
-        target.z = p.z + Math.sin(phi) * Math.sin(lon);
-
+        target.x = p.x + Math.sin(lat) * Math.cos(lon);
+        target.y = p.y + Math.cos(lat);
+        target.z = p.z + Math.sin(lat) * Math.sin(lon);
         camera.lookAt(target);
         
         
