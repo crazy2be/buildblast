@@ -180,23 +180,21 @@ function FirstPersonControls(world, camera, element) {
         var da = dt * lookSpeed;
         
         lon += movementX * da;
-        lat -= movementY * da * pi / (verticalMax - verticalMin);
+        lat -= movementY * da;
+        lat = clamp(lat, -pi/2.1, pi/2.1);
+        phi = pi/2 - lat;
         movementX = 0;
         movementY = 0;
         
-        lat = clamp(lat, -pi/2, pi/2);
-        phi = pi/2 - lat;
-        phi = THREE.Math.mapLinear(phi, 0, pi, verticalMin, verticalMax);
 
         
-        var targetPosition = target;
         var p = camera.position;
 
-        targetPosition.x = p.x + Math.sin(phi) * Math.cos(lon);
-        targetPosition.y = p.y + Math.cos(phi);
-        targetPosition.z = p.z + Math.sin(phi) * Math.sin(lon);
+        target.x = p.x + Math.sin(phi) * Math.cos(lon);
+        target.y = p.y + Math.cos(phi);
+        target.z = p.z + Math.sin(phi) * Math.sin(lon);
 
-        camera.lookAt(targetPosition);
+        camera.lookAt(target);
         
         
         info.innerHTML = JSON.stringify({
