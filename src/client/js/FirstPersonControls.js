@@ -164,12 +164,37 @@ function FirstPersonControls(world, camera, element) {
     var info = document.getElementById('info');
     self.update = function(dt) {
         var ds = dt * movementSpeed;
+        var p = camera.position;
 
-        if (movingForward) camera.translateZ(-ds);
-        if (movingBack) camera.translateZ(ds);
+        function dirt(p) {
+            return world.blockAt(p.x, p.y, p.z).isType(Block.DIRT);
+        }
+        if (movingForward) {
+            camera.translateZ(-ds);
+            if (dirt(p)) {
+                camera.translateZ(ds);
+            }
+        }
+        if (movingBack) {
+            camera.translateZ(ds);
+            if (dirt(p)) {
+                camera.translateZ(-ds);
+            }
+        }
+            
         
-        if (movingLeft) camera.translateX(-ds);
-        if (movingRight) camera.translateX(ds);
+        if (movingLeft) {
+            camera.translateX(-ds);
+            if (dirt(p)) {
+                camera.translateX(ds);
+            }
+        }
+        if (movingRight) {
+            camera.translateX(ds);
+            if (dirt(p)) {
+                camera.translateX(-ds);
+            }
+        }
         
         
         lon += movementX * dt * lookSpeed;
@@ -178,7 +203,6 @@ function FirstPersonControls(world, camera, element) {
         movementX = 0;
         movementY = 0;
         
-        var p = camera.position;
         target.x = p.x + Math.sin(lat) * Math.cos(lon);
         target.y = p.y + Math.cos(lat);
         target.z = p.z + Math.sin(lat) * Math.sin(lon);
