@@ -6,10 +6,9 @@
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <style>
             body {
-                color: #61443e;
-                font-family:Monospace;
-                font-size:13px;
-                text-align:center;
+                font-family: Monospace;
+                font-size: 13px;
+                text-align: center;
 
                 background-color: #bfd1e5;
                 margin: 0px;
@@ -19,6 +18,12 @@
             #info {
                 position: absolute;
                 top: 0px; width: 100%;
+                padding: 5px;
+            }
+            
+            #selection {
+                position: absolute;
+                bottom: 0px; width: 100%;
                 padding: 5px;
             }
 
@@ -50,7 +55,8 @@
     <body>
         <div id="xHair"></div>
         <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
-        <div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - <a href="http://www.minecraft.net/" target="_blank">minecraft</a> demo. featuring <a href="http://painterlypack.net/" target="_blank">painterly pack</a></div>
+        <div id="info"></div>
+        <div id="selection">1: <b>gun</b>, 2: shovel</div>
 
         <script src="lib/three.min.js"></script>
         <script src="lib/stats.min.js"></script>

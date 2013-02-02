@@ -84,8 +84,18 @@ function FirstPersonControls(world, camera, element) {
                 0;
     };
     
+    var selectElm = document.getElementById('selection');
     function select(item) {
+        var html = ''
+        if (item == 'gun') {
+            html = '1: <b>gun</b>, 2: shovel';
+        } else if (item == 'shovel') {
+            html = '1: gun, 2: <b>shovel</b>';
+        } else {
+            html = '????? ' + item + ' ?????'
+        }
         selectedItem = item;
+        selectElm.innerHTML = html;
     }
     
     function pointerLockChange() {
