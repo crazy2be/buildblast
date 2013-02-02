@@ -18,10 +18,6 @@ var WORLD;
         scene = new THREE.Scene();
         world = new World(scene);
         WORLD = world;
-        world.loadChunk(0, 0, 0);
-        world.loadChunk(-1, 0, 0);
-        world.loadChunk(0, 0, -1);
-        world.loadChunk(-1, 0, -1);
         
         var position = {};
         position.y = world.findClosestGround(0, 0, 0) + 2;

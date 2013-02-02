@@ -5,22 +5,22 @@ function World(scene) {
     
     var chunks = {};
     
-    function chunkAt(cx, cy, cz) {
-        var chunk = chunks[cx + ',' + cy + ',' + cz];
+    function chunkAt(c) {
+        var chunk = chunks[c.str()];
         return chunk;
     }
     
-    function createChunk(cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz);
+    function createChunk(c) {
+        var chunk = chunkAt(c);
         if (!chunk) {
-            chunk = Chunk.generateChunk(cx, cy, cz, self);
-            chunks[cx + "," + cy + "," + cz] = chunk;
+            chunk = Chunk.generateChunk(c.x, c.y, c.z, self);
+            chunks[c.str()] = chunk;
         }
         return chunk;
     }
     
-    function displayChunk(cx, cy, cz) {
-        var chunk = createChunk(cx, cy, cz);
+    function displayChunk(c) {
+        var chunk = createChunk(c);
         if (chunk.isDisplayed()) return chunk;
         chunk.addTo(scene);
         return chunk;
@@ -41,65 +41,46 @@ function World(scene) {
         scene.add(cube);
     }
     
-    self.loadChunk = function (cx, cy, cz) {
-        displayChunk(cx, cy, cz);
-    }
-    
-    self.hideChunk = function (cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz);
-        chunk.removeFrom(scene);
-    }
-    
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
-        var cx = cords[0][0];
-        var cy = cords[0][1];
-        var cz = cords[0][2];
-        var ox = cords[1][0];
-        var oy = cords[1][1];
-        var oz = cords[1][2];
         
-        var chunk = createChunk(cx, cy, cz);
-        var block = chunk.blockAt(ox, oy, oz);
+        var chunk = createChunk(cords.c);
+        var block = chunk.blockAt(cords.o);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
     }
     
     self.findClosestGround = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
-        var cx = cords[0][0];
-        var cy = cords[0][1];
-        var cz = cords[0][2];
-        var ox = cords[1][0];
-        var oy = cords[1][1];
-        var oz = cords[1][2];
+        var c = cords.c;
+        var o = cords.o;
         
-        var chunk = displayChunk(cx, cy, cz);
+        var chunk = displayChunk(c);
         var block;
-        if (chunk.blockAt(ox, oy, oz).isType(Block.AIR)) {
+        if (chunk.blockAt(o).isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
-                if (oy-- < 0) {
-                    oy = CHUNK_HEIGHT;
-                    cy--;
-                    chunk = displayChunk(cx, cy, cz);
+                if (o.y-- < 0) {
+                    o.y = CHUNK_HEIGHT;
+                    c.y--;
+                    chunk = displayChunk(c);
                 }
-                block = chunk.blockAt(ox, oy, oz);
+                block = chunk.blockAt(o);
                 if (block && block.isType(Block.DIRT)) {
-                    return oy + cy * CHUNK_HEIGHT;
+                    return o.y + c.y * CHUNK_HEIGHT;
                 }
             }
-        } else if (chunk.blockAt(ox, oy, oz).isType(Block.DIRT)) {
+        } else if (chunk.blockAt(o).isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
-                if (oy++ >= CHUNK_HEIGHT) {
-                    oy = 0;
-                    cy++;
-                    chunk = displayChunk(cx, cy, cz);
+                if (o.y++ >= CHUNK_HEIGHT) {
+                    o.y = 0;
+                    c.y++;
+                    chunk = displayChunk(c);
                 }
-                block = chunk.blockAt(ox, oy, oz);
+                block = chunk.blockAt(o);
                 if (block && block.isType(Block.AIR)) {
-                    return oy - 1 + cy * CHUNK_HEIGHT;
+                    return o.y - 1 + c.y * CHUNK_HEIGHT;
                 }
             }
         } else {
@@ -130,24 +111,24 @@ function World(scene) {
         var x = p.x;
         var y = p.y;
         var z = p.z;
-        var b = function (x, y, z) {
-            return self.blockAt(x, y, z);
+        function dirt(x, y, z) {
+            return self.blockAt(x, y, z).isType(Block.DIRT);
         }
         
         if (onFace(x)) {
-            if (b(x + 0.5, y, z).isType(Block.DIRT)) {
+            if (dirt(x + 0.5, y, z)) {
                 removeBlock(x + 0.5, y, z);
             } else {
                 removeBlock(x - 0.5, y, z);
             }
         } else if (onFace(y)) {
-            if (b(x, y + 0.5, z).isType(Block.DIRT)) {
+            if (dirt(x, y + 0.5, z)) {
                 removeBlock(x, y + 0.5, z);
             } else {
                 removeBlock(x, y - 0.5, z);
             }
         } else if (onFace(z)) {
-            if (b(x, y, z + 0.5).isType(Block.DIRT)) {
+            if (dirt(x, y, z + 0.5)) {
                 removeBlock(x, y, z + 0.5);
             } else {
                 removeBlock(x, y, z - 0.5);
@@ -168,83 +149,76 @@ function World(scene) {
     
     function removeBlock(wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
-        var cx = cords[0][0];
-        var cy = cords[0][1];
-        var cz = cords[0][2];
-        var ox = cords[1][0];
-        var oy = cords[1][1];
-        var oz = cords[1][2];
+        var c = cords.c;
+        var o = cords.o;
         
-        var chunk = chunkAt(cx, cy, cz);
+        var chunk = chunkAt(c);
         if (!chunk) throw "Cannot find chunk to remove from!";
-        var block = chunk.blockAt(ox, oy, oz);
+        var block = chunk.blockAt(o);
         if (!block) throw "Cannot find block within chunk!";
         block.setType(Block.AIR);
         
         // Invalidate chunks
         var changedChunks = [];
-        changedChunks.push([cx, cy, cz]);
-        // PosX
+        changedChunks.push(c);
+
         cords = worldToChunk(wx + 1, wy, wz);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
-        // NegX
+        addToSet(changedChunks, cords.c);
+
         cords = worldToChunk(wx - 1, wy, wz);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
-        // PosY
+        addToSet(changedChunks, cords.c);
+        
         cords = worldToChunk(wx, wy + 1, wz);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
-        // NegY
+        addToSet(changedChunks, cords.c);
+        
         cords = worldToChunk(wx, wy - 1, wz);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
-        // PosZ
+        addToSet(changedChunks, cords.c);
+        
         cords = worldToChunk(wx, wy, wz + 1);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
-        // NegZ
+        addToSet(changedChunks, cords.c);
+        
         cords = worldToChunk(wx, wy, wz - 1);
-        if (!chunkInArray(changedChunks, cords[0])) {
-            changedChunks.push(cords[0]);
-        }
+        addToSet(changedChunks, cords.c);
         
         for (var i = 0; i < changedChunks.length; i++) {
-            cx = changedChunks[i][0];
-            cy = changedChunks[i][1];
-            cz = changedChunks[i][2];
-            createChunk(cx, cy, cz).refresh(scene);
+            createChunk(changedChunks[i]).refresh(scene);
         }
     }
     
     function worldToChunk(wx, wy, wz) {
-        return [[
-                Math.floor(wx / CHUNK_WIDTH),
-                Math.floor(wy / CHUNK_HEIGHT),
-                Math.floor(wz / CHUNK_DEPTH)
-            ],[
-                Math.floor(mod(wx, CHUNK_WIDTH)),
-                Math.floor(mod(wy, CHUNK_HEIGHT)),
-                Math.floor(mod(wz, CHUNK_DEPTH))
-            ]
-        ];
+        return {
+            c: {
+                x: Math.floor(wx / CHUNK_WIDTH),
+                y: Math.floor(wy / CHUNK_HEIGHT),
+                z: Math.floor(wz / CHUNK_DEPTH),
+                str: function() {
+                    return this.x + "," + this.y + "," + this.z;
+                }
+            },
+            o: {
+                x: Math.floor(mod(wx, CHUNK_WIDTH)),
+                y: Math.floor(mod(wy, CHUNK_HEIGHT)),
+                z: Math.floor(mod(wz, CHUNK_DEPTH)),
+            }
+        };
     }
     
-    function chunkInArray(array, coords) {
-        outer:for (var i = 0; i < array.length; i++) {
-            for (var j = 0; j < 3; j++) {
-                if (array[i][j] !== coords[j]) {
-                    continue outer;
-                }
+    // Set is actually just an array.
+    function addToSet(set, elm) {
+        // Not really total equality
+        function equal(a, b) {
+            for (k in a) {
+                if (a[k] !== b[k]) return false;
             }
             return true;
         }
-        return false;
+        function arrayContians(a, elm) {
+            for (var i = 0; i < a.length; i++) {
+                if (equal(a[i], elm)) return true;
+            }
+            return false;
+        }
+        if (arrayContians(set, elm)) return;
+        set.push(elm);
     }
 }

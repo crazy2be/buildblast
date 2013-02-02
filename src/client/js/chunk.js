@@ -181,8 +181,8 @@ var Chunk = (function () {
             self.addTo(scene);
         }
         
-        self.blockAt = function (ox, oy, oz) {
-            return block(ox, oy, oz);
+        self.blockAt = function (o) {
+            return block(o.x, o.y, o.z);
         }
     }
 }());
