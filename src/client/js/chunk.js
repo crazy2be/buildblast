@@ -6,7 +6,7 @@ var Chunk = (function () {
     var matrix = new THREE.Matrix4();
     
     var pxGeometry = new THREE.PlaneGeometry(1, 1);
-    pxGeometry.faces[0].materialIndex = 1;
+    pxGeometry.faces[0].materialIndex = 0;
     pxGeometry.applyMatrix(matrix.makeRotationY(Math.PI / 2));
     pxGeometry.applyMatrix(matrix.makeTranslation(1, 0.5, 0.5));
     
@@ -16,30 +16,60 @@ var Chunk = (function () {
     nxGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0.5));
     
     var pyGeometry = new THREE.PlaneGeometry(1, 1);
-    pyGeometry.faces[0].materialIndex = 0;
+    pyGeometry.faces[0].materialIndex = 2;
     pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
     pyGeometry.applyMatrix(matrix.makeTranslation(0.5, 1, 0.5));
     
     var nyGeometry = new THREE.PlaneGeometry(1, 1);
-    nyGeometry.faces[0].materialIndex = 0;
-    nyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
+    nyGeometry.faces[0].materialIndex = 3;
+    nyGeometry.applyMatrix(matrix.makeRotationX(Math.PI / 2));
     nyGeometry.applyMatrix(matrix.makeTranslation(0.5, 0, 0.5));
     
     var pzGeometry = new THREE.PlaneGeometry(1, 1);
-    pzGeometry.faces[0].materialIndex = 1;
+    pzGeometry.faces[0].materialIndex = 4;
     pzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 1));
     
     var nzGeometry = new THREE.PlaneGeometry(1, 1);
-    nzGeometry.faces[0].materialIndex = 1;
+    nzGeometry.faces[0].materialIndex = 5;
     nzGeometry.applyMatrix(matrix.makeRotationY(Math.PI));
     nzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 0));
     
-    var material0 = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
+    var materials = [
+        new THREE.MeshBasicMaterial({
+            color: 0xff0000,
+            transparent: true,
+            opacity: 0.7
+        }),
+        new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0.7
+        }),
+        new THREE.MeshBasicMaterial({
+            color: 0x0000ff,
+            transparent: true,
+            opacity: 0.7
+        }),
+        new THREE.MeshBasicMaterial({
+            color: 0xffff00,
+            transparent: true,
+            opacity: 0.7
+        }),
+        new THREE.MeshBasicMaterial({
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.7
+        }),
+        new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.7
+        })
+    ];
+    
+    var wireMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
         wireframe: true
-    });
-    var material1 = new THREE.MeshBasicMaterial({
-        color: 0xA52A2A
     });
     
     return Chunk;
@@ -48,6 +78,7 @@ var Chunk = (function () {
         var self = this;
         var isDisplayed = false;
         var mesh;
+        var wireMesh;
         
         // Offset relative to chunk
         function block(ox, oy, oz) {
@@ -126,8 +157,10 @@ var Chunk = (function () {
                     }
                 }
             }
-            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([material0, material1]));
+            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+            wireMesh = new THREE.Mesh(geometry, wireMaterial);
             scene.add(mesh);
+            scene.add(wireMesh);
             isDisplayed = true;
             return self;
         }
@@ -137,8 +170,10 @@ var Chunk = (function () {
         }
         
         self.removeFrom = function (scene) {
-            scene.remove(mesh);
             isDisplayed = false;
+            if (!mesh) return;
+            scene.remove(mesh);
+            scene.remove(wireMesh);
         }
 
         self.refresh = function (scene) {
