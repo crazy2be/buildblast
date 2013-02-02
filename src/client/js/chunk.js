@@ -1,6 +1,6 @@
-var CHUNK_WIDTH = 16;
-var CHUNK_DEPTH = 16;
-var CHUNK_HEIGHT = 16;
+var CHUNK_WIDTH = 8;
+var CHUNK_DEPTH = 8;
+var CHUNK_HEIGHT = 8;
 
 var Chunk = (function () {
     var matrix = new THREE.Matrix4();

@@ -208,9 +208,9 @@ function World(scene) {
                 }
             },
             o: {
-                x: Math.floor(mod(wx, CHUNK_WIDTH)),
-                y: Math.floor(mod(wy, CHUNK_HEIGHT)),
-                z: Math.floor(mod(wz, CHUNK_DEPTH)),
+                x: mod(Math.floor(wx), CHUNK_WIDTH),
+                y: mod(Math.floor(wy), CHUNK_HEIGHT),
+                z: mod(Math.floor(wz), CHUNK_DEPTH),
             }
         };
     }

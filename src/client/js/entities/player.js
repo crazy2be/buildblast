@@ -23,19 +23,20 @@ var Player = function (position, world, container) {
         controls.update(dt);
         
         var p = camera.position;
-        var y = world.findClosestGround(p.x, p.y, p.z) + 2;
+        var y = world.findClosestGround(p.x, p.y, p.z) + height;
         
         if (p.y < y) {
-            camera.translateY(y - p.y);
+            p.y = y;
             velocityY = 0;
+        } else {
+            velocityY += dt * 0.2 * -9.81;   
         }
         
         if (controls.isJumping()) {
             velocityY = 0.5;
             controls.jumped();
         }
-        camera.translateY(Math.max(y - p.y, velocityY));
-        velocityY += dt * 0.2 * -9.81;
+        p.y += Math.max(y - p.y, velocityY);
     };
     
     this.render = function (renderer, scene) {

@@ -4,7 +4,7 @@ function FirstPersonControls(world, camera, element) {
     var target = new THREE.Vector3(0, 0, 0);
 
     var movementSpeed = 10;
-    var lookSpeed = 0.125;
+    var lookSpeed = 0.1;
 
     var verticalMin = -Math.PI * 0.9;
     var verticalMax = Math.PI * 0.9;
@@ -12,10 +12,9 @@ function FirstPersonControls(world, camera, element) {
     var movementX = 0;
     var movementY = 0;
 
-    var lat = -45;
-    var lon = 0;
+    var lat = -Math.PI/4;
+    var lon = Math.PI/4;
     var phi = 0;
-    var theta = 0;
 
     var movingForward = false;
     var movingBack = false;
@@ -163,6 +162,9 @@ function FirstPersonControls(world, camera, element) {
         }
     };
 
+    function clamp(n, a, b) {
+        return Math.max(a, Math.min(b, n));
+    }
     var info = document.getElementById('info');
     self.update = function(dt) {
         var ds = dt * movementSpeed;
@@ -173,31 +175,29 @@ function FirstPersonControls(world, camera, element) {
         if (movingLeft) camera.translateX(-ds);
         if (movingRight) camera.translateX(ds);
         
+   
+        var pi = Math.PI;
+        var da = dt * lookSpeed;
         
-        var actualLookSpeed = dt * lookSpeed;
-
-        lon += movementX * 20 * actualLookSpeed;
-        
-        var verticalLookRatio = Math.PI / (verticalMax - verticalMin);
-        lat -= movementY * 20 * actualLookSpeed * verticalLookRatio;
-        
+        lon += movementX * da;
+        lat -= movementY * da * pi / (verticalMax - verticalMin);
         movementX = 0;
         movementY = 0;
+        
+        lat = clamp(lat, -pi/2, pi/2);
+        phi = pi/2 - lat;
+        phi = THREE.Math.mapLinear(phi, 0, pi, verticalMin, verticalMax);
 
-        lat = Math.max(-85, Math.min(85, lat));
-        phi = THREE.Math.degToRad(90 - lat);
-
-        theta = THREE.Math.degToRad(lon);
-        phi = THREE.Math.mapLinear(phi, 0, Math.PI, verticalMin, verticalMax);
-
+        
         var targetPosition = target;
         var p = camera.position;
 
-        targetPosition.x = p.x + Math.sin(phi) * Math.cos(theta);
+        targetPosition.x = p.x + Math.sin(phi) * Math.cos(lon);
         targetPosition.y = p.y + Math.cos(phi);
-        targetPosition.z = p.z + Math.sin(phi) * Math.sin(theta);
+        targetPosition.z = p.z + Math.sin(phi) * Math.sin(lon);
 
         camera.lookAt(targetPosition);
+        
         
         info.innerHTML = JSON.stringify({
             x: round(p.x, 2),
