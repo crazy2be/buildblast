@@ -1,5 +1,51 @@
 function World(scene) {
+    var WS_OPEN = 1;
     var self = this;
+    
+    var ws = (function () {
+        var loc = window.location;
+        var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+        uri += "//" + loc.host + "/ws";
+        return new WebSocket(uri);
+    }());
+    
+    var chunkQueue = [];
+    ws.onopen = function () {
+        for (var k in chunkQueue) {
+            ws.send(JSON.stringify(chunkQueue[k]));
+        }
+    }
+    
+    ws.onmessage = function (ev) {
+        console.log(ev.data);
+        var o = JSON.parse(ev.data);
+        var cx = o.CX;
+        var cy = o.CY;
+        var cz = o.CZ;
+        var data = o.Data;
+        
+        var chunk = chunkAt(cx, cy, cz);
+        if (chunk) return;
+        
+        for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
+            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
+                for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
+                    data[ox][oy][oz] = new Block(data[ox][oy][oz]);
+                }
+            }
+        }
+        
+        chunks[cx + "," + cy + "," + cz] = new Chunk(self, data, cx, cy, cz);
+        displayChunk(cx, cy, cz);
+    }
+    
+    ws.onerror = function (ev) {
+        console.error(ev);
+    }
+    
+    ws.onclose = function (ev) {
+        console.error("Someone closed my websocket :(", ev);
+    }
 
     var seed = Math.random() * 100;
     
@@ -8,6 +54,28 @@ function World(scene) {
     function chunkAt(cx, cy, cz) {
         var chunk = chunks[cx + "," + cy + "," + cz];
         return chunk;
+    }
+    
+    self.chunkAt = chunkAt;
+    
+    function loadChunk(cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz);
+        if (chunk) return chunk;
+        else queueChunk(cx, cy, cz);
+    }
+    
+    function queueChunk(cx, cy, cz) {
+        var obj = {
+            cx: cx,
+            cy: cy,
+            cz: cz,
+            seed: seed,
+        };
+        if (ws.readyState === WS_OPEN) {
+            ws.send(JSON.stringify(obj));
+        } else {
+            chunkQueue[cx + "," + cy + "," + cz] = obj;
+        }
     }
     
     function createChunk(cx, cy, cz) {
@@ -22,8 +90,9 @@ function World(scene) {
     self.createChunk = createChunk;
     
     function displayChunk(cx, cy, cz) {
-        var chunk = createChunk(cx, cy, cz);
-        if (chunk.isDisplayed()) return chunk;
+        var chunk = loadChunk(cx, cy, cz);
+        if (!chunk) return;
+        if (chunk.isDisplayed()) return;
         chunk.addTo(scene);
         return chunk;
     }
@@ -48,7 +117,8 @@ function World(scene) {
         var o = cords.o;
         var c = cords.c;
         
-        var chunk = createChunk(c.x, c.y, c.z);
+        var chunk = loadChunk(c.x, c.y, c.z);
+        if (!chunk) return null;
         var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
@@ -59,7 +129,10 @@ function World(scene) {
         var c = cords.c;
         var o = cords.o;
         
-        var chunk = displayChunk(c.x, c.y, c.z);
+        var chunk = loadChunk(c.x, c.y, c.z);
+        if (!chunk) {
+            return wy;
+        }
         var block;
         if (chunk.blockAt(o.x, o.y, o.z).isType(Block.AIR)) {
             // Try and find ground below
@@ -67,7 +140,10 @@ function World(scene) {
                 if (o.y-- < 0) {
                     o.y = CHUNK_HEIGHT;
                     c.y--;
-                    chunk = displayChunk(c.x, c.y, c.z);
+                    chunk = loadChunk(c.x, c.y, c.z);
+                    if (!chunk) {
+                        return o.y + c.y * CHUNK_HEIGHT;
+                    }
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.DIRT)) {
@@ -80,7 +156,10 @@ function World(scene) {
                 if (o.y++ >= CHUNK_HEIGHT) {
                     o.y = 0;
                     c.y++;
-                    chunk = displayChunk(c.x, c.y, c.z);
+                    chunk = loadChunk(c.x, c.y, c.z);
+                    if (!chunk) {
+                        return o.y - 1 + c.y * CHUNK_HEIGHT;
+                    }
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.AIR)) {
@@ -123,7 +202,9 @@ function World(scene) {
         var y = p.y;
         var z = p.z;
         function dirt(x, y, z) {
-            return self.blockAt(x, y, z).isType(Block.DIRT);
+            var block = self.blockAt(x, y, z);
+            if (block) return block.isType(Block.DIRT);
+            else return false;
         }
         
         if (onFace(x)) {
@@ -192,8 +273,9 @@ function World(scene) {
         addToSet(changedChunks, cords.c);
         
         for (var i = 0; i < changedChunks.length; i++) {
-            var c = changedChunks[i]
-            createChunk(c.x, c.y, c.z).refresh(scene);
+            var c = changedChunks[i];
+            var chunk = chunkAt(c.x, c.y, c.z);
+            if (chunk) chunk.refresh(scene);
         }
     }
     

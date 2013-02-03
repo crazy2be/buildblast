@@ -13,6 +13,10 @@ function Block(type) {
     self.isType = function (type) {
         return self.type == type;
     }
+    
+    self.isTrans = function () {
+        return self.type == Block.AIR;
+    }
 }
 
 Block.AIR = 0x1;

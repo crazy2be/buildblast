@@ -105,45 +105,57 @@ var Chunk = (function () {
             
             if (blocks[ox][oy][oz].isType(Block.AIR)) return;
             
-            var px = block(ox + 1, oy, oz);
-            if (!px) px = pxc.blockAt(0, oy, oz);
+            var pxb = block(ox + 1, oy, oz), px;
+            if (pxb) px = pxb.isTrans();
+            else if (pxc) px = pxc.blockAt(0, oy, oz).isTrans();
+            else px = false;
             
-            var nx = block(ox - 1, oy, oz);
-            if (!nx) nx = nxc.blockAt(CHUNK_WIDTH - 1, oy, oz);
+            var nxb = block(ox - 1, oy, oz), nx;
+            if (nxb) nx = nxb.isTrans();
+            else if (nxc) nx = nxc.blockAt(CHUNK_WIDTH - 1, oy, oz).isTrans();
+            else nx = false;
             
-            var pz = block(ox, oy, oz + 1);
-            if (!pz) pz = pzc.blockAt(ox, oy, 0);
+            var pyb = block(ox, oy + 1, oz), py;
+            if (pyb) py = pyb.isTrans();
+            else if (pyc) py = pyc.blockAt(ox, 0, oz).isTrans();
+            else py = false;
             
-            var nz = block(ox, oy, oz - 1);
-            if (!nz) nz = nzc.blockAt(ox, oy, CHUNK_DEPTH - 1);
+            var nyb = block(ox, oy - 1, oz), ny;
+            if (nyb) ny = nyb.isTrans();
+            else if (nyc) ny = nyc.blockAt(ox, CHUNK_HEIGHT - 1, oz).isTrans();
+            else ny = false;
             
-            var py = block(ox, oy + 1, oz);
-            if (!py) py = pyc.blockAt(ox, 0, oz);
+            var pzb = block(ox, oy, oz + 1), pz;
+            if (pzb) pz = pzb.isTrans();
+            else if (pzc) pz = pzc.blockAt(ox, oy, 0).isTrans();
+            else ny = false;
             
-            var ny = block(ox, oy - 1, oz);
-            if (!ny) ny = nyc.blockAt(ox, CHUNK_HEIGHT - 1, oz);
+            var nzb = block(ox, oy, oz - 1), nz;
+            if (nzb) nz = nzb.isTrans();
+            else if (nzc) nz = nzc.blockAt(ox, oy, CHUNK_DEPTH - 1).isTrans();
+            else nz = false;
             
-            if (py.isType(Block.AIR)) {
-                dummy.geometry = pyGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
-            }
-            if (ny.isType(Block.AIR)) {
-                dummy.geometry = nyGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
-            }
-            if (px.isType(Block.AIR)) {
+            if (px) {
                 dummy.geometry = pxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nx.isType(Block.AIR)) {
+            if (nx) {
                 dummy.geometry = nxGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (pz.isType(Block.AIR)) {
+            if (py) {
+                dummy.geometry = pyGeometry;
+                THREE.GeometryUtils.merge(geometry, dummy);
+            }
+            if (ny) {
+                dummy.geometry = nyGeometry;
+                THREE.GeometryUtils.merge(geometry, dummy);
+            }
+            if (pz) {
                 dummy.geometry = pzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }
-            if (nz.isType(Block.AIR)) {
+            if (nz) {
                 dummy.geometry = nzGeometry;
                 THREE.GeometryUtils.merge(geometry, dummy);
             }    
@@ -157,12 +169,12 @@ var Chunk = (function () {
             var geometry = new THREE.Geometry();
             var dummy = new THREE.Mesh();
             
-            if (!nxc) nxc = world.createChunk(cx - 1, cy, cz);
-            if (!pxc) pxc = world.createChunk(cx + 1, cy, cz);
-            if (!nyc) nyc = world.createChunk(cx, cy - 1, cz);
-            if (!pyc) pyc = world.createChunk(cx, cy + 1, cz);
-            if (!nzc) nzc = world.createChunk(cx, cy, cz - 1);
-            if (!pzc) pzc = world.createChunk(cx, cy, cz + 1);
+            pxc = world.chunkAt(cx + 1, cy, cz);
+            nxc = world.chunkAt(cx - 1, cy, cz);
+            pyc = world.chunkAt(cx, cy + 1, cz);
+            nyc = world.chunkAt(cx, cy - 1, cz);
+            pzc = world.chunkAt(cx, cy, cz + 1);
+            nzc = world.chunkAt(cx, cy, cz - 1);
             
             for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
                 for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {

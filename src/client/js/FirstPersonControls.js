@@ -177,7 +177,9 @@ function FirstPersonControls(world, camera, element) {
         var p = camera.position;
 
         function dirt(p) {
-            return world.blockAt(p.x, p.y, p.z).isType(Block.DIRT);
+            var block = world.blockAt(p.x, p.y, p.z);
+            if (block) return block.isType(Block.DIRT);
+            else return false;
         }
         if (movingForward) {
             camera.translateZ(-ds);

@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"encoding/json"
 	"code.google.com/p/go.net/websocket"
 )
 
@@ -17,20 +16,34 @@ type ChunkRequest struct {
 	CZ int
 	Seed float64
 }
+
+type ChunkResponse struct {
+	CX int
+	CY int
+	CZ int
+	Data Chunk
+}
+
 func wsHandler(ws *websocket.Conn) {
-	dec := json.NewDecoder(ws)
-	cr := new(ChunkRequest)
-	err := dec.Decode(cr)
-	if err != nil {
-		panic(err)
-	}
-	
-	chunk := generateChunk(cr.CX, cr.CY, cr.CZ, cr.Seed)
-	
-	enc := json.NewEncoder(ws)
-	err = enc.Encode(chunk)
-	if err != nil {
-		panic(err)
+	for {
+		req := new(ChunkRequest)
+		err := websocket.JSON.Receive(ws, req)
+		if err != nil {
+			panic(err)
+		}
+		
+		chunk := generateChunk(req.CX, req.CY, req.CZ, req.Seed)
+		
+		resp := &ChunkResponse{
+			CX: req.CX,
+			CY: req.CY,
+			CZ: req.CZ,
+			Data: chunk,
+		}
+		err = websocket.JSON.Send(ws, resp)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
