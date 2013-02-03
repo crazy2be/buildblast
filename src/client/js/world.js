@@ -40,6 +40,7 @@ function World(scene) {
         if (!position) throw "Position required!";
         var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
         cube.position = position;
+        console.log(position);
         scene.add(cube);
     }
     
@@ -71,7 +72,7 @@ function World(scene) {
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.DIRT)) {
-                    return o.y + c.y * CHUNK_HEIGHT;
+                    return o.y + c.y * CHUNK_HEIGHT + 1;
                 }
             }
         } else if (chunk.blockAt(o.x, o.y, o.z).isType(Block.DIRT)) {
@@ -84,7 +85,7 @@ function World(scene) {
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.AIR)) {
-                    return o.y - 1 + c.y * CHUNK_HEIGHT;
+                    return o.y + c.y * CHUNK_HEIGHT;
                 }
             }
         } else {

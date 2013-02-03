@@ -171,6 +171,7 @@ function FirstPersonControls(world, camera, element) {
     function clamp(n, a, b) {
         return Math.max(a, Math.min(b, n));
     }
+    
     var info = document.getElementById('info');
     self.update = function(dt) {
         var ds = dt * movementSpeed;
