@@ -144,12 +144,12 @@ function World(scene) {
                     c.y--;
                     chunk = loadChunk(c.x, c.y, c.z);
                     if (!chunk) {
-                        return o.y + c.y * CHUNK_HEIGHT;
+                        return o.y + 1 + c.y * CHUNK_HEIGHT;
                     }
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.DIRT)) {
-                    return o.y + c.y * CHUNK_HEIGHT;
+                    return o.y + 1 + c.y * CHUNK_HEIGHT;
                 }
             }
         } else if (chunk.blockAt(o.x, o.y, o.z).isType(Block.DIRT)) {
@@ -160,12 +160,12 @@ function World(scene) {
                     c.y++;
                     chunk = loadChunk(c.x, c.y, c.z);
                     if (!chunk) {
-                        return o.y - 1 + c.y * CHUNK_HEIGHT;
+                        return o.y + c.y * CHUNK_HEIGHT;
                     }
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.AIR)) {
-                    return o.y - 1 + c.y * CHUNK_HEIGHT;
+                    return o.y + c.y * CHUNK_HEIGHT;
                 }
             }
         } else {
