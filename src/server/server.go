@@ -41,7 +41,8 @@ func (p *Player) handleIncoming() {
 		err := websocket.JSON.Receive(p.ws, ms)
 		log.Print("recieved new message")
 		if err != nil {
-			panic(err)
+			log.Print(err)
+			return
 		}
 		p.in <- ms
 	}
@@ -53,7 +54,8 @@ func (p *Player) handleOutgoing() {
 		err := websocket.JSON.Send(p.ws, ms)
 		log.Print("sent new message")
 		if err != nil {
-			panic(err)
+			log.Print(err)
+			return
 		}
 	}
 }

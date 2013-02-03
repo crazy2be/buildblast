@@ -1,50 +1,9 @@
 function World(scene) {
-    var WS_OPEN = 1;
     var self = this;
     
-    var ws = (function () {
-        var loc = window.location;
-        var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-        uri += "//" + loc.host + "/ws";
-        return new WebSocket(uri);
-    }());
-    
-    var messageQueue = [];
-    function queueMessage(obj) {
-        if (ws.readyState === WS_OPEN) {
-            ws.send(JSON.stringify(obj));
-        } else {
-            messageQueue.push(obj);
-        }
-    }
-    ws.onopen = function () {
-        for (var i = 0; i < messageQueue.length; i++) {
-            ws.send(JSON.stringify(messageQueue[i]));
-        }
-    }
-    
-    ws.onmessage = function (ev) {
-        console.log(ev.data);
-        var o = JSON.parse(ev.data);
-        switch (o.Kind) {
-            case "chunk":
-                processChunk(o.Payload);
-                break;
-            case "block":
-                processBlock(o.Payload);
-                break;
-            default:
-                console.warn("Recieved server message of unknown type: " + o.Kind);
-        }
-    }
-    
-    ws.onerror = function (ev) {
-        console.error(ev);
-    }
-    
-    ws.onclose = function (ev) {
-        console.error("Someone closed my websocket :(", ev);
-    }
+    var conn = new Conn();
+    conn.on('chunk', processChunk);
+    conn.on('block', processBlock);
     
     var chunks = {};
     
@@ -62,14 +21,7 @@ function World(scene) {
     }
     
     function queueChunk(cx, cy, cz) {
-        queueMessage({
-            kind: 'chunk',
-            payload: {
-                cx: cx,
-                cy: cy,
-                cz: cz,
-            },
-        });
+        conn.queue('chunk', {cx: cx, cy: cy, cz: cz});
     }   
     
     function displayChunk(cx, cy, cz) {
@@ -279,9 +231,10 @@ function World(scene) {
         var o = cords.o;
         
         var chunk = chunkAt(c.x, c.y, c.z);
-        if (!chunk) throw "Cannot find chunk to remove from!";
+        if (!chunk) return "Cannot find chunk to remove from!";
         var block = chunk.blockAt(o.x, o.y, o.z);
-        if (!block) throw "Cannot find block within chunk!";
+        if (!block) return "Cannot find block within chunk!";
+        if (block.getType() === newBlock.getType()) return;
         block.setType(newBlock.getType());
         
         // Invalidate chunks
