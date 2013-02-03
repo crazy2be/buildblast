@@ -9,20 +9,79 @@ function World(scene) {
         return new WebSocket(uri);
     }());
     
-    var chunkQueue = [];
+    var messageQueue = [];
+    function queueMessage(obj) {
+        if (ws.readyState === WS_OPEN) {
+            ws.send(JSON.stringify(obj));
+        } else {
+            messageQueue.push(obj);
+        }
+    }
     ws.onopen = function () {
-        for (var k in chunkQueue) {
-            ws.send(JSON.stringify(chunkQueue[k]));
+        for (var i = 0; i < messageQueue.length; i++) {
+            ws.send(JSON.stringify(messageQueue[i]));
         }
     }
     
     ws.onmessage = function (ev) {
         console.log(ev.data);
         var o = JSON.parse(ev.data);
-        var cx = o.CX;
-        var cy = o.CY;
-        var cz = o.CZ;
-        var data = o.Data;
+        switch (o.Kind) {
+            case "chunk":
+                processChunk(o.Payload);
+                break;
+            default:
+                console.warn("Recieved server message of unknown type: " + o.Kind);
+        }
+    }
+    
+    ws.onerror = function (ev) {
+        console.error(ev);
+    }
+    
+    ws.onclose = function (ev) {
+        console.error("Someone closed my websocket :(", ev);
+    }
+    
+    var chunks = {};
+    
+    function chunkAt(cx, cy, cz) {
+        var chunk = chunks[cx + "," + cy + "," + cz];
+        return chunk;
+    }
+    
+    self.chunkAt = chunkAt;
+    
+    function loadChunk(cx, cy, cz) {
+        var chunk = chunkAt(cx, cy, cz);
+        if (chunk) return chunk;
+        else queueChunk(cx, cy, cz);
+    }
+    
+    function queueChunk(cx, cy, cz) {
+        queueMessage({
+            kind: 'chunk',
+            payload: {
+                cx: cx,
+                cy: cy,
+                cz: cz,
+            },
+        });
+    }   
+    
+    function displayChunk(cx, cy, cz) {
+        var chunk = loadChunk(cx, cy, cz);
+        if (!chunk) return;
+        if (chunk.isDisplayed()) return;
+        chunk.addTo(scene);
+        return chunk;
+    }
+    
+    function processChunk(payload) {
+        var cx = payload.cx;
+        var cy = payload.cy;
+        var cz = payload.cz;
+        var data = payload.data;
         
         var chunk = chunkAt(cx, cy, cz);
         if (chunk) return;
@@ -52,59 +111,8 @@ function World(scene) {
         if (nzc) nzc.refresh(scene);
     }
     
-    ws.onerror = function (ev) {
-        console.error(ev);
-    }
-    
-    ws.onclose = function (ev) {
-        console.error("Someone closed my websocket :(", ev);
-    }
-
-    var seed = Math.random() * 100;
-    
-    var chunks = {};
-    
-    function chunkAt(cx, cy, cz) {
-        var chunk = chunks[cx + "," + cy + "," + cz];
-        return chunk;
-    }
-    
-    self.chunkAt = chunkAt;
-    
-    function loadChunk(cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz);
-        if (chunk) return chunk;
-        else queueChunk(cx, cy, cz);
-    }
-    
-    function queueChunk(cx, cy, cz) {
-        var obj = {
-            cx: cx,
-            cy: cy,
-            cz: cz,
-            seed: seed,
-        };
-        if (ws.readyState === WS_OPEN) {
-            ws.send(JSON.stringify(obj));
-        } else {
-            chunkQueue[cx + "," + cy + "," + cz] = obj;
-        }
-    }   
-    
-    function displayChunk(cx, cy, cz) {
-        var chunk = loadChunk(cx, cy, cz);
-        if (!chunk) return;
-        if (chunk.isDisplayed()) return;
-        chunk.addTo(scene);
-        return chunk;
-    }
-    
     function mod(a, b) {
         return (((a % b) + b) % b);
-    }
-    
-    self.getSeed = function () {
-        return seed;
     }
     
     self.addSmallCube = function (position) {
@@ -242,6 +250,10 @@ function World(scene) {
     }
     
     function removeBlock(wx, wy, wz) {
+        changeBlock(wx, wy, wz, new Block(Block.AIR));
+    }
+    
+    function changeBlock(wx, wy, wz, newBlock) {
         var cords = worldToChunk(wx, wy, wz);
         var c = cords.c;
         var o = cords.o;
@@ -250,15 +262,15 @@ function World(scene) {
         if (!chunk) throw "Cannot find chunk to remove from!";
         var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Cannot find block within chunk!";
-        block.setType(Block.AIR);
+        block.setType(newBlock.getType());
         
         // Invalidate chunks
         var changedChunks = [];
         changedChunks.push(c);
-
+        
         cords = worldToChunk(wx + 1, wy, wz);
         addToSet(changedChunks, cords.c);
-
+        
         cords = worldToChunk(wx - 1, wy, wz);
         addToSet(changedChunks, cords.c);
         

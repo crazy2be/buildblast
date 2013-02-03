@@ -3,44 +3,46 @@ package main
 import (
 	"log"
 	"net/http"
+	"math/rand"
 	"code.google.com/p/go.net/websocket"
 )
+
+var globalMapSeed = rand.Float64();
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
 }
 
-type ChunkRequest struct {
-	CX int
-	CY int
-	CZ int
-	Seed float64
+type Message struct {
+	Kind string
+	Payload map[string]interface{}
 }
 
-type ChunkResponse struct {
-	CX int
-	CY int
-	CZ int
-	Data Chunk
+func handleChunk(ms *Message) {
+	p := ms.Payload
+	cx := int(p["cx"].(float64))
+	cy := int(p["cy"].(float64))
+	cz := int(p["cz"].(float64))
+	chunk := generateChunk(cx, cy, cz, globalMapSeed)
+	
+	p["data"] = chunk
 }
 
 func wsHandler(ws *websocket.Conn) {
 	for {
-		req := new(ChunkRequest)
-		err := websocket.JSON.Receive(ws, req)
+		ms := new(Message)
+		err := websocket.JSON.Receive(ws, ms)
 		if err != nil {
 			panic(err)
 		}
-		
-		chunk := generateChunk(req.CX, req.CY, req.CZ, req.Seed)
-		
-		resp := &ChunkResponse{
-			CX: req.CX,
-			CY: req.CY,
-			CZ: req.CZ,
-			Data: chunk,
+		switch ms.Kind {
+			case "chunk":
+				handleChunk(ms)
+			default:
+				log.Print("Unknown message recieved from client of kind ", ms.Kind)
 		}
-		err = websocket.JSON.Send(ws, resp)
+		
+		err = websocket.JSON.Send(ws, ms)
 		if err != nil {
 			panic(err)
 		}
