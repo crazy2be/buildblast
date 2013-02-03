@@ -4,7 +4,7 @@ function FirstPersonControls(world, camera, element) {
     var target = new THREE.Vector3(0, 0, 0);
 
     var movementSpeed = 10;
-    var lookSpeed = 0.1;
+    var lookSpeed = 0.005;
 
     var movementX = 0;
     var movementY = 0;
@@ -209,8 +209,8 @@ function FirstPersonControls(world, camera, element) {
         }
         
         
-        lon += movementX * dt * lookSpeed;
-        lat -= movementY * dt * lookSpeed;
+        lon += movementX * lookSpeed;
+        lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);
         movementX = 0;
         movementY = 0;
