@@ -8,6 +8,7 @@ import (
 )
 
 var globalMapSeed = rand.Float64();
+var globalBroadcast = make(chan *Message, 10)
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
@@ -28,23 +29,44 @@ func handleChunk(ms *Message) {
 	p["data"] = chunk
 }
 
-func wsHandler(ws *websocket.Conn) {
+func incoming(ws *websocket.Conn, in chan *Message) {
 	for {
 		ms := new(Message)
 		err := websocket.JSON.Receive(ws, ms)
 		if err != nil {
 			panic(err)
 		}
-		switch ms.Kind {
-			case "chunk":
-				handleChunk(ms)
-			default:
-				log.Print("Unknown message recieved from client of kind ", ms.Kind)
-		}
-		
-		err = websocket.JSON.Send(ws, ms)
+		in <- ms
+	}
+}
+
+func outgoing(ws *websocket.Conn, out chan *Message) {
+	for {
+		ms := <-out
+		err := websocket.JSON.Send(ws, ms)
 		if err != nil {
 			panic(err)
+		}
+	}
+}
+
+func wsHandler(ws *websocket.Conn) {
+	in := make(chan *Message, 10)
+	go incoming(ws, in)
+	out := make(chan *Message, 10)
+	go outgoing(ws, out)
+	
+	for {
+		select {
+		case m := <-in:
+			switch m.Kind {
+			case "chunk":
+				handleChunk(m)
+			default:
+				log.Print("Unknown message recieved from client of kind ", m.Kind)
+				continue
+			}
+			out <- m
 		}
 	}
 }

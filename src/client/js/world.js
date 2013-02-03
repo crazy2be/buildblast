@@ -30,6 +30,9 @@ function World(scene) {
             case "chunk":
                 processChunk(o.Payload);
                 break;
+            case "block":
+                processBlock(o.Payload);
+                break;
             default:
                 console.warn("Recieved server message of unknown type: " + o.Kind);
         }
@@ -109,6 +112,14 @@ function World(scene) {
         if (pzc) pzc.refresh(scene);
         var nzc = chunkAt(cx, cy, cz - 1);
         if (nzc) nzc.refresh(scene);
+    }
+    
+    function processBlock(payload) {
+        var wx = payload.wx;
+        var wy = payload.wy;
+        var wz = payload.wz;
+        var type = payload.type;
+        changeBlock(wx, wy, wz, new Block(type));
     }
     
     function mod(a, b) {
@@ -251,6 +262,15 @@ function World(scene) {
     
     function removeBlock(wx, wy, wz) {
         changeBlock(wx, wy, wz, new Block(Block.AIR));
+        queueMessage({
+            kind: 'block',
+            payload: {
+                wx: wx,
+                wy: wy,
+                wz: wz,
+                typ: Block.AIR,
+            }
+        });
     }
     
     function changeBlock(wx, wy, wz, newBlock) {
