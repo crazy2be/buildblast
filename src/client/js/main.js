@@ -15,6 +15,19 @@ var WORLD;
     var player;
 
     function init() {
+        var loc = window.location, uri;
+        uri = loc.protocol === "https:" ? "wss:" : "ws:";
+        uri += "//" + loc.host + "/ws";
+        var ws = new WebSocket(uri);
+        
+        ws.onopen = function () {
+            ws.send("testing...");
+            ws.send("block loading???");
+        }
+        ws.onmessage = function (ev) {
+            console.log(ev.data);
+        }
+        
         scene = new THREE.Scene();
         world = new World(scene);
         WORLD = world;
