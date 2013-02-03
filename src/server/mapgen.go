@@ -122,3 +122,66 @@ func noise(x, y, z float64) float64 {
 		),
 	)
 }
+
+func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
+	hmap := make([][]float64, xd)
+	quality := 2.0
+	
+	for x := 0; x < xd; x++ {
+		hmap[x] = make([]float64, zd)
+		for z := 0; z < zd; z++ {
+			hmap[x][z] = 0
+		}
+	}
+	
+	for i := 0; i < 4; i++ {
+		for x := 0; x < xd; x++ {
+			for z := 0; z < zd; z++ {
+				wx := float64(xs + x)
+				wz := float64(zs + z)
+				hmap[x][z] = noise(wx / quality, wz / quality, seed) * quality
+			}
+		}
+		quality *= 4
+	}
+	
+	intHMap := make([][]int, xd)
+	for x := 0; x < xd; x++ {
+		intHMap[x] = make([]int, zd)
+		for z := 0; z < zd; z++ {
+			intHMap[x][z] = int(math.Floor(hmap[x][z] * 0.2))
+		}
+	}
+	
+	return intHMap
+}
+
+type Chunk [][][]Block
+
+type Block int
+var BLOCK_AIR = Block(1)
+var BLOCK_DIRT = Block(2)
+
+var CHUNK_WIDTH = 8
+var CHUNK_DEPTH = 8
+var CHUNK_HEIGHT = 8
+
+func generateChunk(cx, cy, cz int, seed float64) Chunk {
+	hmap := generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, seed)
+	
+	blocks := make([][][]Block, CHUNK_WIDTH)
+	for ox := 0; ox < CHUNK_WIDTH; ox++ {
+		blocks[ox] = make([][]Block, CHUNK_HEIGHT)
+		for oy := 0; oy < CHUNK_HEIGHT; oy++ {
+			blocks[ox][oy] = make([]Block, CHUNK_DEPTH)
+			for oz := 0; oz < CHUNK_DEPTH; oz++ {
+				if hmap[ox][oz] > oy + cy*CHUNK_HEIGHT {
+					blocks[ox][oy][oz] = BLOCK_DIRT
+				} else {
+					blocks[ox][oy][oz] = BLOCK_AIR
+				}
+			}
+		}
+	}
+	return blocks
+}

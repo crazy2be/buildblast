@@ -21,8 +21,12 @@ var WORLD;
         var ws = new WebSocket(uri);
         
         ws.onopen = function () {
-            ws.send("testing...");
-            ws.send("block loading???");
+            ws.send(JSON.stringify({
+                cx: 10,
+                cy: 15,
+                cz: 20,
+                seed: world.getSeed(),
+            }));
         }
         ws.onmessage = function (ev) {
             console.log(ev.data);
