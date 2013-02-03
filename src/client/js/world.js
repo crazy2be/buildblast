@@ -37,6 +37,19 @@ function World(scene) {
         
         chunks[cx + "," + cy + "," + cz] = new Chunk(self, data, cx, cy, cz);
         displayChunk(cx, cy, cz);
+        
+        var pxc = chunkAt(cx + 1, cy, cz);
+        if (pxc) pxc.refresh(scene);
+        var nxc = chunkAt(cx - 1, cy, cz);
+        if (nxc) nxc.refresh(scene);
+        var pyc = chunkAt(cx, cy + 1, cz);
+        if (pyc) pyc.refresh(scene);
+        var nyc = chunkAt(cx, cy - 1, cz);
+        if (nyc) nyc.refresh(scene);
+        var pzc = chunkAt(cx, cy, cz + 1);
+        if (pzc) pzc.refresh(scene);
+        var nzc = chunkAt(cx, cy, cz - 1);
+        if (nzc) nzc.refresh(scene);
     }
     
     ws.onerror = function (ev) {
@@ -76,7 +89,7 @@ function World(scene) {
         } else {
             chunkQueue[cx + "," + cy + "," + cz] = obj;
         }
-    }
+    }   
     
     function displayChunk(cx, cy, cz) {
         var chunk = loadChunk(cx, cy, cz);
