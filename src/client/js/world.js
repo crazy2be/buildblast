@@ -78,17 +78,6 @@ function World(scene) {
         }
     }
     
-    function createChunk(cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz);
-        if (!chunk) {
-            chunk = Chunk.generateChunk(cx, cy, cz, self);
-            chunks[cx + "," + cy + "," + cz] = chunk;
-        }
-        return chunk;
-    }
-    
-    self.createChunk = createChunk;
-    
     function displayChunk(cx, cy, cz) {
         var chunk = loadChunk(cx, cy, cz);
         if (!chunk) return;

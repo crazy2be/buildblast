@@ -212,24 +212,3 @@ var Chunk = (function () {
         }
     }
 }());
-
-Chunk.generateChunk = function(cx, cy, cz, world) {
-    var heightMap = Generator.generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, world.getSeed());
-
-    var blocks = [];
-    for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
-        blocks[ox] = [];
-        for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
-            blocks[ox][oy] = [];
-            for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
-                if (heightMap[ox][oz] > oy + cy*CHUNK_HEIGHT) {
-                    blocks[ox][oy][oz] = new Block(Block.DIRT);
-                } else {
-                    blocks[ox][oy][oz] = new Block(Block.AIR);
-                }
-            }
-        }
-    }
-    return new Chunk(world, blocks, cx, cy, cz);
-}
-
