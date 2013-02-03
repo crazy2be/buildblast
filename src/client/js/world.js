@@ -268,7 +268,7 @@ function World(scene) {
                 wx: wx,
                 wy: wy,
                 wz: wz,
-                typ: Block.AIR,
+                type: Block.AIR,
             }
         });
     }
