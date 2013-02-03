@@ -82,6 +82,7 @@ function World(scene) {
         if (!position) throw "Position required!";
         var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
         cube.position = position;
+        console.log(position);
         scene.add(cube);
     }
     
@@ -120,7 +121,7 @@ function World(scene) {
                 }
                 block = chunk.blockAt(o.x, o.y, o.z);
                 if (block && block.isType(Block.DIRT)) {
-                    return o.y + 1 + c.y * CHUNK_HEIGHT;
+                    return o.y + c.y * CHUNK_HEIGHT + 1;
                 }
             }
         } else if (chunk.blockAt(o.x, o.y, o.z).isType(Block.DIRT)) {
@@ -144,31 +145,34 @@ function World(scene) {
         }
     }
     
-    self.findWorldIntersection = function (camera) {
+    self.findTargetIntersection = function (camera) {
         var vector = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(vector, camera);
         vector.sub(camera.position).normalize();
         
         var raycaster = new THREE.Raycaster(camera.position, vector);
-        var closest = {
-            distance: 100,
-        }
+        return self.intersectRay(raycaster);
+    }
+    
+    self.intersectRay = function (ray) {
+        var closest;
         for (var key in chunks) {
             var chunk = chunks[key];
-            var intersects = raycaster.intersectObject(chunk.getMesh());
+            var intersects = ray.intersectObject(chunk.getMesh());
             for (var i = 0; i < intersects.length; i++) {
                 var intersect = intersects[i];
-                if (intersect.distance < closest.distance) {
+                if (!closest || intersect.distance < closest.distance) {
                     closest = intersect;
                 }
             }
         }
-        return closest.point;
+        if (!closest) closest = { point: null, distance: null };
+        return { p: closest.point, d: closest.distance };
     }
     
     self.removeLookedAtBlock = function (camera) {
-        var p = self.findWorldIntersection(camera);
+        var p = self.findTargetIntersection(camera).p;
         if (!p) return;
         
         var x = p.x;

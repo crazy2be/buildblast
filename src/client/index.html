@@ -23,8 +23,19 @@
             
             #selection {
                 position: absolute;
-                bottom: 0px; width: 100%;
-                padding: 5px;
+                bottom: 0px;
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .selected {
+                padding: 3px;
+                border-style: groove;
+                border-width: 5px;
+            }
+            
+            .notSelected {
+                padding: 8px;
             }
             
             #connection-status {
@@ -72,7 +83,7 @@
         <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
         <div id="info"></div>
         <table id="connection-status"></table>
-        <div id="selection">1: <b>gun</b>, 2: shovel</div>
+        <div id="selection"><span class="selected">gun</span><span class="notSelected">shovel</span></div>
 
         <script src="lib/three.min.js"></script>
         <script src="lib/stats.min.js"></script>
