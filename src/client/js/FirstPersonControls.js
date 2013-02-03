@@ -58,7 +58,7 @@ function FirstPersonControls(world, camera, element) {
         element.requestPointerLock();
         
         if (selectedItem == 'gun') {
-            var point = world.findWorldIntersection(camera);
+            var point = world.findTargetIntersection(camera).p;
             if (point) world.addSmallCube(point);
         } else if (selectedItem == 'shovel') {
             world.removeLookedAtBlock(camera);
@@ -174,39 +174,16 @@ function FirstPersonControls(world, camera, element) {
     
     var info = document.getElementById('info');
     self.update = function(dt) {
-        var ds = dt * movementSpeed;
         var p = camera.position;
-
-        function dirt(p) {
-            return world.blockAt(p.x, p.y, p.z).isType(Block.DIRT);
-        }
-        if (movingForward) {
-            camera.translateZ(-ds);
-            if (dirt(p)) {
-                camera.translateZ(ds);
-            }
-        }
-        if (movingBack) {
-            camera.translateZ(ds);
-            if (dirt(p)) {
-                camera.translateZ(-ds);
-            }
-        }
-            
-        
-        if (movingLeft) {
-            camera.translateX(-ds);
-            if (dirt(p)) {
-                camera.translateX(ds);
-            }
-        }
-        if (movingRight) {
-            camera.translateX(ds);
-            if (dirt(p)) {
-                camera.translateX(-ds);
-            }
-        }
-        
+        var headCam;
+        var headP;
+        var footCam;
+        var footP;
+        var ds = dt * movementSpeed;
+        var pad = 0.2;
+        var head;
+        var foot;
+        var result;
         
         lon += movementX * dt * lookSpeed;
         lat -= movementY * dt * lookSpeed;
@@ -219,6 +196,49 @@ function FirstPersonControls(world, camera, element) {
         target.z = p.z + Math.sin(lat) * Math.sin(lon);
         camera.lookAt(target);
         
+        headCam = camera.clone();
+        headP = headCam.position;
+        
+        target.x = headP.x + Math.sin(-1/2 * Math.PI) * Math.cos(lon);
+        target.y = headP.y + Math.cos(-1/2 * Math.PI);
+        target.z = headP.z + Math.sin(-1/2 * Math.PI) * Math.sin(lon);
+        headCam.lookAt(target);
+        
+        footCam = headCam.clone();
+        footP = footCam.position;
+        footP.y -= 1.1;
+        
+        target.x = 0;
+        target.y = 0;
+        target.z = 0;
+        if (movingForward) {
+            target.z--;
+        }
+        if (movingBack) {
+            target.z++;
+        }
+        if (movingLeft) {
+            target.x--;
+        }
+        if (movingRight) {
+            target.x++;
+        }
+        headCam.translate(ds, target);
+        
+        var ray = new THREE.Raycaster(p, new THREE.Vector3(headP.x, headP.y, headP.z).sub(p).normalize());
+        head = world.intersectRay(ray);
+        ray = new THREE.Raycaster(footP, new THREE.Vector3(headP.x, headP.y - 1.1, headP.z).sub(footP).normalize());
+        foot = world.intersectRay(ray);
+        if (head.d == null && foot.d == null) result = null;
+        else if (head.d == null && foot.d != null) result = foot.d;
+        else if (foot.d == null && head.d != null) result = head.d;
+        else result = Math.min(head.d, foot.d);
+        
+        if (result && result >= 0) result -= pad;
+
+        if (result == null || ds < result) {
+            camera.position = headCam.position;
+        }
         
         info.innerHTML = JSON.stringify({
             x: round(p.x, 2),

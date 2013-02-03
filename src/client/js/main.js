@@ -13,6 +13,24 @@ var WORLD;
 
     var clock = new THREE.Clock();
     var player;
+    
+    THREE.PerspectiveCamera.prototype.clone = function () {
+        var newCam = new THREE.Camera();
+        newCam.matrixWorldInverse = this.matrixWorldInverse.clone();
+        newCam.projectionMatrix = this.projectionMatrix.clone();
+        newCam.projectionMatrixInverse = this.projectionMatrixInverse.clone();
+        newCam.position = this.position.clone();
+        return newCam;
+    }
+    
+    THREE.Camera.prototype.clone = function () {
+        var newCam = new THREE.Camera();
+        newCam.matrixWorldInverse = this.matrixWorldInverse.clone();
+        newCam.projectionMatrix = this.projectionMatrix.clone();
+        newCam.projectionMatrixInverse = this.projectionMatrixInverse.clone();
+        newCam.position = this.position.clone();
+        return newCam;
+    }
 
     function init() {
         scene = new THREE.Scene();

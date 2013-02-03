@@ -93,31 +93,34 @@ function World(scene) {
         }
     }
     
-    self.findWorldIntersection = function (camera) {
+    self.findTargetIntersection = function (camera) {
         var vector = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(vector, camera);
         vector.sub(camera.position).normalize();
         
         var raycaster = new THREE.Raycaster(camera.position, vector);
-        var closest = {
-            distance: 100,
-        }
+        return self.intersectRay(raycaster);
+    }
+    
+    self.intersectRay = function (ray) {
+        var closest;
         for (var key in chunks) {
             var chunk = chunks[key];
-            var intersects = raycaster.intersectObject(chunk.getMesh());
+            var intersects = ray.intersectObject(chunk.getMesh());
             for (var i = 0; i < intersects.length; i++) {
                 var intersect = intersects[i];
-                if (intersect.distance < closest.distance) {
+                if (!closest || intersect.distance < closest.distance) {
                     closest = intersect;
                 }
             }
         }
-        return closest.point;
+        if (!closest) closest = { point: null, distance: null };
+        return { p: closest.point, d: closest.distance };
     }
     
     self.removeLookedAtBlock = function (camera) {
-        var p = self.findWorldIntersection(camera);
+        var p = self.findTargetIntersection(camera).p;
         if (!p) return;
         
         var x = p.x;
