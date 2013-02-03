@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+cd server
+if go version; then
+    echo "Compiling server..."
+    go build *.go
+    
+    mv mapgen ../client || mv mapgen.exe ../client
+    cd ../client
+    
+    echo "Starting server..."
+    ./mapgen || ./mapgen.exe
+    
+    exit 0
+else
+    echo "ERROR: Go must be installed to compile the server."
+    echo "Get it from http://www.golang.org"
+    exit 1
+fi
+
