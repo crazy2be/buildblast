@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 )
@@ -63,9 +64,11 @@ func (w *World) run() {
 		select {
 		case p := <-w.register:
 			w.players[p] = true
+			log.Println("New player connected!")
 		case p := <-w.unregister:
 			delete(w.players, p)
 			close(p.inBroadcast)
+			log.Println("Player disconnected...")
 		case m := <-w.broadcast:
 			for p := range w.players {
 				select {
