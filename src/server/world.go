@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -22,6 +24,38 @@ func newWorld() *World {
 	w.unregister = make(chan *Player)
 	w.broadcast = make(chan *Message)
 	return w
+}
+
+func chunkID(cx, cy, cz int) string {
+	return fmt.Sprintf("%d,%d,%d", cx, cy, cz)
+}
+
+// TODO: This function has terrific race conditions...
+func (w *World) requestChunk(cx, cy, cz int) Chunk {
+	id := chunkID(cx, cy, cz)
+	if w.chunks[id] != nil {
+		return w.chunks[id]
+	}
+	
+	chunk := generateChunk(cx, cy, cz, w.seed)
+	w.chunks[id] = chunk
+	return chunk
+}
+
+func myMod(a float64, b float64) float64 {
+	return math.Mod(math.Mod(a, b) + b, b)
+}
+
+func (w *World) changeBlock(wx, wy, wz float64, typ Block) {
+	cx := int(math.Floor(wx / float64(CHUNK_WIDTH)))
+	cy := int(math.Floor(wy / float64(CHUNK_HEIGHT)))
+	cz := int(math.Floor(wz / float64(CHUNK_DEPTH)))
+	ox := int(myMod(math.Floor(wx), float64(CHUNK_WIDTH)))
+	oy := int(myMod(math.Floor(wy), float64(CHUNK_HEIGHT)))
+	oz := int(myMod(math.Floor(wz), float64(CHUNK_DEPTH)))
+	
+	chunk := w.requestChunk(cx, cy, cz)
+	chunk[ox][oy][oz] = typ
 }
 
 func (w *World) run() {

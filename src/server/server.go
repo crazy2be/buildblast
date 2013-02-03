@@ -18,20 +18,20 @@ type Message struct {
 }
 
 type Player struct {
+	w *World
 	ws *websocket.Conn
 	in chan *Message
 	out chan *Message
 	inBroadcast chan *Message
-	outBroadcast chan *Message
 }
 
 func newPlayer(ws *websocket.Conn) *Player {
 	p := new(Player)
+	p.w = globalWorld
 	p.ws = ws
 	p.in = make(chan *Message, 10)
 	p.out = make(chan *Message, 10)
 	p.inBroadcast = make(chan *Message, 10)
-	p.outBroadcast = make(chan *Message, 10)
 	return p
 }
 
@@ -65,20 +65,22 @@ func (p *Player) handleChunk(ms *Message) {
 	cx := int(pl["cx"].(float64))
 	cy := int(pl["cy"].(float64))
 	cz := int(pl["cz"].(float64))
-	chunk := generateChunk(cx, cy, cz, 0.311)
+	chunk := p.w.requestChunk(cx, cy, cz)
 	
 	pl["data"] = chunk
+	p.out <- ms
 }
 
-// func (p *Player) handleBlock(ms *Message) {
-// 	pl := ms.Payload
-// 	wx := pl["wx"].(float64)
-// 	wy := pl["wy"].(float64)
-// 	wz := pl["wz"].(float64)
-// 	typ := pl["typ"].(float64)
-// 	
-// 	
-// }
+func (p *Player) handleBlock(ms *Message) {
+	pl := ms.Payload
+	wx := pl["wx"].(float64)
+	wy := pl["wy"].(float64)
+	wz := pl["wz"].(float64)
+	typ := Block(pl["type"].(float64))
+	
+	p.w.changeBlock(wx, wy, wz, typ)
+	p.w.broadcast <- ms
+}
 
 func wsHandler(ws *websocket.Conn) {
 	p := newPlayer(ws)
@@ -94,14 +96,13 @@ func wsHandler(ws *websocket.Conn) {
 		case m := <-p.in:
 			switch m.Kind {
 			case "chunk":
-				p.handleChunk(m)
+				go p.handleChunk(m)
 			case "block":
-				globalWorld.broadcast <- m
+				go p.handleBlock(m)
 			default:
 				log.Print("Unknown message recieved from client of kind ", m.Kind)
 				continue
 			}
-			p.out <- m
 		case m := <-p.inBroadcast:
 			log.Print("Recieved broadcast message")
 			p.out <- m

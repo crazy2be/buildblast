@@ -214,15 +214,7 @@ function World(scene) {
     
     function removeBlock(wx, wy, wz) {
         changeBlock(wx, wy, wz, new Block(Block.AIR));
-        queueMessage({
-            kind: 'block',
-            payload: {
-                wx: wx,
-                wy: wy,
-                wz: wz,
-                type: Block.AIR,
-            }
-        });
+        conn.queue('block', {wx: wx, wy: wy, wz: wz, type: Block.AIR});
     }
     
     function changeBlock(wx, wy, wz, newBlock) {
