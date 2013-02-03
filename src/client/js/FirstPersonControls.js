@@ -88,9 +88,9 @@ function FirstPersonControls(world, camera, element) {
     function select(item) {
         var html = ''
         if (item == 'gun') {
-            html = '1: <b>gun</b>, 2: shovel';
+            html = '<span class="selected">gun</span><span class="notSelected">shovel</span>';
         } else if (item == 'shovel') {
-            html = '1: gun, 2: <b>shovel</b>';
+            html = '<span class="notSelected">gun</span><span class="selected">shovel</span>';
         } else {
             html = '????? ' + item + ' ?????'
         }
