@@ -33,7 +33,7 @@ var Player = function (position, world, container) {
         }
         
         if (controls.isJumping()) {
-            velocityY = 0.04;
+            velocityY = 0.05;
             controls.jumped();
         }
         p.y += Math.max(y - p.y, velocityY);
