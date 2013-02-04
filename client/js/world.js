@@ -171,40 +171,53 @@ function World(scene) {
         return { p: closest.point, d: closest.distance };
     }
     
-    self.removeLookedAtBlock = function (camera) {
+    function doLookedAtBlockAction(camera, cmp, cb) {
         var p = self.findTargetIntersection(camera).p;
         if (!p) return;
         
         var x = p.x;
         var y = p.y;
         var z = p.z;
+        
+        if (onFace(x)) {
+            if (cmp(x + 0.5, y, z)) {
+                cb(x + 0.5, y, z);
+            } else {
+                cb(x - 0.5, y, z);
+            }
+        } else if (onFace(y)) {
+            if (cmp(x, y + 0.5, z)) {
+                cb(x, y + 0.5, z);
+            } else {
+                cb(x, y - 0.5, z);
+            }
+        } else if (onFace(z)) {
+            if (cmp(x, y, z + 0.5)) {
+                cb(x, y, z + 0.5);
+            } else {
+                cb(x, y, z - 0.5);
+            }
+        } else {
+            console.log("Could not find looked at block!");
+        }
+    }
+    
+    self.removeLookedAtBlock = function (camera) {
         function dirt(x, y, z) {
             var block = self.blockAt(x, y, z);
             if (block) return block.isType(Block.DIRT);
             else return false;
         }
-        
-        if (onFace(x)) {
-            if (dirt(x + 0.5, y, z)) {
-                removeBlock(x + 0.5, y, z);
-            } else {
-                removeBlock(x - 0.5, y, z);
-            }
-        } else if (onFace(y)) {
-            if (dirt(x, y + 0.5, z)) {
-                removeBlock(x, y + 0.5, z);
-            } else {
-                removeBlock(x, y - 0.5, z);
-            }
-        } else if (onFace(z)) {
-            if (dirt(x, y, z + 0.5)) {
-                removeBlock(x, y, z + 0.5);
-            } else {
-                removeBlock(x, y, z - 0.5);
-            }
-        } else {
-            console.log("Could not find looked at block!");
+        doLookedAtBlockAction(camera, dirt, removeBlock);
+    }
+    
+    self.addLookedAtBlock = function (camera) {
+        function air(x, y, z) {
+            var block = self.blockAt(x, y, z);
+            if (block) return block.isType(Block.AIR);
+            else return false;
         }
+        doLookedAtBlockAction(camera, air, addBlock);
     }
     
     function onFace(n) {
@@ -219,6 +232,11 @@ function World(scene) {
     function removeBlock(wx, wy, wz) {
         changeBlock(wx, wy, wz, new Block(Block.AIR));
         conn.queue('block', {wx: wx, wy: wy, wz: wz, type: Block.AIR});
+    }
+    
+    function addBlock(wx, wy, wz) {
+        changeBlock(wx, wy, wz, new Block(Block.DIRT));
+        conn.queue('block', {wx: wx, wy: wy, wz: wz, type: Block.DIRT});
     }
     
     function changeBlock(wx, wy, wz, newBlock) {

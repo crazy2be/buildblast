@@ -29,11 +29,11 @@ var Player = function (position, world, container) {
             p.y = y;
             velocityY = 0;
         } else {
-            velocityY += dt * 0.2 * -9.81;   
+            velocityY += dt * 0.005 * -9.81;   
         }
         
         if (controls.isJumping()) {
-            velocityY = 0.5;
+            velocityY = 0.04;
             controls.jumped();
         }
         p.y += Math.max(y - p.y, velocityY);

@@ -22,7 +22,7 @@ function FirstPersonControls(world, camera, element) {
     var viewHalfX = 0;
     var viewHalfY = 0;
     
-    var selectedItem = 'gun';
+    var inventory = new Inventory(world, camera);
     
     self.isJumping = function () {
         return jumping.pressed;
@@ -57,14 +57,9 @@ function FirstPersonControls(world, camera, element) {
         
         element.requestPointerLock();
         
-        if (selectedItem == 'gun') {
-            var point = world.findTargetIntersection(camera).p;
-            if (point) world.addSmallCube(point);
-        } else if (selectedItem == 'shovel') {
-            world.removeLookedAtBlock(camera);
-        } else {
-            throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
-        }
+        // I'm actually lying, we always call this.
+        // but we will call different ones soon.
+        inventory.leftClick();
     };
 
     function mouseUp(event) {
@@ -84,20 +79,6 @@ function FirstPersonControls(world, camera, element) {
                 0;
     };
     
-    var selectElm = document.getElementById('selection');
-    function select(item) {
-        var html = ''
-        if (item == 'gun') {
-            html = '<span class="selected">gun</span><span class="notSelected">shovel</span>';
-        } else if (item == 'shovel') {
-            html = '<span class="notSelected">gun</span><span class="selected">shovel</span>';
-        } else {
-            html = '????? ' + item + ' ?????'
-        }
-        selectedItem = item;
-        selectElm.innerHTML = html;
-    }
-    
     function pointerLockChange() {
         if (document.pointerLockElement === element ||
                 document.mozPointerLockElement === element ||
@@ -112,34 +93,47 @@ function FirstPersonControls(world, camera, element) {
 
     function keyDown(event) {
         switch (event.keyCode) {
-            case 188: /*comma*/
-            case 38: /*up*/
-            case 87: /*W*/ movingForward = true; break;
+            case 188: // comma
+            case 38:  // up
+            case 87:  // W
+                movingForward = true;
+                break;
 
-            case 37: /*left*/
-            case 65: /*A*/ movingLeft = true; break;
+            case 37: // left
+            case 65: // A
+                movingLeft = true;
+                break;
 
-            case 79: /*O*/
-            case 40: /*down*/
-            case 83: /*S*/ movingBack = true; break;
+            case 79: // O
+            case 40: // down
+            case 83: // S
+                movingBack = true;
+                break;
 
-            case 69: /*E*/
-            case 39: /*right*/
-            case 68: /*D*/ movingRight = true; break;
+            case 69: // E
+            case 39: // right
+            case 68: // D
+                movingRight = true;
+                break;
             
-            case 32: /*space*/
+            case 32: // space
                 if (jumping.released) {
                     jumping.pressed = true;
                     jumping.released = false;
                 }
                 break;
-            case 49: /*1*/
+
+            case 49: // 1
             case 55: // 1 on prgmr dvorak
-                select('gun');
+                inventory.selectSlot(0);
                 break;
-            case 50: /*2*/
+            case 50: // 2
             case 219: // 2 on prgmr dvorak
-                select('shovel');
+                inventory.selectSlot(1);
+                break;
+            case 51: // 3
+            case 221: // 4 on prgmr dvorak (3 doesn't work)
+                inventory.selectSlot(2);
                 break;
                 
             default:

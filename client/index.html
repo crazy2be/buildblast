@@ -17,7 +17,8 @@
 
             #info {
                 position: absolute;
-                top: 0px; width: 100%;
+                top: 0px;
+                width: 100%;
                 padding: 5px;
             }
             
@@ -27,14 +28,11 @@
                 width: 100%;
                 padding: 10px;
             }
-            
-            .selected {
+            #selection .selected {
                 padding: 3px;
-                border-style: groove;
-                border-width: 5px;
+                border: 5px double;
             }
-            
-            .notSelected {
+            #selection .not-selected {
                 padding: 8px;
             }
             
@@ -80,10 +78,10 @@
     </head>
     <body>
         <div id="xHair"></div>
-        <div id="container"><br /><br /><br /><br /><br />Generating world...</div>
+        <div id="container"><br /><br /><br /><br /><br />Connecting...</div>
         <div id="info"></div>
         <table id="connection-status"></table>
-        <div id="selection"><span class="selected">gun</span><span class="notSelected">shovel</span></div>
+        <div id="selection"></div>
 
         <script src="lib/three.min.js"></script>
         <script src="lib/stats.min.js"></script>
@@ -93,6 +91,7 @@
         <script src="js/Detector.js"></script>
         <script src="js/chunk.js"></script>
         <script src="js/conn.js"></script>
+        <script src="js/inventory.js"></script>
         <script src="js/world.js"></script>
         <script src="js/entities/player.js"></script>
         <script src="js/entities/block.js"></script>
