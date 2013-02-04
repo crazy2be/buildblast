@@ -24,15 +24,15 @@ var Player = function (world, container, conn) {
         var p = camera.position;
         var y = world.findClosestGround(p.x, p.y, p.z) + height;
         
-        if (p.y < y) {
+        if (Math.abs(p.y - y) < 0.001) {
             p.y = y;
             velocityY = 0;
         } else {
-            velocityY += dt * 0.005 * -9.81;   
+            velocityY += dt * 0.2 * -9.81;   
         }
         
         if (controls.isJumping()) {
-            velocityY = 0.05;
+            velocityY = 0.5;
             controls.jumped();
         }
         p.y += Math.max(y - p.y, velocityY);
