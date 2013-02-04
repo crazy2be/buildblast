@@ -1,7 +1,6 @@
-function World(scene) {
+function World(scene, conn) {
     var self = this;
     
-    var conn = new Conn();
     conn.on('chunk', processChunk);
     conn.on('block', processBlock);
     

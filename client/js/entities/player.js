@@ -1,25 +1,24 @@
-var Player = function (position, world, container) {
+var Player = function (world, container, conn) {
+    var self = this;
+    
     var height = 1.6;
     var velocityY = 0;
     
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
-    camera.position.y = position.y;
-    camera.position.x = position.x;
-    camera.position.z = position.z;
         
     var controls = new FirstPersonControls(world, camera, container);
     
-    this.getHeight = function () {
+    self.getHeight = function () {
         return height;
     };
     
-    this.resize = function () {
+    self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         controls.handleResize();
     };
     
-    this.update = function (dt) {
+    self.update = function (dt) {
         controls.update(dt);
         
         var p = camera.position;
@@ -39,7 +38,7 @@ var Player = function (position, world, container) {
         p.y += Math.max(y - p.y, velocityY);
     };
     
-    this.render = function (renderer, scene) {
+    self.render = function (renderer, scene) {
         renderer.render(scene, camera);
     };
 };
