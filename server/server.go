@@ -1,8 +1,11 @@
 package main
 
 import (
+	"io"
 	"log"
+	"fmt"
 	"net/http"
+	"crypto/rand"
 	"code.google.com/p/go.net/websocket"
 )
 
@@ -17,11 +20,27 @@ type Message struct {
 	Payload map[string]interface{}
 }
 
+func (m *Message) String() string {
+	return fmt.Sprintf("{kind: %s, payload: %v}", m.Kind, m.Payload)
+}
+
+// http://stackoverflow.com/questions/12771930/what-is-the-fastest-way-to-generate-a-long-random-string-in-go
+func randString(n int) string {
+	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	var bytes = make([]byte, n)
+	rand.Read(bytes)
+	for i, b := range bytes {
+		bytes[i] = alphanum[b % byte(len(alphanum))]
+	}
+	return string(bytes)
+}
+
 type Player struct {
 	w *World
 	ws *websocket.Conn
 	in chan *Message
 	out chan *Message
+	name string
 	inBroadcast chan *Message
 }
 
@@ -31,6 +50,7 @@ func newPlayer(ws *websocket.Conn) *Player {
 	p.ws = ws
 	p.in = make(chan *Message, 10)
 	p.out = make(chan *Message, 10)
+	p.name = "player-" + randString(10)
 	p.inBroadcast = make(chan *Message, 10)
 	return p
 }
@@ -39,9 +59,11 @@ func (p *Player) handleIncoming() {
 	for {
 		ms := new(Message)
 		err := websocket.JSON.Receive(p.ws, ms)
-		log.Print("recieved new message")
 		if err != nil {
-			log.Print(err)
+			if err != io.EOF {
+				log.Print("Reading websocket message (", p.name, "): ", err)
+			}
+			close(p.in)
 			return
 		}
 		p.in <- ms
@@ -52,9 +74,9 @@ func (p *Player) handleOutgoing() {
 	for {
 		ms := <-p.out
 		err := websocket.JSON.Send(p.ws, ms)
-		log.Print("sent new message")
 		if err != nil {
-			log.Print(err)
+			log.Print("Sending websocket message (", p.name, "): ", err)
+			close(p.out)
 			return
 		}
 	}
@@ -66,7 +88,7 @@ func (p *Player) handleChunk(ms *Message) {
 	cy := int(pl["cy"].(float64))
 	cz := int(pl["cz"].(float64))
 	chunk := p.w.requestChunk(cx, cy, cz)
-	
+
 	pl["data"] = chunk
 	p.out <- ms
 }
@@ -77,7 +99,7 @@ func (p *Player) handleBlock(ms *Message) {
 	wy := pl["wy"].(float64)
 	wz := pl["wz"].(float64)
 	typ := Block(pl["type"].(float64))
-	
+
 	p.w.changeBlock(wx, wy, wz, typ)
 	p.w.broadcast <- ms
 }
@@ -90,10 +112,13 @@ func wsHandler(ws *websocket.Conn) {
 	}()
 	go p.handleIncoming()
 	go p.handleOutgoing()
-	
+
 	for {
 		select {
 		case m := <-p.in:
+			if m == nil {
+				return
+			}
 			switch m.Kind {
 			case "chunk":
 				go p.handleChunk(m)
@@ -104,7 +129,6 @@ func wsHandler(ws *websocket.Conn) {
 				continue
 			}
 		case m := <-p.inBroadcast:
-			log.Print("Recieved broadcast message")
 			p.out <- m
 		}
 	}

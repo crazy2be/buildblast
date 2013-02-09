@@ -3,14 +3,14 @@
 cd server
 if go version; then
     echo "Compiling server..."
-    go build *.go
-    
-    mv mapgen ../client || mv mapgen.exe ../client
+    go build -o buildshoot-server *.go
+
+    mv buildshoot-server ../client || mv buildshoot-server.exe ../client
     cd ../client
-    
+
     echo "Starting server..."
-    ./mapgen || ./mapgen.exe
-    
+    ./buildshoot-server || ./buildshoot-server.exe
+
     exit 0
 else
     echo "ERROR: Go must be installed to compile the server."

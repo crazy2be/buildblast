@@ -1,5 +1,5 @@
 *~
 *.kate-swp
 *.swp
-mapgen
-mapgen.exe
+buildshoot-server
+buildshoot-server.exe
