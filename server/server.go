@@ -104,6 +104,17 @@ func (p *Player) handleBlock(ms *Message) {
 	p.w.broadcast <- ms
 }
 
+func (p *Player) handlerPlayerPosition(ms *Message) {
+	pl := ms.Payload
+	// TODO: Verify position is valid
+	// (they didn't move too much in the last
+	// couple frames, and they are not currently
+	// in the ground).
+	pl["id"] = p.name
+	ms.Kind = "position"
+	p.w.broadcast <- ms
+}
+
 func wsHandler(ws *websocket.Conn) {
 	p := newPlayer(ws)
 	globalWorld.register <- p
@@ -124,6 +135,8 @@ func wsHandler(ws *websocket.Conn) {
 				go p.handleChunk(m)
 			case "block":
 				go p.handleBlock(m)
+			case "player-position":
+				go p.handlerPlayerPosition(m)
 			default:
 				log.Print("Unknown message recieved from client of kind ", m.Kind)
 				continue
