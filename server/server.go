@@ -20,6 +20,13 @@ type Message struct {
 	Payload map[string]interface{}
 }
 
+func newMessage(kind string) *Message {
+	ms := new(Message)
+	ms.Kind = kind
+	ms.Payload = make(map[string]interface{})
+	return ms
+}
+
 func (m *Message) String() string {
 	return fmt.Sprintf("{kind: %s, payload: %v}", m.Kind, m.Payload)
 }
@@ -42,7 +49,7 @@ type Player struct {
 	out chan *Message
 	name string
 	inBroadcast chan *Message
-	loadedChunks []ChunkCoords
+	loadedChunks map[ChunkCoords]bool
 }
 
 func newPlayer(ws *websocket.Conn) *Player {
@@ -53,7 +60,7 @@ func newPlayer(ws *websocket.Conn) *Player {
 	p.out = make(chan *Message, 10)
 	p.name = "player-" + randString(10)
 	p.inBroadcast = make(chan *Message, 10)
-	p.loadedChunks = make([]ChunkCoords, 0)
+	p.loadedChunks = make(map[ChunkCoords]bool, 0)
 	return p
 }
 
@@ -87,14 +94,25 @@ func (p *Player) handleOutgoing() {
 func (p *Player) handleChunk(ms *Message) {
 	pl := ms.Payload
 	cc := ChunkCoords{
-		x: int(pl["cx"].(float64)),
-		y: int(pl["cy"].(float64)),
-		z: int(pl["cz"].(float64)),
+		x: int(pl["x"].(float64)),
+		y: int(pl["y"].(float64)),
+		z: int(pl["z"].(float64)),
 	}
 	chunk := p.w.requestChunk(cc)
-	p.loadedChunks = append(p.loadedChunks, cc)
+	p.loadedChunks[cc] = true
 
 	pl["data"] = chunk
+	p.out <- ms
+}
+
+func (p *Player) sendChunk(cc ChunkCoords) {
+	ms := newMessage("chunk")
+	ms.Payload["x"] = cc.x
+	ms.Payload["y"] = cc.y
+	ms.Payload["z"] = cc.z
+	chunk := p.w.requestChunk(cc)
+	p.loadedChunks[cc] = true
+	ms.Payload["data"] = chunk
 	p.out <- ms
 }
 
@@ -113,13 +131,28 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	// (they didn't move too much in the last
 	// couple frames, and they are not currently
 	// in the ground).
-// 	wc := readWorldCoords(pl)
-// 	_ = wc
+	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
 
 	pl["id"] = p.name
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
+	cc := wc.Chunk()
+	for x := -1; x < 2; x++ {
+		for y := -1; y < 2; y++ {
+			for z := -1; z < 2; z++ {
+				newCC := ChunkCoords{
+					x: cc.x + x,
+					y: cc.y + y,
+					z: cc.z + z,
+				}
+				if p.loadedChunks[newCC] != true {
+					p.sendChunk(newCC)
+				}
+			}
+		}
+	}
+	// TODO: Unload far away chunks.
 }
 
 func wsHandler(ws *websocket.Conn) {

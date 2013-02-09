@@ -20,9 +20,9 @@ type WorldCoords struct {
 
 func readWorldCoords(pl map[string]interface{}) WorldCoords {
     return WorldCoords{
-        x: pl["wx"].(float64),
-        y: pl["wy"].(float64),
-        z: pl["wz"].(float64),
+        x: pl["x"].(float64),
+        y: pl["y"].(float64),
+        z: pl["z"].(float64),
     }
 }
 
