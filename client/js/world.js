@@ -247,12 +247,12 @@ function World(scene, conn) {
 
     function removeBlock(wx, wy, wz) {
         changeBlock(wx, wy, wz, new Block(Block.AIR));
-        conn.queue('block', {wx: wx, wy: wy, wz: wz, type: Block.AIR});
+        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.AIR});
     }
 
     function addBlock(wx, wy, wz) {
         changeBlock(wx, wy, wz, new Block(Block.DIRT));
-        conn.queue('block', {wx: wx, wy: wy, wz: wz, type: Block.DIRT});
+        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.DIRT});
     }
 
     function changeBlock(wx, wy, wz, newBlock) {
