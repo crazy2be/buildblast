@@ -48,6 +48,22 @@ type ChunkCoords struct {
     z int
 }
 
+func chunkCoordsFromMap(m map[string]interface{}) ChunkCoords {
+    return ChunkCoords{
+        x: int(m["x"].(float64)),
+        y: int(m["y"].(float64)),
+        z: int(m["z"].(float64)),
+    }
+}
+
+func (cc ChunkCoords) toMap() map[string]interface{} {
+    m := make(map[string]interface{})
+    m["x"] = cc.x
+    m["y"] = cc.y
+    m["z"] = cc.z
+    return m
+}
+
 type OffsetCoords struct {
     x int
     y int

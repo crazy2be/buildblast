@@ -2,6 +2,7 @@ function World(scene, conn) {
     var self = this;
 
     conn.on('chunk', processChunk);
+    conn.on('unload-chunk', processUnloadChunk);
     conn.on('block', processBlock);
 
     var chunks = {};
@@ -20,7 +21,7 @@ function World(scene, conn) {
     }
 
     function queueChunk(cx, cy, cz) {
-        conn.queue('chunk', {x: cx, y: cy, z: cz});
+        conn.queue('chunk', {ccpos: {x: cx, y: cy, z: cz}});
     }
 
     function displayChunk(cx, cy, cz) {
@@ -32,10 +33,12 @@ function World(scene, conn) {
     }
 
     function processChunk(payload) {
-        var cx = payload.x;
-        var cy = payload.y;
-        var cz = payload.z;
+        var pos = payload.ccpos;
+        var cx = pos.x;
+        var cy = pos.y;
+        var cz = pos.z;
         var data = payload.data;
+        console.log("Got chunk at ", cx, cy, cz);
 
         var chunk = chunkAt(cx, cy, cz);
         if (chunk) return;
@@ -63,6 +66,20 @@ function World(scene, conn) {
         if (pzc) pzc.refresh(scene);
         var nzc = chunkAt(cx, cy, cz - 1);
         if (nzc) nzc.refresh(scene);
+    }
+
+    function processUnloadChunk(payload) {
+        var pos = payload.ccpos;
+        var cx = pos.x;
+        var cy = pos.y;
+        var cz = pos.z;
+        console.log("Unloading chunk at ", cx, cy, cz);
+
+        var chunk = chunkAt(cx, cy, cz);
+        if (!chunk) return;
+
+        chunk.removeFrom(scene);
+        delete chunks[cx + "," + cy + "," + cz];
     }
 
     function processBlock(payload) {

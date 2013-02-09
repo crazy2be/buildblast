@@ -5,6 +5,7 @@ import (
 	"log"
 	"fmt"
 	"net/http"
+	mrand "math/rand"
 	"crypto/rand"
 	"code.google.com/p/go.net/websocket"
 )
@@ -93,26 +94,28 @@ func (p *Player) handleOutgoing() {
 
 func (p *Player) handleChunk(ms *Message) {
 	pl := ms.Payload
-	cc := ChunkCoords{
-		x: int(pl["x"].(float64)),
-		y: int(pl["y"].(float64)),
-		z: int(pl["z"].(float64)),
-	}
-	chunk := p.w.requestChunk(cc)
-	p.loadedChunks[cc] = true
+	pos := pl["ccpos"].(map[string]interface{})
+	cc := chunkCoordsFromMap(pos)
 
-	pl["data"] = chunk
-	p.out <- ms
+	p.sendChunk(cc)
 }
 
 func (p *Player) sendChunk(cc ChunkCoords) {
 	ms := newMessage("chunk")
-	ms.Payload["x"] = cc.x
-	ms.Payload["y"] = cc.y
-	ms.Payload["z"] = cc.z
+	ms.Payload["ccpos"] = cc.toMap()
+
 	chunk := p.w.requestChunk(cc)
 	p.loadedChunks[cc] = true
+
 	ms.Payload["data"] = chunk
+	p.out <- ms
+}
+
+func (p *Player) sendUnloadChunk(cc ChunkCoords) {
+	ms := newMessage("unload-chunk")
+	ms.Payload["ccpos"] = cc.toMap()
+
+	delete(p.loadedChunks, cc)
 	p.out <- ms
 }
 
@@ -138,21 +141,34 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	p.w.broadcast <- ms
 
 	cc := wc.Chunk()
-	for x := -1; x < 2; x++ {
-		for y := -1; y < 2; y++ {
-			for z := -1; z < 2; z++ {
+	for x := -2; x <= 2; x++ {
+		for y := -2; y <= 2; y++ {
+			for z := -2; z <= 2; z++ {
 				newCC := ChunkCoords{
 					x: cc.x + x,
 					y: cc.y + y,
 					z: cc.z + z,
 				}
 				if p.loadedChunks[newCC] != true {
-					p.sendChunk(newCC)
+					// Terrible hack to stagger chunk loading
+					if (mrand.Float32() > 0.9) {
+						p.sendChunk(newCC)
+					}
 				}
 			}
 		}
 	}
-	// TODO: Unload far away chunks.
+
+	for lcc := range p.loadedChunks {
+		if lcc.x < cc.x - 2 || lcc.x > cc.x + 2 ||
+		   lcc.y < cc.y - 2 || lcc.y > cc.y + 2 ||
+		   lcc.z < cc.z - 2 || lcc.z > cc.z + 2 {
+			// Terrible hack to stagger chunk unloading
+			if (mrand.Float32() > 0.9) {
+				p.sendUnloadChunk(lcc)
+			}
+		}
+	}
 }
 
 func wsHandler(ws *websocket.Conn) {
