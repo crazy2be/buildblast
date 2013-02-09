@@ -3,3 +3,4 @@
 *.swp
 buildshoot-server
 buildshoot-server.exe
+.kateconfig
