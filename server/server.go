@@ -111,7 +111,7 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	// couple frames, and they are not currently
 	// in the ground).
 	pl["id"] = p.name
-	ms.Kind = "position"
+	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 }
 
@@ -142,6 +142,9 @@ func wsHandler(ws *websocket.Conn) {
 				continue
 			}
 		case m := <-p.inBroadcast:
+			if m.Kind == "entity-position" && p.name == m.Payload["id"] {
+				continue
+			}
 			p.out <- m
 		}
 	}
