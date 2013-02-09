@@ -42,6 +42,7 @@ type Player struct {
 	out chan *Message
 	name string
 	inBroadcast chan *Message
+	loadedChunks []ChunkCoords
 }
 
 func newPlayer(ws *websocket.Conn) *Player {
@@ -52,6 +53,7 @@ func newPlayer(ws *websocket.Conn) *Player {
 	p.out = make(chan *Message, 10)
 	p.name = "player-" + randString(10)
 	p.inBroadcast = make(chan *Message, 10)
+	p.loadedChunks = make([]ChunkCoords, 0)
 	return p
 }
 
@@ -84,10 +86,13 @@ func (p *Player) handleOutgoing() {
 
 func (p *Player) handleChunk(ms *Message) {
 	pl := ms.Payload
-	cx := int(pl["cx"].(float64))
-	cy := int(pl["cy"].(float64))
-	cz := int(pl["cz"].(float64))
-	chunk := p.w.requestChunk(cx, cy, cz)
+	cc := ChunkCoords{
+		x: int(pl["cx"].(float64)),
+		y: int(pl["cy"].(float64)),
+		z: int(pl["cz"].(float64)),
+	}
+	chunk := p.w.requestChunk(cc)
+	p.loadedChunks = append(p.loadedChunks, cc)
 
 	pl["data"] = chunk
 	p.out <- ms
@@ -95,12 +100,10 @@ func (p *Player) handleChunk(ms *Message) {
 
 func (p *Player) handleBlock(ms *Message) {
 	pl := ms.Payload
-	wx := pl["wx"].(float64)
-	wy := pl["wy"].(float64)
-	wz := pl["wz"].(float64)
+	wc := readWorldCoords(pl)
 	typ := Block(pl["type"].(float64))
 
-	p.w.changeBlock(wx, wy, wz, typ)
+	p.w.changeBlock(wc, typ)
 	p.w.broadcast <- ms
 }
 
@@ -110,9 +113,13 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	// (they didn't move too much in the last
 	// couple frames, and they are not currently
 	// in the ground).
+// 	wc := readWorldCoords(pl)
+// 	_ = wc
+
 	pl["id"] = p.name
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
+
 }
 
 func wsHandler(ws *websocket.Conn) {

@@ -18,6 +18,14 @@ type WorldCoords struct {
     z float64
 }
 
+func readWorldCoords(pl map[string]interface{}) WorldCoords {
+    return WorldCoords{
+        x: pl["wx"].(float64),
+        y: pl["wy"].(float64),
+        z: pl["wz"].(float64),
+    }
+}
+
 func (w WorldCoords) Chunk() ChunkCoords {
     return ChunkCoords{
         x: floor(w.x / float64(CHUNK_WIDTH)),

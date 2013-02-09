@@ -31,23 +31,20 @@ func chunkID(cx, cy, cz int) string {
 }
 
 // TODO: This function has terrific race conditions...
-func (w *World) requestChunk(cx, cy, cz int) Chunk {
-	id := chunkID(cx, cy, cz)
+func (w *World) requestChunk(c ChunkCoords) Chunk {
+	id := chunkID(c.x, c.y, c.z)
 	if w.chunks[id] != nil {
 		return w.chunks[id]
 	}
 
-	chunk := generateChunk(cx, cy, cz, w.seed)
+	chunk := generateChunk(c.x, c.y, c.z, w.seed)
 	w.chunks[id] = chunk
 	return chunk
 }
 
-func (w *World) changeBlock(wx, wy, wz float64, typ Block) {
-	wc := WorldCoords{wx, wy, wz}
-	c := wc.Chunk()
+func (w *World) changeBlock(wc WorldCoords, typ Block) {
+	chunk := w.requestChunk(wc.Chunk())
 	o := wc.Offset()
-
-	chunk := w.requestChunk(c.x, c.y, c.z)
 	chunk[o.x][o.y][o.z] = typ
 }
 
@@ -62,7 +59,6 @@ func (w *World) run() {
 			close(p.inBroadcast)
 			log.Println("Player disconnected...", p.name)
 		case m := <-w.broadcast:
-			log.Print("Recieved broadcast message: ", m)
 			for p := range w.players {
 				select {
 				case p.inBroadcast <- m:
