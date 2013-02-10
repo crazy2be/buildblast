@@ -239,16 +239,15 @@ function World(scene, conn) {
     }
 
     function removeBlock(wx, wy, wz) {
-        changeBlock(wx, wy, wz, new Block(Block.AIR));
-        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.AIR});
+        changeBlock(wx, wy, wz, Block.AIR);
     }
 
     function addBlock(wx, wy, wz) {
-        changeBlock(wx, wy, wz, new Block(Block.DIRT));
-        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.DIRT});
+        changeBlock(wx, wy, wz, Block.DIRT);
     }
 
-    function changeBlock(wx, wy, wz, newBlock) {
+    function changeBlock(wx, wy, wz, newType) {
+        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.DIRT});
         var cords = worldToChunk(wx, wy, wz);
         var c = cords.c;
         var o = cords.o;
@@ -256,9 +255,9 @@ function World(scene, conn) {
         var chunk = chunkAt(c.x, c.y, c.z);
         if (!chunk) return "Cannot find chunk to remove from!";
         var block = chunk.blockAt(o.x, o.y, o.z);
-        if (!block) return "Cannot find block within chunk!";
-        if (block.getType() === newBlock.getType()) return;
-        block.setType(newBlock.getType());
+        if (!block) throw "Cannot find block within chunk!";
+        if (block.type === newType) return;
+        chunk.setBlock(o.x, o.y, o.z, newType);
 
         // Invalidate chunks
         var changedChunks = [];

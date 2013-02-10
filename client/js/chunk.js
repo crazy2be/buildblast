@@ -72,6 +72,10 @@ var Chunk = (function () {
         wireframe: true
     });
 
+    var cw = CHUNK_WIDTH;
+    var ch = CHUNK_HEIGHT;
+    var cd = CHUNK_DEPTH;
+
     return Chunk;
 
     function Chunk(world, blocks, cx, cy, cz) {
@@ -87,17 +91,23 @@ var Chunk = (function () {
         var nzc;
         var pzc;
 
-        var cw = CHUNK_WIDTH;
-        var ch = CHUNK_HEIGHT;
-        var cd = CHUNK_DEPTH;
-        // Offset relative to chunk
         function block(ox, oy, oz) {
             if (ox >= 0 && ox < cw &&
                 oy >= 0 && oy < ch &&
                 oz >= 0 && oz < cd) {
-                return blocks[ox*cw*ch + oy*cw + oz];
+                    return blocks[ox*cw*ch + oy*cw + oz];
             }
             return null;
+        }
+
+        function setBlock(ox, oy, oz, t) {
+            if (ox >= 0 && ox < cw &&
+                oy >= 0 && oy < ch &&
+                oz >= 0 && oz < cd) {
+                    blocks[ox*cw*ch + oy*cw + oz] = t;
+            } else {
+                throw "setBlock coords out of bounds: " + ox + oy + oz;
+            }
         }
 
         function t(b) {
@@ -216,12 +226,16 @@ var Chunk = (function () {
             self.addTo(scene);
         }
 
+        // Raw blockAt
         self.rblockAt = function (ox, oy, oz) {
             return block(ox, oy, oz);
         }
+
         self.blockAt = function (ox, oy, oz) {
             var b = block(ox, oy, oz);
             return b ? new Block(b) : null;
         }
+
+        self.setBlock = setBlock;
     }
 }());
