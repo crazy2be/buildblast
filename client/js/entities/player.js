@@ -32,7 +32,7 @@ var Player = function (world, container, conn) {
 
         var p = camera.position;
         var r = camera.rotation;
-        var y = world.findClosestGround(p.x, p.y, p.z) + height;
+        var y = world.findClosestGround(p.x, p.y - height, p.z) + height;
 
         if (Math.abs(p.y - y) < 0.001) {
             p.y = y;
