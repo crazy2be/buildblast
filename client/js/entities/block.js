@@ -5,7 +5,7 @@ function Block(type) {
     self.getType = function () {
         return self.type;
     }
-    
+
     self.setType = function (newType) {
         self.type = newType;
     }
@@ -13,7 +13,7 @@ function Block(type) {
     self.isType = function (type) {
         return self.type == type;
     }
-    
+
     self.isTrans = function () {
         return self.type == Block.AIR;
     }
@@ -21,3 +21,6 @@ function Block(type) {
 
 Block.AIR = 0x1;
 Block.DIRT = 0x2;
+Block.transparent = function (block) {
+    return block == Block.AIR;
+}

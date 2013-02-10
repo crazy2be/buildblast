@@ -93,14 +93,6 @@ func (p *Player) handleOutgoing() {
 	}
 }
 
-func (p *Player) handleChunk(ms *Message) {
-// 	pl := ms.Payload
-// 	pos := pl["ccpos"].(map[string]interface{})
-// 	cc := chunkCoordsFromMap(pos)
-
-// 	p.sendChunk(cc)
-}
-
 func (p *Player) sendChunk(cc ChunkCoords) {
 	ms := newMessage("chunk")
 	ms.Payload["ccpos"] = cc.toMap()
@@ -141,7 +133,7 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	DIST := 2
+	DIST := 3
 
 	cc := wc.Chunk()
 	for x := -DIST; x <= DIST; x++ {
@@ -210,8 +202,6 @@ func wsHandler(ws *websocket.Conn) {
 				return
 			}
 			switch m.Kind {
-			case "chunk":
-				go p.handleChunk(m)
 			case "block":
 				go p.handleBlock(m)
 			case "player-position":

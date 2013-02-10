@@ -17,11 +17,6 @@ function World(scene, conn) {
     function loadChunk(cx, cy, cz) {
         var chunk = chunkAt(cx, cy, cz);
         if (chunk) return chunk;
-        else queueChunk(cx, cy, cz);
-    }
-
-    function queueChunk(cx, cy, cz) {
-        conn.queue('chunk', {ccpos: {x: cx, y: cy, z: cz}});
     }
 
     function displayChunk(cx, cy, cz) {
@@ -42,14 +37,6 @@ function World(scene, conn) {
 
         var chunk = chunkAt(cx, cy, cz);
         if (chunk) return;
-
-        for (var ox = 0; ox < CHUNK_WIDTH; ox++) {
-            for (var oy = 0; oy < CHUNK_HEIGHT; oy++) {
-                for (var oz = 0; oz < CHUNK_DEPTH; oz++) {
-                    data[ox][oy][oz] = new Block(data[ox][oy][oz]);
-                }
-            }
-        }
 
         chunks[cx + "," + cy + "," + cz] = new Chunk(self, data, cx, cy, cz);
         displayChunk(cx, cy, cz);
