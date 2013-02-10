@@ -14,19 +14,6 @@ function World(scene, conn) {
 
     self.chunkAt = chunkAt;
 
-    function loadChunk(cx, cy, cz) {
-        var chunk = chunkAt(cx, cy, cz);
-        if (chunk) return chunk;
-    }
-
-    function displayChunk(cx, cy, cz) {
-        var chunk = loadChunk(cx, cy, cz);
-        if (!chunk) return;
-        if (chunk.isDisplayed()) return;
-        chunk.addTo(scene);
-        return chunk;
-    }
-
     function processChunk(payload) {
         var pos = payload.ccpos;
         var size = payload.size;
@@ -44,21 +31,11 @@ function World(scene, conn) {
         var chunk = chunkAt(cx, cy, cz);
         if (chunk) return;
 
-        chunks[cx + "," + cy + "," + cz] = new Chunk(self, data, cx, cy, cz);
-        displayChunk(cx, cy, cz);
+        chunk = new Chunk(self, data, cx, cy, cz);
+        chunks[cx + "," + cy + "," + cz] = chunk;
+        chunk.addTo(scene);
 
-        var pxc = chunkAt(cx + 1, cy, cz);
-        if (pxc) pxc.refresh(scene);
-        var nxc = chunkAt(cx - 1, cy, cz);
-        if (nxc) nxc.refresh(scene);
-        var pyc = chunkAt(cx, cy + 1, cz);
-        if (pyc) pyc.refresh(scene);
-        var nyc = chunkAt(cx, cy - 1, cz);
-        if (nyc) nyc.refresh(scene);
-        var pzc = chunkAt(cx, cy, cz + 1);
-        if (pzc) pzc.refresh(scene);
-        var nzc = chunkAt(cx, cy, cz - 1);
-        if (nzc) nzc.refresh(scene);
+        refreshChunkNeighbours(cx, cy, cz);
     }
 
     function processUnloadChunk(payload) {
@@ -71,8 +48,10 @@ function World(scene, conn) {
         var chunk = chunkAt(cx, cy, cz);
         if (!chunk) return;
 
-        chunk.removeFrom(scene);
         delete chunks[cx + "," + cy + "," + cz];
+
+        chunk.removeFrom(scene);
+        chunk.unload();
     }
 
     function processBlock(payload) {
@@ -80,7 +59,22 @@ function World(scene, conn) {
         var wy = payload.y;
         var wz = payload.z;
         var type = payload.type;
-        changeBlock(wx, wy, wz, new Block(type));
+        applyBlockChange(wx, wy, wz, type);
+    }
+
+    function refreshChunkNeighbours(cx, cy, cz) {
+        var pxc = chunkAt(cx + 1, cy, cz);
+        if (pxc) pxc.refresh(scene);
+        var nxc = chunkAt(cx - 1, cy, cz);
+        if (nxc) nxc.refresh(scene);
+        var pyc = chunkAt(cx, cy + 1, cz);
+        if (pyc) pyc.refresh(scene);
+        var nyc = chunkAt(cx, cy - 1, cz);
+        if (nyc) nyc.refresh(scene);
+        var pzc = chunkAt(cx, cy, cz + 1);
+        if (pzc) pzc.refresh(scene);
+        var nzc = chunkAt(cx, cy, cz - 1);
+        if (nzc) nzc.refresh(scene);
     }
 
     function mod(a, b) {
@@ -100,7 +94,7 @@ function World(scene, conn) {
         var o = cords.o;
         var c = cords.c;
 
-        var chunk = loadChunk(c.x, c.y, c.z);
+        var chunk = chunkAt(c.x, c.y, c.z);
         if (!chunk) return null;
         var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Could not load blockkk!!!";
@@ -112,7 +106,7 @@ function World(scene, conn) {
         var c = cords.c;
         var o = cords.o;
 
-        var chunk = loadChunk(c.x, c.y, c.z);
+        var chunk = chunkAt(c.x, c.y, c.z);
         if (!chunk) {
             return wy;
         }
@@ -123,7 +117,7 @@ function World(scene, conn) {
                 if (o.y-- < 0) {
                     o.y = CHUNK_HEIGHT;
                     c.y--;
-                    chunk = loadChunk(c.x, c.y, c.z);
+                    chunk = chunkAt(c.x, c.y, c.z);
                     if (!chunk) {
                         return o.y + 1 + c.y * CHUNK_HEIGHT;
                     }
@@ -139,7 +133,7 @@ function World(scene, conn) {
                 if (o.y++ >= CHUNK_HEIGHT) {
                     o.y = 0;
                     c.y++;
-                    chunk = loadChunk(c.x, c.y, c.z);
+                    chunk = chunkAt(c.x, c.y, c.z);
                     if (!chunk) {
                         return o.y + c.y * CHUNK_HEIGHT;
                     }
@@ -184,6 +178,15 @@ function World(scene, conn) {
         var p = self.findTargetIntersection(camera).p;
         if (!p) return;
 
+        function onFace(n) {
+            if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001 || abs(n % 1 + 1) < 0.001) return true;
+            else return false;
+        }
+
+        function abs(n) {
+            return Math.abs(n);
+        }
+
         var x = p.x;
         var y = p.y;
         var z = p.z;
@@ -217,6 +220,9 @@ function World(scene, conn) {
             if (block) return block.isType(Block.DIRT);
             else return false;
         }
+        function removeBlock(wx, wy, wz) {
+            changeBlock(wx, wy, wz, Block.AIR);
+        }
         doLookedAtBlockAction(camera, dirt, removeBlock);
     }
 
@@ -226,34 +232,24 @@ function World(scene, conn) {
             if (block) return block.isType(Block.AIR);
             else return false;
         }
+        function addBlock(wx, wy, wz) {
+            changeBlock(wx, wy, wz, Block.DIRT);
+        }
         doLookedAtBlockAction(camera, air, addBlock);
     }
 
-    function onFace(n) {
-        if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001 || abs(n % 1 + 1) < 0.001) return true;
-        else return false;
-    }
-
-    function abs(n) {
-        return Math.abs(n);
-    }
-
-    function removeBlock(wx, wy, wz) {
-        changeBlock(wx, wy, wz, Block.AIR);
-    }
-
-    function addBlock(wx, wy, wz) {
-        changeBlock(wx, wy, wz, Block.DIRT);
-    }
-
     function changeBlock(wx, wy, wz, newType) {
-        conn.queue('block', {x: wx, y: wy, z: wz, type: Block.DIRT});
+        conn.queue('block', {x: wx, y: wy, z: wz, type: newType});
+        applyBlockChange(wx, wy, wz, newType);
+    }
+
+    function applyBlockChange(wx, wy, wz, newType) {
         var cords = worldToChunk(wx, wy, wz);
         var c = cords.c;
         var o = cords.o;
 
         var chunk = chunkAt(c.x, c.y, c.z);
-        if (!chunk) return "Cannot find chunk to remove from!";
+        if (!chunk) throw "Cannot find chunk to remove from!";
         var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Cannot find block within chunk!";
         if (block.type === newType) return;
@@ -265,19 +261,14 @@ function World(scene, conn) {
 
         cords = worldToChunk(wx + 1, wy, wz);
         addToSet(changedChunks, cords.c);
-
         cords = worldToChunk(wx - 1, wy, wz);
         addToSet(changedChunks, cords.c);
-
         cords = worldToChunk(wx, wy + 1, wz);
         addToSet(changedChunks, cords.c);
-
         cords = worldToChunk(wx, wy - 1, wz);
         addToSet(changedChunks, cords.c);
-
         cords = worldToChunk(wx, wy, wz + 1);
         addToSet(changedChunks, cords.c);
-
         cords = worldToChunk(wx, wy, wz - 1);
         addToSet(changedChunks, cords.c);
 
@@ -294,9 +285,6 @@ function World(scene, conn) {
                 x: Math.floor(wx / CHUNK_WIDTH),
                 y: Math.floor(wy / CHUNK_HEIGHT),
                 z: Math.floor(wz / CHUNK_DEPTH),
-                str: function() {
-                    return this.x + "," + this.y + "," + this.z;
-                }
             },
             o: {
                 x: mod(Math.floor(wx), CHUNK_WIDTH),

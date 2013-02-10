@@ -180,20 +180,22 @@ var Chunk = (function () {
             }
         }
 
-        self.isDisplayed = function () {
-            return isDisplayed;
-        }
-
-        self.addTo = function (scene) {
-            var geometry = new THREE.Geometry();
-            var dummy = new THREE.Mesh();
-
+        self.refreshNeighbours = function () {
             pxc = world.chunkAt(cx + 1, cy, cz);
             nxc = world.chunkAt(cx - 1, cy, cz);
             pyc = world.chunkAt(cx, cy + 1, cz);
             nyc = world.chunkAt(cx, cy - 1, cz);
             pzc = world.chunkAt(cx, cy, cz + 1);
             nzc = world.chunkAt(cx, cy, cz - 1);
+        }
+
+        self.addTo = function (scene) {
+            if (isDisplayed) return;
+
+            var geometry = new THREE.Geometry();
+            var dummy = new THREE.Mesh();
+
+            self.refreshNeighbours();
 
             for (var ox = 0; ox < cw; ox++) {
                 for (var oy = 0; oy < ch; oy++) {
@@ -219,6 +221,22 @@ var Chunk = (function () {
             if (!mesh) return;
             scene.remove(mesh);
             scene.remove(wireMesh);
+        }
+
+        // Remove chunk from world before calling
+        // Destroys all object chains where other chunks
+        // are referencing this chunk which cause
+        // really long GC cycles as the GC tries to
+        // trace the long object chains.
+        self.unload = function () {
+            self.refreshNeighbours();
+            if (pxc) pxc.refreshNeighbours();
+            if (nxc) nxc.refreshNeighbours();
+            if (pyc) pyc.refreshNeighbours();
+            if (nyc) nyc.refreshNeighbours();
+            if (pzc) pzc.refreshNeighbours();
+            if (nzc) nzc.refreshNeighbours();
+            pxc = nxc = pyc = nyc = nzc = pzc = null;
         }
 
         self.refresh = function (scene) {
