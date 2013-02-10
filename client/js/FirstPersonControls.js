@@ -1,6 +1,6 @@
 function FirstPersonControls(world, camera, element) {
     var self = this;
-    
+
     var target = new THREE.Vector3(0, 0, 0);
 
     var movementSpeed = 10;
@@ -16,31 +16,22 @@ function FirstPersonControls(world, camera, element) {
     var movingBack = false;
     var movingLeft = false;
     var movingRight = false;
-    
-    var jumping = { pressed : false, released : true };
+    var jumping = false;
 
     var viewHalfX = 0;
     var viewHalfY = 0;
-    
+
     var inventory = new Inventory(world, camera);
-    
-    self.isJumping = function () {
-        return jumping.pressed;
-    };
-    
-    self.jumped = function () {
-        jumping.pressed = false;
-    };
 
     self.handleResize = function () {
         viewHalfX = element.offsetWidth / 2;
         viewHalfY = element.offsetHeight / 2;
     };
-    
+
     var havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
             'webkitPointerLockElement' in document;
-    
+
     if (havePointerLock) {
         element.requestPointerLock = element.requestPointerLock ||
                 element.mozRequestPointerLock ||
@@ -54,9 +45,9 @@ function FirstPersonControls(world, camera, element) {
 
         event.preventDefault();
         event.stopPropagation();
-        
+
         element.requestPointerLock();
-        
+
         // I'm actually lying, we always call this.
         // but we will call different ones soon.
         inventory.leftClick();
@@ -78,7 +69,7 @@ function FirstPersonControls(world, camera, element) {
                 event.webkitMovementY     ||
                 0;
     };
-    
+
     function pointerLockChange() {
         if (document.pointerLockElement === element ||
                 document.mozPointerLockElement === element ||
@@ -115,12 +106,9 @@ function FirstPersonControls(world, camera, element) {
             case 68: // D
                 movingRight = true;
                 break;
-            
+
             case 32: // space
-                if (jumping.released) {
-                    jumping.pressed = true;
-                    jumping.released = false;
-                }
+                jumping = true;
                 break;
 
             case 49: // 1
@@ -135,7 +123,7 @@ function FirstPersonControls(world, camera, element) {
             case 221: // 4 on prgmr dvorak (3 doesn't work)
                 inventory.selectSlot(2);
                 break;
-                
+
             default:
                 console.log("Warning: Unrecognized keyCode: " + event.keyCode);
         }
@@ -157,108 +145,52 @@ function FirstPersonControls(world, camera, element) {
             case 69: /*E*/
             case 39: /*right*/
             case 68: /*D*/ movingRight = false; break;
-            
-            case 32: /*space*/ jumping.released = true; break;
+
+            case 32: /*space*/ jumping = false; break;
         }
     };
 
     function clamp(n, a, b) {
         return Math.max(a, Math.min(b, n));
     }
-    
-    var info = document.getElementById('info');
+
     self.update = function(dt) {
-        var p = camera.position;
-        var headCam;
-        var headP;
-        var footCam;
-        var footP;
-        var ds = dt * movementSpeed;
-        var pad = 0.2;
-        var head;
-        var foot;
-        var result;
-        
         lon += movementX * lookSpeed;
         lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);
         movementX = 0;
         movementY = 0;
-        
+
+        var target = new THREE.Vector3();
+        var p = camera.position;
         target.x = p.x + Math.sin(lat) * Math.cos(lon);
         target.y = p.y + Math.cos(lat);
         target.z = p.z + Math.sin(lat) * Math.sin(lon);
         camera.lookAt(target);
-        
-        headCam = camera.clone();
-        headP = headCam.position;
-        
-        target.x = headP.x + Math.sin(-1/2 * Math.PI) * Math.cos(lon);
-        target.y = headP.y + Math.cos(-1/2 * Math.PI);
-        target.z = headP.z + Math.sin(-1/2 * Math.PI) * Math.sin(lon);
-        headCam.lookAt(target);
-        
-        footCam = headCam.clone();
-        footP = footCam.position;
-        footP.y -= 1.1;
-        
-        target.x = 0;
-        target.y = 0;
-        target.z = 0;
-        if (movingForward) {
-            target.z--;
-        }
-        if (movingBack) {
-            target.z++;
-        }
-        if (movingLeft) {
-            target.x--;
-        }
-        if (movingRight) {
-            target.x++;
-        }
-        headCam.translate(ds, target);
-        
-        var ray = new THREE.Raycaster(p, new THREE.Vector3(headP.x, headP.y, headP.z).sub(p).normalize());
-        head = world.intersectRay(ray);
-        ray = new THREE.Raycaster(footP, new THREE.Vector3(headP.x, headP.y - 1.1, headP.z).sub(footP).normalize());
-        foot = world.intersectRay(ray);
-        if (head.d == null && foot.d == null) result = null;
-        else if (head.d == null && foot.d != null) result = foot.d;
-        else if (foot.d == null && head.d != null) result = head.d;
-        else result = Math.min(head.d, foot.d);
-        
-        if (result && result >= 0) result -= pad;
 
-        if (result == null || ds < result) {
-            camera.position = headCam.position;
+        return {
+            forward: movingForward,
+            back: movingBack,
+            left: movingLeft,
+            right: movingRight,
+            jumping: jumping,
+            lat: lat,
+            lon: lon,
         }
-        
-        info.innerHTML = JSON.stringify({
-            x: round(p.x, 2),
-            y: round(p.y, 2),
-            z: round(p.z, 2)
-        });
     };
 
     document.addEventListener('pointerlockchange', pointerLockChange, false);
     document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-    document.addEventListener('webkitpointerlockchange', pointerLockChange, false); 
+    document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
 
-    
     element.tabIndex = "-1";
-    element.addEventListener('contextmenu', function (event) { 
+    element.addEventListener('contextmenu', function (event) {
         event.preventDefault();
     }, false);
     element.addEventListener('mousedown', mouseDown, false);
     element.addEventListener('mouseup', mouseUp, false);
     element.addEventListener('keydown', keyDown, false);
     element.addEventListener('keyup', keyUp, false);
-    
-    function round(n, digits) {
-        var factor = Math.pow(10, digits);
-        return Math.round(n * factor) / factor;
-    }
 
     self.handleResize();
 };

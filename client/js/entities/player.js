@@ -19,33 +19,125 @@ var Player = function (world, container, conn) {
     };
 
     conn.on('player-position', function (payload) {
-        var cp = camera.position;
-        var dp = payload.pos;
-        cp.x = dp.x;
-        cp.y = dp.y;
-        cp.z = dp.z;
+        var p = payload.pos;
+        camera.position.set(p.x, p.y, p.z);
+        var r = payload.rot;
+        camera.rotation.set(r.x, r.y, r.z);
     });
+
+    function solid(x, y, z) {
+        var block = world.blockAt(x, y, z);
+        if (!block) return false;
+        else return block.solid();
+    }
+
+    function inSolid(bbox) {
+        var b = bbox;
+        var s = solid;
+        return s(b.xs, b.ys, b.zs) ||
+            s(b.xs, b.ys, b.ze) ||
+            s(b.xs, b.ye, b.zs) ||
+            s(b.xs, b.ye, b.ze) ||
+            s(b.xe, b.ys, b.zs) ||
+            s(b.xe, b.ys, b.ze) ||
+            s(b.xe, b.ye, b.zs) ||
+            s(b.xe, b.ye, b.ze);
+    }
+
+    function attemptMove(move) {
+        var p = camera.position;
+        var pad = 0.2;
+        var bbox = {
+            xs: p.x - pad,
+            xe: p.x + pad,
+            ys: p.y - 1.2,
+            ye: p.y + pad,
+            zs: p.z - pad,
+            ze: p.z + pad,
+        };
+
+        if (inSolid(bbox)) {
+            var cg = world.findClosestGround;
+            p.y = Math.max(cg(bbox.xs, bbox.ys, bbox.zs) + 1.2,
+                           cg(bbox.xs, bbox.ys, bbox.ze) + 1.2,
+                           cg(bbox.xe, bbox.ys, bbox.zs) + 1.2,
+                           cg(bbox.xe, bbox.ys, bbox.ze) + 1.2);
+            return;
+        }
+
+        if (move.x) {
+            bbox.xs += move.x;
+            bbox.xe += move.x;
+            if (!inSolid(bbox)) {
+                p.x += move.x;
+            } else {
+                bbox.xs -= move.x;
+                bbox.xe -= move.x;
+            }
+        }
+
+        if (move.y) {
+            bbox.ys += move.y;
+            bbox.ye += move.y;
+            if (!inSolid(bbox)) {
+                p.y += move.y;
+            } else {
+                bbox.ys -= move.y;
+                bbox.ye -= move.y;
+            }
+        }
+
+        if (move.z) {
+            bbox.zs += move.z;
+            bbox.ze += move.z;
+            if (!inSolid(bbox)) {
+                p.z += move.z;
+            } else {
+                bbox.zs -= move.z;
+                bbox.ze -= move.z;
+            }
+        }
+
+        var info = document.getElementById('info');
+        info.innerHTML = JSON.stringify({
+            x: round(p.x, 2),
+            y: round(p.y, 2),
+            z: round(p.z, 2)
+        });
+    }
+
+    function round(n, digits) {
+        var factor = Math.pow(10, digits);
+        return Math.round(n * factor) / factor;
+    }
 
     var accumulatedTime = 0;
     self.update = function (dt) {
-        controls.update(dt);
-
+        var c = controls.update(dt);
         var p = camera.position;
         var r = camera.rotation;
-        var y = world.findClosestGround(p.x, p.y - height, p.z) + height;
+        var y = world.findClosestGround(p.x, p.y - 1.2, p.z) + 1.2;
+        var onGround = Math.abs(p.y - y) < 0.1;
 
-        if (Math.abs(p.y - y) < 0.001) {
-            p.y = y;
+        if (c.jumping && onGround) {
+            velocityY = 6;
+        } else if (onGround) {
             velocityY = 0;
         } else {
-            velocityY += dt * 0.2 * -9.81;
+            velocityY += dt * -9.81;
         }
 
-        if (controls.isJumping()) {
-            velocityY = 0.5;
-            controls.jumped();
-        }
-        p.y += Math.max(y - p.y, velocityY);
+        var fw = dt * 10 * (c.forward ? 1 : c.back ? -1 : 0);
+        var rt = dt * 10 * (c.right ? 1 : c.left ? -1 : 0);
+        var sin = Math.sin;
+        var cos = Math.cos;
+        var move = {
+            x: -cos(c.lon) * fw + sin(c.lon) * rt,
+            y: velocityY * dt,
+            z: -sin(c.lon) * fw - cos(c.lon) * rt,
+        };
+
+        attemptMove(move);
 
         accumulatedTime += dt;
         if (accumulatedTime > 0.1) {
