@@ -78,7 +78,7 @@ var Chunk = (function () {
 
     return Chunk;
 
-    function Chunk(world, blocks, cx, cy, cz) {
+    function Chunk(manager, blocks, cx, cy, cz) {
         var self = this;
         var isDisplayed = false;
         var mesh;
@@ -181,12 +181,12 @@ var Chunk = (function () {
         }
 
         self.refreshNeighbours = function () {
-            pxc = world.chunkAt(cx + 1, cy, cz);
-            nxc = world.chunkAt(cx - 1, cy, cz);
-            pyc = world.chunkAt(cx, cy + 1, cz);
-            nyc = world.chunkAt(cx, cy - 1, cz);
-            pzc = world.chunkAt(cx, cy, cz + 1);
-            nzc = world.chunkAt(cx, cy, cz - 1);
+            pxc = manager.chunkAt(cx + 1, cy, cz);
+            nxc = manager.chunkAt(cx - 1, cy, cz);
+            pyc = manager.chunkAt(cx, cy + 1, cz);
+            nyc = manager.chunkAt(cx, cy - 1, cz);
+            pzc = manager.chunkAt(cx, cy, cz + 1);
+            nzc = manager.chunkAt(cx, cy, cz - 1);
         }
 
         self.addTo = function (scene) {
@@ -204,11 +204,14 @@ var Chunk = (function () {
                     }
                 }
             }
+
             mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
             wireMesh = new THREE.Mesh(geometry, wireMaterial);
             scene.add(mesh);
             scene.add(wireMesh);
+
             isDisplayed = true;
+
             return self;
         }
 
@@ -217,10 +220,14 @@ var Chunk = (function () {
         }
 
         self.removeFrom = function (scene) {
-            isDisplayed = false;
             if (!mesh) return;
+
             scene.remove(mesh);
             scene.remove(wireMesh);
+
+            isDisplayed = false;
+
+            return self;
         }
 
         // Remove chunk from world before calling

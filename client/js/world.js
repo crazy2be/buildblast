@@ -1,58 +1,10 @@
 function World(scene, conn) {
     var self = this;
+    var chunkManager = new ChunkManager(scene, conn);
 
-    conn.on('chunk', processChunk);
-    conn.on('unload-chunk', processUnloadChunk);
     conn.on('block', processBlock);
 
-    var chunks = {};
-
-    function chunkAt(cx, cy, cz) {
-        var chunk = chunks[cx + "," + cy + "," + cz];
-        return chunk;
-    }
-
-    self.chunkAt = chunkAt;
-
-    function processChunk(payload) {
-        var pos = payload.ccpos;
-        var size = payload.size;
-        if (size.w != CHUNK_WIDTH ||
-            size.h != CHUNK_HEIGHT ||
-            size.d != CHUNK_DEPTH) {
-                throw "Got chunk of size which does not match our expected chunk size!";
-            }
-        var cx = pos.x;
-        var cy = pos.y;
-        var cz = pos.z;
-        var data = payload.data;
-        console.log("Got chunk at ", cx, cy, cz);
-
-        var chunk = chunkAt(cx, cy, cz);
-        if (chunk) return;
-
-        chunk = new Chunk(self, data, cx, cy, cz);
-        chunks[cx + "," + cy + "," + cz] = chunk;
-        chunk.addTo(scene);
-
-        refreshChunkNeighbours(cx, cy, cz);
-    }
-
-    function processUnloadChunk(payload) {
-        var pos = payload.ccpos;
-        var cx = pos.x;
-        var cy = pos.y;
-        var cz = pos.z;
-        console.log("Unloading chunk at ", cx, cy, cz);
-
-        var chunk = chunkAt(cx, cy, cz);
-        if (!chunk) return;
-
-        delete chunks[cx + "," + cy + "," + cz];
-
-        chunk.removeFrom(scene);
-        chunk.unload();
-    }
+    var chunkAt = chunkManager.chunkAt;
 
     function processBlock(payload) {
         var wx = payload.x;
@@ -60,25 +12,6 @@ function World(scene, conn) {
         var wz = payload.z;
         var type = payload.type;
         applyBlockChange(wx, wy, wz, type);
-    }
-
-    function refreshChunkNeighbours(cx, cy, cz) {
-        var pxc = chunkAt(cx + 1, cy, cz);
-        if (pxc) pxc.refresh(scene);
-        var nxc = chunkAt(cx - 1, cy, cz);
-        if (nxc) nxc.refresh(scene);
-        var pyc = chunkAt(cx, cy + 1, cz);
-        if (pyc) pyc.refresh(scene);
-        var nyc = chunkAt(cx, cy - 1, cz);
-        if (nyc) nyc.refresh(scene);
-        var pzc = chunkAt(cx, cy, cz + 1);
-        if (pzc) pzc.refresh(scene);
-        var nzc = chunkAt(cx, cy, cz - 1);
-        if (nzc) nzc.refresh(scene);
-    }
-
-    function mod(a, b) {
-        return (((a % b) + b) % b);
     }
 
     self.addSmallCube = function (position) {
@@ -160,6 +93,7 @@ function World(scene, conn) {
 
     self.intersectRay = function (ray) {
         var closest;
+        var chunks = chunkManager.chunks();
         for (var key in chunks) {
             var chunk = chunks[key];
             var intersects = ray.intersectObject(chunk.getMesh());
@@ -279,24 +213,8 @@ function World(scene, conn) {
         }
     }
 
-    function worldToChunk(wx, wy, wz) {
-        return {
-            c: {
-                x: Math.floor(wx / CHUNK_WIDTH),
-                y: Math.floor(wy / CHUNK_HEIGHT),
-                z: Math.floor(wz / CHUNK_DEPTH),
-            },
-            o: {
-                x: mod(Math.floor(wx), CHUNK_WIDTH),
-                y: mod(Math.floor(wy), CHUNK_HEIGHT),
-                z: mod(Math.floor(wz), CHUNK_DEPTH),
-            }
-        };
-    }
-
     // Set is actually just an array.
     function addToSet(set, elm) {
-        // Not really total equality
         function equal(a, b) {
             for (k in a) {
                 if (a[k] !== b[k]) return false;
@@ -311,5 +229,24 @@ function World(scene, conn) {
         }
         if (arrayContians(set, elm)) return;
         set.push(elm);
+    }
+
+    function mod(a, b) {
+        return (((a % b) + b) % b);
+    }
+
+    function worldToChunk(wx, wy, wz) {
+        return {
+            c: {
+                x: Math.floor(wx / CHUNK_WIDTH),
+                y: Math.floor(wy / CHUNK_HEIGHT),
+                z: Math.floor(wz / CHUNK_DEPTH),
+            },
+            o: {
+                x: mod(Math.floor(wx), CHUNK_WIDTH),
+                y: mod(Math.floor(wy), CHUNK_HEIGHT),
+                z: mod(Math.floor(wz), CHUNK_DEPTH),
+            }
+        };
     }
 }
