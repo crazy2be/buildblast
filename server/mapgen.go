@@ -39,14 +39,14 @@ func lerp(t, a, b float64) float64 {
 
 func grad(hash int, x, y, z float64) float64 {
 	h := hash & 15
-	
+
 	u := 0.0
 	if h < 8 {
 		u = x
 	} else {
 		u = y
 	}
-	
+
 	v := 0.0
 	if (h < 4) {
 		v = y
@@ -57,7 +57,7 @@ func grad(hash int, x, y, z float64) float64 {
 			v = z
 		}
 	}
-	
+
 	r := 0.0
 	if ((h & 1) == 0) {
 		r += u
@@ -69,7 +69,7 @@ func grad(hash int, x, y, z float64) float64 {
 	} else {
 		r -= v
 	}
-	
+
 	return r
 }
 
@@ -77,35 +77,35 @@ func noise(x, y, z float64) float64 {
 	floorX := math.Floor(x)
 	floorY := math.Floor(y)
 	floorZ := math.Floor(z)
-	
+
 	X := int(floorX) & 255
 	Y := int(floorY) & 255
 	Z := int(floorZ) & 255
-	
+
 	x -= floorX
 	y -= floorY
 	z -= floorZ
-	
+
 	u := fade(x)
 	v := fade(y)
 	w := fade(z)
-	
+
 	p := permutation
-	
+
 	A  := p[X] + Y
 	AA := p[A] + Z
 	AB := p[A + 1] + Z
 	B  := p[X + 1] + Y
 	BA := p[B] + Z
 	BB := p[B + 1] + Z
-	
+
 	return lerp(w,
 		lerp(v,
 			lerp(u,
 				grad(p[AA], x, y, z),
 				grad(p[BA], x - 1, y, z),
 			),
-			lerp(u, 
+			lerp(u,
 				grad(p[AB], x, y - 1, z),
 				grad(p[BB], x - 1, y - 1, z),
 			),
@@ -115,7 +115,7 @@ func noise(x, y, z float64) float64 {
 				grad(p[AA + 1], x, y, z - 1),
 				grad(p[BA + 1], x - 1, y, z - 1),
 			),
-			lerp(u, 
+			lerp(u,
 				grad(p[AB + 1], x, y - 1, z - 1),
 				grad(p[BB + 1], x - 1, y - 1, z - 1),
 			),
@@ -126,14 +126,14 @@ func noise(x, y, z float64) float64 {
 func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
 	hmap := make([][]float64, xd)
 	quality := 2.0
-	
+
 	for x := 0; x < xd; x++ {
 		hmap[x] = make([]float64, zd)
 		for z := 0; z < zd; z++ {
 			hmap[x][z] = 0
 		}
 	}
-	
+
 	for i := 0; i < 4; i++ {
 		for x := 0; x < xd; x++ {
 			for z := 0; z < zd; z++ {
@@ -144,7 +144,7 @@ func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
 		}
 		quality *= 4
 	}
-	
+
 	intHMap := make([][]int, xd)
 	for x := 0; x < xd; x++ {
 		intHMap[x] = make([]int, zd)
@@ -152,7 +152,7 @@ func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
 			intHMap[x][z] = int(math.Floor(hmap[x][z] * 0.2))
 		}
 	}
-	
+
 	return intHMap
 }
 
@@ -162,13 +162,13 @@ type Block int
 var BLOCK_AIR = Block(1)
 var BLOCK_DIRT = Block(2)
 
-var CHUNK_WIDTH = 8
-var CHUNK_DEPTH = 8
-var CHUNK_HEIGHT = 8
+var CHUNK_WIDTH = 16
+var CHUNK_DEPTH = 16
+var CHUNK_HEIGHT = 16
 
 func generateChunk(cx, cy, cz int, seed float64) Chunk {
 	hmap := generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, seed)
-	
+
 	blocks := make([][][]Block, CHUNK_WIDTH)
 	for ox := 0; ox < CHUNK_WIDTH; ox++ {
 		blocks[ox] = make([][]Block, CHUNK_HEIGHT)

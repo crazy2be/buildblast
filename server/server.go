@@ -5,7 +5,6 @@ import (
 	"log"
 	"fmt"
 	"net/http"
-	"math"
 	mrand "math/rand"
 	"crypto/rand"
 	"code.google.com/p/go.net/websocket"
@@ -149,59 +148,60 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	DIST := 3
+	MIN_LOAD_DIST := 1
+	MAX_LOAD_DIST := 2
+	MIN_UNLOAD_DIST := 2
+	MAX_UNLOAD_DIST := 3
 
-	cc := wc.Chunk()
-	for x := -DIST; x <= DIST; x++ {
-		for y := -DIST; y <= DIST; y++ {
-			for z := -DIST; z <= DIST; z++ {
-				newCC := ChunkCoords{
-					x: cc.x + x,
-					y: cc.y + y,
-					z: cc.z + z,
-				}
-				if p.loadedChunks[newCC] != true {
-					// Stagger chunk loading
-					// biased towards loading chunks nearest
-					// the player's position.
-// 					val := mrand.Float64()
-// 					val *= float64(cc.x - x)
-// 					val *= float64(cc.y - y)
-// 					val *= float64(cc.z - z)
-// 					if math.Abs(val) < 1 {
-						p.sendChunk(newCC)
-// 					}
+	around := func (cc ChunkCoords, dist int, cb func (newCC ChunkCoords)) {
+		for x := -dist; x <= dist; x++ {
+			for y := -dist; y <= dist; y++ {
+				for z := -dist; z <= dist; z++ {
+					newCC := ChunkCoords{
+						x: cc.x + x,
+						y: cc.y + y,
+						z: cc.z + z,
+					}
+					cb(newCC)
 				}
 			}
 		}
-		_ = mrand.Float64
-		_ = math.Abs
 	}
+	cc := wc.Chunk()
+	around(cc, MIN_LOAD_DIST, func (newCC ChunkCoords) {
+		if p.loadedChunks[newCC] != true {
+			p.sendChunk(newCC)
+		}
+	})
+	// Sometimes load far away chunks to reduce lag when
+	// moving through the world (so coming up to a chunk
+	// boundry doesn't require the loading of many chunks
+	// in a single frame)
+	around(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
+		if p.loadedChunks[newCC] != true {
+			if (mrand.Float64() > 0.9) {
+				p.sendChunk(newCC)
+			}
+		}
+	})
 
-// 	abs := func (n float64) float64 {
-// 		return math.Abs(n)
-// 	}
-//
-// 	max := func (a, b float64) float64 {
-// 		return math.Max(a, b)
-// 	}
-
-	for lcc := range p.loadedChunks {
-		if lcc.x < cc.x - DIST || lcc.x > cc.x + DIST ||
-		   lcc.y < cc.y - DIST || lcc.y > cc.y + DIST ||
-		   lcc.z < cc.z - DIST || lcc.z > cc.z + DIST {
-			// Stagger chunk unloading
-			// Should be biased towards unloading
-			// chunks furthest from the player.
-// 			val := mrand.Float64()
-// 			val *= max(abs(float64(cc.x - lcc.x)) - 2, 1)
-// 			val *= max(abs(float64(cc.y - lcc.y)) - 2, 1)
-// 			val *= max(abs(float64(cc.z - lcc.z)) - 2, 1)
-// 			if (math.Abs(val) > 0.9) {
-				p.sendUnloadChunk(lcc)
-// 			}
+	loaded := func (cc ChunkCoords, dist int, cb func (lcc ChunkCoords)) {
+		for lcc := range p.loadedChunks {
+			if lcc.x < cc.x - dist || lcc.x > cc.x + dist ||
+				lcc.y < cc.y - dist || lcc.y > cc.y + dist ||
+				lcc.z < cc.z - dist || lcc.z > cc.z + dist {
+					cb(lcc)
+			}
 		}
 	}
+	loaded(cc, MAX_UNLOAD_DIST, func (lcc ChunkCoords) {
+		p.sendUnloadChunk(lcc)
+	})
+	loaded(cc, MIN_UNLOAD_DIST, func (lcc ChunkCoords) {
+		if (mrand.Float64() > 0.9) {
+			p.sendUnloadChunk(lcc)
+		}
+	})
 }
 
 func wsHandler(ws *websocket.Conn) {
