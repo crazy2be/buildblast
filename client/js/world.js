@@ -29,6 +29,12 @@ function World(scene, conn) {
 
     function processChunk(payload) {
         var pos = payload.ccpos;
+        var size = payload.size;
+        if (size.w != CHUNK_WIDTH ||
+            size.h != CHUNK_HEIGHT ||
+            size.d != CHUNK_DEPTH) {
+                throw "Got chunk of size which does not match our expected chunk size!";
+            }
         var cx = pos.x;
         var cy = pos.y;
         var cz = pos.z;
@@ -110,8 +116,8 @@ function World(scene, conn) {
         if (!chunk) {
             return wy;
         }
-        var block;
-        if (chunk.blockAt(o.x, o.y, o.z).isType(Block.AIR)) {
+        var block = chunk.blockAt(o.x, o.y, o.z);
+        if (block.isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
                 if (o.y-- < 0) {
@@ -127,7 +133,7 @@ function World(scene, conn) {
                     return o.y + c.y * CHUNK_HEIGHT + 1;
                 }
             }
-        } else if (chunk.blockAt(o.x, o.y, o.z).isType(Block.DIRT)) {
+        } else if (block.isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
                 if (o.y++ >= CHUNK_HEIGHT) {
@@ -144,7 +150,7 @@ function World(scene, conn) {
                 }
             }
         } else {
-            throw "findClosestGround only knows how to deal with ground and air blocks.";
+            throw "findClosestGround only knows how to deal with ground and air blocks. Got " + block.getType();
         }
     }
 

@@ -96,11 +96,27 @@ func (p *Player) handleOutgoing() {
 func (p *Player) sendChunk(cc ChunkCoords) {
 	ms := newMessage("chunk")
 	ms.Payload["ccpos"] = cc.toMap()
+	cw := CHUNK_WIDTH
+	ch := CHUNK_HEIGHT
+	cd := CHUNK_DEPTH
+	ms.Payload["size"] = map[string]interface{}{
+		"w": cw,
+		"h": ch,
+		"d": cd,
+	}
 
 	chunk := p.w.requestChunk(cc)
 	p.loadedChunks[cc] = true
 
-	ms.Payload["data"] = chunk
+	data := make([]Block, cw*ch*cd)
+	for x := 0; x < cw; x++ {
+		for y := 0; y < ch; y++ {
+			for z := 0; z < cd; z++ {
+				data[x*cw*ch + y*cw + z] = chunk[x][y][z]
+			}
+		}
+	}
+	ms.Payload["data"] = data
 	p.out <- ms
 }
 
@@ -148,25 +164,27 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 					// Stagger chunk loading
 					// biased towards loading chunks nearest
 					// the player's position.
-					val := mrand.Float64()
-					val *= float64(cc.x - x)
-					val *= float64(cc.y - y)
-					val *= float64(cc.z - z)
-					if math.Abs(val) < 0.3 {
+// 					val := mrand.Float64()
+// 					val *= float64(cc.x - x)
+// 					val *= float64(cc.y - y)
+// 					val *= float64(cc.z - z)
+// 					if math.Abs(val) < 1 {
 						p.sendChunk(newCC)
-					}
+// 					}
 				}
 			}
 		}
+		_ = mrand.Float64
+		_ = math.Abs
 	}
 
-	abs := func (n float64) float64 {
-		return math.Abs(n)
-	}
-
-	max := func (a, b float64) float64 {
-		return math.Max(a, b)
-	}
+// 	abs := func (n float64) float64 {
+// 		return math.Abs(n)
+// 	}
+//
+// 	max := func (a, b float64) float64 {
+// 		return math.Max(a, b)
+// 	}
 
 	for lcc := range p.loadedChunks {
 		if lcc.x < cc.x - DIST || lcc.x > cc.x + DIST ||
@@ -175,13 +193,13 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 			// Stagger chunk unloading
 			// Should be biased towards unloading
 			// chunks furthest from the player.
-			val := mrand.Float64()
-			val *= max(abs(float64(cc.x - lcc.x)) - 2, 1)
-			val *= max(abs(float64(cc.y - lcc.y)) - 2, 1)
-			val *= max(abs(float64(cc.z - lcc.z)) - 2, 1)
-			if (math.Abs(val) > 0.9) {
+// 			val := mrand.Float64()
+// 			val *= max(abs(float64(cc.x - lcc.x)) - 2, 1)
+// 			val *= max(abs(float64(cc.y - lcc.y)) - 2, 1)
+// 			val *= max(abs(float64(cc.z - lcc.z)) - 2, 1)
+// 			if (math.Abs(val) > 0.9) {
 				p.sendUnloadChunk(lcc)
-			}
+// 			}
 		}
 	}
 }

@@ -92,13 +92,10 @@ var Chunk = (function () {
         var cd = CHUNK_DEPTH;
         // Offset relative to chunk
         function block(ox, oy, oz) {
-//             if (ox > 0 && ox < cw &&
-//                 oy > 0 && oy < ch &&
-//                 oz > 0 && oz < cd) {
-//                 return blocks[ox*cw*ch + oy*cw + oz];
-//             }
-            if (blocks[ox] && blocks[ox][oy] && blocks[ox][oy][oz]) {
-                return blocks[ox][oy][oz];
+            if (ox >= 0 && ox < cw &&
+                oy >= 0 && oy < ch &&
+                oz >= 0 && oz < cd) {
+                return blocks[ox*cw*ch + oy*cw + oz];
             }
             return null;
         }
@@ -115,7 +112,7 @@ var Chunk = (function () {
             dummy.position.y = wy;
             dummy.position.z = wz;
 
-            if (t(blocks[ox][oy][oz])) return;
+            if (t(block(ox, oy, oz))) return;
 
             var pxb = block(ox + 1, oy, oz), px;
             if (pxb) px = t(pxb);
@@ -223,7 +220,8 @@ var Chunk = (function () {
             return block(ox, oy, oz);
         }
         self.blockAt = function (ox, oy, oz) {
-            return new Block(block(ox, oy, oz));
+            var b = block(ox, oy, oz);
+            return b ? new Block(b) : null;
         }
     }
 }());
