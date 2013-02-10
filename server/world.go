@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 )
 
 type World struct {
 	seed float64
-	chunks map[string]Chunk
+	chunks map[ChunkCoords]Chunk
 	players map[*Player]bool
 	register chan *Player
 	unregister chan *Player
@@ -18,7 +17,7 @@ type World struct {
 func newWorld() *World {
 	w := new(World)
 	w.seed = rand.Float64();
-	w.chunks = make(map[string]Chunk)
+	w.chunks = make(map[ChunkCoords]Chunk)
 	w.players = make(map[*Player]bool)
 	w.register = make(chan *Player)
 	w.unregister = make(chan *Player)
@@ -26,19 +25,14 @@ func newWorld() *World {
 	return w
 }
 
-func chunkID(cx, cy, cz int) string {
-	return fmt.Sprintf("%d,%d,%d", cx, cy, cz)
-}
-
 // TODO: This function has terrific race conditions...
 func (w *World) requestChunk(c ChunkCoords) Chunk {
-	id := chunkID(c.x, c.y, c.z)
-	if w.chunks[id] != nil {
-		return w.chunks[id]
+	if w.chunks[c] != nil {
+		return w.chunks[c]
 	}
 
 	chunk := generateChunk(c.x, c.y, c.z, w.seed)
-	w.chunks[id] = chunk
+	w.chunks[c] = chunk
 	return chunk
 }
 
@@ -56,15 +50,13 @@ func (w *World) run() {
 			log.Println("New player connected! Name: ", p.name)
 		case p := <-w.unregister:
 			delete(w.players, p)
-			close(p.inBroadcast)
 			log.Println("Player disconnected...", p.name)
 		case m := <-w.broadcast:
 			for p := range w.players {
 				select {
 				case p.inBroadcast <- m:
 				default:
-					delete(w.players, p)
-					close(p.inBroadcast)
+					p.ws.Close()
 				}
 			}
 		}

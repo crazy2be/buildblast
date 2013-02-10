@@ -158,6 +158,29 @@ func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
 
 type Chunk [][][]Block
 
+func (c Chunk) Block(oc OffsetCoords) Block {
+	return c[oc.x][oc.y][oc.z]
+}
+
+func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
+	c[oc.x][oc.y][oc.z] = newBlock
+}
+
+func (c Chunk) Flatten() []Block {
+	cw := CHUNK_WIDTH
+	ch := CHUNK_HEIGHT
+	cd := CHUNK_DEPTH
+	data := make([]Block, cw*ch*cd)
+	for x := 0; x < cw; x++ {
+		for y := 0; y < ch; y++ {
+			for z := 0; z < cd; z++ {
+				data[x*cw*ch + y*cw + z] = c[x][y][z]
+			}
+		}
+	}
+	return data
+}
+
 type Block int
 var BLOCK_AIR = Block(1)
 var BLOCK_DIRT = Block(2)
@@ -167,15 +190,18 @@ var CHUNK_DEPTH = 16
 var CHUNK_HEIGHT = 16
 
 func generateChunk(cx, cy, cz int, seed float64) Chunk {
-	hmap := generateHeightMap(cx * CHUNK_WIDTH, cz * CHUNK_DEPTH, CHUNK_WIDTH, CHUNK_DEPTH, seed)
+	cw := CHUNK_WIDTH
+	ch := CHUNK_HEIGHT
+	cd := CHUNK_DEPTH
+	hmap := generateHeightMap(cx*cw, cz*cd, cw, cd, seed)
 
-	blocks := make([][][]Block, CHUNK_WIDTH)
-	for ox := 0; ox < CHUNK_WIDTH; ox++ {
-		blocks[ox] = make([][]Block, CHUNK_HEIGHT)
-		for oy := 0; oy < CHUNK_HEIGHT; oy++ {
-			blocks[ox][oy] = make([]Block, CHUNK_DEPTH)
-			for oz := 0; oz < CHUNK_DEPTH; oz++ {
-				if hmap[ox][oz] > oy + cy*CHUNK_HEIGHT {
+	blocks := make([][][]Block, cw)
+	for ox := 0; ox < cw; ox++ {
+		blocks[ox] = make([][]Block, ch)
+		for oy := 0; oy < ch; oy++ {
+			blocks[ox][oy] = make([]Block, cd)
+			for oz := 0; oz < cd; oz++ {
+				if hmap[ox][oz] > oy + cy*ch {
 					blocks[ox][oy][oz] = BLOCK_DIRT
 				} else {
 					blocks[ox][oy][oz] = BLOCK_AIR

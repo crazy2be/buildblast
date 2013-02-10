@@ -2,11 +2,14 @@ package main
 
 import (
 	"io"
+	"os"
 	"log"
 	"fmt"
+	"time"
 	"net/http"
 	mrand "math/rand"
 	"crypto/rand"
+	"runtime/pprof"
 	"code.google.com/p/go.net/websocket"
 )
 
@@ -95,27 +98,15 @@ func (p *Player) handleOutgoing() {
 func (p *Player) sendChunk(cc ChunkCoords) {
 	ms := newMessage("chunk")
 	ms.Payload["ccpos"] = cc.toMap()
-	cw := CHUNK_WIDTH
-	ch := CHUNK_HEIGHT
-	cd := CHUNK_DEPTH
 	ms.Payload["size"] = map[string]interface{}{
-		"w": cw,
-		"h": ch,
-		"d": cd,
+		"w": CHUNK_WIDTH,
+		"h": CHUNK_HEIGHT,
+		"d": CHUNK_DEPTH,
 	}
 
 	chunk := p.w.requestChunk(cc)
 	p.loadedChunks[cc] = true
-
-	data := make([]Block, cw*ch*cd)
-	for x := 0; x < cw; x++ {
-		for y := 0; y < ch; y++ {
-			for z := 0; z < cd; z++ {
-				data[x*cw*ch + y*cw + z] = chunk[x][y][z]
-			}
-		}
-	}
-	ms.Payload["data"] = data
+	ms.Payload["data"] = chunk.Flatten()
 	p.out <- ms
 }
 
@@ -235,6 +226,23 @@ func wsHandler(ws *websocket.Conn) {
 			p.out <- m
 		}
 	}
+}
+
+func doProfile() {
+	f, err := os.Create("cpuprofile")
+	if err != nil {
+		log.Fatal(err)
+	}
+	pprof.StartCPUProfile(f)
+
+	go func () {
+		for i := 1; i < 5; i++ {
+			<-time.After(30*time.Second)
+			log.Print(i * 30, " seconds past")
+		}
+		pprof.StopCPUProfile()
+		os.Exit(1)
+	}()
 }
 
 func main() {
