@@ -5,6 +5,7 @@ import (
 	"log"
 	"fmt"
 	"net/http"
+	"math"
 	mrand "math/rand"
 	"crypto/rand"
 	"code.google.com/p/go.net/websocket"
@@ -93,11 +94,11 @@ func (p *Player) handleOutgoing() {
 }
 
 func (p *Player) handleChunk(ms *Message) {
-	pl := ms.Payload
-	pos := pl["ccpos"].(map[string]interface{})
-	cc := chunkCoordsFromMap(pos)
+// 	pl := ms.Payload
+// 	pos := pl["ccpos"].(map[string]interface{})
+// 	cc := chunkCoordsFromMap(pos)
 
-	p.sendChunk(cc)
+// 	p.sendChunk(cc)
 }
 
 func (p *Player) sendChunk(cc ChunkCoords) {
@@ -140,18 +141,26 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
+	DIST := 2
+
 	cc := wc.Chunk()
-	for x := -2; x <= 2; x++ {
-		for y := -2; y <= 2; y++ {
-			for z := -2; z <= 2; z++ {
+	for x := -DIST; x <= DIST; x++ {
+		for y := -DIST; y <= DIST; y++ {
+			for z := -DIST; z <= DIST; z++ {
 				newCC := ChunkCoords{
 					x: cc.x + x,
 					y: cc.y + y,
 					z: cc.z + z,
 				}
 				if p.loadedChunks[newCC] != true {
-					// Terrible hack to stagger chunk loading
-					if (mrand.Float32() > 0.9) {
+					// Stagger chunk loading
+					// biased towards loading chunks nearest
+					// the player's position.
+					val := mrand.Float64()
+					val *= float64(cc.x - x)
+					val *= float64(cc.y - y)
+					val *= float64(cc.z - z)
+					if math.Abs(val) < 0.3 {
 						p.sendChunk(newCC)
 					}
 				}
@@ -159,12 +168,26 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 		}
 	}
 
+	abs := func (n float64) float64 {
+		return math.Abs(n)
+	}
+
+	max := func (a, b float64) float64 {
+		return math.Max(a, b)
+	}
+
 	for lcc := range p.loadedChunks {
-		if lcc.x < cc.x - 2 || lcc.x > cc.x + 2 ||
-		   lcc.y < cc.y - 2 || lcc.y > cc.y + 2 ||
-		   lcc.z < cc.z - 2 || lcc.z > cc.z + 2 {
-			// Terrible hack to stagger chunk unloading
-			if (mrand.Float32() > 0.9) {
+		if lcc.x < cc.x - DIST || lcc.x > cc.x + DIST ||
+		   lcc.y < cc.y - DIST || lcc.y > cc.y + DIST ||
+		   lcc.z < cc.z - DIST || lcc.z > cc.z + DIST {
+			// Stagger chunk unloading
+			// Should be biased towards unloading
+			// chunks furthest from the player.
+			val := mrand.Float64()
+			val *= max(abs(float64(cc.x - lcc.x)) - 2, 1)
+			val *= max(abs(float64(cc.y - lcc.y)) - 2, 1)
+			val *= max(abs(float64(cc.z - lcc.z)) - 2, 1)
+			if (math.Abs(val) > 0.9) {
 				p.sendUnloadChunk(lcc)
 			}
 		}
