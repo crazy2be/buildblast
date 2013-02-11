@@ -27,7 +27,7 @@ var Player = function (world, container, conn) {
 
     function solid(x, y, z) {
         var block = world.blockAt(x, y, z);
-        if (!block) return false;
+        if (!block) return true;
         else return block.solid();
     }
 

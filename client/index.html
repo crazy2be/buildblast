@@ -36,13 +36,15 @@
                 bottom: 0px;
                 width: 100%;
                 padding: 10px;
+                margin: 0px;
             }
-            #selection .selected {
+            #selection li {
+                display: inline;
+                padding: 8px;
+            }
+            #selection li.selected {
                 padding: 3px;
                 border: 5px double;
-            }
-            #selection .not-selected {
-                padding: 8px;
             }
 
             #connection-status {
@@ -95,7 +97,7 @@
             <div id="xHair"></div>
             <div id="info"></div>
             <table id="connection-status"></table>
-            <div id="selection"></div>
+            <ol id="selection"></ol>
         </div>
 
         <script src="lib/three.min.js"></script>

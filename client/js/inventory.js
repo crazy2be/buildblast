@@ -1,16 +1,16 @@
 function Inventory(world, camera) {
     var self = this;
-    
+
     var slots = [
         'gun',
         'shovel',
         'block',
     ];
     var currentSlot = 0;
-    
+
     self.leftClick = function () {
         var selectedItem = slots[currentSlot];
-        
+
         if (selectedItem == 'gun') {
             var point = world.findTargetIntersection(camera).p;
             if (point) world.addSmallCube(point);
@@ -22,20 +22,20 @@ function Inventory(world, camera) {
             throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
         }
     }
-    
+
     var selectElm = document.getElementById('selection');
     self.selectSlot = function (n) {
         var html = "";
         for (var i = 0; i < n; i++) {
-            html += "<span class='not-selected'>" + slots[i] + "</span>";
+            html += "<li>" + slots[i] + "</li>";
         }
-        html += "<span class='selected'>" + slots[n] + "</span>";
+        html += "<li class='selected'>" + slots[n] + "</li>";
         for (var i = n+1; i < slots.length; i++) {
-            html += "<span class='not-selected'>" + slots[i] + "</span>";
+            html += "<li>" + slots[i] + "</li>";
         }
         selectElm.innerHTML = html;
         currentSlot = n;
     }
-    
+
     self.selectSlot(0);
 }
