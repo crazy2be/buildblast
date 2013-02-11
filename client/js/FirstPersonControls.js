@@ -33,20 +33,43 @@ function FirstPersonControls(world, camera, element) {
             'webkitPointerLockElement' in document;
 
     if (havePointerLock) {
-        element.requestPointerLock = element.requestPointerLock ||
-                element.mozRequestPointerLock ||
-                element.webkitRequestPointerLock;
+        element.requestPointerLock =
+            element.requestPointerLock ||
+            element.mozRequestPointerLock ||
+            element.webkitRequestPointerLock;
+
+        element.requestFullscreen =
+            element.requestFullscreen ||
+            element.mozRequestFullscreen ||
+            element.mozRequestFullScreen || // Older API upper case 'S'.
+            element.webkitRequestFullscreen;
+
     } else {
         alert("You should probably use the latest Chrome or Firefox. Pointer lock is required");
+    }
+
+    function pointerLocked() {
+        return document.pointerLockElement === element ||
+            document.mozPointerLockElement === element ||
+            document.webkitPointerLockElement === element;
     }
 
     function mouseDown(event) {
         element.focus();
 
+        if (!pointerLocked()) {
+            // Firefox currently only allows us to access
+            // pointer lock if the document is in full screen.
+            // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
+            if ('mozPointerLockElement' in document) {
+                element.requestFullscreen();
+            }
+            element.requestPointerLock();
+            return;
+        }
+
         event.preventDefault();
         event.stopPropagation();
-
-        element.requestPointerLock();
 
         // I'm actually lying, we always call this.
         // but we will call different ones soon.
@@ -71,9 +94,7 @@ function FirstPersonControls(world, camera, element) {
     };
 
     function pointerLockChange() {
-        if (document.pointerLockElement === element ||
-                document.mozPointerLockElement === element ||
-                document.webkitPointerLockElement === element) {
+        if (pointerLocked()) {
             // Pointer was just locked, enable the mousemove listener
             element.addEventListener('mousemove', mouseMove, false);
         } else {
@@ -154,7 +175,7 @@ function FirstPersonControls(world, camera, element) {
         return Math.max(a, Math.min(b, n));
     }
 
-    self.update = function(dt) {
+    self.update = function() {
         lon += movementX * lookSpeed;
         lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);

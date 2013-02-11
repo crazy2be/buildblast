@@ -36,10 +36,9 @@ func (w *World) requestChunk(c ChunkCoords) Chunk {
 	return chunk
 }
 
-func (w *World) changeBlock(wc WorldCoords, typ Block) {
+func (w *World) changeBlock(wc WorldCoords, newBlock Block) {
 	chunk := w.requestChunk(wc.Chunk())
-	o := wc.Offset()
-	chunk[o.x][o.y][o.z] = typ
+	chunk.SetBlock(wc.Offset(), newBlock)
 }
 
 func (w *World) run() {
@@ -56,7 +55,8 @@ func (w *World) run() {
 				select {
 				case p.inBroadcast <- m:
 				default:
-					p.ws.Close()
+					log.Println("Cannot send broadcast message", m, "to player", p.name)
+// 					p.ws.Close()
 				}
 			}
 		}

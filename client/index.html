@@ -10,9 +10,18 @@
                 font-size: 13px;
                 text-align: center;
 
-                background-color: #bfd1e5;
                 margin: 0px;
                 overflow: hidden;
+                background: #bfd1e5;
+            }
+
+            #container {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                right: 0px;
+                bottom: 0px;
+                background: #bfd1e5;
             }
 
             #info {
@@ -77,11 +86,17 @@
         </style>
     </head>
     <body>
-        <div id="xHair"></div>
-        <div id="container"><br /><br /><br /><br /><br />Connecting...</div>
-        <div id="info"></div>
-        <table id="connection-status"></table>
-        <div id="selection"></div>
+        <div id="container">
+            <p class="loader">
+                <br /><br /><br /><br /><br />
+                Connecting...
+            </p>
+
+            <div id="xHair"></div>
+            <div id="info"></div>
+            <table id="connection-status"></table>
+            <div id="selection"></div>
+        </div>
 
         <script src="lib/three.min.js"></script>
         <script src="lib/stats.min.js"></script>

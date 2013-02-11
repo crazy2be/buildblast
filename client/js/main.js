@@ -40,7 +40,7 @@ var WORLD;
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    container.innerHTML = "";
+    container.querySelector('.loader').innerHTML = "";
     container.appendChild(renderer.domElement);
 
     var stats = new Stats();

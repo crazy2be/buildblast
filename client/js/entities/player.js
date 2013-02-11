@@ -1,7 +1,7 @@
 var Player = function (world, container, conn) {
     var self = this;
 
-    var height = 1.6;
+    var height = 1.2;
     var velocityY = 0;
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
@@ -44,25 +44,36 @@ var Player = function (world, container, conn) {
             s(b.xe, b.ye, b.ze);
     }
 
+    function groundHeight(bbox) {
+        var cg = world.findClosestGround;
+        var h = height;
+        return Math.max(cg(bbox.xs, bbox.ys, bbox.zs) + h,
+                        cg(bbox.xs, bbox.ys, bbox.ze) + h,
+                        cg(bbox.xe, bbox.ys, bbox.zs) + h,
+                        cg(bbox.xe, bbox.ys, bbox.ze) + h);
+    }
+
+    var onGround = true;
     function attemptMove(move) {
         var p = camera.position;
         var pad = 0.2;
         var bbox = {
             xs: p.x - pad,
             xe: p.x + pad,
-            ys: p.y - 1.2,
+            ys: p.y - height,
             ye: p.y + pad,
             zs: p.z - pad,
             ze: p.z + pad,
         };
+        var gh = groundHeight(bbox);
 
-        if (inSolid(bbox)) {
-            var cg = world.findClosestGround;
-            p.y = Math.max(cg(bbox.xs, bbox.ys, bbox.zs) + 1.2,
-                           cg(bbox.xs, bbox.ys, bbox.ze) + 1.2,
-                           cg(bbox.xe, bbox.ys, bbox.zs) + 1.2,
-                           cg(bbox.xe, bbox.ys, bbox.ze) + 1.2);
+        if (p.y - gh < 0) {
+            p.y = gh;
             return;
+        } else if (Math.abs(p.y - gh) < 0.2) {
+            onGround = true;
+        } else {
+            onGround = false;
         }
 
         if (move.x) {
@@ -102,7 +113,8 @@ var Player = function (world, container, conn) {
         info.innerHTML = JSON.stringify({
             x: round(p.x, 2),
             y: round(p.y, 2),
-            z: round(p.z, 2)
+            z: round(p.z, 2),
+            g: onGround,
         });
     }
 
@@ -113,14 +125,13 @@ var Player = function (world, container, conn) {
 
     var accumulatedTime = 0;
     self.update = function (dt) {
-        var c = controls.update(dt);
+        var c = controls.update();
         var p = camera.position;
         var r = camera.rotation;
-        var y = world.findClosestGround(p.x, p.y - 1.2, p.z) + 1.2;
-        var onGround = Math.abs(p.y - y) < 0.1;
 
         if (c.jumping && onGround) {
             velocityY = 6;
+            onGround = false;
         } else if (onGround) {
             velocityY = 0;
         } else {

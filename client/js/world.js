@@ -183,7 +183,10 @@ function World(scene, conn) {
         var o = cords.o;
 
         var chunk = chunkAt(c.x, c.y, c.z);
-        if (!chunk) throw "Cannot find chunk to remove from!";
+        if (!chunk) {
+            console.warn("Cannot find chunk to remove from!");
+            return;
+        }
         var block = chunk.blockAt(o.x, o.y, o.z);
         if (!block) throw "Cannot find block within chunk!";
         if (block.type === newType) return;

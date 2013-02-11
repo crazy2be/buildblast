@@ -89,7 +89,6 @@ func (p *Player) handleOutgoing() {
 		err := websocket.JSON.Send(p.ws, ms)
 		if err != nil {
 			log.Print("Sending websocket message (", p.name, "): ", err)
-			close(p.out)
 			return
 		}
 	}
@@ -212,9 +211,9 @@ func wsHandler(ws *websocket.Conn) {
 			}
 			switch m.Kind {
 			case "block":
-				go p.handleBlock(m)
+				p.handleBlock(m)
 			case "player-position":
-				go p.handlerPlayerPosition(m)
+				p.handlerPlayerPosition(m)
 			default:
 				log.Print("Unknown message recieved from client of kind ", m.Kind)
 				continue
