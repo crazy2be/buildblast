@@ -139,9 +139,9 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	p.w.broadcast <- ms
 
 	MIN_LOAD_DIST := 1
-	MAX_LOAD_DIST := 2
-	MIN_UNLOAD_DIST := 2
-	MAX_UNLOAD_DIST := 3
+	MAX_LOAD_DIST := 3
+	MIN_UNLOAD_DIST := 3
+	MAX_UNLOAD_DIST := 4
 
 	around := func (cc ChunkCoords, dist int, cb func (newCC ChunkCoords)) {
 		for x := -dist; x <= dist; x++ {
