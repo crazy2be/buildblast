@@ -85,6 +85,7 @@ var Player = function (world, container, conn) {
             } else {
                 bbox.xs -= move.x;
                 bbox.xe -= move.x;
+                move.x = 0;
             }
         }
 
@@ -96,6 +97,7 @@ var Player = function (world, container, conn) {
             } else {
                 bbox.ys -= move.y;
                 bbox.ye -= move.y;
+                move.y = 0;
             }
         }
 
@@ -107,6 +109,7 @@ var Player = function (world, container, conn) {
             } else {
                 bbox.zs -= move.z;
                 bbox.ze -= move.z;
+                move.z = 0;
             }
         }
 
@@ -117,6 +120,8 @@ var Player = function (world, container, conn) {
             z: round(p.z, 2),
             g: onGround,
         });
+
+        return move;
     }
 
     function round(n, digits) {
@@ -149,7 +154,10 @@ var Player = function (world, container, conn) {
             z: -sin(c.lon) * fw - cos(c.lon) * rt,
         };
 
-        attemptMove(move);
+        move = attemptMove(move);
+        if (move.y === 0) {
+            velocityY = 0;
+        }
 
         accumulatedTime += dt;
         if (accumulatedTime > 0.1) {
