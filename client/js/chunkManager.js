@@ -3,6 +3,8 @@ function ChunkManager(scene, conn) {
 
     conn.on('chunk', processChunk);
     conn.on('unload-chunk', processUnloadChunk);
+    conn.on('show-chunk', processShowChunk);
+    conn.on('hide-chunk', processHideChunk);
 
     var chunks = {};
 
@@ -30,13 +32,38 @@ function ChunkManager(scene, conn) {
         console.log("Got chunk at ", cx, cy, cz);
 
         var chunk = self.chunkAt(cx, cy, cz);
-        if (chunk) return;
+        if (chunk) {
+            chunk.show();
+            return;
+        }
 
         chunk = new Chunk(self, data, cx, cy, cz);
         chunks[cx + "," + cy + "," + cz] = chunk;
         chunk.addTo(scene);
 
         refreshChunkNeighbours(cx, cy, cz);
+    }
+
+    function processShowChunk(payload) {
+        var cc = payload.ccpos;
+        var chunk = self.chunkAt(cc.x, cc.y, cc.z);
+        if (!chunk) {
+            console.warn("Got show chunk command for chunk that is not loaded. Likely server bug.");
+            return;
+        }
+
+        chunk.show();
+    }
+
+    function processHideChunk(payload) {
+        var cc = payload.ccpos;
+        var chunk = self.chunkAt(cc.x, cc.y, cc.z);
+        if (!chunk) {
+            console.warn("Got hide chunk command for chunk that is not loaded. Likely server bug.");
+            return;
+        }
+
+        chunk.hide();
     }
 
     function processUnloadChunk(payload) {
@@ -47,7 +74,10 @@ function ChunkManager(scene, conn) {
         console.log("Unloading chunk at ", cx, cy, cz);
 
         var chunk = self.chunkAt(cx, cy, cz);
-        if (!chunk) return;
+        if (!chunk) {
+            console.warn("Got chunk unload command for chunk that is not loaded. Likely server bug.");
+            return;
+        }
 
         delete chunks[cx + "," + cy + "," + cz];
 

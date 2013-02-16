@@ -4,7 +4,7 @@ var Player = function (world, container, conn) {
     var height = 1.6;
     var velocityY = 0;
 
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 200);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 128);
     camera.position.z = 100;
 
     var controls = new FirstPersonControls(world, camera, container);

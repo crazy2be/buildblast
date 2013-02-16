@@ -3,38 +3,7 @@ var CHUNK_DEPTH = 16;
 var CHUNK_HEIGHT = 16;
 
 var Chunk = (function () {
-    var matrix = new THREE.Matrix4();
-
-    var pxGeometry = new THREE.PlaneGeometry(1, 1);
-    pxGeometry.faces[0].materialIndex = 0;
-    pxGeometry.applyMatrix(matrix.makeRotationY(Math.PI / 2));
-    pxGeometry.applyMatrix(matrix.makeTranslation(1, 0.5, 0.5));
-
-    var nxGeometry = new THREE.PlaneGeometry(1, 1);
-    nxGeometry.faces[0].materialIndex = 1;
-    nxGeometry.applyMatrix(matrix.makeRotationY(-Math.PI / 2));
-    nxGeometry.applyMatrix(matrix.makeTranslation(0, 0.5, 0.5));
-
-    var pyGeometry = new THREE.PlaneGeometry(1, 1);
-    pyGeometry.faces[0].materialIndex = 2;
-    pyGeometry.applyMatrix(matrix.makeRotationX(-Math.PI / 2));
-    pyGeometry.applyMatrix(matrix.makeTranslation(0.5, 1, 0.5));
-
-    var nyGeometry = new THREE.PlaneGeometry(1, 1);
-    nyGeometry.faces[0].materialIndex = 3;
-    nyGeometry.applyMatrix(matrix.makeRotationX(Math.PI / 2));
-    nyGeometry.applyMatrix(matrix.makeTranslation(0.5, 0, 0.5));
-
-    var pzGeometry = new THREE.PlaneGeometry(1, 1);
-    pzGeometry.faces[0].materialIndex = 4;
-    pzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 1));
-
-    var nzGeometry = new THREE.PlaneGeometry(1, 1);
-    nzGeometry.faces[0].materialIndex = 5;
-    nzGeometry.applyMatrix(matrix.makeRotationY(Math.PI));
-    nzGeometry.applyMatrix(matrix.makeTranslation(0.5, 0.5, 0));
-
-    var materials = [
+    var material = new THREE.MeshFaceMaterial([
         new THREE.MeshBasicMaterial({
             color: 0xff0000,
             transparent: true,
@@ -65,7 +34,7 @@ var Chunk = (function () {
             transparent: true,
             opacity: 0.7
         })
-    ];
+    ]);
 
     var wireMaterial = new THREE.MeshBasicMaterial({
         color: 0x000000,
@@ -75,6 +44,14 @@ var Chunk = (function () {
     var cw = CHUNK_WIDTH;
     var ch = CHUNK_HEIGHT;
     var cd = CHUNK_DEPTH;
+
+    // Face normals
+    var nxn = new THREE.Vector3(-1, 0, 0);
+    var pxn = new THREE.Vector3(1, 0, 0);
+    var nyn = new THREE.Vector3(0, -1, 0);
+    var pyn = new THREE.Vector3(0, 1, 0);
+    var nzn = new THREE.Vector3(0, 0, -1);
+    var pzn = new THREE.Vector3(0, 0, 1);
 
     return Chunk;
 
@@ -114,14 +91,7 @@ var Chunk = (function () {
             return Block.transparent(b);
         }
 
-        function addBlockGeometry(geometry, dummy, ox, oy, oz) {
-            var wx = ox + cx*cw;
-            var wy = oy + cy*ch;
-            var wz = oz + cz*cd;
-            dummy.position.x = wx;
-            dummy.position.y = wy;
-            dummy.position.z = wz;
-
+        function addBlockGeometry(verts, faces, ox, oy, oz) {
             if (t(block(ox, oy, oz))) return;
 
             var pxb = block(ox + 1, oy, oz), px;
@@ -154,29 +124,61 @@ var Chunk = (function () {
             else if (nzc) nz = t(nzc.rblockAt(ox, oy, cd - 1));
             else nz = false;
 
+            var wx = ox + cx*cw;
+            var wy = oy + cy*ch;
+            var wz = oz + cz*cd;
+
+            function v(x, y, z) {
+                var vert = new THREE.Vector3(x, y, z);
+                verts.push(vert);
+            }
+            function f(mat, normal) {
+                var l = verts.length;
+                // a, b, c, d, norm, color, matIndex
+                var face = new THREE.Face4(l-4, l-3, l-2, l-1, normal, undefined, mat);
+                faces.push(face);
+            }
             if (px) {
-                dummy.geometry = pxGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx + 1, wy    , wz    );
+                v(wx + 1, wy + 1, wz    );
+                v(wx + 1, wy + 1, wz + 1);
+                v(wx + 1, wy    , wz + 1);
+                f(0, pxn);
             }
             if (nx) {
-                dummy.geometry = nxGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx, wy    , wz + 1);
+                v(wx, wy + 1, wz + 1);
+                v(wx, wy + 1, wz    );
+                v(wx, wy    , wz    );
+                f(1, nxn);
             }
             if (py) {
-                dummy.geometry = pyGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx    , wy + 1, wz + 1);
+                v(wx + 1, wy + 1, wz + 1);
+                v(wx + 1, wy + 1, wz    );
+                v(wx    , wy + 1, wz    );
+                f(2, pyn);
             }
             if (ny) {
-                dummy.geometry = nyGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx    , wy, wz    );
+                v(wx + 1, wy, wz    );
+                v(wx + 1, wy, wz + 1);
+                v(wx    , wy, wz + 1);
+                f(3, nyn);
             }
             if (pz) {
-                dummy.geometry = pzGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx    , wy    , wz + 1);
+                v(wx + 1, wy    , wz + 1);
+                v(wx + 1, wy + 1, wz + 1);
+                v(wx    , wy + 1, wz + 1);
+                f(4, pzn);
             }
             if (nz) {
-                dummy.geometry = nzGeometry;
-                THREE.GeometryUtils.merge(geometry, dummy);
+                v(wx    , wy + 1, wz);
+                v(wx + 1, wy + 1, wz);
+                v(wx + 1, wy    , wz);
+                v(wx    , wy    , wz);
+                f(5, nzn);
             }
         }
 
@@ -193,19 +195,19 @@ var Chunk = (function () {
             if (isDisplayed) return;
 
             var geometry = new THREE.Geometry();
-            var dummy = new THREE.Mesh();
+            geometry.dynamic = false;
 
             self.refreshNeighbours();
 
             for (var ox = 0; ox < cw; ox++) {
                 for (var oy = 0; oy < ch; oy++) {
                     for (var oz = 0; oz < cd; oz++) {
-                        addBlockGeometry(geometry, dummy, ox, oy, oz);
+                        addBlockGeometry(geometry.vertices, geometry.faces, ox, oy, oz);
                     }
                 }
             }
 
-            mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+            mesh = new THREE.Mesh(geometry, material);
             wireMesh = new THREE.Mesh(geometry, wireMaterial);
             scene.add(mesh);
             scene.add(wireMesh);
@@ -262,5 +264,15 @@ var Chunk = (function () {
         }
 
         self.setBlock = setBlock;
+
+        self.hide = function () {
+            mesh.visible = false;
+            wireMesh.visible = false;
+        }
+
+        self.show = function () {
+            mesh.visible = true;
+            wireMesh.visible = true;
+        }
     }
 }());
