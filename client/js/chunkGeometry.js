@@ -24,6 +24,7 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
     }
 
     function t(b) {
+        // Transparent
         return b === 0x1;
     }
 
@@ -65,11 +66,10 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
         var wz = oz + cz*cd;
 
         function v(x, y, z) {
-            var vert = {x: x, y: y, z: z};
-            verts.push(vert);
+            verts.push(x, y, z);
         }
         function f(mat, normal) {
-            var l = verts.length;
+            var l = verts.length / 3;
             index.push(l-4, l-3, l-2);
             index.push(l-4, l-2, l-1);
             // rgba for each vertex
@@ -151,23 +151,20 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
             }
         }
 
-        var vertsa = new Float32Array(verts.length*3);
-        for (var i = 0; i < verts.length; i++) {
-            var v = verts[i];
-            vertsa[i*3]     = v.x;
-            vertsa[i*3 + 1] = v.y;
-            vertsa[i*3 + 2] = v.z;
+        function copy(src, dst) {
+            for (var i = 0; i < src.length; i++) {
+                dst[i] = src[i];
+            }
         }
+
+        var vertsa = new Float32Array(verts.length);
+        copy(verts, vertsa);
 
         var indexa = new Uint16Array(index.length);
-        for (var i = 0; i < index.length; i++) {
-            indexa[i] = index[i];
-        }
+        copy(index, indexa);
 
         var colora = new Float32Array(color.length);
-        for (var i = 0; i < color.length; i++) {
-            colora[i] = color[i];
-        }
+        copy(color, colora);
 
         var geometry = {};
         geometry.attributes = {
