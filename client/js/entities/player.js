@@ -70,7 +70,7 @@ var Player = function (world, container, conn) {
 
         if (p.y - gh < 0) {
             p.y = gh;
-            return;
+            return move;
         } else if (Math.abs(p.y - gh) < 0.2) {
             onGround = true;
         } else {

@@ -7,6 +7,7 @@ function ChunkManager(scene, conn) {
     conn.on('hide-chunk', processHideChunk);
 
     var chunks = {};
+    var geometryWorker = new Worker('chunkManagerWorker.js');
 
     self.chunkAt = function (cx, cy, cz) {
         var chunk = chunks[cx + "," + cy + "," + cz];

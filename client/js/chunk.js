@@ -3,44 +3,6 @@ var CHUNK_DEPTH = 16;
 var CHUNK_HEIGHT = 16;
 
 var Chunk = (function () {
-    var material = new THREE.MeshFaceMaterial([
-        new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            transparent: true,
-            opacity: 0.7
-        }),
-        new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            transparent: true,
-            opacity: 0.7
-        }),
-        new THREE.MeshBasicMaterial({
-            color: 0x0000ff,
-            transparent: true,
-            opacity: 0.7
-        }),
-        new THREE.MeshBasicMaterial({
-            color: 0xffff00,
-            transparent: true,
-            opacity: 0.7
-        }),
-        new THREE.MeshBasicMaterial({
-            color: 0xff00ff,
-            transparent: true,
-            opacity: 0.7
-        }),
-        new THREE.MeshBasicMaterial({
-            color: 0x00ffff,
-            transparent: true,
-            opacity: 0.7
-        })
-    ]);
-
-    var wireMaterial = new THREE.MeshBasicMaterial({
-        color: 0x000000,
-        wireframe: true
-    });
-
     var cw = CHUNK_WIDTH;
     var ch = CHUNK_HEIGHT;
     var cd = CHUNK_DEPTH;
@@ -91,7 +53,7 @@ var Chunk = (function () {
             return Block.transparent(b);
         }
 
-        function addBlockGeometry(verts, faces, ox, oy, oz) {
+        function addBlockGeometry(verts, index, color, ox, oy, oz) {
             if (t(block(ox, oy, oz))) return;
 
             var pxb = block(ox + 1, oy, oz), px;
@@ -134,9 +96,17 @@ var Chunk = (function () {
             }
             function f(mat, normal) {
                 var l = verts.length;
-                // a, b, c, d, norm, color, matIndex
-                var face = new THREE.Face4(l-4, l-3, l-2, l-1, normal, undefined, mat);
-                faces.push(face);
+                index.push(l-4, l-3, l-2);
+                index.push(l-4, l-2, l-1);
+                // rgba for each vertex
+                var c = [0.5, 0.5, 0.5];
+                if (mat === 2) {
+                    c = [0, 1, 0];
+                }
+                color.push(c[0], c[1], c[2]);
+                color.push(c[0], c[1], c[2]);
+                color.push(c[0], c[1], c[2]);
+                color.push(c[0], c[1], c[2]);
             }
             if (px) {
                 v(wx + 1, wy    , wz    );
@@ -194,23 +164,65 @@ var Chunk = (function () {
         self.addTo = function (scene) {
             if (isDisplayed) return;
 
-            var geometry = new THREE.Geometry();
-            geometry.dynamic = false;
+            var geometry = new THREE.BufferGeometry();
+            var verts = [];
+            var index = [];
+            var color = [];
 
             self.refreshNeighbours();
 
             for (var ox = 0; ox < cw; ox++) {
                 for (var oy = 0; oy < ch; oy++) {
                     for (var oz = 0; oz < cd; oz++) {
-                        addBlockGeometry(geometry.vertices, geometry.faces, ox, oy, oz);
+                        addBlockGeometry(verts, index, color, ox, oy, oz);
                     }
                 }
             }
 
-            mesh = new THREE.Mesh(geometry, material);
-            wireMesh = new THREE.Mesh(geometry, wireMaterial);
+            var vertsa = new Float32Array(verts.length*3);
+            for (var i = 0; i < verts.length; i++) {
+                var v = verts[i];
+                vertsa[i*3]     = v.x;
+                vertsa[i*3 + 1] = v.y;
+                vertsa[i*3 + 2] = v.z;
+            }
+
+            var indexa = new Uint16Array(index.length);
+            for (var i = 0; i < index.length; i++) {
+                indexa[i] = index[i];
+            }
+
+            var colora = new Float32Array(color.length);
+            for (var i = 0; i < color.length; i++) {
+                colora[i] = color[i];
+            }
+            geometry.attributes = {
+                position: {
+                    itemSize: 3,
+                    array: vertsa,
+                    numItems: verts.length * 3,
+                },
+                index: {
+                    itemSize: 1,
+                    array: indexa,
+                    numItems: index.length,
+                },
+                color: {
+                    itemSize: 3,
+                    array: colora,
+                    numItems: color.length,
+                },
+            };
+            geometry.offsets = [{
+                start: 0,
+                count: index.length,
+                index: 0,
+            }];
+
+            mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+                vertexColors: THREE.VertexColors
+            }));
             scene.add(mesh);
-            scene.add(wireMesh);
 
             isDisplayed = true;
 
@@ -223,9 +235,7 @@ var Chunk = (function () {
 
         self.removeFrom = function (scene) {
             if (!mesh) return;
-
             scene.remove(mesh);
-            scene.remove(wireMesh);
 
             isDisplayed = false;
 
@@ -267,12 +277,10 @@ var Chunk = (function () {
 
         self.hide = function () {
             mesh.visible = false;
-            wireMesh.visible = false;
         }
 
         self.show = function () {
             mesh.visible = true;
-            wireMesh.visible = true;
         }
     }
 }());
