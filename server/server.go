@@ -120,7 +120,7 @@ func (p *Player) sendShowChunk(cc ChunkCoords) {
 	ms.Payload["ccpos"] = cc.toMap()
 
 	p.visibleChunks[cc] = true;
-	p.out <- ms
+	p.chunkOut <- ms
 }
 
 func (p *Player) sendHideChunk(cc ChunkCoords) {
@@ -128,7 +128,7 @@ func (p *Player) sendHideChunk(cc ChunkCoords) {
 	ms.Payload["ccpos"] = cc.toMap()
 
 	delete(p.visibleChunks, cc)
-	p.out <- ms
+	p.chunkOut <- ms
 }
 
 func (p *Player) sendUnloadChunk(cc ChunkCoords) {
@@ -137,7 +137,7 @@ func (p *Player) sendUnloadChunk(cc ChunkCoords) {
 
 	delete(p.loadedChunks, cc)
 	delete(p.visibleChunks, cc)
-	p.out <- ms
+	p.chunkOut <- ms
 }
 
 func (p *Player) handleBlock(ms *Message) {

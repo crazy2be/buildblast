@@ -1,0 +1,3 @@
+var CHUNK_WIDTH = 32;
+var CHUNK_DEPTH = 32;
+var CHUNK_HEIGHT = 32;

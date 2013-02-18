@@ -1,17 +1,19 @@
-var cw = 32;
-var cd = 32;
-var ch = 32;
-
 function ChunkGeometry(manager, blocks, cx, cy, cz) {
     var self = this;
 
-    var nxc;
-    var pxc;
-    var nyc;
-    var pyc;
-    var nzc;
-    var pzc;
+    self.blocks = blocks;
+    self.cx = cx;
+    self.cy = cy;
+    self.cz = cz;
 
+    var cw = CHUNK_WIDTH;
+    var cd = CHUNK_DEPTH;
+    var ch = CHUNK_HEIGHT;
+
+    // Neighbouring chunks
+    var nxc, pxc, nyc, pyc, nzc, pzc;
+
+    // Face normals;
     var nxn, pxn, nyn, pyn, nzn, pzn;
 
     function block(ox, oy, oz) {
@@ -33,32 +35,32 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
 
         var pxb = block(ox + 1, oy, oz), px;
         if (pxb) px = t(pxb);
-        else if (pxc) px = t(pxc.rblockAt(0, oy, oz));
+        else if (pxc) px = t(pxc.blockAt(0, oy, oz));
         else px = false;
 
         var nxb = block(ox - 1, oy, oz), nx;
         if (nxb) nx = t(nxb);
-        else if (nxc) nx = t(nxc.rblockAt(cw - 1, oy, oz));
+        else if (nxc) nx = t(nxc.blockAt(cw - 1, oy, oz));
         else nx = false;
 
         var pyb = block(ox, oy + 1, oz), py;
         if (pyb) py = t(pyb);
-        else if (pyc) py = t(pyc.rblockAt(ox, 0, oz));
+        else if (pyc) py = t(pyc.blockAt(ox, 0, oz));
         else py = false;
 
         var nyb = block(ox, oy - 1, oz), ny;
         if (nyb) ny = t(nyb);
-        else if (nyc) ny = t(nyc.rblockAt(ox, ch - 1, oz));
+        else if (nyc) ny = t(nyc.blockAt(ox, ch - 1, oz));
         else ny = false;
 
         var pzb = block(ox, oy, oz + 1), pz;
         if (pzb) pz = t(pzb);
-        else if (pzc) pz = t(pzc.rblockAt(ox, oy, 0));
+        else if (pzc) pz = t(pzc.blockAt(ox, oy, 0));
         else ny = false;
 
         var nzb = block(ox, oy, oz - 1), nz;
         if (nzb) nz = t(nzb);
-        else if (nzc) nz = t(nzc.rblockAt(ox, oy, cd - 1));
+        else if (nzc) nz = t(nzc.blockAt(ox, oy, cd - 1));
         else nz = false;
 
         var wx = ox + cx*cw;
@@ -68,16 +70,20 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
         function v(x, y, z) {
             verts.push(x, y, z);
         }
+
         function f(mat, normal) {
             var l = verts.length / 3;
+            // Each face is made up of two triangles
             index.push(l-4, l-3, l-2);
             index.push(l-4, l-2, l-1);
-            // rgba for each vertex
+
             var r = Math.random();
+            // Random colors make the world have depth.
             var c = [0.5*r, 0.5*r, 0.5*r];
             if (mat === 2) {
                 c = [0, 1*r, 0];
             }
+
             color.push(c[0], c[1], c[2]);
             color.push(c[0], c[1], c[2]);
             color.push(c[0], c[1], c[2]);
@@ -127,8 +133,7 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
         }
     }
 
-
-    self.refreshNeighbours = function () {
+    function updateNeighbours() {
         pxc = manager.chunkAt(cx + 1, cy, cz);
         nxc = manager.chunkAt(cx - 1, cy, cz);
         pyc = manager.chunkAt(cx, cy + 1, cz);
@@ -142,7 +147,7 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
         var index = [];
         var color = [];
 
-        self.refreshNeighbours();
+        updateNeighbours();
 
         for (var ox = 0; ox < cw; ox++) {
             for (var oy = 0; oy < ch; oy++) {
@@ -196,11 +201,7 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
         };
     }
 
-    self.rblockAt = function (ox, oy, oz) {
+    self.blockAt = function (ox, oy, oz) {
         return block(ox, oy, oz);
     }
-    self.data = blocks;
-    self.cx = cx;
-    self.cy = cy;
-    self.cz = cz;
 }

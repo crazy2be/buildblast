@@ -47,8 +47,9 @@ function World(scene, conn) {
         if (block.isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
-                if (o.y-- < 0) {
-                    o.y = CHUNK_HEIGHT;
+                o.y--;
+                if (o.y < 0) {
+                    o.y = CHUNK_HEIGHT - 1;
                     c.y--;
                     chunk = chunkAt(c.x, c.y, c.z);
                     if (!chunk) {
@@ -63,7 +64,8 @@ function World(scene, conn) {
         } else if (block.isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
-                if (o.y++ >= CHUNK_HEIGHT) {
+                o.y++;
+                if (o.y >= CHUNK_HEIGHT) {
                     o.y = 0;
                     c.y++;
                     chunk = chunkAt(c.x, c.y, c.z);

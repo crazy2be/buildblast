@@ -1,7 +1,3 @@
-var CHUNK_WIDTH = 32;
-var CHUNK_DEPTH = 32;
-var CHUNK_HEIGHT = 32;
-
 var Chunk = (function () {
     var cw = CHUNK_WIDTH;
     var ch = CHUNK_HEIGHT;
@@ -27,8 +23,9 @@ var Chunk = (function () {
                 oy >= 0 && oy < ch &&
                 oz >= 0 && oz < cd) {
                     return blocks[ox*cw*ch + oy*cw + oz];
+            } else {
+                throw "block coords out of bounds: " + ox + oy + oz;
             }
-            return null;
         }
 
         function setBlock(ox, oy, oz, t) {
@@ -67,8 +64,6 @@ var Chunk = (function () {
             return self;
         }
 
-        self.unload = function () {}
-
         self.blockAt = function (ox, oy, oz) {
             var b = block(ox, oy, oz);
             return b ? new Block(b) : null;
@@ -77,11 +72,11 @@ var Chunk = (function () {
         self.setBlock = setBlock;
 
         self.hide = function () {
-//             mesh.visible = false;
+            mesh.visible = false;
         }
 
         self.show = function () {
-//             mesh.visible = true;
+            mesh.visible = true;
         }
     }
 }());
