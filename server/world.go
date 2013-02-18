@@ -41,6 +41,15 @@ func (w *World) changeBlock(wc WorldCoords, newBlock Block) {
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
 
+func (w *World) findPlayer(name string) *Player {
+	for player := range w.players {
+		if (player.name == name) {
+			return player
+		}
+	}
+	return nil
+}
+
 func (w *World) run() {
 	for {
 		select {

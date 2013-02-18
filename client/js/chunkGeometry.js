@@ -73,9 +73,10 @@ function ChunkGeometry(manager, blocks, cx, cy, cz) {
             index.push(l-4, l-3, l-2);
             index.push(l-4, l-2, l-1);
             // rgba for each vertex
-            var c = [0.5, 0.5, 0.5];
+            var r = Math.random();
+            var c = [0.5*r, 0.5*r, 0.5*r];
             if (mat === 2) {
-                c = [0, 1, 0];
+                c = [0, 1*r, 0];
             }
             color.push(c[0], c[1], c[2]);
             color.push(c[0], c[1], c[2]);

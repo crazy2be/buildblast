@@ -5,6 +5,7 @@ function ChunkManager(scene, conn) {
     conn.on('unload-chunk', processUnloadChunk);
     conn.on('show-chunk', processShowChunk);
     conn.on('hide-chunk', processHideChunk);
+    conn.on('player-id', startChunkConn);
 
     var chunks = {};
     var geometryWorker = new Worker('js/chunkManagerWorker.js');
@@ -36,6 +37,16 @@ function ChunkManager(scene, conn) {
             chunk.addTo(scene);
             console.log("Added chunk at ", cx, cy, cz);
         }
+    }
+
+    function startChunkConn(payload) {
+        var id = payload.id;
+        geometryWorker.postMessage({
+            'kind': 'start-conn',
+            'payload': {
+                'uri': getWSURI('/ws/chunks/' + id),
+            },
+        })
     }
 
     function processChunk(payload) {

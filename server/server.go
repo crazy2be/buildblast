@@ -6,6 +6,7 @@ import (
 	"log"
 	"fmt"
 	"time"
+	"strings"
 	"net/http"
 	mrand "math/rand"
 	"crypto/rand"
@@ -51,6 +52,7 @@ type Player struct {
 	ws *websocket.Conn
 	in chan *Message
 	out chan *Message
+	chunkOut chan *Message
 	name string
 	inBroadcast chan *Message
 	loadedChunks map[ChunkCoords]bool
@@ -63,6 +65,7 @@ func newPlayer(ws *websocket.Conn) *Player {
 	p.ws = ws
 	p.in = make(chan *Message, 10)
 	p.out = make(chan *Message, 10)
+	p.chunkOut = make(chan *Message, 10)
 	p.name = "player-" + randString(10)
 	p.inBroadcast = make(chan *Message, 10)
 	p.loadedChunks = make(map[ChunkCoords]bool, 0)
@@ -109,7 +112,7 @@ func (p *Player) sendChunk(cc ChunkCoords) {
 	p.loadedChunks[cc] = true
 	p.visibleChunks[cc] = true
 	ms.Payload["data"] = chunk.Flatten()
-	p.out <- ms
+	p.chunkOut <- ms
 }
 
 func (p *Player) sendShowChunk(cc ChunkCoords) {
@@ -226,8 +229,8 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 }
 
 func wsHandler(ws *websocket.Conn) {
-// 	config := ws.Config()
-// 	println(config);
+	config := ws.Config()
+	fmt.Println(config, config.Location, config.Origin)
 	p := newPlayer(ws)
 	globalWorld.register <- p
 	defer func () {
@@ -235,6 +238,10 @@ func wsHandler(ws *websocket.Conn) {
 	}()
 	go p.handleIncoming()
 	go p.handleOutgoing()
+
+	m := newMessage("player-id")
+	m.Payload["id"] = p.name
+	p.out <- m
 
 	for {
 		select {
@@ -260,6 +267,24 @@ func wsHandler(ws *websocket.Conn) {
 	}
 }
 
+func chunkHandler(ws *websocket.Conn) {
+	config := ws.Config();
+	path := config.Location.Path
+	name := strings.Split(path, "/")[3]
+
+	p := globalWorld.findPlayer(name)
+	log.Print("WARNING< chunkHandrel not imeperaot..", name, p)
+
+	for {
+		ms := <-p.chunkOut
+		err := websocket.JSON.Send(ws, ms)
+		if err != nil {
+			log.Print("Sending chunk websocket message (", p.name, "): ", err)
+			return
+		}
+	}
+}
+
 func doProfile() {
 	f, err := os.Create("cpuprofile")
 	if err != nil {
@@ -280,7 +305,8 @@ func doProfile() {
 func main() {
 	go globalWorld.run()
 	http.HandleFunc("/", handler)
-	http.Handle("/ws", websocket.Handler(wsHandler))
+	http.Handle("/ws/new", websocket.Handler(wsHandler))
+	http.Handle("/ws/chunks/", websocket.Handler(chunkHandler))
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)

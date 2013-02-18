@@ -1,13 +1,17 @@
-function Conn() {
+function getWSURI(path) {
+    path = path || "/ws/new";
+    var loc = window.location;
+    var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+    uri += "//" + loc.host + path;
+    return uri;
+}
+
+function Conn(uri) {
     var self = this;
     var WS_OPEN = 1;
 
-    var ws = (function () {
-        var loc = window.location;
-        var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-        uri += "//" + loc.host + "/ws";
-        return new WebSocket(uri);
-    }());
+    if (!uri) uri = getWSURI();
+    var ws = new WebSocket(uri);
 
     var messageQueue = [];
     self.queue = function (kind, payload) {

@@ -1,4 +1,4 @@
-importScripts('chunkGeometry.js')
+importScripts('chunkGeometry.js', 'conn.js');
 
 var chunks = {};
 
@@ -15,10 +15,18 @@ var manager = new ChunkManager();
 self.onmessage = function (e) {
     if (e.data.kind === 'chunk') {
         processChunk(e.data.payload);
+    } else if (e.data.kind === 'start-conn') {
+        initConn(e.data.payload);
     } else {
         console.log('Warning: Unknown message recieved from parent!');
     }
 };
+
+var chunkConn;
+function initConn(payload) {
+    chunkConn = new Conn(payload.uri);
+    chunkConn.on('chunk', processChunk);
+}
 
 queuedChunks = {};
 function queueChunk(chunk) {
