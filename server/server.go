@@ -159,9 +159,9 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	p.w.broadcast <- ms
 
 	MIN_LOAD_DIST := 1
-	MAX_LOAD_DIST := 3
-	MIN_HIDE_DIST := 3
-	MAX_HIDE_DIST := 4
+	MAX_LOAD_DIST := 2
+	MIN_HIDE_DIST := 2
+	MAX_HIDE_DIST := 3
 // 	MIN_UNLOAD_DIST := 3
 // 	MAX_UNLOAD_DIST := 4
 
@@ -226,6 +226,8 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 }
 
 func wsHandler(ws *websocket.Conn) {
+// 	config := ws.Config()
+// 	println(config);
 	p := newPlayer(ws)
 	globalWorld.register <- p
 	defer func () {

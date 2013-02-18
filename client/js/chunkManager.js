@@ -7,7 +7,7 @@ function ChunkManager(scene, conn) {
     conn.on('hide-chunk', processHideChunk);
 
     var chunks = {};
-    var geometryWorker = new Worker('chunkManagerWorker.js');
+    var geometryWorker = new Worker('js/chunkManagerWorker.js');
 
     self.chunkAt = function (cx, cy, cz) {
         var chunk = chunks[cx + "," + cy + "," + cz];
@@ -16,6 +16,26 @@ function ChunkManager(scene, conn) {
 
     self.chunks = function () {
         return chunks;
+    }
+
+    geometryWorker.onmessage = function (e) {
+        var payload = e.data.payload;
+        if (e.data.kind === 'chunk') {
+            var geometry = new THREE.BufferGeometry();
+            geometry.attributes = payload.geometry.attributes;
+            geometry.offsets = payload.geometry.offsets;
+            var cx = payload.cx;
+            var cy = payload.cy;
+            var cz = payload.cz;
+
+            var chunk = self.chunkAt(cx, cy, cz);
+            if (chunk) chunk.removeFrom(scene);
+
+            chunk = new Chunk(payload.blocks, geometry, cx, cy, cz);
+            chunks[cx + "," + cy + "," + cz] = chunk;
+            chunk.addTo(scene);
+            console.log("Added chunk at ", cx, cy, cz);
+        }
     }
 
     function processChunk(payload) {
@@ -38,6 +58,13 @@ function ChunkManager(scene, conn) {
             return;
         }
 
+        geometryWorker.postMessage({
+            kind: 'chunk',
+            payload: payload,
+        });
+        return;
+
+        // NOT USED
         chunk = new Chunk(self, data, cx, cy, cz);
         chunks[cx + "," + cy + "," + cz] = chunk;
         chunk.addTo(scene);

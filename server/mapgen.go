@@ -188,9 +188,9 @@ type Block int
 var BLOCK_AIR = Block(1)
 var BLOCK_DIRT = Block(2)
 
-var CHUNK_WIDTH = 16
-var CHUNK_DEPTH = 16
-var CHUNK_HEIGHT = 16
+var CHUNK_WIDTH = 32
+var CHUNK_DEPTH = 32
+var CHUNK_HEIGHT = 32
 
 func generateChunk(cx, cy, cz int, seed float64) Chunk {
 	cw := CHUNK_WIDTH
