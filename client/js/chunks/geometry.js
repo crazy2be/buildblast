@@ -22,13 +22,25 @@ function ChunkGeometry(cc, blocks, manager) {
     // Face normals;
     var nxn, pxn, nyn, pyn, nzn, pzn;
 
-    function block(ox, oy, oz) {
-        if (ox >= 0 && ox < cw &&
+    function valid(ox, oy, oz) {
+        return ox >= 0 && ox < cw &&
             oy >= 0 && oy < ch &&
-            oz >= 0 && oz < cd) {
-                return blocks[ox*cw*ch + oy*cw + oz];
+            oz >= 0 && oz < cd;
+    }
+
+    function block(ox, oy, oz) {
+        if (valid(ox, oy, oz)) {
+            return blocks[ox*cw*ch + oy*cw + oz];
         }
         return null;
+    }
+
+    function setBlock (ox, oy, oz, type) {
+        if (valid(ox, oy, oz)) {
+            blocks[ox*cw*ch + oy*cw + oz] = type;
+        } else {
+            throw "Invalid offset coords!";
+        }
     }
 
     function t(b) {
@@ -41,32 +53,32 @@ function ChunkGeometry(cc, blocks, manager) {
 
         var pxb = block(ox + 1, oy, oz), px;
         if (pxb) px = t(pxb);
-        else if (pxc) px = t(pxc.blockAt(0, oy, oz));
+        else if (pxc) px = t(pxc.block(0, oy, oz));
         else px = false;
 
         var nxb = block(ox - 1, oy, oz), nx;
         if (nxb) nx = t(nxb);
-        else if (nxc) nx = t(nxc.blockAt(cw - 1, oy, oz));
+        else if (nxc) nx = t(nxc.block(cw - 1, oy, oz));
         else nx = false;
 
         var pyb = block(ox, oy + 1, oz), py;
         if (pyb) py = t(pyb);
-        else if (pyc) py = t(pyc.blockAt(ox, 0, oz));
+        else if (pyc) py = t(pyc.block(ox, 0, oz));
         else py = false;
 
         var nyb = block(ox, oy - 1, oz), ny;
         if (nyb) ny = t(nyb);
-        else if (nyc) ny = t(nyc.blockAt(ox, ch - 1, oz));
+        else if (nyc) ny = t(nyc.block(ox, ch - 1, oz));
         else ny = false;
 
         var pzb = block(ox, oy, oz + 1), pz;
         if (pzb) pz = t(pzb);
-        else if (pzc) pz = t(pzc.blockAt(ox, oy, 0));
+        else if (pzc) pz = t(pzc.block(ox, oy, 0));
         else ny = false;
 
         var nzb = block(ox, oy, oz - 1), nz;
         if (nzb) nz = t(nzb);
-        else if (nzc) nz = t(nzc.blockAt(ox, oy, cd - 1));
+        else if (nzc) nz = t(nzc.block(ox, oy, cd - 1));
         else nz = false;
 
         var wx = ox + cx*cw;
@@ -90,10 +102,14 @@ function ChunkGeometry(cc, blocks, manager) {
                 c = [0, 1*r, 0];
             }
 
-            color.push(c[0], c[1], c[2]);
-            color.push(c[0], c[1], c[2]);
-            color.push(c[0], c[1], c[2]);
-            color.push(c[0], c[1], c[2]);
+            r = Math.random();
+            color.push(c[0]*r, c[1]*r, c[2]*r);
+            r = Math.random();
+            color.push(c[0]*r, c[1]*r, c[2]*r);
+            r = Math.random();
+            color.push(c[0]*r, c[1]*r, c[2]*r);
+            r = Math.random();
+            color.push(c[0]*r, c[1]*r, c[2]*r);
         }
         if (px) {
             v(wx + 1, wy    , wz    );
@@ -207,7 +223,6 @@ function ChunkGeometry(cc, blocks, manager) {
         };
     }
 
-    self.blockAt = function (ox, oy, oz) {
-        return block(ox, oy, oz);
-    }
+    self.block = block;
+    self.setBlock = setBlock;
 }

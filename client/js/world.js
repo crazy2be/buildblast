@@ -84,13 +84,26 @@ function World(scene, conn) {
     }
 
     self.findTargetIntersection = function (camera) {
-        var vector = new THREE.Vector3(0, 0, 0);
+        var look = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
-        projector.unprojectVector(vector, camera);
-        vector.sub(camera.position).normalize();
+        projector.unprojectVector(look, camera);
+        // 0.1 could really be any arbitrary precision.
+        look.sub(camera.position).setLength(0.1);
 
-        var raycaster = new THREE.Raycaster(camera.position, vector);
-        return self.intersectRay(raycaster);
+        var pos = camera.position.clone();
+        var d = 0;
+        while (d < 100) {
+            pos.add(look);
+            d = camera.position.distanceTo(pos);
+            var block = self.blockAt(pos.x, pos.y, pos.z);
+            if (block && block.mineable()) {
+                return {
+                    p: pos,
+                    d: d,
+                    block: block,
+                }
+            }
+        }
     }
 
     self.intersectRay = function (ray) {
@@ -111,8 +124,11 @@ function World(scene, conn) {
     }
 
     function doLookedAtBlockAction(camera, cmp, cb) {
-        var p = self.findTargetIntersection(camera).p;
-        if (!p) return;
+        var intersect = self.findTargetIntersection(camera);
+        if (!intersect) return;
+        var p = intersect.p;
+        cb(p.x, p.y, p.z);
+        return;
 
         function onFace(n) {
             if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001 || abs(n % 1 + 1) < 0.001) return true;
@@ -180,78 +196,6 @@ function World(scene, conn) {
     }
 
     function applyBlockChange(wx, wy, wz, newType) {
-        var cords = worldToChunk(wx, wy, wz);
-        var c = cords.c;
-        var o = cords.o;
-
-        var chunk = chunkAt(c.x, c.y, c.z);
-        if (!chunk) {
-            console.warn("Cannot find chunk to remove from!");
-            return;
-        }
-        var block = chunk.blockAt(o.x, o.y, o.z);
-        if (!block) throw "Cannot find block within chunk!";
-        if (block.type === newType) return;
-        chunk.setBlock(o.x, o.y, o.z, newType);
-
-        // Invalidate chunks
-        var changedChunks = [];
-        changedChunks.push(c);
-
-        cords = worldToChunk(wx + 1, wy, wz);
-        addToSet(changedChunks, cords.c);
-        cords = worldToChunk(wx - 1, wy, wz);
-        addToSet(changedChunks, cords.c);
-        cords = worldToChunk(wx, wy + 1, wz);
-        addToSet(changedChunks, cords.c);
-        cords = worldToChunk(wx, wy - 1, wz);
-        addToSet(changedChunks, cords.c);
-        cords = worldToChunk(wx, wy, wz + 1);
-        addToSet(changedChunks, cords.c);
-        cords = worldToChunk(wx, wy, wz - 1);
-        addToSet(changedChunks, cords.c);
-
-        for (var i = 0; i < changedChunks.length; i++) {
-            var c = changedChunks[i];
-            var chunk = chunkAt(c.x, c.y, c.z);
-            if (chunk) chunk.refresh(scene);
-        }
-    }
-
-    // Set is actually just an array.
-    function addToSet(set, elm) {
-        function equal(a, b) {
-            for (k in a) {
-                if (a[k] !== b[k]) return false;
-            }
-            return true;
-        }
-        function arrayContians(a, elm) {
-            for (var i = 0; i < a.length; i++) {
-                if (equal(a[i], elm)) return true;
-            }
-            return false;
-        }
-        if (arrayContians(set, elm)) return;
-        set.push(elm);
-    }
-
-    function mod(a, b) {
-        return (((a % b) + b) % b);
-    }
-
-    function worldToChunk(wx, wy, wz) {
-        return {
-            c: {
-                x: Math.floor(wx / CHUNK_WIDTH),
-                y: Math.floor(wy / CHUNK_HEIGHT),
-                z: Math.floor(wz / CHUNK_DEPTH),
-            },
-            o: {
-                x: mod(Math.floor(wx), CHUNK_WIDTH),
-                y: mod(Math.floor(wy), CHUNK_HEIGHT),
-                z: mod(Math.floor(wz), CHUNK_DEPTH),
-            }
-        };
+        chunkManager.queueBlockChange(wx, wy, wz, newType);
     }
 }

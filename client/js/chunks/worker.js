@@ -31,8 +31,10 @@ importScripts(
 parent.onmessage = function (e) {
     if (e.data.kind === 'start-conn') {
         initConn(e.data.payload);
+    } else if (e.data.kind === 'block-change') {
+        processBlockChange(e.data.payload);
     } else {
-        console.log('Warning: Unknown message recieved from parent!');
+        throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
     }
 };
 
@@ -41,7 +43,6 @@ function initConn(payload) {
     conn.on('chunk', processChunk);
     conn.on('show-chunk', processShowChunk);
     conn.on('hide-chunk', processHideChunk);
-    conn.on('unload-chunk', processUnloadChunk);
 }
 
 
@@ -159,4 +160,68 @@ function processChunk(payload) {
     chunk = new ChunkGeometry(cc, data, manager);
     manager.set(cc, chunk);
     manager.refreshNeighbouring(cc);
+}
+
+function processBlockChange(payload) {
+    var wc = payload.wc;
+    var type = payload.type;
+    var coords = worldToChunk(wc.x, wc.y, wc.z);
+    var c = coords.c;
+    var o = coords.o;
+
+    var chunk = manager.chunkAt(c.x, c.y, c.z);
+    if (!chunk) {
+//         console.warn("Cannot find chunk to remove from!");
+        return;
+    }
+
+    var block = chunk.block(o.x, o.y, o.z);
+    if (!block) throw "Cannot find block within chunk!";
+
+    if (block === type) return;
+
+    chunk.setBlock(o.x, o.y, o.z, type);
+
+    // Invalidate chunks
+    var changedChunks = [];
+    changedChunks.push(c);
+
+    cords = worldToChunk(wc.x + 1, wc.y, wc.z);
+    addToSet(changedChunks, cords.c);
+    cords = worldToChunk(wc.x - 1, wc.y, wc.z);
+    addToSet(changedChunks, cords.c);
+    cords = worldToChunk(wc.x, wc.y + 1, wc.z);
+    addToSet(changedChunks, cords.c);
+    cords = worldToChunk(wc.x, wc.y - 1, wc.z);
+    addToSet(changedChunks, cords.c);
+    cords = worldToChunk(wc.x, wc.y, wc.z + 1);
+    addToSet(changedChunks, cords.c);
+    cords = worldToChunk(wc.x, wc.y, wc.z - 1);
+    addToSet(changedChunks, cords.c);
+
+    for (var i = 0; i < changedChunks.length; i++) {
+        var cc = changedChunks[i];
+        var chunk = manager.get(cc);
+        if (chunk) {
+            chunk.changed = true;
+            chunk.priority = 2;
+        }
+    }
+
+    function addToSet(set, elm) {
+        function equal(a, b) {
+            for (k in a) {
+                if (a[k] !== b[k]) return false;
+            }
+            return true;
+        }
+        function arrayContians(a, elm) {
+            for (var i = 0; i < a.length; i++) {
+                if (equal(a[i], elm)) return true;
+            }
+            return false;
+        }
+        if (arrayContians(set, elm)) return;
+        set.push(elm);
+    }
 }

@@ -15,6 +15,16 @@ function ChunkManager(scene, conn) {
         return chunks;
     }
 
+    self.queueBlockChange = function (wx, wy, wz, newType) {
+        geometryWorker.postMessage({
+            'kind': 'block-change',
+            'payload': {
+                'wc': {x: wx, y: wy, z: wz},
+                'type': newType,
+            }
+        });
+    }
+
     geometryWorker.onmessage = function (e) {
         var payload = e.data.payload;
         if (e.data.kind === 'chunk') {

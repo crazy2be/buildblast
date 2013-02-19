@@ -18,6 +18,10 @@ function Block(type) {
         return self.type == Block.AIR;
     }
 
+    self.mineable = function () {
+        return self.type == Block.DIRT;
+    }
+
     self.solid = function () {
         return Block.solid(self.type);
     }
