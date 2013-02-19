@@ -42,9 +42,9 @@ function ChunkManager(scene, conn) {
         var geometry = new THREE.BufferGeometry();
         geometry.attributes = payload.geometry.attributes;
         geometry.offsets = payload.geometry.offsets;
-        var cx = payload.cx;
-        var cy = payload.cy;
-        var cz = payload.cz;
+        var cx = payload.cc.x;
+        var cy = payload.cc.y;
+        var cz = payload.cc.z;
 
         var chunk = self.chunkAt(cx, cy, cz);
         if (chunk) chunk.removeFrom(scene);

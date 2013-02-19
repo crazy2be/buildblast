@@ -1,14 +1,20 @@
-function ChunkGeometry(manager, blocks, cx, cy, cz) {
+function ChunkGeometry(cc, blocks, manager) {
     var self = this;
 
     self.blocks = blocks;
-    self.cx = cx;
-    self.cy = cy;
-    self.cz = cz;
+    self.cc = cc;
+    self.priority = 1;
+    self.shown = true;
+    self.changed = true;
+    self.loaded = false;
 
     var cw = CHUNK_WIDTH;
     var cd = CHUNK_DEPTH;
     var ch = CHUNK_HEIGHT;
+
+    var cx = cc.x;
+    var cy = cc.y;
+    var cz = cc.z;
 
     // Neighbouring chunks
     var nxc, pxc, nyc, pyc, nzc, pzc;
