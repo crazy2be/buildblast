@@ -89,7 +89,7 @@ function ChunkGeometry(cc, blocks, manager) {
             var val = 0;
             if (q === undefined) q = 2;
             if (q > 32) return 0;
-            val += noisey(x * q, y * q, z * q, q * 4) / q;
+            val += noiseFunc(x * q, y * q, z * q, q * 4) / q;
             x += x < 0 ? -0.1 : 0.1;
             y += y < 0 ? -0.1 : 0.1;
             z += z < 0 ? -0.1 : 0.1;
@@ -108,7 +108,8 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-4, l-3, l-2);
             index.push(l-4, l-2, l-1);
 
-            var c = [0.5, 0.5, 0.5];
+            // Dirt color from http://www.colourlovers.com/color/784800/dirt
+            var c = [120/255, 72/255, 0];
             if (mat === 2) {
                 c = [0, 1, 0];
             }

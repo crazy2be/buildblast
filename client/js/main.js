@@ -1,7 +1,7 @@
 // This variable exists only so we can test running things
 // on world from the console. Code should never use this!
 var WORLD;
-document.body.onload = function () {
+window.onload = function () {
     THREE.PerspectiveCamera.prototype.clone = function () {
         var newCam = new THREE.Camera();
         newCam.matrixWorldInverse = this.matrixWorldInverse.clone();
