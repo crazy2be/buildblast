@@ -5,6 +5,7 @@ var parent = self;
 importScripts(
     'common.js',
     'geometry.js',
+    'noise.js',
     '../conn.js'
 );
 

@@ -84,54 +84,36 @@ function World(scene, conn) {
     }
 
     self.findTargetIntersection = function (camera) {
+        var precision = 0.01;
+        var maxDist = 100;
         var look = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(look, camera);
-        // 0.1 could really be any arbitrary precision.
-        look.sub(camera.position).setLength(0.1);
+        look.sub(camera.position).setLength(precision);
 
         var pos = camera.position.clone();
-        var d = 0;
-        while (d < 100) {
+        var dist = 0;
+        while (dist < maxDist) {
             pos.add(look);
-            d = camera.position.distanceTo(pos);
+            dist = camera.position.distanceTo(pos);
             var block = self.blockAt(pos.x, pos.y, pos.z);
             if (block && block.mineable()) {
                 return {
-                    p: pos,
-                    d: d,
+                    pos: pos,
+                    dist: dist,
                     block: block,
                 }
             }
         }
     }
 
-    self.intersectRay = function (ray) {
-        var closest;
-        var chunks = chunkManager.chunks();
-        for (var key in chunks) {
-            var chunk = chunks[key];
-            var intersects = ray.intersectObject(chunk.getMesh());
-            for (var i = 0; i < intersects.length; i++) {
-                var intersect = intersects[i];
-                if (!closest || intersect.distance < closest.distance) {
-                    closest = intersect;
-                }
-            }
-        }
-        if (!closest) closest = { point: null, distance: null };
-        return { p: closest.point, d: closest.distance };
-    }
-
     function doLookedAtBlockAction(camera, cmp, cb) {
         var intersect = self.findTargetIntersection(camera);
         if (!intersect) return;
-        var p = intersect.p;
-        cb(p.x, p.y, p.z);
-        return;
+        var p = intersect.pos;
 
         function onFace(n) {
-            if (abs(n % 1) < 0.001 || abs(n % 1 - 1) < 0.001 || abs(n % 1 + 1) < 0.001) return true;
+            if (abs(n % 1) < 0.01 || abs(n % 1 - 1) < 0.01 || abs(n % 1 + 1) < 0.01) return true;
             else return false;
         }
 

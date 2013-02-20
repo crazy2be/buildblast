@@ -85,8 +85,21 @@ function ChunkGeometry(cc, blocks, manager) {
         var wy = oy + cy*ch;
         var wz = oz + cz*cd;
 
+        function noiseFunc(x, y, z, q) {
+            var val = 0;
+            if (q === undefined) q = 2;
+            if (q > 32) return 0;
+            val += noisey(x * q, y * q, z * q, q * 4) / q;
+            x += x < 0 ? -0.1 : 0.1;
+            y += y < 0 ? -0.1 : 0.1;
+            z += z < 0 ? -0.1 : 0.1;
+            val += perlinNoise(x, y, z);
+            return Math.abs(val) * 2 + 0.2;
+        }
+        var noise = [];
         function v(x, y, z) {
             verts.push(x, y, z);
+            noise.push(noiseFunc(x, y, z));
         }
 
         function f(mat, normal) {
@@ -95,20 +108,18 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-4, l-3, l-2);
             index.push(l-4, l-2, l-1);
 
-            var r = Math.random();
-            // Random colors make the world have depth.
-            var c = [0.5*r, 0.5*r, 0.5*r];
+            var c = [0.5, 0.5, 0.5];
             if (mat === 2) {
-                c = [0, 1*r, 0];
+                c = [0, 1, 0];
             }
 
-            r = Math.random();
+            var r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = Math.random();
+            r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = Math.random();
+            r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = Math.random();
+            r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
         }
         if (px) {
