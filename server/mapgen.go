@@ -169,22 +169,24 @@ func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
 	c[oc.x][oc.y][oc.z] = newBlock
 }
 
-func (c Chunk) Flatten() []Block {
+func (c Chunk) Flatten() string {
 	cw := CHUNK_WIDTH
 	ch := CHUNK_HEIGHT
 	cd := CHUNK_DEPTH
-	data := make([]Block, cw*ch*cd)
+	data := make([]byte, cw*ch*cd)
 	for x := 0; x < cw; x++ {
 		for y := 0; y < ch; y++ {
 			for z := 0; z < cd; z++ {
-				data[x*cw*ch + y*cw + z] = c[x][y][z]
+				// 32: Space charater. Control charaters
+				// are not allowed in JSON strings.
+				data[x*cw*ch + y*cw + z] = byte(c[x][y][z]) + 32
 			}
 		}
 	}
-	return data
+	return string(data)
 }
 
-type Block int
+type Block byte
 var BLOCK_AIR = Block(1)
 var BLOCK_DIRT = Block(2)
 

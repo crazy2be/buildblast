@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"math/rand"
+	"time"
 )
 
 type World struct {
@@ -16,7 +16,7 @@ type World struct {
 
 func newWorld() *World {
 	w := new(World)
-	w.seed = rand.Float64();
+	w.seed = float64(time.Now().Unix());
 	w.chunks = make(map[ChunkCoords]Chunk)
 	w.players = make(map[*Player]bool)
 	w.register = make(chan *Player)
@@ -26,13 +26,13 @@ func newWorld() *World {
 }
 
 // TODO: This function has terrific race conditions...
-func (w *World) requestChunk(c ChunkCoords) Chunk {
-	if w.chunks[c] != nil {
-		return w.chunks[c]
+func (w *World) requestChunk(cc ChunkCoords) Chunk {
+	if w.chunks[cc] != nil {
+		return w.chunks[cc]
 	}
 
-	chunk := generateChunk(c.x, c.y, c.z, w.seed)
-	w.chunks[c] = chunk
+	chunk := generateChunk(cc.x, cc.y, cc.z, w.seed)
+	w.chunks[cc] = chunk
 	return chunk
 }
 

@@ -160,7 +160,7 @@ var Player = function (world, container, conn) {
         }
 
         accumulatedTime += dt;
-        if (accumulatedTime > 0.1) {
+        if (accumulatedTime > 1 / 30) {
             accumulatedTime = 0;
             conn.queue('player-position', {
                 pos: {x: p.x, y: p.y, z: p.z},

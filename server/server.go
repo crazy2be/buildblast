@@ -161,7 +161,7 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	MAX_LOAD_DIST := 2
+	MAX_LOAD_DIST := 1
 	MIN_HIDE_DIST := 2
 	MAX_HIDE_DIST := 3
 

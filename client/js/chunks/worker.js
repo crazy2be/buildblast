@@ -116,10 +116,17 @@ function processChunk(payload) {
     var cc = payload.ccpos;
     var data = payload.data;
 
+    var blocks = new Uint8Array(data.length);
+    for (var i = 0; i < blocks.length; i++) {
+        // 32 - Space character. Control characters
+        // are not allowed in JSON strings.
+        blocks[i] = data.charCodeAt(i) - 32;
+    }
+
     var chunk = manager.get(cc);
     if (chunk) throw "Got chunk data twice! Server bug! Ignoring message...";
 
-    chunk = new ChunkGeometry(cc, data, manager);
+    chunk = new ChunkGeometry(cc, blocks, manager);
     manager.set(cc, chunk);
     manager.refreshNeighbouring(cc);
 }
