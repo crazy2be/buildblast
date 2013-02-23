@@ -161,12 +161,9 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-// 	MIN_LOAD_DIST := 1
 	MAX_LOAD_DIST := 2
 	MIN_HIDE_DIST := 2
 	MAX_HIDE_DIST := 3
-// 	MIN_UNLOAD_DIST := 3
-// 	MAX_UNLOAD_DIST := 4
 
 	eachWithin := func (cc ChunkCoords, dist int, cb func (newCC ChunkCoords)) {
 		occ := func (x, y, z int) ChunkCoords {
@@ -205,22 +202,7 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 		} else if p.visibleChunks[newCC] != true {
 			p.sendShowChunk(newCC)
 		}
-	})
-	// Sometimes load far away chunks to reduce lag when
-	// moving through the world (so coming up to a chunk
-	// boundry doesn't require the loading of many chunks
-	// in a single frame)
-// 	eachWithin(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
-// 		if p.loadedChunks[newCC] != true {
-// 			if (mrand.Float64() > 0.9) {
-// 				p.sendChunk(newCC)
-// 			}
-// 		} else if p.visibleChunks[newCC] != true {
-// 			if (mrand.Float64() > 0.5) {
-// 				p.sendShowChunk(newCC)
-// 			}
-// 		}
-// 	})
+	});
 
 	eachOutside := func (list map[ChunkCoords]bool, cc ChunkCoords, dist int, cb func (lcc ChunkCoords)) {
 		for lcc := range list {
@@ -239,9 +221,6 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 			p.sendHideChunk(lcc)
 		}
 	})
-
-	// TODO: Send unload commands when really far away from
-	// a chunk?
 }
 
 func wsHandler(ws *websocket.Conn) {
