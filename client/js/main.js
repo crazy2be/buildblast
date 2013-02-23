@@ -26,6 +26,7 @@ window.onload = function () {
     container.appendChild(renderer.domElement);
 
     var stats = new Stats();
+    stats.setMode(1);
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     container.appendChild(stats.domElement);

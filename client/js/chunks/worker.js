@@ -19,7 +19,6 @@ function sendChunk() {
         // chunk.
         chunk.loaded = true;
         chunk.changed = false;
-        sendChunk();
         return;
     }
     parent.postMessage({
@@ -185,12 +184,12 @@ function processBlockChange(payload) {
         return;
     }
 
-    var block = chunk.block(o.x, o.y, o.z);
+    var block = chunk.block(oc.x, oc.y, oc.z);
     if (!block) throw "Cannot find block within chunk!";
 
     if (block === type) return;
 
-    chunk.setBlock(o.x, o.y, o.z, type);
+    chunk.setBlock(oc.x, oc.y, oc.z, type);
 
     // Invalidate chunks
     var changedChunks = [];

@@ -161,7 +161,7 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	MIN_LOAD_DIST := 1
+// 	MIN_LOAD_DIST := 1
 	MAX_LOAD_DIST := 2
 	MIN_HIDE_DIST := 2
 	MAX_HIDE_DIST := 3
@@ -169,21 +169,37 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 // 	MAX_UNLOAD_DIST := 4
 
 	eachWithin := func (cc ChunkCoords, dist int, cb func (newCC ChunkCoords)) {
-		for x := -dist; x <= dist; x++ {
-			for y := -dist; y <= dist; y++ {
-				for z := -dist; z <= dist; z++ {
-					newCC := ChunkCoords{
-						x: cc.x + x,
-						y: cc.y + y,
-						z: cc.z + z,
-					}
-					cb(newCC)
+		occ := func (x, y, z int) ChunkCoords {
+			return ChunkCoords{
+				x: cc.x + x,
+				y: cc.y + y,
+				z: cc.z + z,
+			}
+		}
+		cb(cc)
+		for i := 1; i <= dist; i++ {
+			for x := -i; x <= i; x++ {
+				for y := -i; y <= i; y++ {
+					cb(occ(x, y, i))
+					cb(occ(x, y, -i))
+				}
+			}
+			for y := -i; y <= i; y++ {
+				for z := 1 - i; z <= i - 1; z++ {
+					cb(occ(i, y, z))
+					cb(occ(-i, y, z))
+				}
+			}
+			for x := 1 - i; x <= i - 1; x++ {
+				for z := 1 - i; z <= i - 1; z++ {
+					cb(occ(x, i, z))
+					cb(occ(x, -i, z))
 				}
 			}
 		}
 	}
 	cc := wc.Chunk()
-	eachWithin(cc, MIN_LOAD_DIST, func (newCC ChunkCoords) {
+	eachWithin(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
 		if p.loadedChunks[newCC] != true {
 			p.sendChunk(newCC)
 		} else if p.visibleChunks[newCC] != true {
@@ -194,17 +210,17 @@ func (p *Player) handlerPlayerPosition(ms *Message) {
 	// moving through the world (so coming up to a chunk
 	// boundry doesn't require the loading of many chunks
 	// in a single frame)
-	eachWithin(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
-		if p.loadedChunks[newCC] != true {
-			if (mrand.Float64() > 0.9) {
-				p.sendChunk(newCC)
-			}
-		} else if p.visibleChunks[newCC] != true {
-			if (mrand.Float64() > 0.5) {
-				p.sendShowChunk(newCC)
-			}
-		}
-	})
+// 	eachWithin(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
+// 		if p.loadedChunks[newCC] != true {
+// 			if (mrand.Float64() > 0.9) {
+// 				p.sendChunk(newCC)
+// 			}
+// 		} else if p.visibleChunks[newCC] != true {
+// 			if (mrand.Float64() > 0.5) {
+// 				p.sendShowChunk(newCC)
+// 			}
+// 		}
+// 	})
 
 	eachOutside := func (list map[ChunkCoords]bool, cc ChunkCoords, dist int, cb func (lcc ChunkCoords)) {
 		for lcc := range list {
