@@ -2,24 +2,6 @@
 // on world from the console. Code should never use this!
 var WORLD;
 window.onload = function () {
-    THREE.PerspectiveCamera.prototype.clone = function () {
-        var newCam = new THREE.Camera();
-        newCam.matrixWorldInverse = this.matrixWorldInverse.clone();
-        newCam.projectionMatrix = this.projectionMatrix.clone();
-        newCam.projectionMatrixInverse = this.projectionMatrixInverse.clone();
-        newCam.position = this.position.clone();
-        return newCam;
-    }
-
-    THREE.Camera.prototype.clone = function () {
-        var newCam = new THREE.Camera();
-        newCam.matrixWorldInverse = this.matrixWorldInverse.clone();
-        newCam.projectionMatrix = this.projectionMatrix.clone();
-        newCam.projectionMatrixInverse = this.projectionMatrixInverse.clone();
-        newCam.position = this.position.clone();
-        return newCam;
-    }
-
     var container = document.getElementById('container');
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();

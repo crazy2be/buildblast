@@ -4,7 +4,7 @@ var Player = function (world, container, conn) {
     var height = 1.6;
     var velocityY = 0;
 
-    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 128);
+    var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.001, 128);
     camera.position.z = 100;
 
     var controls = new FirstPersonControls(world, camera, container);
@@ -57,7 +57,7 @@ var Player = function (world, container, conn) {
     var onGround = true;
     function attemptMove(move) {
         var p = camera.position;
-        var pad = 0.2;
+        var pad = 0.3;
         var bbox = {
             xs: p.x - pad,
             xe: p.x + pad,
@@ -71,7 +71,7 @@ var Player = function (world, container, conn) {
         if (p.y - gh < 0) {
             p.y = gh;
             return move;
-        } else if (Math.abs(p.y - gh) < 0.2) {
+        } else if (Math.abs(p.y - gh) < 0.05) {
             onGround = true;
         } else {
             onGround = false;
