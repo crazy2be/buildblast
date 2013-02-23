@@ -19,24 +19,15 @@ function ChunkGeometry(cc, blocks, manager) {
     // Neighbouring chunks
     var nxc, pxc, nyc, pyc, nzc, pzc;
 
-    // Face normals;
-    var nxn, pxn, nyn, pyn, nzn, pzn;
-
-    function valid(ox, oy, oz) {
-        return ox >= 0 && ox < cw &&
-            oy >= 0 && oy < ch &&
-            oz >= 0 && oz < cd;
-    }
-
     function block(ox, oy, oz) {
-        if (valid(ox, oy, oz)) {
+        if (validChunkOffset(ox, oy, oz)) {
             return blocks[ox*cw*ch + oy*cw + oz];
         }
         return null;
     }
 
     function setBlock (ox, oy, oz, type) {
-        if (valid(ox, oy, oz)) {
+        if (validChunkOffset(ox, oy, oz)) {
             blocks[ox*cw*ch + oy*cw + oz] = type;
         } else {
             throw "Invalid offset coords!";
@@ -128,42 +119,42 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + 1, wy + 1, wz    );
             v(wx + 1, wy + 1, wz + 1);
             v(wx + 1, wy    , wz + 1);
-            f(0, pxn);
+            f(0);
         }
         if (nx) {
             v(wx, wy    , wz + 1);
             v(wx, wy + 1, wz + 1);
             v(wx, wy + 1, wz    );
             v(wx, wy    , wz    );
-            f(1, nxn);
+            f(1);
         }
         if (py) {
             v(wx    , wy + 1, wz + 1);
             v(wx + 1, wy + 1, wz + 1);
             v(wx + 1, wy + 1, wz    );
             v(wx    , wy + 1, wz    );
-            f(2, pyn);
+            f(2);
         }
         if (ny) {
             v(wx    , wy, wz    );
             v(wx + 1, wy, wz    );
             v(wx + 1, wy, wz + 1);
             v(wx    , wy, wz + 1);
-            f(3, nyn);
+            f(3);
         }
         if (pz) {
             v(wx    , wy    , wz + 1);
             v(wx + 1, wy    , wz + 1);
             v(wx + 1, wy + 1, wz + 1);
             v(wx    , wy + 1, wz + 1);
-            f(4, pzn);
+            f(4);
         }
         if (nz) {
             v(wx    , wy + 1, wz);
             v(wx + 1, wy + 1, wz);
             v(wx + 1, wy    , wz);
             v(wx    , wy    , wz);
-            f(5, nzn);
+            f(5);
         }
     }
 
@@ -206,8 +197,10 @@ function ChunkGeometry(cc, blocks, manager) {
         var colora = new Float32Array(color.length);
         copy(color, colora);
 
-        var geometry = {};
-        geometry.attributes = {
+        var blocksa = new Uint8Array(blocks.length);
+        copy(blocks, blocksa);
+
+        var attributes = {
             position: {
                 itemSize: 3,
                 array: vertsa,
@@ -224,14 +217,16 @@ function ChunkGeometry(cc, blocks, manager) {
                 numItems: color.length,
             },
         };
-        geometry.offsets = [{
+        var offsets = [{
             start: 0,
             count: index.length,
             index: 0,
         }];
         return {
-            obj: geometry,
-            transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
+            attributes: attributes,
+            offsets: offsets,
+            blocks: blocksa,
+            transferables: [vertsa.buffer, indexa.buffer, colora.buffer, blocksa.buffer],
         };
     }
 

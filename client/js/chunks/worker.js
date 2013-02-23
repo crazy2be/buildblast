@@ -1,6 +1,7 @@
 // I use self for other things. Parent makes
 // a lot more sence anyway.
 var parent = self;
+self = null;
 
 importScripts(
     'common.js',
@@ -9,25 +10,32 @@ importScripts(
     '../conn.js'
 );
 
-(function () {
-    function sendChunk() {
-        var chunk = manager.top();
-        if (!chunk) return;
-        var res = chunk.calculateGeometry();
-        parent.postMessage({
-            kind: 'chunk',
-            payload: {
-                blocks: chunk.blocks,
-                geometry: res.obj,
-                cc: chunk.cc,
-            }
-        }, res.transferables);
+function sendChunk() {
+    var chunk = manager.top();
+    if (!chunk) return;
+    var res = chunk.calculateGeometry();
+    if (res.offsets.count === 0) {
+        // Don't bother sending an invisible
+        // chunk.
         chunk.loaded = true;
         chunk.changed = false;
+        sendChunk();
+        return;
     }
+    parent.postMessage({
+        kind: 'chunk',
+        payload: {
+            blocks: res.blocks,
+            attributes: res.attributes,
+            offsets: res.offsets,
+            ccpos: chunk.cc,
+        }
+    }, res.transferables);
+    chunk.loaded = true;
+    chunk.changed = false;
+}
 
-    setInterval(sendChunk, 100);
-}());
+setInterval(sendChunk, 50);
 
 parent.onmessage = function (e) {
     if (e.data.kind === 'start-conn') {
@@ -52,11 +60,11 @@ function ChunkManager() {
     var chunkList = {};
 
     self.get = function (cc) {
-        return chunkList[cc.x + "," + cc.y + "," + cc.z];
+        return chunkList[ccStr(cc)];
     }
 
     self.set = function (cc, item) {
-        chunkList[cc.x + "," + cc.y + "," + cc.z] = item;
+        chunkList[ccStr(cc)] = item;
     }
 
     self.top = function () {
@@ -82,7 +90,7 @@ function ChunkManager() {
         var cx = cc.x;
         var cy = cc.y;
         var cz = cc.z;
-        var r = function (cx, cy, cz) {
+        function r(cx, cy, cz) {
             var chunk = self.get({x: cx, y: cy, z: cz});
             if (chunk) chunk.changed = true;
         };
@@ -96,6 +104,26 @@ function ChunkManager() {
 }
 
 var manager = new ChunkManager();
+
+function processChunk(payload) {
+    var size = payload.size;
+    if (size.w != CHUNK_WIDTH ||
+        size.h != CHUNK_HEIGHT ||
+        size.d != CHUNK_DEPTH
+    ) {
+        throw "Got chunk of size which does not match our expected chunk size!";
+    }
+
+    var cc = payload.ccpos;
+    var data = payload.data;
+
+    var chunk = manager.get(cc);
+    if (chunk) throw "Got chunk data twice! Server bug! Ignoring message...";
+
+    chunk = new ChunkGeometry(cc, data, manager);
+    manager.set(cc, chunk);
+    manager.refreshNeighbouring(cc);
+}
 
 function processShowChunk(payload) {
     var cc = payload.ccpos;
@@ -143,35 +171,16 @@ function processHideChunk(payload) {
     }
 }
 
-function processChunk(payload) {
-    var size = payload.size;
-    if (size.w != CHUNK_WIDTH ||
-        size.h != CHUNK_HEIGHT ||
-        size.d != CHUNK_DEPTH
-    ) {
-        throw "Got chunk of size which does not match our expected chunk size!";
-    }
-
-    var cc = payload.ccpos;
-    var data = payload.data;
-
-    var chunk = manager.get(cc);
-    if (chunk) throw "Got chunk data twice! Server bug! Ignoring message...";
-
-    chunk = new ChunkGeometry(cc, data, manager);
-    manager.set(cc, chunk);
-    manager.refreshNeighbouring(cc);
-}
-
 function processBlockChange(payload) {
     var wc = payload.wc;
     var type = payload.type;
     var coords = worldToChunk(wc.x, wc.y, wc.z);
-    var c = coords.c;
-    var o = coords.o;
+    var cc = coords.c;
+    var oc = coords.o;
 
-    var chunk = manager.chunkAt(c.x, c.y, c.z);
+    var chunk = manager.get(cc);
     if (!chunk) {
+        // We can't console log in a worker :(
 //         console.warn("Cannot find chunk to remove from!");
         return;
     }
@@ -185,44 +194,33 @@ function processBlockChange(payload) {
 
     // Invalidate chunks
     var changedChunks = [];
-    changedChunks.push(c);
+    changedChunks.push(cc);
 
-    cords = worldToChunk(wc.x + 1, wc.y, wc.z);
-    addToSet(changedChunks, cords.c);
-    cords = worldToChunk(wc.x - 1, wc.y, wc.z);
-    addToSet(changedChunks, cords.c);
-    cords = worldToChunk(wc.x, wc.y + 1, wc.z);
-    addToSet(changedChunks, cords.c);
-    cords = worldToChunk(wc.x, wc.y - 1, wc.z);
-    addToSet(changedChunks, cords.c);
-    cords = worldToChunk(wc.x, wc.y, wc.z + 1);
-    addToSet(changedChunks, cords.c);
-    cords = worldToChunk(wc.x, wc.y, wc.z - 1);
-    addToSet(changedChunks, cords.c);
+    function u(wx, wy, wz) {
+        coords = worldToChunk(wx, wy, wz);
+        changedChunks.push(coords.c);
+    }
+
+    u(wc.x + 1, wc.y, wc.z);
+    u(wc.x - 1, wc.y, wc.z);
+    u(wc.x, wc.y + 1, wc.z);
+    u(wc.x, wc.y - 1, wc.z);
+    u(wc.x, wc.y, wc.z + 1);
+    u(wc.x, wc.y, wc.z - 1);
+
+    changedChunks = unique(changedChunks);
 
     for (var i = 0; i < changedChunks.length; i++) {
         var cc = changedChunks[i];
         var chunk = manager.get(cc);
-        if (chunk) {
-            chunk.changed = true;
-            chunk.priority = 2;
-        }
+        if (!chunk) continue;
+        chunk.changed = true;
+        chunk.priority = 2;
     }
 
-    function addToSet(set, elm) {
-        function equal(a, b) {
-            for (k in a) {
-                if (a[k] !== b[k]) return false;
-            }
-            return true;
-        }
-        function arrayContians(a, elm) {
-            for (var i = 0; i < a.length; i++) {
-                if (equal(a[i], elm)) return true;
-            }
-            return false;
-        }
-        if (arrayContians(set, elm)) return;
-        set.push(elm);
+    function unique(arr) {
+        return arr.filter(function (val, i) {
+            return arr.indexOf(val) === i;
+        });
     }
 }

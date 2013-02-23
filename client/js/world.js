@@ -4,8 +4,6 @@ function World(scene, conn) {
 
     conn.on('block', processBlock);
 
-    var chunkAt = chunkManager.chunkAt;
-
     function processBlock(payload) {
         var wx = payload.x;
         var wy = payload.y;
@@ -24,58 +22,58 @@ function World(scene, conn) {
 
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
-        var o = cords.o;
-        var c = cords.c;
+        var oc = cords.o;
+        var cc = cords.c;
 
-        var chunk = chunkAt(c.x, c.y, c.z);
+        var chunk = chunkManager.chunk(cc);
         if (!chunk) return null;
-        var block = chunk.blockAt(o.x, o.y, o.z);
+        var block = chunk.block(oc);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
     }
 
     self.findClosestGround = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
-        var c = cords.c;
-        var o = cords.o;
+        var cc = cords.c;
+        var oc = cords.o;
 
-        var chunk = chunkAt(c.x, c.y, c.z);
+        var chunk = chunkManager.chunk(cc);
         if (!chunk) {
             return wy;
         }
-        var block = chunk.blockAt(o.x, o.y, o.z);
+        var block = chunk.block(oc);
         if (block.isType(Block.AIR)) {
             // Try and find ground below
             while (true) {
-                o.y--;
-                if (o.y < 0) {
-                    o.y = CHUNK_HEIGHT - 1;
-                    c.y--;
-                    chunk = chunkAt(c.x, c.y, c.z);
+                oc.y--;
+                if (oc.y < 0) {
+                    oc.y = CHUNK_HEIGHT - 1;
+                    cc.y--;
+                    chunk = chunkManager.chunk(cc);
                     if (!chunk) {
-                        return o.y + 1 + c.y * CHUNK_HEIGHT;
+                        return oc.y + cc.y * CHUNK_HEIGHT + 1;
                     }
                 }
-                block = chunk.blockAt(o.x, o.y, o.z);
+                block = chunk.block(oc);
                 if (block && block.isType(Block.DIRT)) {
-                    return o.y + c.y * CHUNK_HEIGHT + 1;
+                    return oc.y + cc.y * CHUNK_HEIGHT + 1;
                 }
             }
         } else if (block.isType(Block.DIRT)) {
             // Try and find air above
             while (true) {
-                o.y++;
-                if (o.y >= CHUNK_HEIGHT) {
-                    o.y = 0;
-                    c.y++;
-                    chunk = chunkAt(c.x, c.y, c.z);
+                oc.y++;
+                if (oc.y >= CHUNK_HEIGHT) {
+                    oc.y = 0;
+                    cc.y++;
+                    chunk = chunkManager.chunk(cc);
                     if (!chunk) {
-                        return o.y + c.y * CHUNK_HEIGHT;
+                        return oc.y + cc.y * CHUNK_HEIGHT;
                     }
                 }
-                block = chunk.blockAt(o.x, o.y, o.z);
+                block = chunk.block(oc);
                 if (block && block.isType(Block.AIR)) {
-                    return o.y + c.y * CHUNK_HEIGHT;
+                    return oc.y + cc.y * CHUNK_HEIGHT;
                 }
             }
         } else {
@@ -173,7 +171,12 @@ function World(scene, conn) {
     }
 
     function changeBlock(wx, wy, wz, newType) {
-        conn.queue('block', {x: wx, y: wy, z: wz, type: newType});
+        conn.queue('block', {
+            x: wx,
+            y: wy,
+            z: wz,
+            type: newType,
+        });
         applyBlockChange(wx, wy, wz, newType);
     }
 

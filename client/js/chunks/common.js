@@ -20,3 +20,13 @@ function worldToChunk(wx, wy, wz) {
         }
     };
 }
+
+function validChunkOffset(ox, oy, oz) {
+    return ox >= 0 && ox < CHUNK_WIDTH &&
+        oy >= 0 && oy < CHUNK_HEIGHT &&
+        oz >= 0 && oz < CHUNK_DEPTH;
+}
+
+function ccStr(cc) {
+    return cc.x + "," + cc.y + "," + cc.z;
+}
