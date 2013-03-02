@@ -16,7 +16,6 @@ var Player = function (world, container, conn) {
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        controls.handleResize();
     };
 
     conn.on('player-position', function (payload) {
@@ -131,7 +130,7 @@ var Player = function (world, container, conn) {
 
     var accumulatedTime = 0;
     self.update = function (dt) {
-        var c = controls.update();
+        var c = controls.sample();
         var p = camera.position;
         var r = camera.rotation;
 
@@ -160,8 +159,12 @@ var Player = function (world, container, conn) {
         }
 
         accumulatedTime += dt;
-        if (accumulatedTime > 1 / 30) {
-            accumulatedTime = 0;
+        if (accumulatedTime > 0.1) {
+            accumulatedTime -= 0.1;
+            if (accumulatedTime > 1) {
+                console.warn("Having trouble keeping up with minimum update speed of 10fps! (", accumulatedTime, " seconds behind). Trouble ahead...");
+                accumulatedTime = 0;
+            }
             conn.queue('player-position', {
                 pos: {x: p.x, y: p.y, z: p.z},
                 rot: {x: r.x, y: r.y, z: r.z},

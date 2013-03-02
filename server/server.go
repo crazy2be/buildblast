@@ -112,6 +112,7 @@ func (p *Player) sendChunk(cc ChunkCoords) {
 	p.loadedChunks[cc] = true
 	p.visibleChunks[cc] = true
 	ms.Payload["data"] = chunk.Flatten()
+	log.Println("Buffering chunk at ", cc)
 	p.chunkOut <- ms
 }
 
@@ -129,6 +130,12 @@ func (p *Player) sendHideChunk(cc ChunkCoords) {
 
 	delete(p.visibleChunks, cc)
 	p.chunkOut <- ms
+}
+
+func (p *Player) sendPlayerPos(wc WorldCoords) {
+	ms := newMessage("player-position")
+	ms.Payload["pos"] = wc.toMap()
+	p.out <- ms
 }
 
 func (p *Player) sendUnloadChunk(cc ChunkCoords) {
@@ -149,7 +156,7 @@ func (p *Player) handleBlock(ms *Message) {
 	p.w.broadcast <- ms
 }
 
-func (p *Player) handlerPlayerPosition(ms *Message) {
+func (p *Player) handlePlayerPosition(ms *Message) {
 	pl := ms.Payload
 	// TODO: Verify position is valid
 	// (they didn't move too much in the last
@@ -248,7 +255,7 @@ func wsHandler(ws *websocket.Conn) {
 			case "block":
 				p.handleBlock(m)
 			case "player-position":
-				p.handlerPlayerPosition(m)
+				p.handlePlayerPosition(m)
 			default:
 				log.Print("Unknown message recieved from client of kind ", m.Kind)
 				continue
@@ -268,10 +275,11 @@ func chunkHandler(ws *websocket.Conn) {
 	name := strings.Split(path, "/")[3]
 
 	p := globalWorld.findPlayer(name)
-	log.Print("WARNING< chunkHandrel not imeperaot..", name, p)
+	log.Print("Chunk handler:", name, p)
 
 	for {
 		ms := <-p.chunkOut
+		log.Print("Sending chunk message of kind ", ms.Kind, " at ", ms.Payload["ccpos"])
 		err := websocket.JSON.Send(ws, ms)
 		if err != nil {
 			log.Print("Sending chunk websocket message (", p.name, "): ", err)

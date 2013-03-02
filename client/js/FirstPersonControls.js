@@ -18,15 +18,7 @@ function FirstPersonControls(world, camera, element) {
     var movingRight = false;
     var jumping = false;
 
-    var viewHalfX = 0;
-    var viewHalfY = 0;
-
     var inventory = new Inventory(world, camera);
-
-    self.handleResize = function () {
-        viewHalfX = element.offsetWidth / 2;
-        viewHalfY = element.offsetHeight / 2;
-    };
 
     var havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
@@ -175,7 +167,7 @@ function FirstPersonControls(world, camera, element) {
         return Math.max(a, Math.min(b, n));
     }
 
-    self.update = function() {
+    self.sample = function() {
         lon += movementX * lookSpeed;
         lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);
@@ -212,6 +204,4 @@ function FirstPersonControls(world, camera, element) {
     element.addEventListener('mouseup', mouseUp, false);
     element.addEventListener('keydown', keyDown, false);
     element.addEventListener('keyup', keyUp, false);
-
-    self.handleResize();
 };
