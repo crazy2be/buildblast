@@ -23,7 +23,6 @@ function Inventory(world, camera) {
         }
     }
 
-    var selectElm = document.getElementById('selection');
     self.selectSlot = function (n) {
         var html = "";
         for (var i = 0; i < n; i++) {
@@ -33,7 +32,7 @@ function Inventory(world, camera) {
         for (var i = n+1; i < slots.length; i++) {
             html += "<li>" + slots[i] + "</li>";
         }
-        selectElm.innerHTML = html;
+        document.getElementById('selection').innerHTML = html;
         currentSlot = n;
     }
 

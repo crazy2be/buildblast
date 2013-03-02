@@ -2,6 +2,12 @@
 // on world from the console. Code should never use this!
 var WORLD;
 window.onload = function () {
+    if (!Detector.webgl) {
+        Detector.addGetWebGLMessage();
+        document.querySelector('#container').innerHTML = "";
+        return;
+    }
+
     var container = document.getElementById('container');
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();
@@ -26,7 +32,7 @@ window.onload = function () {
     container.appendChild(renderer.domElement);
 
     var stats = new Stats();
-    stats.setMode(1);
+//     stats.setMode(1);
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     container.appendChild(stats.domElement);

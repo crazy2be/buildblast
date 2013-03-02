@@ -73,12 +73,8 @@
             }
 
             #oldie {
-                background:rgb(100,0,0) !important;
-                color:#fff !important;
-                margin-top:10em !important;
-            }
-            #oldie a {
-                color:#fff
+                position: relative;
+                z-index: 2;
             }
 
             div#xHair {
@@ -122,12 +118,5 @@
         <script src="js/entities/block.js"></script>
         <script src="js/entities/entity.js"></script>
         <script src="js/main.js"></script>
-
-        <script>
-            if (!Detector.webgl) {
-                Detector.addGetWebGLMessage();
-                document.getElementById( 'container' ).innerHTML = "";
-            }
-        </script>
     </body>
 </html>
