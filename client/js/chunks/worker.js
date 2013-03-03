@@ -250,6 +250,7 @@ function processPlayerPosition(payload) {
     manager.each(function (chunk) {
         var d = dist(c.c, chunk.cc);
         var qred = Math.pow(2, Math.max(Math.floor(d) - 1, 0));
+        if (qred > CHUNK_WIDTH / 4) qred = CHUNK_WIDTH / 4;
         chunk.setQred(qred);
         chunk.priority = -d;
     });

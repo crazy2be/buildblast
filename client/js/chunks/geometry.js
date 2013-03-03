@@ -21,12 +21,9 @@ function ChunkGeometry(cc, blocks, manager, qred) {
 
     qred = qred || 1;
 
-    var setQred = qred;
     self.setQred = function (newQred) {
-        if (newQred === setQred) return;
-        if (newQred > cw / 2) qred = cw / 2;
-        else qred = newQred;
-        setQred = newQred;
+        if (newQred === qred) return;
+        qred = newQred;
         self.changed = true;
     }
 
@@ -115,12 +112,12 @@ function ChunkGeometry(cc, blocks, manager, qred) {
 
     function b(ox, oy, oz) {
         if (ox < 0) return nxc ? nxc.block(cw - 1, oy, oz) : null;
-        if (ox >= cw) return pxc ? pxc.block(0, oy, oz) : null;
-        if (oy < 0) return nyc ? nyc.block(ox, ch - 1, oz) : null;
-        if (oy >= ch) return pyc ? pyc.block(ox, 0, oz) : null;
-        if (oz < 0) return nzc ? nzc.block(ox, oy, cd - 1) : null;
-        if (oz >= cd) return pzc ? pzc.block(ox, oy, 0) : null;
-        return blocks[ox*cw*ch + oy*cw + oz];
+        else if (ox >= cw) return pxc ? pxc.block(0, oy, oz) : null;
+        else if (oy < 0) return nyc ? nyc.block(ox, ch - 1, oz) : null;
+        else if (oy >= ch) return pyc ? pyc.block(ox, 0, oz) : null;
+        else if (oz < 0) return nzc ? nzc.block(ox, oy, cd - 1) : null;
+        else if (oz >= cd) return pzc ? pzc.block(ox, oy, 0) : null;
+        else return blocks[ox*cw*ch + oy*cw + oz];
     }
 
     function doMyLoops(ox, oy, oz, w, h, d) {

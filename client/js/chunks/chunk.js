@@ -1,15 +1,16 @@
 function Chunk(blocks, geometry, scene) {
     var self = this;
-    var mesh = new THREE.Mesh(geometry,
+    var geometries = [geometry];
+    var meshes = [new THREE.Mesh(geometry,
         new THREE.MeshBasicMaterial({
             vertexColors: THREE.VertexColors
         })
-    );
-    scene.add(mesh);
+    )];
+    scene.add(meshes[0]);
 
     self.remove = function () {
-        scene.remove(mesh);
-        mesh = null;
+        scene.remove(meshes[0]);
+        delete meshes[0];
     }
 
     self.hide = function () {

@@ -16,13 +16,6 @@ window.onload = function () {
     var entityHandler = new EntityHandler(scene, conn);
     WORLD = world;
 
-    var ambientLight = new THREE.AmbientLight(0xcccccc);
-    scene.add(ambientLight);
-
-    var directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(1, 1, 0.5).normalize();
-    scene.add(directionalLight);
-
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -30,7 +23,6 @@ window.onload = function () {
     container.appendChild(renderer.domElement);
 
     var stats = new Stats();
-//     stats.setMode(1);
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '0px';
     container.appendChild(stats.domElement);
