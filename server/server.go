@@ -96,10 +96,6 @@ func (p *Player) handleOutgoing() {
 	}
 }
 
-func (p *Player) queueChunk(cc ChunkCoords) {
-	p.cm.queue(cc)
-}
-
 func (p *Player) sendShowChunk(cc ChunkCoords) {
 	p.cm.show(cc)
 }
@@ -144,11 +140,11 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	MAX_LOAD_DIST := 1
+// 	MAX_LOAD_DIST := 1
 // 	MIN_HIDE_DIST := 2
 // 	MAX_HIDE_DIST := 3
 
-	eachBetween := func (cc ChunkCoords, min, max int, cb func (newCC ChunkCoords, dist int)) {
+	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
 		occ := func (x, y, z int) ChunkCoords {
 			return ChunkCoords{
 				x: cc.x + x,
@@ -156,31 +152,37 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 				z: cc.z + z,
 			}
 		}
+		dist := func (x, y, z int) int {
+			val := 0
+			if x > 0 {
+				val += x
+			} else {
+				val -= x
+			}
+			if y > 0 {
+				val += y
+			} else {
+				val -= y
+			}
+			if z > 0 {
+				val += z
+			} else {
+				val -= z
+			}
+			return val
+		}
 		cb(cc, 0)
-		for i := min; i <= max; i++ {
-			for x := -i; x <= i; x++ {
-				for y := -i; y <= i; y++ {
-					cb(occ(x, y, i), i)
-					cb(occ(x, y, -i), i)
-				}
-			}
-			for y := -i; y <= i; y++ {
-				for z := 1 - i; z <= i - 1; z++ {
-					cb(occ(i, y, z), i)
-					cb(occ(-i, y, z), i)
-				}
-			}
-			for x := 1 - i; x <= i - 1; x++ {
-				for z := 1 - i; z <= i - 1; z++ {
-					cb(occ(x, i, z), i)
-					cb(occ(x, -i, z), i)
+		for x := -xdist; x <= xdist; x++ {
+			for y := -ydist; y <= ydist; y++ {
+				for z := -zdist; z <= zdist; z++ {
+					cb(occ(x, y, z), dist(x, y, z))
 				}
 			}
 		}
 	}
 	cc := wc.Chunk()
-	eachBetween(cc, 0, MAX_LOAD_DIST, func (newCC ChunkCoords, dist int) {
-		p.cm.display(newCC)
+	eachWithin(cc, 2, 1, 2, func (newCC ChunkCoords, dist int) {
+		p.cm.display(newCC, -dist)
 	});
 }
 

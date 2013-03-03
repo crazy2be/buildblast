@@ -103,20 +103,20 @@ func (cm *ChunkManager) displayed(cc ChunkCoords) bool {
 	return status != nil && status.shown
 }
 
-func (cm *ChunkManager) display(cc ChunkCoords) {
+func (cm *ChunkManager) display(cc ChunkCoords, priority int) {
 	cm.mutex.Lock()
 	status := cm.chunks[cc]
 	cm.mutex.Unlock()
 
 	if status == nil {
-		cm.queue(cc)
+		cm.queue(cc, priority)
 		return
 	} else if !status.shown {
 		cm.show(cc)
 	}
 }
 
-func (cm *ChunkManager) queue(cc ChunkCoords) {
+func (cm *ChunkManager) queue(cc ChunkCoords, priority int) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -130,6 +130,7 @@ func (cm *ChunkManager) queue(cc ChunkCoords) {
 	cm.chunks[cc] = status
 	status.shown = true
 	status.queued = true
+	status.priority = priority
 }
 
 func (cm *ChunkManager) show(cc ChunkCoords) {
