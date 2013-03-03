@@ -8,7 +8,8 @@ import (
 	"time"
 	"strings"
 	"net/http"
-	mrand "math/rand"
+// 	mrand "math/rand"
+// 	"math"
 	"crypto/rand"
 	"runtime/pprof"
 	"code.google.com/p/go.net/websocket"
@@ -52,11 +53,9 @@ type Player struct {
 	ws *websocket.Conn
 	in chan *Message
 	out chan *Message
-	chunkOut chan *Message
 	name string
 	inBroadcast chan *Message
-	loadedChunks map[ChunkCoords]bool
-	visibleChunks map[ChunkCoords]bool
+	cm *ChunkManager
 }
 
 func newPlayer(ws *websocket.Conn) *Player {
@@ -65,11 +64,9 @@ func newPlayer(ws *websocket.Conn) *Player {
 	p.ws = ws
 	p.in = make(chan *Message, 10)
 	p.out = make(chan *Message, 10)
-	p.chunkOut = make(chan *Message, 10)
 	p.name = "player-" + randString(10)
 	p.inBroadcast = make(chan *Message, 10)
-	p.loadedChunks = make(map[ChunkCoords]bool, 0)
-	p.visibleChunks = make(map[ChunkCoords]bool, 0)
+	p.cm = newChunkManager()
 	return p
 }
 
@@ -99,37 +96,16 @@ func (p *Player) handleOutgoing() {
 	}
 }
 
-func (p *Player) sendChunk(cc ChunkCoords) {
-	ms := newMessage("chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-	ms.Payload["size"] = map[string]interface{}{
-		"w": CHUNK_WIDTH,
-		"h": CHUNK_HEIGHT,
-		"d": CHUNK_DEPTH,
-	}
-
-	chunk := p.w.requestChunk(cc)
-	p.loadedChunks[cc] = true
-	p.visibleChunks[cc] = true
-	ms.Payload["data"] = chunk.Flatten()
-	log.Println("Buffering chunk at ", cc)
-	p.chunkOut <- ms
+func (p *Player) queueChunk(cc ChunkCoords) {
+	p.cm.queue(cc)
 }
 
 func (p *Player) sendShowChunk(cc ChunkCoords) {
-	ms := newMessage("show-chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-
-	p.visibleChunks[cc] = true;
-	p.chunkOut <- ms
+	p.cm.show(cc)
 }
 
 func (p *Player) sendHideChunk(cc ChunkCoords) {
-	ms := newMessage("hide-chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-
-	delete(p.visibleChunks, cc)
-	p.chunkOut <- ms
+	p.cm.hide(cc)
 }
 
 func (p *Player) sendPlayerPos(wc WorldCoords) {
@@ -138,14 +114,14 @@ func (p *Player) sendPlayerPos(wc WorldCoords) {
 	p.out <- ms
 }
 
-func (p *Player) sendUnloadChunk(cc ChunkCoords) {
-	ms := newMessage("unload-chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-
-	delete(p.loadedChunks, cc)
-	delete(p.visibleChunks, cc)
-	p.chunkOut <- ms
-}
+// func (p *Player) sendUnloadChunk(cc ChunkCoords) {
+// 	ms := newMessage("unload-chunk")
+// 	ms.Payload["ccpos"] = cc.toMap()
+//
+// 	delete(p.loadedChunks, cc)
+// 	delete(p.visibleChunks, cc)
+// 	p.chunkOut <- ms
+// }
 
 func (p *Player) handleBlock(ms *Message) {
 	pl := ms.Payload
@@ -169,10 +145,10 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 	p.w.broadcast <- ms
 
 	MAX_LOAD_DIST := 1
-	MIN_HIDE_DIST := 2
-	MAX_HIDE_DIST := 3
+// 	MIN_HIDE_DIST := 2
+// 	MAX_HIDE_DIST := 3
 
-	eachWithin := func (cc ChunkCoords, dist int, cb func (newCC ChunkCoords)) {
+	eachBetween := func (cc ChunkCoords, min, max int, cb func (newCC ChunkCoords, dist int)) {
 		occ := func (x, y, z int) ChunkCoords {
 			return ChunkCoords{
 				x: cc.x + x,
@@ -180,54 +156,32 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 				z: cc.z + z,
 			}
 		}
-		cb(cc)
-		for i := 1; i <= dist; i++ {
+		cb(cc, 0)
+		for i := min; i <= max; i++ {
 			for x := -i; x <= i; x++ {
 				for y := -i; y <= i; y++ {
-					cb(occ(x, y, i))
-					cb(occ(x, y, -i))
+					cb(occ(x, y, i), i)
+					cb(occ(x, y, -i), i)
 				}
 			}
 			for y := -i; y <= i; y++ {
 				for z := 1 - i; z <= i - 1; z++ {
-					cb(occ(i, y, z))
-					cb(occ(-i, y, z))
+					cb(occ(i, y, z), i)
+					cb(occ(-i, y, z), i)
 				}
 			}
 			for x := 1 - i; x <= i - 1; x++ {
 				for z := 1 - i; z <= i - 1; z++ {
-					cb(occ(x, i, z))
-					cb(occ(x, -i, z))
+					cb(occ(x, i, z), i)
+					cb(occ(x, -i, z), i)
 				}
 			}
 		}
 	}
 	cc := wc.Chunk()
-	eachWithin(cc, MAX_LOAD_DIST, func (newCC ChunkCoords) {
-		if p.loadedChunks[newCC] != true {
-			p.sendChunk(newCC)
-		} else if p.visibleChunks[newCC] != true {
-			p.sendShowChunk(newCC)
-		}
+	eachBetween(cc, 0, MAX_LOAD_DIST, func (newCC ChunkCoords, dist int) {
+		p.cm.display(newCC)
 	});
-
-	eachOutside := func (list map[ChunkCoords]bool, cc ChunkCoords, dist int, cb func (lcc ChunkCoords)) {
-		for lcc := range list {
-			if lcc.x < cc.x - dist || lcc.x > cc.x + dist ||
-				lcc.y < cc.y - dist || lcc.y > cc.y + dist ||
-				lcc.z < cc.z - dist || lcc.z > cc.z + dist {
-					cb(lcc)
-			}
-		}
-	}
-	eachOutside(p.visibleChunks, cc, MAX_HIDE_DIST, func (lcc ChunkCoords) {
-		p.sendHideChunk(lcc)
-	})
-	eachOutside(p.visibleChunks, cc, MIN_HIDE_DIST, func (lcc ChunkCoords) {
-		if (mrand.Float64() > 0.9) {
-			p.sendHideChunk(lcc)
-		}
-	})
 }
 
 func wsHandler(ws *websocket.Conn) {
@@ -278,7 +232,25 @@ func chunkHandler(ws *websocket.Conn) {
 	log.Print("Chunk handler:", name, p)
 
 	for {
-		ms := <-p.chunkOut
+		var ms *Message
+		select {
+		case ms = <-p.cm.messages:
+		case <-time.After(100*time.Millisecond):
+			cc, valid := p.cm.top()
+			if !valid {
+				continue
+			}
+			ms = newMessage("chunk")
+			ms.Payload["ccpos"] = cc.toMap()
+			ms.Payload["size"] = map[string]interface{}{
+				"w": CHUNK_WIDTH,
+				"h": CHUNK_HEIGHT,
+				"d": CHUNK_DEPTH,
+			}
+
+			chunk := p.w.requestChunk(cc)
+			ms.Payload["data"] = chunk.Flatten()
+		}
 		log.Print("Sending chunk message of kind ", ms.Kind, " at ", ms.Payload["ccpos"])
 		err := websocket.JSON.Send(ws, ms)
 		if err != nil {

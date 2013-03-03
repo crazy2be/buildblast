@@ -115,6 +115,7 @@ function processChunk(payload) {
 
     var cc = payload.ccpos;
     var data = payload.data;
+    var qred = Math.pow(2, payload.qualityReduction);
 
     var blocks = new Uint8Array(data.length);
     for (var i = 0; i < blocks.length; i++) {
@@ -126,7 +127,7 @@ function processChunk(payload) {
     var chunk = manager.get(cc);
     if (chunk) throw "Got chunk data twice! Server bug! Ignoring message...";
 
-    chunk = new ChunkGeometry(cc, blocks, manager);
+    chunk = new ChunkGeometry(cc, blocks, manager, qred);
     manager.set(cc, chunk);
     manager.refreshNeighbouring(cc);
 }

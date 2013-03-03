@@ -1,4 +1,4 @@
-function ChunkGeometry(cc, blocks, manager) {
+function ChunkGeometry(cc, blocks, manager, qred) {
     var self = this;
 
     self.blocks = blocks;
@@ -19,10 +19,7 @@ function ChunkGeometry(cc, blocks, manager) {
     // Neighbouring chunks
     var nxc, pxc, nyc, pyc, nzc, pzc;
 
-    var precision = 1;
-    self.setPrecision = function (newPrecision) {
-        precision = newPrecision;
-    }
+    qred = qred || 1;
 
     self.calculateGeometry = function () {
         var verts = [];
@@ -31,10 +28,10 @@ function ChunkGeometry(cc, blocks, manager) {
 
         updateNeighbours();
 
-        for (var ox = 0; ox < cw; ox++) {
-            for (var oy = 0; oy < ch; oy++) {
-                for (var oz = 0; oz < cd; oz++) {
-                    addBlockGeometry(verts, index, color, ox, oy, oz);
+        for (var ox = 0; ox < cw / qred; ox++) {
+            for (var oy = 0; oy < ch / qred; oy++) {
+                for (var oz = 0; oz < cd / qred; oz++) {
+                    addBlockGeometry(verts, index, color, ox * qred, oy * qred, oz * qred);
                 }
             }
         }
@@ -108,75 +105,106 @@ function ChunkGeometry(cc, blocks, manager) {
     }
 
     function b(ox, oy, oz) {
-        if (ox < 0) return nxc ? nxc.block(ox + cw, oy, oz) : null;
-        if (ox >= cw) return pxc ? pxc.block(ox - cw, oy, oz) : null;
-        if (oy < 0) return nyc ? nyc.block(ox, oy + ch, oz) : null;
-        if (oy >= ch) return pyc ? pyc.block(ox, oy - ch, oz) : null;
-        if (oz < 0) return nzc ? nzc.block(ox, oy, oz + cd) : null;
-        if (oz >= cd) return pzc ? pzc.block(ox, oy, oz - cd) : null;
+        if (ox < 0) return nxc ? nxc.block(cw - 1, oy, oz) : null;
+        if (ox >= cw) return pxc ? pxc.block(0, oy, oz) : null;
+        if (oy < 0) return nyc ? nyc.block(ox, ch - 1, oz) : null;
+        if (oy >= ch) return pyc ? pyc.block(ox, 0, oz) : null;
+        if (oz < 0) return nzc ? nzc.block(ox, oy, cd - 1) : null;
+        if (oz >= cd) return pzc ? pzc.block(ox, oy, 0) : null;
         return blocks[ox*cw*ch + oy*cw + oz];
     }
 
+    function doMyLoops(ox, oy, oz, w, h, d) {
+        for (var x = 0; x < w; x++) {
+            for (var y = 0; y < h; y++) {
+                for (var z = 0; z < d; z++) {
+                    if (t(b(ox + x, oy + y, oz + z))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     function tb(ox, oy, oz) {
-        var bl = b(ox, oy, oz);
-        if (bl) return t(bl);
-        else return false;
+        var r = qred;
+        if (r === 1) {
+            return t(b(ox, oy, oz));
+        } else {
+            if (ox < 0 || ox >= cw) {
+                return doMyLoops(ox, oy, oz, 1, r, r);
+            } else if (oy < 0 || oy >= ch) {
+                return doMyLoops(ox, oy, oz, r, 1, r);
+            } else if (oz < 0 || oz >= cd) {
+                return doMyLoops(ox, oy, oz, r, r, 1);
+            } else {
+                for (var x = 0; x < r; x++) {
+                    for (var y = 0; y < r; y++) {
+                        for (var z = 0; z < r; z++) {
+                            if (!t(b(ox + x, oy + y, oz + z))) return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
     }
 
     var noise = [];
     function addBlockGeometry(verts, index, color, ox, oy, oz) {
         if (tb(ox, oy, oz)) return;
+        var r = qred;
 
-        var px = tb(ox + 1, oy, oz);
-        var nx = tb(ox - 1, oy, oz);
-        var py = tb(ox, oy + 1, oz);
-        var ny = tb(ox, oy - 1, oz);
-        var pz = tb(ox, oy, oz + 1);
-        var nz = tb(ox, oy, oz - 1);
+        var px = tb(ox + r, oy, oz);
+        var nx = tb(ox - r, oy, oz);
+        var py = tb(ox, oy + r, oz);
+        var ny = tb(ox, oy - r, oz);
+        var pz = tb(ox, oy, oz + r);
+        var nz = tb(ox, oy, oz - r);
 
         var wx = ox + cx*cw;
         var wy = oy + cy*ch;
         var wz = oz + cz*cd;
 
         if (px) {
-            v(wx + 1, wy    , wz    );
-            v(wx + 1, wy + 1, wz    );
-            v(wx + 1, wy + 1, wz + 1);
-            v(wx + 1, wy    , wz + 1);
+            v(wx + r, wy    , wz    );
+            v(wx + r, wy + r, wz    );
+            v(wx + r, wy + r, wz + r);
+            v(wx + r, wy    , wz + r);
             f(0);
         }
         if (nx) {
-            v(wx, wy    , wz + 1);
-            v(wx, wy + 1, wz + 1);
-            v(wx, wy + 1, wz    );
+            v(wx, wy    , wz + r);
+            v(wx, wy + r, wz + r);
+            v(wx, wy + r, wz    );
             v(wx, wy    , wz    );
             f(1);
         }
         if (py) {
-            v(wx    , wy + 1, wz + 1);
-            v(wx + 1, wy + 1, wz + 1);
-            v(wx + 1, wy + 1, wz    );
-            v(wx    , wy + 1, wz    );
+            v(wx    , wy + r, wz + r);
+            v(wx + r, wy + r, wz + r);
+            v(wx + r, wy + r, wz    );
+            v(wx    , wy + r, wz    );
             f(2);
         }
         if (ny) {
             v(wx    , wy, wz    );
-            v(wx + 1, wy, wz    );
-            v(wx + 1, wy, wz + 1);
-            v(wx    , wy, wz + 1);
+            v(wx + r, wy, wz    );
+            v(wx + r, wy, wz + r);
+            v(wx    , wy, wz + r);
             f(3);
         }
         if (pz) {
-            v(wx    , wy    , wz + 1);
-            v(wx + 1, wy    , wz + 1);
-            v(wx + 1, wy + 1, wz + 1);
-            v(wx    , wy + 1, wz + 1);
+            v(wx    , wy    , wz + r);
+            v(wx + r, wy    , wz + r);
+            v(wx + r, wy + r, wz + r);
+            v(wx    , wy + r, wz + r);
             f(4);
         }
         if (nz) {
-            v(wx    , wy + 1, wz);
-            v(wx + 1, wy + 1, wz);
-            v(wx + 1, wy    , wz);
+            v(wx    , wy + r, wz);
+            v(wx + r, wy + r, wz);
+            v(wx + r, wy    , wz);
             v(wx    , wy    , wz);
             f(5);
         }
