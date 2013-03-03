@@ -7,6 +7,9 @@ function mod(a, b) {
 }
 
 function worldToChunk(wx, wy, wz) {
+    if (wz === undefined) {
+        throw "worldToChunk expects three paremeters!";
+    }
     return {
         c: {
             x: Math.floor(wx / CHUNK_WIDTH),

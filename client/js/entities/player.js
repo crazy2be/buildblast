@@ -1,4 +1,4 @@
-var Player = function (world, container, conn) {
+var Player = function (world, conn, container) {
     var self = this;
 
     var height = 1.6;
@@ -9,14 +9,14 @@ var Player = function (world, container, conn) {
 
     var controls = new FirstPersonControls(world, camera, container);
 
-    self.getHeight = function () {
-        return height;
-    };
-
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
     };
+
+    self.pos = function () {
+        return camera.position;
+    }
 
     conn.on('player-position', function (payload) {
         var p = payload.pos;

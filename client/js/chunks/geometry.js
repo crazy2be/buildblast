@@ -21,6 +21,15 @@ function ChunkGeometry(cc, blocks, manager, qred) {
 
     qred = qred || 1;
 
+    var setQred = qred;
+    self.setQred = function (newQred) {
+        if (newQred === setQred) return;
+        if (newQred > cw / 2) qred = cw / 2;
+        else qred = newQred;
+        setQred = newQred;
+        self.changed = true;
+    }
+
     self.calculateGeometry = function () {
         var verts = [];
         var index = [];

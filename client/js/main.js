@@ -12,11 +12,9 @@ window.onload = function () {
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();
     var conn = new Conn();
-    var world = new World(scene, conn);
+    var world = new World(scene, conn, container);
     var entityHandler = new EntityHandler(scene, conn);
     WORLD = world;
-
-    var player = new Player(world, container, conn);
 
     var ambientLight = new THREE.AmbientLight(0xcccccc);
     scene.add(ambientLight);
@@ -42,7 +40,7 @@ window.onload = function () {
     animate();
 
     function onWindowResize() {
-        player.resize();
+        world.resize();
         renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
@@ -50,8 +48,8 @@ window.onload = function () {
         requestAnimationFrame(animate);
 
         var dt = clock.getDelta();
-        player.update(dt);
-        player.render(renderer, scene);
+        world.update(dt);
+        world.render(renderer, scene);
         stats.update();
     }
 };

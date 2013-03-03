@@ -1,6 +1,7 @@
-function World(scene, conn) {
+function World(scene, conn, container) {
     var self = this;
-    var chunkManager = new ChunkManager(scene, conn);
+    var player = new Player(self, conn, container);
+    var chunkManager = new ChunkManager(scene, conn, player);
 
     conn.on('block', processBlock);
 
@@ -11,6 +12,14 @@ function World(scene, conn) {
         var type = payload.type;
         applyBlockChange(wx, wy, wz, type);
     }
+
+    self.update = function (dt) {
+        player.update(dt);
+        chunkManager.update(dt);
+    }
+
+    self.render = player.render;
+    self.resize = player.resize;
 
     self.addSmallCube = function (position) {
         if (!position) throw "Position required!";

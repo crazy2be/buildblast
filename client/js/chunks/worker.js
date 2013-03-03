@@ -41,6 +41,8 @@ parent.onmessage = function (e) {
         initConn(e.data.payload);
     } else if (e.data.kind === 'block-change') {
         processBlockChange(e.data.payload);
+    } else if (e.data.kind === 'player-position') {
+        processPlayerPosition(e.data.payload);
     } else {
         throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
     }
@@ -79,6 +81,12 @@ function ChunkManager() {
             }
         }
         return chunkList[key];
+    }
+
+    self.each = function (cb) {
+        for (var k in chunkList) {
+            cb(chunkList[k])
+        }
     }
 
     self.chunkAt = function (cx, cy, cz) {
@@ -230,4 +238,19 @@ function processBlockChange(payload) {
             return arr.indexOf(val) === i;
         });
     }
+}
+
+function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
+}
+
+function processPlayerPosition(payload) {
+    var p = payload.pos;
+    var c = worldToChunk(p.x, p.y, p.z);
+    manager.each(function (chunk) {
+        var d = dist(c.c, chunk.cc);
+        var qred = Math.pow(2, Math.max(Math.floor(d) - 1, 0));
+        chunk.setQred(qred);
+        chunk.priority = -d;
+    });
 }

@@ -1,4 +1,4 @@
-function ChunkManager(scene, conn) {
+function ChunkManager(scene, conn, player) {
     var self = this;
 
     conn.on('player-id', startChunkConn);
@@ -8,6 +8,22 @@ function ChunkManager(scene, conn) {
 
     self.chunk = function (cc) {
         return chunks[ccStr(cc)];
+    }
+
+    var accumulatedTime = 0;
+    self.update = function (dt) {
+        accumulatedTime += dt;
+        if (accumulatedTime > 1) {
+            accumulatedTime -= 1;
+            var p = player.pos();
+            geometryWorker.postMessage({
+                'kind': 'player-position',
+                'payload': {
+                    'pos': {x: p.x, y: p.y, z: p.z},
+                },
+            })
+        }
+
     }
 
     self.queueBlockChange = function (wx, wy, wz, newType) {
