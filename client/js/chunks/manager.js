@@ -44,6 +44,8 @@ function ChunkManager(scene, conn, player) {
             processShowChunk(payload);
         } else if (e.data.kind === 'hide-chunk') {
             processHideChunk(payload);
+        } else if (e.data.kind === 'chunk-qred-change') {
+            processQredChange(payload);
         }
     }
 
@@ -58,16 +60,22 @@ function ChunkManager(scene, conn, player) {
     }
 
     function processChunk(payload) {
-        var geometry = new THREE.BufferGeometry();
-        geometry.attributes = payload.attributes;
-        geometry.offsets = payload.offsets;
+        var pg = payload.geometries;
+        var geometries = [];
+        for (var i = 0; i < pg.length; i++) {
+            var geometry = new THREE.BufferGeometry();
+            geometry.attributes = pg[i].attributes;
+            geometry.offsets = pg[i].offsets;
+            geometries.push(geometry);
+        }
 
         var cc = payload.ccpos;
 
         var chunk = self.chunk(cc);
         if (chunk) chunk.remove();
 
-        chunk = new Chunk(payload.blocks, geometry, scene);
+        chunk = new Chunk(payload.blocks, geometries, scene, payload.qred);
+        chunk.add();
         chunks[ccStr(cc)] = chunk;
 
         console.log("Added chunk at ", cc);
@@ -91,5 +99,15 @@ function ChunkManager(scene, conn, player) {
         }
 
         chunk.hide();
+    }
+
+    function processQredChange(payload) {
+        var chunk = self.chunk(payload.ccpos);
+        if (!chunk) {
+            console.warn("Got qred change command for chunk that is not loaded. Likely server bug.");
+            return;
+        }
+
+        chunk.setQred(payload.qred);
     }
 }

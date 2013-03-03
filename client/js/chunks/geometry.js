@@ -7,6 +7,7 @@ function ChunkGeometry(cc, blocks, manager, qred) {
     self.shown = true;
     self.changed = true;
     self.loaded = false;
+    self.qred = -1;
 
     var cw = CHUNK_WIDTH;
     var cd = CHUNK_DEPTH;
@@ -21,10 +22,22 @@ function ChunkGeometry(cc, blocks, manager, qred) {
 
     qred = qred || 1;
 
-    self.setQred = function (newQred) {
-        if (newQred === qred) return;
-        qred = newQred;
-        self.changed = true;
+    self.calculateGeometries = function () {
+        var geometries = [];
+        var transferables = [];
+        [1, 2, 4, 8].forEach(function (i) {
+            qred = i;
+            var res = self.calculateGeometry();
+            geometries.push({
+                attributes: res.attributes,
+                offsets: res.offsets,
+            });
+            transferables.concat(res.transferables);
+        });
+        return {
+            geometries: geometries,
+            transferables: transferables,
+        };
     }
 
     self.calculateGeometry = function () {

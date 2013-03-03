@@ -1,24 +1,40 @@
-function Chunk(blocks, geometry, scene) {
+function Chunk(blocks, geometries, scene, qred) {
     var self = this;
-    var geometries = [geometry];
-    var meshes = [new THREE.Mesh(geometry,
-        new THREE.MeshBasicMaterial({
-            vertexColors: THREE.VertexColors
-        })
-    )];
-    scene.add(meshes[0]);
+    var meshes = [];
+    for (var i = 0; i < geometries.length; i++) {
+        var mesh = new THREE.Mesh(geometries[i],
+            new THREE.MeshBasicMaterial({
+                vertexColors: THREE.VertexColors
+            })
+        );
+        meshes.push(mesh);
+    }
 
     self.remove = function () {
-        scene.remove(meshes[0]);
-        delete meshes[0];
+        if (qred === -1) return;
+        scene.remove(meshes[qred]);
+    }
+
+    self.add = function () {
+        if (qred === -1) return;
+        scene.add(meshes[qred]);
     }
 
     self.hide = function () {
-        mesh.visible = false;
+        for (var i = 0; i < meshes.length; i++) {
+            meshes[i].visible = false;
+        }
     }
 
     self.show = function () {
-        mesh.visible = true;
+        meshes[qred].visible = true;
+    }
+
+    self.setQred = function (newQred) {
+        if (newQred === -1) debugger;
+        self.remove();
+        qred = newQred;
+        self.add();
     }
 
     self.block = function (oc) {

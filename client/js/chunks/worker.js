@@ -13,21 +13,21 @@ importScripts(
 function sendChunk() {
     var chunk = manager.top();
     if (!chunk) return;
-    var res = chunk.calculateGeometry();
-    if (res.offsets.count === 0) {
-        // Don't bother sending an invisible
-        // chunk.
-        chunk.loaded = true;
-        chunk.changed = false;
-        return;
-    }
+    var res = chunk.calculateGeometries();
+//     if (res.offsets.count === 0) {
+//         // Don't bother sending an invisible
+//         // chunk.
+//         chunk.loaded = true;
+//         chunk.changed = false;
+//         return;
+//     }
     parent.postMessage({
         kind: 'chunk',
         payload: {
-            blocks: res.blocks,
-            attributes: res.attributes,
-            offsets: res.offsets,
+            blocks: chunk.blocks,
             ccpos: chunk.cc,
+            geometries: res.geometries,
+            qred: chunk.qred,
         }
     }, res.transferables);
     chunk.loaded = true;
@@ -249,9 +249,17 @@ function processPlayerPosition(payload) {
     var c = worldToChunk(p.x, p.y, p.z);
     manager.each(function (chunk) {
         var d = dist(c.c, chunk.cc);
-        var qred = Math.pow(2, Math.max(Math.floor(d) - 1, 0));
-        if (qred > CHUNK_WIDTH / 4) qred = CHUNK_WIDTH / 4;
-        chunk.setQred(qred);
-        chunk.priority = -d;
+        var qred = Math.max(Math.floor(d) - 1, 0);
+        if (qred > 3) qred = 3;
+        if (chunk.qred !== qred && chunk.loaded) {
+            chunk.qred = qred;
+            parent.postMessage({
+                'kind': 'chunk-qred-change',
+                'payload': {
+                    'ccpos': chunk.cc,
+                    'qred': qred,
+                },
+            });
+        }
     });
 }
