@@ -1,12 +1,12 @@
+var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
+    vertexColors: THREE.VertexColors
+});
+
 function Chunk(blocks, geometries, scene, qred) {
     var self = this;
     var meshes = [];
     for (var i = 0; i < geometries.length; i++) {
-        var mesh = new THREE.Mesh(geometries[i],
-            new THREE.MeshBasicMaterial({
-                vertexColors: THREE.VertexColors
-            })
-        );
+        var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
         meshes.push(mesh);
     }
 

@@ -249,8 +249,9 @@ function processPlayerPosition(payload) {
     var c = worldToChunk(p.x, p.y, p.z);
     manager.each(function (chunk) {
         var d = dist(c.c, chunk.cc);
-        var qred = Math.max(Math.floor(d) - 1, 0);
-        if (qred > 3) qred = 3;
+        var qred = Math.max(Math.floor(d/2) - 1, 0);
+        if (qred > 2) qred = 2;
+//         qred = 0;
         if (chunk.qred !== qred && chunk.loaded) {
             chunk.qred = qred;
             parent.postMessage({

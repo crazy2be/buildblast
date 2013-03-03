@@ -152,7 +152,7 @@ func generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
 			mult := 0.1 * math.Pow(1.1,
 				math.Max(math.Abs(float64(x + xs)) - 32, 0) +
 				math.Max(math.Abs(float64(z + zs)) - 128, 0))
-			intHMap[x][z] = int(hmap[x][z] * mult)
+			intHMap[x][z] = int(hmap[x][z] * mult) + CHUNK_HEIGHT / 2
 		}
 	}
 

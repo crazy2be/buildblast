@@ -181,7 +181,7 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 		}
 	}
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 1, 2, func (newCC ChunkCoords, dist int) {
+	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
 		p.cm.display(newCC, -dist)
 	});
 }

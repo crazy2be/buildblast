@@ -6,6 +6,7 @@ var Player = function (world, conn, container) {
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
     camera.position.z = 100;
+    camera.position.y = CHUNK_HEIGHT / 2;
 
     var controls = new FirstPersonControls(world, camera, container);
 
