@@ -25,7 +25,6 @@ function World(scene, conn, container) {
         if (!position) throw "Position required!";
         var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
         cube.position = position;
-        console.log(position);
         scene.add(cube);
     }
 
@@ -96,17 +95,18 @@ function World(scene, conn, container) {
         var look = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(look, camera);
+
         look.sub(camera.position).setLength(precision);
 
-        var pos = camera.position.clone();
+        var point = camera.position.clone();
         var dist = 0;
         while (dist < maxDist) {
-            pos.add(look);
-            dist = camera.position.distanceTo(pos);
-            var block = self.blockAt(pos.x, pos.y, pos.z);
+            point.add(look);
+            dist = camera.position.distanceTo(point);
+            var block = self.blockAt(point.x, point.y, point.z);
             if (block && block.mineable()) {
                 return {
-                    pos: pos,
+                    point: point,
                     dist: dist,
                     block: block,
                 }
@@ -117,7 +117,7 @@ function World(scene, conn, container) {
     function doLookedAtBlockAction(camera, cmp, cb) {
         var intersect = self.findTargetIntersection(camera);
         if (!intersect) return;
-        var p = intersect.pos;
+        var p = intersect.point;
 
         function onFace(n) {
             if (abs(n % 1) < 0.01 || abs(n % 1 - 1) < 0.01 || abs(n % 1 + 1) < 0.01) return true;

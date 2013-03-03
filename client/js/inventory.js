@@ -12,8 +12,8 @@ function Inventory(world, camera) {
         var selectedItem = slots[currentSlot];
 
         if (selectedItem == 'gun') {
-            var point = world.findTargetIntersection(camera).p;
-            if (point) world.addSmallCube(point);
+            var intersect = world.findTargetIntersection(camera);
+            if (intersect) world.addSmallCube(intersect.point);
         } else if (selectedItem == 'shovel') {
             world.removeLookedAtBlock(camera);
         } else if (selectedItem == 'block') {
