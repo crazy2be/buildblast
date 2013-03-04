@@ -159,6 +159,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz    );
             v(wx + r, wy + r, wz + r);
             v(wx + r, wy    , wz + r);
+            v(wx + r, wy + r/2, wz + r/2);
             f(0);
         }
         if (nx) {
@@ -166,6 +167,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx, wy + r, wz + r);
             v(wx, wy + r, wz    );
             v(wx, wy    , wz    );
+            v(wx, wy + r/2, wz + r/2);
             f(1);
         }
         if (py) {
@@ -173,6 +175,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz + r);
             v(wx + r, wy + r, wz    );
             v(wx    , wy + r, wz    );
+            v(wx + r/2, wy + r, wz + r/2);
             f(2);
         }
         if (ny) {
@@ -180,6 +183,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy, wz    );
             v(wx + r, wy, wz + r);
             v(wx    , wy, wz + r);
+            v(wx + r/2, wy, wz + r/2);
             f(3);
         }
         if (pz) {
@@ -187,6 +191,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy    , wz + r);
             v(wx + r, wy + r, wz + r);
             v(wx    , wy + r, wz + r);
+            v(wx + r/2, wy + r/2, wz + r);
             f(4);
         }
         if (nz) {
@@ -194,19 +199,13 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz);
             v(wx + r, wy    , wz);
             v(wx    , wy    , wz);
+            v(wx + r/2, wy + r/2, wz);
             f(5);
         }
         return;
 
-        function noiseFunc(x, y, z, q) {
-            var val = 0;
-            if (q === undefined) q = 2;
-            if (q > 32) return 0;
-            val += noiseFunc(x * q, y * q, z * q, q * 4) / q;
-            x += x < 0 ? -0.1 : 0.1;
-            y += y < 0 ? -0.1 : 0.1;
-            z += z < 0 ? -0.1 : 0.1;
-            val += perlinNoise(x, y, z);
+        function noiseFunc(x, y, z) {
+            var val = perlinNoise(Math.abs(x)/8, y/8, Math.abs(z)/8);
             return Math.abs(val) * 2 + 0.2;
         }
 
@@ -218,8 +217,10 @@ function ChunkGeometry(cc, blocks, manager) {
         function f(mat, normal) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
-            index.push(l-4, l-3, l-2);
-            index.push(l-4, l-2, l-1);
+            index.push(l-5, l-4, l-1);
+            index.push(l-4, l-3, l-1);
+            index.push(l-3, l-2, l-1);
+            index.push(l-2, l-5, l-1);
 
             // Dirt color from http://www.colourlovers.com/color/784800/dirt
             var c = [120/255, 72/255, 0];
@@ -228,6 +229,8 @@ function ChunkGeometry(cc, blocks, manager) {
             }
 
             var r = noise.shift();
+            color.push(c[0]*r, c[1]*r, c[2]*r);
+            r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
             r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
