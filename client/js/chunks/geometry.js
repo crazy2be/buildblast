@@ -203,10 +203,21 @@ function ChunkGeometry(cc, blocks, manager) {
             f(5);
         }
         return;
-
+        function mod(a, b) {
+            return ((a % b) + b) % b;
+        }
+        function inCenter(x, y, z) {
+            return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
+                Math.abs(mod(y, 1) - 0.5) < 0.001 ||
+                Math.abs(mod(z, 1) - 0.5) < 0.001;
+        }
         function noiseFunc(x, y, z) {
+            var add = 0.1;
             var val = perlinNoise(Math.abs(x)/8, y/8, Math.abs(z)/8);
-            return Math.abs(val) * 2 + 0.2;
+            if (inCenter(x, y, z)) {
+                add = 0.2;
+            }
+            return Math.abs(val) * 2 + add;
         }
 
         function v(x, y, z) {
