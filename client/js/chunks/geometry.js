@@ -1,4 +1,4 @@
-function ChunkGeometry(cc, blocks, manager, qred) {
+function ChunkGeometry(cc, blocks, manager) {
     var self = this;
 
     self.blocks = blocks;
@@ -7,7 +7,7 @@ function ChunkGeometry(cc, blocks, manager, qred) {
     self.shown = true;
     self.changed = true;
     self.loaded = false;
-    self.qred = 0;
+    self.quality = 1;
 
     var cw = CHUNK_WIDTH;
     var cd = CHUNK_DEPTH;
@@ -20,14 +20,11 @@ function ChunkGeometry(cc, blocks, manager, qred) {
     // Neighbouring chunks
     var nxc, pxc, nyc, pyc, nzc, pzc;
 
-    qred = qred || 1;
-
     self.calculateGeometries = function () {
         var geometries = [];
         var transferables = [];
-        [1, 2, 4].forEach(function (i) {
-            qred = i;
-            var res = self.calculateGeometry();
+        CHUNK_QUALITIES.forEach(function (quality) {
+            var res = calculateGeometry(quality);
             geometries.push({
                 attributes: res.attributes,
                 offsets: res.offsets,
@@ -40,17 +37,32 @@ function ChunkGeometry(cc, blocks, manager, qred) {
         };
     }
 
-    self.calculateGeometry = function () {
+    self.block = function block(ox, oy, oz) {
+        if (validChunkOffset(ox, oy, oz)) {
+            return blocks[ox*cw*ch + oy*cw + oz];
+        }
+        return null;
+    };
+
+    self.setBlock = function setBlock (ox, oy, oz, type) {
+        if (validChunkOffset(ox, oy, oz)) {
+            blocks[ox*cw*ch + oy*cw + oz] = type;
+        } else {
+            throw "Invalid offset coords!";
+        }
+    };
+
+    function calculateGeometry(quality) {
         var verts = [];
         var index = [];
         var color = [];
 
         updateNeighbours();
 
-        for (var ox = 0; ox < cw / qred; ox++) {
-            for (var oy = 0; oy < ch / qred; oy++) {
-                for (var oz = 0; oz < cd / qred; oz++) {
-                    addBlockGeometry(verts, index, color, ox * qred, oy * qred, oz * qred);
+        for (var ox = 0; ox < cw * quality; ox++) {
+            for (var oy = 0; oy < ch * quality; oy++) {
+                for (var oz = 0; oz < cd * quality; oz++) {
+                    addBlockGeometry(verts, index, color, ox / quality, oy / quality, oz / quality, quality);
                 }
             }
         }
@@ -103,83 +115,40 @@ function ChunkGeometry(cc, blocks, manager, qred) {
         };
     }
 
-    self.block = function block(ox, oy, oz) {
-        if (validChunkOffset(ox, oy, oz)) {
-            return blocks[ox*cw*ch + oy*cw + oz];
-        }
-        return null;
-    };
-
-    self.setBlock = function setBlock (ox, oy, oz, type) {
-        if (validChunkOffset(ox, oy, oz)) {
-            blocks[ox*cw*ch + oy*cw + oz] = type;
-        } else {
-            throw "Invalid offset coords!";
-        }
-    };
-
     function t(bl) {
         // Transparent
         return bl === 0x1;
     }
 
     function b(ox, oy, oz) {
-        if (ox < 0) return nxc ? nxc.block(cw - 1, oy, oz) : null;
-        else if (ox >= cw) return pxc ? pxc.block(0, oy, oz) : null;
-        else if (oy < 0) return nyc ? nyc.block(ox, ch - 1, oz) : null;
-        else if (oy >= ch) return pyc ? pyc.block(ox, 0, oz) : null;
-        else if (oz < 0) return nzc ? nzc.block(ox, oy, cd - 1) : null;
-        else if (oz >= cd) return pzc ? pzc.block(ox, oy, 0) : null;
-        else return blocks[ox*cw*ch + oy*cw + oz];
-    }
-
-    function doMyLoops(ox, oy, oz, w, h, d) {
-        for (var x = 0; x < w; x++) {
-            for (var y = 0; y < h; y++) {
-                for (var z = 0; z < d; z++) {
-                    if (t(b(ox + x, oy + y, oz + z))) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-    function tb(ox, oy, oz) {
-        var r = qred;
-        if (r === 1) {
-            return t(b(ox, oy, oz));
+        if (ox < 0) {
+            return nxc ? nxc.block(cw - 1, oy, oz) : null;
+        } else if (ox >= cw) {
+            return pxc ? pxc.block(0, oy, oz) : null;
+        } else if (oy < 0) {
+            return nyc ? nyc.block(ox, ch - 1, oz) : null;
+        } else if (oy >= ch) {
+            return pyc ? pyc.block(ox, 0, oz) : null;
+        } else if (oz < 0) {
+            return nzc ? nzc.block(ox, oy, cd - 1) : null;
+        } else if (oz >= cd) {
+            return pzc ? pzc.block(ox, oy, 0) : null;
         } else {
-            if (ox < 0 || ox >= cw) {
-                return doMyLoops(ox, oy, oz, 1, r, r);
-            } else if (oy < 0 || oy >= ch) {
-                return doMyLoops(ox, oy, oz, r, 1, r);
-            } else if (oz < 0 || oz >= cd) {
-                return doMyLoops(ox, oy, oz, r, r, 1);
-            } else {
-                for (var x = 0; x < r; x++) {
-                    for (var y = 0; y < r; y++) {
-                        for (var z = 0; z < r; z++) {
-                            if (!t(b(ox + x, oy + y, oz + z))) return false;
-                        }
-                    }
-                }
-                return true;
-            }
+            return blocks[ox*cw*ch + oy*cw + oz];
         }
     }
 
-    var noise = [];
-    function addBlockGeometry(verts, index, color, ox, oy, oz) {
-        if (tb(ox, oy, oz)) return;
-        var r = qred;
+    function addBlockGeometry(verts, index, color, ox, oy, oz, quality) {
+        var r = 1 / quality;
+        var noise = [];
+        if (transparent(ox, oy, oz)) return;
 
-        var px = tb(ox + r, oy, oz);
-        var nx = tb(ox - r, oy, oz);
-        var py = tb(ox, oy + r, oz);
-        var ny = tb(ox, oy - r, oz);
-        var pz = tb(ox, oy, oz + r);
-        var nz = tb(ox, oy, oz - r);
+        var px = transparent(ox + r, oy, oz);
+        var nx = transparent(ox - r, oy, oz);
+        var py = transparent(ox, oy + r, oz);
+        var ny = transparent(ox, oy - r, oz);
+        var pz = transparent(ox, oy, oz + r);
+        var nz = transparent(ox, oy, oz - r);
 
         var wx = ox + cx*cw;
         var wy = oy + cy*ch;
@@ -240,10 +209,12 @@ function ChunkGeometry(cc, blocks, manager, qred) {
             val += perlinNoise(x, y, z);
             return Math.abs(val) * 2 + 0.2;
         }
+
         function v(x, y, z) {
             verts.push(x, y, z);
             noise.push(noiseFunc(x, y, z));
         }
+
         function f(mat, normal) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
@@ -264,6 +235,48 @@ function ChunkGeometry(cc, blocks, manager, qred) {
             color.push(c[0]*r, c[1]*r, c[2]*r);
             r = noise.shift();
             color.push(c[0]*r, c[1]*r, c[2]*r);
+        }
+
+        function anyTransparent(ox, oy, oz, w, h, d) {
+            for (var x = 0; x < w; x++) {
+                for (var y = 0; y < h; y++) {
+                    for (var z = 0; z < d; z++) {
+                        if (t(b(ox + x, oy + y, oz + z))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function allTransparent(ox, oy, oz, w, h, d) {
+            for (var x = 0; x < r; x++) {
+                for (var y = 0; y < r; y++) {
+                    for (var z = 0; z < r; z++) {
+                        if (!t(b(ox + x, oy + y, oz + z))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function transparent(ox, oy, oz) {
+            if (r === 1) {
+                return t(b(ox, oy, oz));
+            }
+
+            if (ox < 0 || ox >= cw) {
+                return anyTransparent(ox, oy, oz, 1, r, r);
+            } else if (oy < 0 || oy >= ch) {
+                return anyTransparent(ox, oy, oz, r, 1, r);
+            } else if (oz < 0 || oz >= cd) {
+                return anyTransparent(ox, oy, oz, r, r, 1);
+            } else {
+                return allTransparent(ox, oy, oz, r, r, r);
+            }
         }
     }
 

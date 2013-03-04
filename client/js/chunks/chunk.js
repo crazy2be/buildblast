@@ -2,38 +2,26 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
     vertexColors: THREE.VertexColors
 });
 
-function Chunk(blocks, geometries, scene, qred) {
+function Chunk(blocks, geometries, scene, quality) {
     var self = this;
-    var meshes = [];
-    for (var i = 0; i < geometries.length; i++) {
+    var cq = CHUNK_QUALITIES;
+    var meshes = {};
+    for (var i = 0; i < CHUNK_QUALITIES.length; i++) {
         var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-        meshes.push(mesh);
+        meshes[cq[i]] = mesh;
     }
 
     self.remove = function () {
-        if (qred === -1) return;
-        scene.remove(meshes[qred]);
+        scene.remove(meshes[quality]);
     }
 
     self.add = function () {
-        if (qred === -1) return;
-        scene.add(meshes[qred]);
+        scene.add(meshes[quality]);
     }
 
-    self.hide = function () {
-        for (var i = 0; i < meshes.length; i++) {
-            meshes[i].visible = false;
-        }
-    }
-
-    self.show = function () {
-        meshes[qred].visible = true;
-    }
-
-    self.setQred = function (newQred) {
-        if (newQred === -1) debugger;
+    self.setQuality = function (newQuality) {
         self.remove();
-        qred = newQred;
+        quality = newQuality;
         self.add();
     }
 

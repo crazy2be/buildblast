@@ -114,12 +114,14 @@ var Player = function (world, conn, container) {
         }
 
         var info = document.getElementById('info');
-        info.innerHTML = JSON.stringify({
-            x: round(p.x, 2),
-            y: round(p.y, 2),
-            z: round(p.z, 2),
-            g: onGround,
-        });
+        if (info) {
+            info.innerHTML = JSON.stringify({
+                x: round(p.x, 2),
+                y: round(p.y, 2),
+                z: round(p.z, 2),
+                g: onGround,
+            });
+        }
 
         return move;
     }

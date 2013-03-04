@@ -96,28 +96,11 @@ func (p *Player) handleOutgoing() {
 	}
 }
 
-func (p *Player) sendShowChunk(cc ChunkCoords) {
-	p.cm.show(cc)
-}
-
-func (p *Player) sendHideChunk(cc ChunkCoords) {
-	p.cm.hide(cc)
-}
-
 func (p *Player) sendPlayerPos(wc WorldCoords) {
 	ms := newMessage("player-position")
 	ms.Payload["pos"] = wc.toMap()
 	p.out <- ms
 }
-
-// func (p *Player) sendUnloadChunk(cc ChunkCoords) {
-// 	ms := newMessage("unload-chunk")
-// 	ms.Payload["ccpos"] = cc.toMap()
-//
-// 	delete(p.loadedChunks, cc)
-// 	delete(p.visibleChunks, cc)
-// 	p.chunkOut <- ms
-// }
 
 func (p *Player) handleBlock(ms *Message) {
 	pl := ms.Payload
@@ -139,10 +122,6 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 	pl["id"] = p.name
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
-
-// 	MAX_LOAD_DIST := 1
-// 	MIN_HIDE_DIST := 2
-// 	MAX_HIDE_DIST := 3
 
 	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
 		occ := func (x, y, z int) ChunkCoords {
@@ -189,11 +168,13 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 func wsHandler(ws *websocket.Conn) {
 	config := ws.Config()
 	fmt.Println(config, config.Location, config.Origin)
+
 	p := newPlayer(ws)
 	globalWorld.register <- p
 	defer func () {
 		globalWorld.unregister <- p
 	}()
+
 	go p.handleIncoming()
 	go p.handleOutgoing()
 

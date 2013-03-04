@@ -32,7 +32,8 @@ function Inventory(world, camera) {
         for (var i = n+1; i < slots.length; i++) {
             html += "<li>" + slots[i] + "</li>";
         }
-        document.getElementById('selection').innerHTML = html;
+        var selection = document.getElementById('selection');
+        if (selection) selection.innerHTML = html;
         currentSlot = n;
     }
 
