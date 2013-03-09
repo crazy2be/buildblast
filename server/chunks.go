@@ -77,7 +77,6 @@ func generateChunk(cx, cy, cz int, seed float64) Chunk {
 }
 
 type ChunkStatus struct {
-	shown bool
 	queued bool
 	priority int
 }
@@ -95,25 +94,16 @@ func newChunkManager() *ChunkManager {
 	return cm
 }
 
-func (cm *ChunkManager) displayed(cc ChunkCoords) bool {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	status := cm.chunks[cc]
-	return status != nil && status.shown
-}
-
 func (cm *ChunkManager) display(cc ChunkCoords, priority int) {
 	cm.mutex.Lock()
 	status := cm.chunks[cc]
 	cm.mutex.Unlock()
 
-	if status == nil {
-		cm.queue(cc, priority)
+	if status != nil {
 		return
-	} else if !status.shown {
-		cm.show(cc)
 	}
+
+	cm.queue(cc, priority)
 }
 
 func (cm *ChunkManager) queue(cc ChunkCoords, priority int) {
@@ -128,53 +118,8 @@ func (cm *ChunkManager) queue(cc ChunkCoords, priority int) {
 
 	status = new(ChunkStatus)
 	cm.chunks[cc] = status
-	status.shown = true
 	status.queued = true
 	status.priority = priority
-}
-
-func (cm *ChunkManager) show(cc ChunkCoords) {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	status := cm.chunks[cc]
-	if status == nil {
-		log.Println("Got request for chunk at", cc, "to be shown, even though it was never queued.")
-	}
-
-	if status.shown {
-		log.Println("Got request for chunk at", cc, "to be shown, even though it has already been shown.")
-	}
-
-	status.shown = true
-
-	ms := newMessage("show-chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-
-	cm.chunks[cc].shown = true
-	cm.messages <- ms
-}
-
-func (cm *ChunkManager) hide(cc ChunkCoords) {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	status := cm.chunks[cc]
-	if status == nil {
-		log.Println("Got request for chunk at", cc, "to be hidden, even though it was never queued.")
-	}
-
-	if !status.shown {
-		log.Println("Got request for chunk at", cc, "to be hidden, even though it is currently hidden!")
-	}
-
-	status.shown = false
-
-	ms := newMessage("hide-chunk")
-	ms.Payload["ccpos"] = cc.toMap()
-
-	cm.chunks[cc].shown = false
-	cm.messages <- ms
 }
 
 func (cm *ChunkManager) top() (cc ChunkCoords, valid bool) {
@@ -183,13 +128,12 @@ func (cm *ChunkManager) top() (cc ChunkCoords, valid bool) {
 
 	highest := -1000
 	for key, val := range cm.chunks {
-		if val.priority > highest &&
-			val.shown && val.queued {
+		if val.priority > highest && val.queued {
 			highest = val.priority
 			cc = key
 		}
 	}
-	if highest > -1000 {
+	if highest != -1000 {
 		cm.chunks[cc].queued = false
 		return cc, true
 	}
