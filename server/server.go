@@ -123,14 +123,15 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 	ms.Kind = "entity-position"
 	p.w.broadcast <- ms
 
-	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
-		occ := func (x, y, z int) ChunkCoords {
-			return ChunkCoords{
-				x: cc.x + x,
-				y: cc.y + y,
-				z: cc.z + z,
-			}
+	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
+		return ChunkCoords{
+			x: cc.x + x,
+			y: cc.y + y,
+			z: cc.z + z,
 		}
+	}
+
+	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
 		dist := func (x, y, z int) int {
 			val := 0
 			if x > 0 {
@@ -154,7 +155,7 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 		for x := -xdist; x <= xdist; x++ {
 			for y := -ydist; y <= ydist; y++ {
 				for z := -zdist; z <= zdist; z++ {
-					cb(occ(x, y, z), dist(x, y, z))
+					cb(occ(cc, x, y, z), dist(x, y, z))
 				}
 			}
 		}
@@ -163,6 +164,12 @@ func (p *Player) handlePlayerPosition(ms *Message) {
 	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
 		p.cm.display(newCC, -dist)
 	});
+	oc := wc.Offset();
+	if oc.y <= 4 {
+		p.cm.display(occ(cc, 0, -1, 0), 1);
+	} else if oc.y >= 28 {
+		p.cm.display(occ(cc, 0, 1, 0), 1);
+	}
 }
 
 func wsHandler(ws *websocket.Conn) {

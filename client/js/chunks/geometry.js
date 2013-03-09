@@ -212,12 +212,17 @@ function ChunkGeometry(cc, blocks, manager) {
                 Math.abs(mod(z, 1) - 0.5) < 0.001;
         }
         function noiseFunc(x, y, z) {
-            var add = 0.1;
-            var val = perlinNoise(Math.abs(x)/8, y/8, Math.abs(z)/8);
-            if (inCenter(x, y, z)) {
-                add = 0.2;
+            function n(q) {
+                return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
             }
-            return Math.abs(val) * 2 + add;
+            var add = 0.1;
+            var val = n(8) + n(32);
+            if (r === 1) val += n(2);
+            else val += n(4);
+            if (inCenter(x, y, z)) {
+                add = 0.1;
+            }
+            return clamp(val/2 + 0.4, 0, 0.8) + add;
         }
 
         function v(x, y, z) {
