@@ -206,6 +206,9 @@ function ChunkGeometry(cc, blocks, manager) {
         function mod(a, b) {
             return ((a % b) + b) % b;
         }
+        function abs(n) {
+            return Math.abs(n);
+        }
         function inCenter(x, y, z) {
             return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
                 Math.abs(mod(y, 1) - 0.5) < 0.001 ||
@@ -217,8 +220,8 @@ function ChunkGeometry(cc, blocks, manager) {
             }
             var add = 0.1;
             var val = n(8) + n(32);
-            if (r === 1) val += n(2);
-            else val += n(4);
+            if (abs(r - 4) > 0.001) val += n(4);
+            if (abs(r - 2) > 0.001) val += n(2);
             if (inCenter(x, y, z)) {
                 add = 0.1;
             }
