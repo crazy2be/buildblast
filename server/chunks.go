@@ -24,22 +24,22 @@ func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
 	c[oc.x][oc.y][oc.z] = newBlock
 }
 
+// Flatten returns the chunk data as a string. It
+// can be used for various forms of serialization
+// where a valid UTF-8 string is required, and
+// efficiency (in terms of size) is not hugely
+// important. We use this format for chunk data
+// in JSON documents because:
+//  a) It's smaller, at least half the size, of a
+//     normal JSON array, potentially more.
+//     (depending on the contents)
+//  b) It's much faster - the go JSON implementation
+//     isn't particulilly fast at serializing large
+//     arrays of numbers.
 func (c Chunk) Flatten() string {
-// 	geussBlock := func (x, y, z) byte {
-// 		for xx := 0; xx < qrad; xx++ {
-// 			for yy := 0; yy < qrad; yy++ {
-// 				for zz := 0; zz < qrad; zz++ {
-// 					if (c[x + xx][y + yy)][z + zz] == BLOCK_DIRT) {
-// 						return BLOCK_DIRT
-// 					}
-// 				}
-// 			}
-// 		}
-// 		return BLOCK_AIR
-// 	}
-	cw := CHUNK_WIDTH // qrad
-	ch := CHUNK_HEIGHT // qrad
-	cd := CHUNK_DEPTH // qrad
+	cw := CHUNK_WIDTH
+	ch := CHUNK_HEIGHT
+	cd := CHUNK_DEPTH
 	data := make([]byte, cw*ch*cd)
 	for x := 0; x < cw; x++ {
 		for y := 0; y < ch; y++ {
