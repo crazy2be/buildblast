@@ -53,8 +53,7 @@ func doProfile() {
 }
 
 func main() {
-	log.Println("Previous GOMAXPROCS:", runtime.GOMAXPROCS(2))
-	go doProfile()
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalWorld.Run()
 
 	http.HandleFunc("/", handler)
