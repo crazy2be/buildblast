@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 	"math/rand"
 	"code.google.com/p/go.net/websocket"
 )
@@ -41,7 +42,7 @@ func (p *Player) Run(ws *websocket.Conn) {
 	p.c = NewConn(ws)
 	p.w.Join <- p
 
-	m := NewMessage("player-id")
+	m := NewMessage(MSG_PLAYER_ID)
 	m.Payload["id"] = p.name
 	p.c.Send(m)
 
@@ -51,7 +52,7 @@ func (p *Player) Run(ws *websocket.Conn) {
 			// A bit of a gross hack, but we don't want the player
 			// to recieve broadcast messages for the position of
 			// their own entity.
-			if m.Kind == "entity-position" && p.name == m.Payload["id"] {
+			if m.Kind == MSG_ENTITY_POSITION && p.name == m.Payload["id"] {
 				continue
 			}
 			p.c.Send(m)
@@ -64,6 +65,31 @@ func (p *Player) Run(ws *websocket.Conn) {
 				return
 			}
 		}
+	}
+}
+
+func (p *Player) RunChunks(ws *websocket.Conn) {
+	c := NewConn(ws)
+
+	for {
+		cc, valid := p.cm.top()
+		if !valid {
+			<-time.After(time.Second / 10)
+			continue
+		}
+
+		m := NewMessage(MSG_CHUNK)
+		m.Payload["ccpos"] = cc.toMap()
+		m.Payload["size"] = map[string]interface{}{
+			"w": CHUNK_WIDTH,
+			"h": CHUNK_HEIGHT,
+			"d": CHUNK_DEPTH,
+		}
+
+		chunk := p.w.RequestChunk(cc)
+		m.Payload["data"] = chunk.Flatten()
+
+		c.Send(m)
 	}
 }
 
@@ -80,7 +106,7 @@ func (p *Player) handleMessage(m *Message) {
 }
 
 func (p *Player) sendPlayerPos(wc WorldCoords) {
-	m := NewMessage("player-position")
+	m := NewMessage(MSG_PLAYER_POSITION)
 	m.Payload["pos"] = wc.toMap()
 	p.c.Send(m)
 }
@@ -103,7 +129,7 @@ func (p *Player) handlePlayerPosition(m *Message) {
 	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
 
 	pl["id"] = p.name
-	m.Kind = "entity-position"
+	m.Kind = MSG_ENTITY_POSITION
 	p.w.Broadcast <- m
 
 	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
@@ -115,24 +141,14 @@ func (p *Player) handlePlayerPosition(m *Message) {
 	}
 
 	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
+		abs := func (n int) int {
+			if n < 0 {
+				return -n
+			}
+			return n
+		}
 		dist := func (x, y, z int) int {
-			val := 0
-			if x > 0 {
-				val += x
-			} else {
-				val -= x
-			}
-			if y > 0 {
-				val += y
-			} else {
-				val -= y
-			}
-			if z > 0 {
-				val += z
-			} else {
-				val -= z
-			}
-			return val
+			return abs(x) + abs(y) + abs(z)
 		}
 		cb(cc, 0)
 		for x := -xdist; x <= xdist; x++ {
@@ -143,10 +159,12 @@ func (p *Player) handlePlayerPosition(m *Message) {
 			}
 		}
 	}
+
 	cc := wc.Chunk()
 	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
 		p.cm.display(newCC, -dist)
 	});
+
 	oc := wc.Offset();
 	if oc.y <= 4 {
 		p.cm.display(occ(cc, 0, -1, 0), 1);

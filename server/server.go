@@ -1,46 +1,16 @@
 package main
 
 import (
-	"io"
 	"os"
 	"log"
 	"fmt"
 	"time"
 	"strings"
 	"net/http"
+	"runtime"
 	"runtime/pprof"
 	"code.google.com/p/go.net/websocket"
 )
-
-type Conn struct {
-	ws *websocket.Conn
-}
-
-func NewConn(ws *websocket.Conn) *Conn {
-	c := new(Conn)
-	c.ws = ws
-	return c
-}
-
-func (c *Conn) Send(m *Message) {
-	err := websocket.JSON.Send(c.ws, m)
-	if err != nil {
-		log.Print("Sending websocket message: ", err)
-		return
-	}
-}
-
-func (c *Conn) Recv() *Message {
-	m := new(Message)
-	err := websocket.JSON.Receive(c.ws, m)
-	if err != nil {
-		if err != io.EOF {
-			log.Print("Reading websocket message: ", err)
-		}
-		return nil
-	}
-	return m
-}
 
 var globalWorld = NewWorld(float64(time.Now().Unix()))
 
@@ -62,35 +32,7 @@ func chunkHandler(ws *websocket.Conn) {
 	name := strings.Split(path, "/")[3]
 
 	p := globalWorld.FindPlayer(name)
-	log.Print("Chunk handler:", name, p)
-
-	for {
-		var ms *Message
-		select {
-		case ms = <-p.cm.messages:
-		case <-time.After(100*time.Millisecond):
-			cc, valid := p.cm.top()
-			if !valid {
-				continue
-			}
-			ms = NewMessage("chunk")
-			ms.Payload["ccpos"] = cc.toMap()
-			ms.Payload["size"] = map[string]interface{}{
-				"w": CHUNK_WIDTH,
-				"h": CHUNK_HEIGHT,
-				"d": CHUNK_DEPTH,
-			}
-
-			chunk := p.w.RequestChunk(cc)
-			ms.Payload["data"] = chunk.Flatten()
-		}
-		log.Print("Sending chunk message of kind ", ms.Kind, " at ", ms.Payload["ccpos"])
-		err := websocket.JSON.Send(ws, ms)
-		if err != nil {
-			log.Print("Sending chunk websocket message (", p.name, "): ", err)
-			return
-		}
-	}
+	p.RunChunks(ws)
 }
 
 func doProfile() {
@@ -111,10 +53,14 @@ func doProfile() {
 }
 
 func main() {
+	log.Println("Previous GOMAXPROCS:", runtime.GOMAXPROCS(2))
+	go doProfile()
 	go globalWorld.Run()
+
 	http.HandleFunc("/", handler)
 	http.Handle("/ws/new", websocket.Handler(wsHandler))
 	http.Handle("/ws/chunks/", websocket.Handler(chunkHandler))
+
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)

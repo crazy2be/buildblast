@@ -38,7 +38,7 @@ func (w *World) RequestChunk(cc ChunkCoords) Chunk {
 		return w.chunks[cc]
 	}
 
-	chunk := generateChunk(cc.x, cc.y, cc.z, w.seed)
+	chunk := GenerateChunk(cc.x, cc.y, cc.z, w.seed)
 	w.chunks[cc] = chunk
 	return chunk
 }
@@ -75,12 +75,12 @@ func (w *World) join(p *Player) {
 	w.playerLock.Lock()
 	defer w.playerLock.Unlock()
 
-	m := NewMessage("entity-create")
+	m := NewMessage(MSG_ENTITY_CREATE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
 
 	for otherPlayer := range w.players {
-		m := NewMessage("entity-create")
+		m := NewMessage(MSG_ENTITY_CREATE)
 		m.Payload["id"] = otherPlayer.name
 		p.Broadcast <- m
 	}
@@ -96,7 +96,7 @@ func (w *World) leave(p *Player) {
 	delete(w.players, p)
 	log.Println("Player disconnected...", p.name)
 
-	m := NewMessage("entity-remove")
+	m := NewMessage(MSG_ENTITY_REMOVE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
 }
