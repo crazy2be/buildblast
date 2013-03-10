@@ -1,14 +1,19 @@
 function Entity() {
     var self = this;
 
-    var bodyGeometry = new THREE.CubeGeometry(0.5, 1.4, 1);
-    var bodyMesh = new THREE.Mesh(bodyGeometry, new THREE.MeshBasicMaterial({wireframe: true}));
-    var headGeometry = new THREE.CubeGeometry(0.4, 0.4, 0.4);
-    var headMesh = new THREE.Mesh(headGeometry, new THREE.MeshBasicMaterial({wireframe: true}));
+    var material = new THREE.MeshBasicMaterial({
+        color: 0x0000ff,
+        wireframe: true,
+    });
+    var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
+    var bodyMesh = new THREE.Mesh(bodyGeometry, material);
+    var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
+    var headMesh = new THREE.Mesh(headGeometry, material);
 
     self.setPos = function (newPos) {
-        bodyMesh.position.set(newPos.x, newPos.y - 1.4 / 2, newPos.z);
-        headMesh.position.set(newPos.x, newPos.y + 0.6, newPos.z);
+        var p = newPos;
+        bodyMesh.position.set(p.x, p.y - PLAYER_HEIGHT + 1.3/2, p.z);
+        headMesh.position.set(p.x, p.y, p.z);
         return self;
     }
 
