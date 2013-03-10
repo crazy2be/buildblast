@@ -47,7 +47,7 @@ function World(scene, conn, container) {
 
         var chunk = chunkManager.chunk(cc);
         if (!chunk) {
-            return wy;
+            return false;
         }
         var block = chunk.block(oc);
         if (block.isType(Block.AIR)) {

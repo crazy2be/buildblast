@@ -32,26 +32,42 @@ var Player = function (world, conn, container) {
         else return block.solid();
     }
 
-    function inSolid(bbox) {
+    function bboxEach(bbox, fn, reduce) {
         var b = bbox;
-        var s = solid;
-        return s(b.xs, b.ys, b.zs) ||
-            s(b.xs, b.ys, b.ze) ||
-            s(b.xs, b.ye, b.zs) ||
-            s(b.xs, b.ye, b.ze) ||
-            s(b.xe, b.ys, b.zs) ||
-            s(b.xe, b.ys, b.ze) ||
-            s(b.xe, b.ye, b.zs) ||
-            s(b.xe, b.ye, b.ze);
+        var xs = b.xs, xe = b.xe;
+        var ys = b.ys, ye = b.ye;
+        var zs = b.zs, ze = b.ze;
+        var ym = ys + (ye - ys) / 2;
+        return reduce(
+            fn(xs, ys, zs),
+            fn(xs, ys, ze),
+            fn(xs, ye, zs),
+            fn(xs, ye, ze),
+            fn(xs, ym, zs),
+            fn(xs, ym, ze),
+            fn(xe, ys, zs),
+            fn(xe, ys, ze),
+            fn(xe, ye, zs),
+            fn(xe, ye, ze),
+            fn(xe, ym, zs),
+            fn(xs, ym, ze)
+        );
+    }
+
+    function logicalOr() {
+        for (var i = 0; i < arguments.length; i++) {
+            if (arguments[i]) return true;
+        }
+        return false;
+    }
+
+    function inSolid(bbox) {
+        return bboxEach(bbox, solid, logicalOr);
     }
 
     function groundHeight(bbox) {
         var cg = world.findClosestGround;
-        var h = height;
-        return Math.max(cg(bbox.xs, bbox.ys, bbox.zs) + h,
-                        cg(bbox.xs, bbox.ys, bbox.ze) + h,
-                        cg(bbox.xe, bbox.ys, bbox.zs) + h,
-                        cg(bbox.xe, bbox.ys, bbox.ze) + h);
+        return bboxEach(bbox, cg, Math.max) + height;
     }
 
     var onGround = true;
