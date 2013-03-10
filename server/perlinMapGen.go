@@ -4,17 +4,18 @@ import (
 	"math"
 )
 
-type PerlinNoiseArena struct {
+type PerlinArenaGenerator struct {
 	seed float64
 }
 
-func NewPerlinNoiseArena(seed float64) *PerlinNoiseArena {
-	pa := new(PerlinNoiseArena)
+func NewPerlinArenaGenerator(seed float64) *PerlinArenaGenerator {
+	pa := new(PerlinArenaGenerator)
 	pa.seed = seed
 	return pa
 }
 
-var PerlinNoiseArenaPermutations = []int{
+// http://mrl.nyu.edu/~perlin/noise/
+var PerlinArenaGeneratorPermutations = []int{
 	151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,
 	23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,
 	174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,
@@ -38,15 +39,15 @@ var PerlinNoiseArenaPermutations = []int{
 	93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180,
 }
 
-func (pa *PerlinNoiseArena) fade(t float64) float64 {
+func (pa *PerlinArenaGenerator) fade(t float64) float64 {
 	return t * t * t * (t * (t * 6 - 15) + 10)
 }
 
-func (pa *PerlinNoiseArena) lerp(t, a, b float64) float64 {
+func (pa *PerlinArenaGenerator) lerp(t, a, b float64) float64 {
 	return a + t * (b - a)
 }
 
-func (pa *PerlinNoiseArena) grad(hash int, x, y, z float64) float64 {
+func (pa *PerlinArenaGenerator) grad(hash int, x, y, z float64) float64 {
 	h := hash & 15
 
 	u := 0.0
@@ -82,7 +83,7 @@ func (pa *PerlinNoiseArena) grad(hash int, x, y, z float64) float64 {
 	return r
 }
 
-func (pa *PerlinNoiseArena) noise(x, y, z float64) float64 {
+func (pa *PerlinArenaGenerator) noise(x, y, z float64) float64 {
 	floorX := math.Floor(x)
 	floorY := math.Floor(y)
 	floorZ := math.Floor(z)
@@ -99,7 +100,7 @@ func (pa *PerlinNoiseArena) noise(x, y, z float64) float64 {
 	v := pa.fade(y)
 	w := pa.fade(z)
 
-	p := PerlinNoiseArenaPermutations
+	p := PerlinArenaGeneratorPermutations
 
 	A  := p[X] + Y
 	AA := p[A] + Z
@@ -132,69 +133,34 @@ func (pa *PerlinNoiseArena) noise(x, y, z float64) float64 {
 	)
 }
 
-func (pa *PerlinNoiseArena) generateHeightMap(xs, zs, xd, zd int, seed float64) [][]int {
-	hmap := make([][]float64, xd)
+func (pa *PerlinArenaGenerator) heightAt(x, z float64) float64 {
 	quality := 2.0
-
-	for x := 0; x < xd; x++ {
-		hmap[x] = make([]float64, zd)
-		for z := 0; z < zd; z++ {
-			hmap[x][z] = 0
-		}
-	}
-
+	height := 0.0
+	
 	for i := 0; i < 4; i++ {
-		for x := 0; x < xd; x++ {
-			for z := 0; z < zd; z++ {
-				wx := float64(xs + x)
-				wz := float64(zs + z)
-				hmap[x][z] = pa.noise(wx / quality, wz / quality, seed) * quality
-			}
-		}
+		height += pa.noise(x/quality, z/quality, pa.seed) * quality
 		quality *= 4
 	}
-
-	abs := math.Abs
-	max := math.Max
+	
 	pow := math.Pow
-	intHMap := make([][]int, xd)
-	for x := 0; x < xd; x++ {
-		intHMap[x] = make([]int, zd)
-		for z := 0; z < zd; z++ {
-			wx := float64(x + xs)
-			wz := float64(z + zs)
-			mult := 0.1 * pow(1.05,
-				max(abs(wx) - 32, 0) +
-				max(abs(wz) - 128, 0))
-			intHMap[x][z] = int(hmap[x][z] * mult) + CHUNK_HEIGHT / 2
-		}
-	}
-
-	return intHMap
+	max := math.Max
+	abs := math.Abs
+	
+	mult := 0.1 * pow(1.05,
+		max(abs(x) - 32, 0) +
+		max(abs(z) - 128, 0))
+	height = height*mult + float64(CHUNK_HEIGHT) / 2
+	return height
 }
 
-func (pa *PerlinNoiseArena) Chunk(cc ChunkCoords) Chunk {
-	cx := cc.x
-	cy := cc.y
-	cz := cc.z
-	cw := CHUNK_WIDTH
-	ch := CHUNK_HEIGHT
-	cd := CHUNK_DEPTH
-	hmap := pa.generateHeightMap(cx*cw, cz*cd, cw, cd, pa.seed)
-
-	blocks := make([][][]Block, cw)
-	for ox := 0; ox < cw; ox++ {
-		blocks[ox] = make([][]Block, ch)
-		for oy := 0; oy < ch; oy++ {
-			blocks[ox][oy] = make([]Block, cd)
-			for oz := 0; oz < cd; oz++ {
-				if hmap[ox][oz] > oy + cy*ch {
-					blocks[ox][oy][oz] = BLOCK_DIRT
-				} else {
-					blocks[ox][oy][oz] = BLOCK_AIR
-				}
-			}
-		}
+func (pa *PerlinArenaGenerator) Block(wc WorldCoords) Block {
+	if pa.heightAt(wc.x, wc.z) > wc.y {
+		return BLOCK_DIRT
 	}
-	return blocks
+	
+	return BLOCK_AIR
+}
+
+func (pa *PerlinArenaGenerator) Chunk(cc ChunkCoords) Chunk {
+	return GenerateChunk(pa, cc)
 }

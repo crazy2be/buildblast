@@ -22,7 +22,7 @@ func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
-	w.generator = NewPerlinNoiseArena(seed)
+	w.generator = NewFlatArenaGenerator()
 	w.players = make(map[*Player]bool)
 
 	w.Join = make(chan *Player)
