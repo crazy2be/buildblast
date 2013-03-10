@@ -6,10 +6,11 @@ import (
 )
 
 type World struct {
-	seed       float64
-	chunks     map[ChunkCoords]Chunk
-	chunkLock  sync.Mutex
-	players    map[*Player]bool
+	seed        float64
+	chunks      map[ChunkCoords]Chunk
+	generator   ChunkGenerator
+	chunkLock   sync.Mutex
+	players     map[*Player]bool
 	playerLock sync.Mutex
 
 	Join       chan *Player
@@ -21,6 +22,7 @@ func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
+	w.generator = NewPerlinNoiseArena(seed)
 	w.players = make(map[*Player]bool)
 
 	w.Join = make(chan *Player)
@@ -34,12 +36,12 @@ func (w *World) RequestChunk(cc ChunkCoords) Chunk {
 	w.chunkLock.Lock()
 	defer w.chunkLock.Unlock()
 
-	if w.chunks[cc] != nil {
-		return w.chunks[cc]
+	chunk := w.chunks[cc]
+	if chunk == nil {
+		chunk = w.generator.Chunk(cc)
+		w.chunks[cc] = chunk
 	}
 
-	chunk := GenerateChunk(cc.x, cc.y, cc.z, w.seed)
-	w.chunks[cc] = chunk
 	return chunk
 }
 

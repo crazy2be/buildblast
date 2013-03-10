@@ -48,22 +48,12 @@ function Conn(uri) {
         }
     }
 
-    function connBad(msg, obj) {
-        var st = document.getElementById("connection-status");
-        st.innerHTML = ["<tr><td>",
-            "<h1>Disconnected From Server!</h1>",
-            "<p>" + msg + "</p>",
-            "<p>Press F5 to attempt a rejoin</p>",
-            "</td></tr>"].join("\n");
-        console.error("Disconnected from server!", msg, obj);
-    }
-
     ws.onerror = function (ev) {
-        connBad("Alas, it seems I have errd. Forgive me master!", ev);
+        throw new Error("Alas, it seems I have errd. Forgive me master!", ev);
     }
 
     ws.onclose = function (ev) {
-        connBad("Someone closed my websocket :(", ev);
+        throw new Error("Someone closed my websocket :(", ev);
     }
 
 }

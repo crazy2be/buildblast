@@ -48,6 +48,8 @@ function ChunkManager(scene, conn, player) {
             processQualityChange(payload);
         }
     }
+    
+    geometryWorker.onerror = fatalError;
 
     function startChunkConn(payload) {
         var id = payload.id;

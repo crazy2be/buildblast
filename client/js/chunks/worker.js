@@ -1,7 +1,6 @@
 // I use self for other things. Parent makes
 // a lot more sence anyway.
 var parent = self;
-self = null;
 
 importScripts(
     'common.js',

@@ -15,29 +15,6 @@ const (
 	CHUNK_HEIGHT = 32
 )
 
-func GenerateChunk(cx, cy, cz int, seed float64) Chunk {
-	cw := CHUNK_WIDTH
-	ch := CHUNK_HEIGHT
-	cd := CHUNK_DEPTH
-	hmap := generateHeightMap(cx*cw, cz*cd, cw, cd, seed)
-
-	blocks := make([][][]Block, cw)
-	for ox := 0; ox < cw; ox++ {
-		blocks[ox] = make([][]Block, ch)
-		for oy := 0; oy < ch; oy++ {
-			blocks[ox][oy] = make([]Block, cd)
-			for oz := 0; oz < cd; oz++ {
-				if hmap[ox][oz] > oy + cy*ch {
-					blocks[ox][oy][oz] = BLOCK_DIRT
-				} else {
-					blocks[ox][oy][oz] = BLOCK_AIR
-				}
-			}
-		}
-	}
-	return blocks
-}
-
 func (c Chunk) Block(oc OffsetCoords) Block {
 	return c[oc.x][oc.y][oc.z]
 }

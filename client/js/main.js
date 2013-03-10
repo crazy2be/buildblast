@@ -45,3 +45,20 @@ window.onload = function () {
         stats.update();
     }
 };
+
+function fatalError(err) {
+    var st = document.getElementById("connection-status");
+    st.innerHTML = ["<tr><td>",
+        "<h1>Fatal Error!</h1>",
+        "<p>",
+            err.filename || err.fileName,
+            " (",
+                err.lineno || err.lineNumber,
+            "):",
+        "</p>",
+        "<p>",
+            err.message,
+        "</p>",
+        "<p>Press F5 to attempt a rejoin</p>",
+        "</td></tr>"].join("\n");
+}
