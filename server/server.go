@@ -8,209 +8,52 @@ import (
 	"time"
 	"strings"
 	"net/http"
-// 	mrand "math/rand"
-// 	"math"
-	"crypto/rand"
 	"runtime/pprof"
 	"code.google.com/p/go.net/websocket"
 )
 
-var globalWorld = newWorld()
+type Conn struct {
+	ws *websocket.Conn
+}
+
+func NewConn(ws *websocket.Conn) *Conn {
+	c := new(Conn)
+	c.ws = ws
+	return c
+}
+
+func (c *Conn) Send(m *Message) {
+	err := websocket.JSON.Send(c.ws, m)
+	if err != nil {
+		log.Print("Sending websocket message: ", err)
+		return
+	}
+}
+
+func (c *Conn) Recv() *Message {
+	m := new(Message)
+	err := websocket.JSON.Receive(c.ws, m)
+	if err != nil {
+		if err != io.EOF {
+			log.Print("Reading websocket message: ", err)
+		}
+		return nil
+	}
+	return m
+}
+
+var globalWorld = NewWorld(float64(time.Now().Unix()))
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
-}
-
-type Message struct {
-	Kind string
-	Payload map[string]interface{}
-}
-
-func newMessage(kind string) *Message {
-	ms := new(Message)
-	ms.Kind = kind
-	ms.Payload = make(map[string]interface{})
-	return ms
-}
-
-func (m *Message) String() string {
-	return fmt.Sprintf("{kind: %s, payload: %v}", m.Kind, m.Payload)
-}
-
-// http://stackoverflow.com/questions/12771930/what-is-the-fastest-way-to-generate-a-long-random-string-in-go
-func randString(n int) string {
-	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-	var bytes = make([]byte, n)
-	rand.Read(bytes)
-	for i, b := range bytes {
-		bytes[i] = alphanum[b % byte(len(alphanum))]
-	}
-	return string(bytes)
-}
-
-type Player struct {
-	w *World
-	ws *websocket.Conn
-	in chan *Message
-	out chan *Message
-	name string
-	inBroadcast chan *Message
-	cm *ChunkManager
-}
-
-func newPlayer(ws *websocket.Conn) *Player {
-	p := new(Player)
-	p.w = globalWorld
-	p.ws = ws
-	p.in = make(chan *Message, 10)
-	p.out = make(chan *Message, 10)
-	p.name = "player-" + randString(10)
-	p.inBroadcast = make(chan *Message, 10)
-	p.cm = newChunkManager()
-	return p
-}
-
-func (p *Player) handleIncoming() {
-	for {
-		ms := new(Message)
-		err := websocket.JSON.Receive(p.ws, ms)
-		if err != nil {
-			if err != io.EOF {
-				log.Print("Reading websocket message (", p.name, "): ", err)
-			}
-			close(p.in)
-			return
-		}
-		p.in <- ms
-	}
-}
-
-func (p *Player) handleOutgoing() {
-	for {
-		ms := <-p.out
-		err := websocket.JSON.Send(p.ws, ms)
-		if err != nil {
-			log.Print("Sending websocket message (", p.name, "): ", err)
-			return
-		}
-	}
-}
-
-func (p *Player) sendPlayerPos(wc WorldCoords) {
-	ms := newMessage("player-position")
-	ms.Payload["pos"] = wc.toMap()
-	p.out <- ms
-}
-
-func (p *Player) handleBlock(ms *Message) {
-	pl := ms.Payload
-	wc := readWorldCoords(pl)
-	typ := Block(pl["type"].(float64))
-
-	p.w.changeBlock(wc, typ)
-	p.w.broadcast <- ms
-}
-
-func (p *Player) handlePlayerPosition(ms *Message) {
-	pl := ms.Payload
-	// TODO: Verify position is valid
-	// (they didn't move too much in the last
-	// couple frames, and they are not currently
-	// in the ground).
-	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
-
-	pl["id"] = p.name
-	ms.Kind = "entity-position"
-	p.w.broadcast <- ms
-
-	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
-		return ChunkCoords{
-			x: cc.x + x,
-			y: cc.y + y,
-			z: cc.z + z,
-		}
-	}
-
-	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
-		dist := func (x, y, z int) int {
-			val := 0
-			if x > 0 {
-				val += x
-			} else {
-				val -= x
-			}
-			if y > 0 {
-				val += y
-			} else {
-				val -= y
-			}
-			if z > 0 {
-				val += z
-			} else {
-				val -= z
-			}
-			return val
-		}
-		cb(cc, 0)
-		for x := -xdist; x <= xdist; x++ {
-			for y := -ydist; y <= ydist; y++ {
-				for z := -zdist; z <= zdist; z++ {
-					cb(occ(cc, x, y, z), dist(x, y, z))
-				}
-			}
-		}
-	}
-	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
-		p.cm.display(newCC, -dist)
-	});
-	oc := wc.Offset();
-	if oc.y <= 4 {
-		p.cm.display(occ(cc, 0, -1, 0), 1);
-	} else if oc.y >= 28 {
-		p.cm.display(occ(cc, 0, 1, 0), 1);
-	}
 }
 
 func wsHandler(ws *websocket.Conn) {
 	config := ws.Config()
 	fmt.Println(config, config.Location, config.Origin)
 
-	p := newPlayer(ws)
-	globalWorld.register <- p
-	defer func () {
-		globalWorld.unregister <- p
-	}()
-
-	go p.handleIncoming()
-	go p.handleOutgoing()
-
-	m := newMessage("player-id")
-	m.Payload["id"] = p.name
-	p.out <- m
-
-	for {
-		select {
-		case m := <-p.in:
-			if m == nil {
-				return
-			}
-			switch m.Kind {
-			case "block":
-				p.handleBlock(m)
-			case "player-position":
-				p.handlePlayerPosition(m)
-			default:
-				log.Print("Unknown message recieved from client of kind ", m.Kind)
-				continue
-			}
-		case m := <-p.inBroadcast:
-			if m.Kind == "entity-position" && p.name == m.Payload["id"] {
-				continue
-			}
-			p.out <- m
-		}
-	}
+	p := NewPlayer(globalWorld)
+	p.Run(ws)
 }
 
 func chunkHandler(ws *websocket.Conn) {
@@ -218,7 +61,7 @@ func chunkHandler(ws *websocket.Conn) {
 	path := config.Location.Path
 	name := strings.Split(path, "/")[3]
 
-	p := globalWorld.findPlayer(name)
+	p := globalWorld.FindPlayer(name)
 	log.Print("Chunk handler:", name, p)
 
 	for {
@@ -230,7 +73,7 @@ func chunkHandler(ws *websocket.Conn) {
 			if !valid {
 				continue
 			}
-			ms = newMessage("chunk")
+			ms = NewMessage("chunk")
 			ms.Payload["ccpos"] = cc.toMap()
 			ms.Payload["size"] = map[string]interface{}{
 				"w": CHUNK_WIDTH,
@@ -238,7 +81,7 @@ func chunkHandler(ws *websocket.Conn) {
 				"d": CHUNK_DEPTH,
 			}
 
-			chunk := p.w.requestChunk(cc)
+			chunk := p.w.RequestChunk(cc)
 			ms.Payload["data"] = chunk.Flatten()
 		}
 		log.Print("Sending chunk message of kind ", ms.Kind, " at ", ms.Payload["ccpos"])
@@ -268,7 +111,7 @@ func doProfile() {
 }
 
 func main() {
-	go globalWorld.run()
+	go globalWorld.Run()
 	http.HandleFunc("/", handler)
 	http.Handle("/ws/new", websocket.Handler(wsHandler))
 	http.Handle("/ws/chunks/", websocket.Handler(chunkHandler))

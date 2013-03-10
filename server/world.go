@@ -2,31 +2,38 @@ package main
 
 import (
 	"log"
-	"time"
+	"sync"
 )
 
 type World struct {
-	seed float64
-	chunks map[ChunkCoords]Chunk
-	players map[*Player]bool
-	register chan *Player
-	unregister chan *Player
-	broadcast chan *Message
+	seed       float64
+	chunks     map[ChunkCoords]Chunk
+	chunkLock  sync.Mutex
+	players    map[*Player]bool
+	playerLock sync.Mutex
+
+	Join       chan *Player
+	Leave      chan *Player
+	Broadcast  chan *Message
 }
 
-func newWorld() *World {
+func NewWorld(seed float64) *World {
 	w := new(World)
-	w.seed = float64(time.Now().Unix());
+	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
 	w.players = make(map[*Player]bool)
-	w.register = make(chan *Player)
-	w.unregister = make(chan *Player)
-	w.broadcast = make(chan *Message)
+
+	w.Join = make(chan *Player)
+	w.Leave = make(chan *Player)
+	w.Broadcast = make(chan *Message, 10)
+
 	return w
 }
 
-// TODO: This function has terrific race conditions...
-func (w *World) requestChunk(cc ChunkCoords) Chunk {
+func (w *World) RequestChunk(cc ChunkCoords) Chunk {
+	w.chunkLock.Lock()
+	defer w.chunkLock.Unlock()
+
 	if w.chunks[cc] != nil {
 		return w.chunks[cc]
 	}
@@ -36,12 +43,15 @@ func (w *World) requestChunk(cc ChunkCoords) Chunk {
 	return chunk
 }
 
-func (w *World) changeBlock(wc WorldCoords, newBlock Block) {
-	chunk := w.requestChunk(wc.Chunk())
+func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
+	chunk := w.RequestChunk(wc.Chunk())
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
 
-func (w *World) findPlayer(name string) *Player {
+func (w *World) FindPlayer(name string) *Player {
+	w.playerLock.Lock()
+	defer w.playerLock.Unlock()
+
 	for player := range w.players {
 		if (player.name == name) {
 			return player
@@ -50,24 +60,56 @@ func (w *World) findPlayer(name string) *Player {
 	return nil
 }
 
-func (w *World) run() {
+func (w *World) broadcast(m *Message) {
+	for p := range w.players {
+		select {
+		case p.Broadcast <- m:
+		default:
+			log.Println("Cannot send broadcast message", m, "to player", p.name)
+			// TODO: Kick player if not responding?
+		}
+	}
+}
+
+func (w *World) join(p *Player) {
+	w.playerLock.Lock()
+	defer w.playerLock.Unlock()
+
+	m := NewMessage("entity-create")
+	m.Payload["id"] = p.name
+	w.broadcast(m)
+
+	for otherPlayer := range w.players {
+		m := NewMessage("entity-create")
+		m.Payload["id"] = otherPlayer.name
+		p.Broadcast <- m
+	}
+
+	w.players[p] = true
+	log.Println("New player connected! Name: ", p.name)
+}
+
+func (w *World) leave(p *Player) {
+	w.playerLock.Lock();
+	defer w.playerLock.Unlock();
+
+	delete(w.players, p)
+	log.Println("Player disconnected...", p.name)
+
+	m := NewMessage("entity-remove")
+	m.Payload["id"] = p.name
+	w.broadcast(m)
+}
+
+func (w *World) Run() {
 	for {
 		select {
-		case p := <-w.register:
-			w.players[p] = true
-			log.Println("New player connected! Name: ", p.name)
-		case p := <-w.unregister:
-			delete(w.players, p)
-			log.Println("Player disconnected...", p.name)
-		case m := <-w.broadcast:
-			for p := range w.players {
-				select {
-				case p.inBroadcast <- m:
-				default:
-					log.Println("Cannot send broadcast message", m, "to player", p.name)
-// 					p.ws.Close()
-				}
-			}
+		case p := <-w.Join:
+			w.join(p)
+		case p := <-w.Leave:
+			w.leave(p)
+		case m := <-w.Broadcast:
+			w.broadcast(m)
 		}
 	}
 }

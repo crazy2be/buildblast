@@ -27,6 +27,11 @@ function Entity() {
         scene.add(bodyMesh);
         scene.add(headMesh);
     }
+
+    self.removeFrom = function (scene) {
+        scene.remove(bodyMesh);
+        scene.remove(headMesh);
+    }
 }
 
 function EntityHandler(scene, conn) {
@@ -40,5 +45,14 @@ function EntityHandler(scene, conn) {
         }
         entities[id].setPos(payload.pos);
         entities[id].setRot(payload.rot);
+    });
+    conn.on('entity-remove', function (payload) {
+        var id = payload.id;
+        var entity = entities[id];
+        if (!entity) {
+            console.warn("Got entity-remove command for entity which does not exist: ", id);
+        }
+        entity.removeFrom(scene);
+        delete entities[id];
     });
 }
