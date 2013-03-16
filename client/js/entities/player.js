@@ -1,6 +1,6 @@
 var PLAYER_HEIGHT = 1.6;
 
-var Player = function (world, conn, container) {
+var Player = function (name, world, conn, controls) {
     var self = this;
 
     var velocityY = 0;
@@ -9,7 +9,10 @@ var Player = function (world, conn, container) {
     camera.position.z = 100.5;
     camera.position.y = CHUNK_HEIGHT / 2;
 
-    var controls = new FirstPersonControls(world, camera, container);
+    var inventory = new Inventory(world, camera);
+    controls.on('mousedown', function () {
+        inventory.leftClick();
+    });
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -18,6 +21,10 @@ var Player = function (world, conn, container) {
 
     self.pos = function () {
         return camera.position;
+    }
+
+    self.name = function () {
+        return name;
     }
 
     conn.on('player-position', function (payload) {
@@ -154,7 +161,13 @@ var Player = function (world, conn, container) {
         var p = camera.position;
         var r = camera.rotation;
 
-        if (c.jumping && onGround) {
+        var target = new THREE.Vector3();
+        target.x = p.x + Math.sin(c.lat) * Math.cos(c.lon);
+        target.y = p.y + Math.cos(c.lat);
+        target.z = p.z + Math.sin(c.lat) * Math.sin(c.lon);
+        camera.lookAt(target);
+
+        if (c.jump && onGround) {
             velocityY = 6;
             onGround = false;
         } else if (onGround) {
@@ -163,8 +176,8 @@ var Player = function (world, conn, container) {
             velocityY += dt * -9.81;
         }
 
-        var fw = dt * 10 * (c.forward ? 1 : c.back ? -1 : 0);
-        var rt = dt * 10 * (c.right ? 1 : c.left ? -1 : 0);
+        var fw = dt * 10 * (c.moveForward ? 1 : c.moveBack ? -1 : 0);
+        var rt = dt * 10 * (c.moveRight ? 1 : c.moveLeft ? -1 : 0);
         var sin = Math.sin;
         var cos = Math.cos;
         var move = {
@@ -190,6 +203,7 @@ var Player = function (world, conn, container) {
                 rot: {x: r.x, y: r.y, z: r.z},
             });
         }
+        inventory.update(c);
     };
 
     self.render = function (renderer, scene) {

@@ -9,6 +9,9 @@ var Detector = {
 	webgl: ( function () { try { return !! window.WebGLRenderingContext && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' ); } catch( e ) { return false; } } )(),
 	workers: !! window.Worker,
 	fileapi: window.File && window.FileReader && window.FileList && window.Blob,
+    pointerLock: 'pointerLockElement' in document ||
+        'mozPointerLockElement' in document ||
+        'webkitPointerLockElement' in document,
 
 	getWebGLErrorMessage: function () {
 

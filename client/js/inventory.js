@@ -23,7 +23,7 @@ function Inventory(world, camera) {
         }
     }
 
-    self.selectSlot = function (n) {
+    function selectSlot(n) {
         var html = "";
         for (var i = 0; i < n; i++) {
             html += "<li>" + slots[i] + "</li>";
@@ -37,5 +37,16 @@ function Inventory(world, camera) {
         currentSlot = n;
     }
 
-    self.selectSlot(0);
+    self.update = function (controlState) {
+        var c = controlState;
+        if (c.selectSlot1) {
+            selectSlot(0);
+        } else if (c.selectSlot2) {
+            selectSlot(1);
+        } else if (c.selectSlot3) {
+            selectSlot(2);
+        }
+    }
+
+    selectSlot(0);
 }

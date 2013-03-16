@@ -1,7 +1,13 @@
-function World(scene, conn, container) {
+function World(scene, container) {
     var self = this;
-    var player = new Player(self, conn, container);
+
+    var playerName = "player-" + Math.random();
+    var conn = new Conn(getWSURI("main/" + playerName));
+    var controls = new Controls(container);
+    var player = new Player(playerName, self, conn, controls);
+
     var chunkManager = new ChunkManager(scene, conn, player);
+    var entityHandler = new EntityHandler(scene, conn);
 
     conn.on('block', processBlock);
 

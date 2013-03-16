@@ -26,11 +26,10 @@ type Player struct {
 	cm *ChunkManager
 }
 
-func NewPlayer(world *World) *Player {
+func NewPlayer(world *World, name string) *Player {
 	p := new(Player)
 	p.w = world
-
-	p.name = "player-" + randString(10)
+	p.name = name
 
 	p.Broadcast = make(chan *Message, 10)
 	p.cm = newChunkManager()

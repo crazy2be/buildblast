@@ -1,6 +1,3 @@
-// This variable exists only so we can test running things
-// on world from the console. Code should never use this!
-var WORLD;
 window.onload = function () {
     if (!Detector.webgl) {
         Detector.addGetWebGLMessage();
@@ -11,10 +8,7 @@ window.onload = function () {
     var container = document.getElementById('container');
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();
-    var conn = new Conn();
-    var world = new World(scene, conn, container);
-    var entityHandler = new EntityHandler(scene, conn);
-    WORLD = world;
+    var world = new World(scene, container);
 
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);

@@ -1,10 +1,9 @@
 function ChunkManager(scene, conn, player) {
     var self = this;
 
-    conn.on('player-id', startChunkConn);
-
     var chunks = {};
     var geometryWorker = new Worker('js/chunks/worker.js');
+    startChunkConn(player.name());
 
     self.chunk = function (cc) {
         return chunks[ccStr(cc)];
@@ -48,15 +47,14 @@ function ChunkManager(scene, conn, player) {
             processQualityChange(payload);
         }
     }
-    
+
     geometryWorker.onerror = fatalError;
 
-    function startChunkConn(payload) {
-        var id = payload.id;
+    function startChunkConn(name) {
         geometryWorker.postMessage({
             'kind': 'start-conn',
             'payload': {
-                'uri': getWSURI('/ws/chunks/' + id),
+                'uri': getWSURI('chunk/' + name),
             },
         })
     }

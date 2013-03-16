@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"log"
-	"fmt"
 	"time"
 	"strings"
 	"net/http"
@@ -18,19 +17,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
 }
 
-func wsHandler(ws *websocket.Conn) {
-	config := ws.Config()
-	fmt.Println(config, config.Location, config.Origin)
+func getPlayerName(config *websocket.Config) string {
+	path := config.Location.Path
+	bits := strings.Split(path, "/")
+	if len(bits) < 4 {
+		return ""
+	}
+	return bits[3]
+}
 
-	p := NewPlayer(globalWorld)
+func mainSocketHandler(ws *websocket.Conn) {
+	name := getPlayerName(ws.Config())
+	p := NewPlayer(globalWorld, name)
 	p.Run(ws)
 }
 
-func chunkHandler(ws *websocket.Conn) {
-	config := ws.Config();
-	path := config.Location.Path
-	name := strings.Split(path, "/")[3]
-
+func chunkSocketHandler(ws *websocket.Conn) {
+	name := getPlayerName(ws.Config())
 	p := globalWorld.FindPlayer(name)
 	p.RunChunks(ws)
 }
@@ -57,8 +60,8 @@ func main() {
 	go globalWorld.Run()
 
 	http.HandleFunc("/", handler)
-	http.Handle("/ws/new", websocket.Handler(wsHandler))
-	http.Handle("/ws/chunks/", websocket.Handler(chunkHandler))
+	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
+	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

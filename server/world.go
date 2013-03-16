@@ -10,12 +10,18 @@ type World struct {
 	chunks      map[ChunkCoords]Chunk
 	generator   ChunkGenerator
 	chunkLock   sync.Mutex
-	players     map[*Player]bool
-	playerLock sync.Mutex
+	players     []*Player
+	playerLock  sync.Mutex
+	find       chan FindPlayerRequest
 
 	Join       chan *Player
 	Leave      chan *Player
 	Broadcast  chan *Message
+}
+
+type FindPlayerRequest struct {
+	name string
+	resp chan *Player
 }
 
 func NewWorld(seed float64) *World {
@@ -23,7 +29,8 @@ func NewWorld(seed float64) *World {
 	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
 	w.generator = NewFlatArenaGenerator()
-	w.players = make(map[*Player]bool)
+	w.players = make([]*Player, 0)
+	w.find = make(chan FindPlayerRequest)
 
 	w.Join = make(chan *Player)
 	w.Leave = make(chan *Player)
@@ -51,56 +58,60 @@ func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
 }
 
 func (w *World) FindPlayer(name string) *Player {
-	w.playerLock.Lock()
-	defer w.playerLock.Unlock()
-
-	for player := range w.players {
-		if (player.name == name) {
-			return player
-		}
+	req := FindPlayerRequest {
+		name: name,
+		resp: make(chan *Player),
 	}
-	return nil
+	w.find <- req
+
+	return <-req.resp
 }
 
 func (w *World) broadcast(m *Message) {
-	for p := range w.players {
+	for name, p := range w.players {
 		select {
 		case p.Broadcast <- m:
 		default:
-			log.Println("Cannot send broadcast message", m, "to player", p.name)
+			log.Println("Cannot send broadcast message", m, "to player", name)
 			// TODO: Kick player if not responding?
 		}
 	}
 }
 
 func (w *World) join(p *Player) {
-	w.playerLock.Lock()
-	defer w.playerLock.Unlock()
-
 	m := NewMessage(MSG_ENTITY_CREATE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
 
-	for otherPlayer := range w.players {
+	for _, otherPlayer := range w.players {
 		m := NewMessage(MSG_ENTITY_CREATE)
 		m.Payload["id"] = otherPlayer.name
 		p.Broadcast <- m
 	}
 
-	w.players[p] = true
+	w.players = append(w.players, p)
 	log.Println("New player connected! Name: ", p.name)
 }
 
 func (w *World) leave(p *Player) {
-	w.playerLock.Lock();
-	defer w.playerLock.Unlock();
+	i := w.findPlayer(p.name)
+	w.players[i] = w.players[len(w.players)-1]
+	w.players = w.players[0:len(w.players)-1]
 
-	delete(w.players, p)
 	log.Println("Player disconnected...", p.name)
 
 	m := NewMessage(MSG_ENTITY_REMOVE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
+}
+
+func (w *World) findPlayer(name string) int {
+	for i, p := range w.players {
+		if p.name == name {
+			return i
+		}
+	}
+	return -1
 }
 
 func (w *World) Run() {
@@ -112,6 +123,9 @@ func (w *World) Run() {
 			w.leave(p)
 		case m := <-w.Broadcast:
 			w.broadcast(m)
+		case req := <-w.find:
+			i := w.findPlayer(req.name)
+			req.resp <- w.players[i]
 		}
 	}
 }

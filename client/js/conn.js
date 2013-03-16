@@ -1,8 +1,7 @@
 function getWSURI(path) {
-    path = path || "/ws/new";
     var loc = window.location;
     var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-    uri += "//" + loc.host + path;
+    uri += "//" + loc.host + "/sockets/" + path;
     return uri;
 }
 
@@ -10,7 +9,9 @@ function Conn(uri) {
     var self = this;
     var WS_OPEN = 1;
 
-    if (!uri) uri = getWSURI();
+    if (!uri) {
+        throw "URI required, but not provided to Conn constructor.";
+    }
     var ws = new WebSocket(uri);
 
     var messageQueue = [];
