@@ -1,4 +1,5 @@
-var PLAYER_HEIGHT = 1.6;
+var PLAYER_EYE_HEIGHT = 1.6;
+var PLAYER_HEIGHT = 1.75;
 
 var Player = function (name, world, conn, controls) {
     var self = this;
@@ -14,13 +15,17 @@ var Player = function (name, world, conn, controls) {
         inventory.leftClick();
     });
 
+    var sin = Math.sin;
+    var cos = Math.cos;
+    var abs = Math.abs;
+
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
     };
 
     self.pos = function () {
-        return camera.position;
+        return camera.position.clone();
     }
 
     self.name = function () {
@@ -34,108 +39,81 @@ var Player = function (name, world, conn, controls) {
         camera.rotation.set(r.x, r.y, r.z);
     });
 
-    function solid(x, y, z) {
-        var block = world.blockAt(x, y, z);
-        if (!block) return true;
-        else return block.solid();
-    }
-
-    function bboxEach(bbox, fn, reduce) {
-        var b = bbox;
-        var xs = b.xs, xe = b.xe;
-        var ys = b.ys, ye = b.ye;
-        var zs = b.zs, ze = b.ze;
-        var ym = ys + (ye - ys) / 2;
-        return reduce(
-            fn(xs, ys, zs),
-            fn(xs, ys, ze),
-            fn(xs, ye, zs),
-            fn(xs, ye, ze),
-            fn(xs, ym, zs),
-            fn(xs, ym, ze),
-            fn(xe, ys, zs),
-            fn(xe, ys, ze),
-            fn(xe, ye, zs),
-            fn(xe, ye, ze),
-            fn(xe, ym, zs),
-            fn(xs, ym, ze)
+    function setupBox() {
+        var pos = boxCenter(camera);
+        var halfExtents = new THREE.Vector3(
+            0.2,
+            PLAYER_HEIGHT / 2,
+            0.2
         );
+        return new Box(world, pos, halfExtents);
     }
 
-    function logicalOr() {
-        for (var i = 0; i < arguments.length; i++) {
-            if (arguments[i]) return true;
-        }
-        return false;
+    function boxCenter(camera) {
+        var pos = camera.position.clone();
+        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
+        pos.y -= PLAYER_EYE_HEIGHT/2 + above/2;
+        return pos;
     }
 
-    function inSolid(bbox) {
-        return bboxEach(bbox, solid, logicalOr);
+    function cameraPos(center) {
+        var pos = center.clone();
+        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
+        pos.y += PLAYER_EYE_HEIGHT/2 + above/2;
+        return pos;
     }
 
-    function groundHeight(bbox) {
-        var cg = world.findClosestGround;
-        return bboxEach(bbox, cg, Math.max) + PLAYER_HEIGHT;
+    function round(n, digits) {
+        var factor = Math.pow(10, digits);
+        return Math.round(n * factor) / factor;
     }
 
-    var onGround = true;
-    function attemptMove(move) {
-        var p = camera.position;
-        var pad = 0.2;
-        var bbox = {
-            xs: p.x - pad,
-            xe: p.x + pad,
-            ys: p.y - PLAYER_HEIGHT,
-            ye: p.y + pad,
-            zs: p.z - pad,
-            ze: p.z + pad,
+    function calcMove(dt, c) {
+        var v = 10;
+        var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
+        var rt = dt*v*(c.moveRight ? 1 : c.moveLeft ? -1 : 0);
+        var move = {
+            x: -cos(c.lon) * fw + sin(c.lon) * rt,
+            y: velocityY * dt,
+            z: -sin(c.lon) * fw - cos(c.lon) * rt,
         };
-        var gh = groundHeight(bbox);
+        return move;
+    }
 
-        if (p.y - gh < 0) {
-            p.y = gh;
-            return move;
-        } else if (Math.abs(p.y - gh) < 0.05) {
-            onGround = true;
+    function doLook(camera, p, c) {
+        var target = new THREE.Vector3();
+        target.x = p.x + sin(c.lat) * cos(c.lon);
+        target.y = p.y + cos(c.lat);
+        target.z = p.z + sin(c.lat) * sin(c.lon);
+        camera.lookAt(target);
+    }
+
+    var accumulatedTime = 0;
+    var box = setupBox();
+    self.update = function (dt) {
+        var c = controls.sample();
+        var p = camera.position;
+        var r = camera.rotation;
+        var onGround = box.onGround();
+
+        doLook(camera, p, c);
+
+        if (c.jump && onGround) {
+            velocityY = 6;
+        } else if (onGround) {
+            velocityY = 0;
         } else {
-            onGround = false;
+            velocityY += dt * -9.81;
         }
 
-        if (move.x) {
-            bbox.xs += move.x;
-            bbox.xe += move.x;
-            if (!inSolid(bbox)) {
-                p.x += move.x;
-            } else {
-                bbox.xs -= move.x;
-                bbox.xe -= move.x;
-                move.x = 0;
-            }
-        }
+        var move = calcMove(dt, c);
 
-        if (move.y) {
-            bbox.ys += move.y;
-            bbox.ye += move.y;
-            if (!inSolid(bbox)) {
-                p.y += move.y;
-            } else {
-                bbox.ys -= move.y;
-                bbox.ye -= move.y;
-                move.y = 0;
-            }
+        box.setPos(boxCenter(camera));
+        var newPos = box.attemptMove(move);
+        if (abs(p.y - newPos.y) < 0.0001) {
+            velocityY = 0;
         }
-
-        if (move.z) {
-            bbox.zs += move.z;
-            bbox.ze += move.z;
-            if (!inSolid(bbox)) {
-                p.z += move.z;
-            } else {
-                bbox.zs -= move.z;
-                bbox.ze -= move.z;
-                move.z = 0;
-            }
-        }
+        camera.position = cameraPos(newPos);
 
         var info = document.getElementById('info');
         if (info) {
@@ -145,50 +123,6 @@ var Player = function (name, world, conn, controls) {
                 z: round(p.z, 2),
                 g: onGround,
             });
-        }
-
-        return move;
-    }
-
-    function round(n, digits) {
-        var factor = Math.pow(10, digits);
-        return Math.round(n * factor) / factor;
-    }
-
-    var accumulatedTime = 0;
-    self.update = function (dt) {
-        var c = controls.sample();
-        var p = camera.position;
-        var r = camera.rotation;
-
-        var target = new THREE.Vector3();
-        target.x = p.x + Math.sin(c.lat) * Math.cos(c.lon);
-        target.y = p.y + Math.cos(c.lat);
-        target.z = p.z + Math.sin(c.lat) * Math.sin(c.lon);
-        camera.lookAt(target);
-
-        if (c.jump && onGround) {
-            velocityY = 6;
-            onGround = false;
-        } else if (onGround) {
-            velocityY = 0;
-        } else {
-            velocityY += dt * -9.81;
-        }
-
-        var fw = dt * 10 * (c.moveForward ? 1 : c.moveBack ? -1 : 0);
-        var rt = dt * 10 * (c.moveRight ? 1 : c.moveLeft ? -1 : 0);
-        var sin = Math.sin;
-        var cos = Math.cos;
-        var move = {
-            x: -cos(c.lon) * fw + sin(c.lon) * rt,
-            y: velocityY * dt,
-            z: -sin(c.lon) * fw - cos(c.lon) * rt,
-        };
-
-        move = attemptMove(move);
-        if (move.y === 0) {
-            velocityY = 0;
         }
 
         accumulatedTime += dt;

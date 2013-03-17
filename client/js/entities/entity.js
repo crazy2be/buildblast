@@ -12,7 +12,7 @@ function Entity() {
 
     self.setPos = function (newPos) {
         var p = newPos;
-        bodyMesh.position.set(p.x, p.y - PLAYER_HEIGHT + 1.3/2, p.z);
+        bodyMesh.position.set(p.x, p.y - PLAYER_EYE_HEIGHT + 1.3/2, p.z);
         headMesh.position.set(p.x, p.y, p.z);
         return self;
     }
