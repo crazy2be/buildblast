@@ -41,10 +41,6 @@ func (p *Player) Run(ws *websocket.Conn) {
 	p.c = NewConn(ws)
 	p.w.Join <- p
 
-	m := NewMessage(MSG_PLAYER_ID)
-	m.Payload["id"] = p.name
-	p.c.Send(m)
-
 	for {
 		select {
 		case m := <-p.Broadcast:

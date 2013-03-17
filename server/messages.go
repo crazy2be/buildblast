@@ -11,7 +11,6 @@ const (
 	MSG_ENTITY_POSITION = MessageKind("entity-position")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
-	MSG_PLAYER_ID       = MessageKind("player-id")
 	MSG_PLAYER_POSITION = MessageKind("player-position")
 )
 
