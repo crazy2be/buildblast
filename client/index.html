@@ -40,20 +40,25 @@
             #block-inventory {
                 position: absolute;
                 bottom: 0px;
-                width: 100%;
                 padding: 10px;
                 margin: 0px;
                 z-index: 1;
+            }
+            #weapon-inventory {
+                left: 0px;
+            }
+            #block-inventory {
+                right: 0px;
             }
             #weapon-inventory li,
             #block-inventory li {
                 display: inline;
                 padding: 8px;
+                text-shadow: #FFF 0px 0px 1px;
             }
             #weapon-inventory li.selected,
             #block-inventory li.selected {
-                padding: 3px;
-                border: 5px double;
+                font-weight: bold;
             }
 
             #connection-status {
