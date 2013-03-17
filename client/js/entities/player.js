@@ -1,7 +1,7 @@
 var PLAYER_EYE_HEIGHT = 1.6;
 var PLAYER_HEIGHT = 1.75;
 
-var Player = function (name, world, conn, controls) {
+function Player(name, world, conn, controls) {
     var self = this;
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);

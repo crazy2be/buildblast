@@ -14,8 +14,8 @@ function World(scene, container) {
     var controls = new Controls(container);
     var player = new Player(playerName, self, conn, controls);
 
-    var chunkManager = new ChunkManager(scene, conn, player);
-    var entityHandler = new EntityHandler(scene, conn);
+    var chunkManager = new ChunkManager(scene, player);
+    var entityManager = new EntityManager(scene, conn);
 
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
