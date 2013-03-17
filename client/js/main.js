@@ -1,11 +1,14 @@
+window.onerror = fatalError;
 window.onload = function () {
-    if (!Detector.webgl) {
-        Detector.addGetWebGLMessage();
-        document.querySelector('#container').innerHTML = "";
+    var container = document.getElementById('container');
+    var tester = new FeatureTester();
+    tester.run();
+    if (!tester.pass()) {
+        container.innerHeight = '';
+        container.appendChild(tester.errors());
         return;
     }
 
-    var container = document.getElementById('container');
     var clock = new THREE.Clock();
     var scene = new THREE.Scene();
     var world = new World(scene, container);
