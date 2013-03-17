@@ -59,3 +59,11 @@ function fatalError(err) {
         "<p>Press F5 to attempt a rejoin</p>",
         "</td></tr>"].join("\n");
 }
+
+var sin = Math.sin;
+var cos = Math.cos;
+var abs = Math.abs;
+var min = Math.min;
+var max = Math.max;
+var sqrt = Math.sqrt;
+var pow = Math.pow;

@@ -10,14 +10,15 @@ var Player = function (name, world, conn, controls) {
     camera.position.z = 100.5;
     camera.position.y = CHUNK_HEIGHT / 2;
 
-    var inventory = new Inventory(world, camera);
-    controls.on('mousedown', function () {
-        inventory.leftClick();
+    var blockInventory = new BlockInventory(world, camera);
+    controls.on('place', function () {
+        blockInventory.doAction();
     });
 
-    var sin = Math.sin;
-    var cos = Math.cos;
-    var abs = Math.abs;
+    var weaponInventory = new WeaponInventory(world, camera)
+    controls.on('shoot', function () {
+        weaponInventory.doAction();
+    });
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -138,7 +139,8 @@ var Player = function (name, world, conn, controls) {
                 rot: {x: r.x, y: r.y, z: r.z},
             });
         }
-        inventory.update(c);
+        blockInventory.update(c);
+        weaponInventory.update(c);
     };
 
     self.render = function (renderer, scene) {

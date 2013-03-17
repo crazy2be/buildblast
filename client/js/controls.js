@@ -30,9 +30,15 @@ function Controls(elm) {
         RightCurlyBraket: 221,
     };
 
+    var MouseButtons = {
+        Left: 0,
+        Middle: 1,
+        Right: 2,
+    }
+
     // We have programmer's dvorak keys in here too, because
     // so far there is no reason not to.
-    var KeyActions = {
+    var ActionMappings = {
         moveForward: [Keys.W, Keys.Up, Keys.Comma],
         moveLeft: [Keys.A, Keys.Left],
         moveRight: [Keys.S, Keys.Right, Keys.E],
@@ -42,6 +48,9 @@ function Controls(elm) {
         selectSlot1: [Keys.One, Keys.Ampersand],
         selectSlot2: [Keys.Two, Keys.LeftSquareBraket],
         selectSlot3: [Keys.Three, Keys.RightCurlyBraket],
+
+        shoot: [MouseButtons.Left],
+        place: [MouseButtons.Right],
     };
 
     var self = this;
@@ -52,7 +61,7 @@ function Controls(elm) {
     var movementY = 0;
 
     var lat = -1/2 * Math.PI;
-    var lon = -3/4 * Math.PI;
+    var lon = 1/2 * Math.PI;
 
     var actions = {};
 
@@ -98,11 +107,11 @@ function Controls(elm) {
     elm.addEventListener('keydown', keyDown, false);
     elm.addEventListener('keyup', keyUp, false);
 
-    function keyAction(c, cb) {
-        for (var action in KeyActions) {
-            var keys = KeyActions[action]
-            for (var i = 0; i < keys.length; i++) {
-                if (keys[i] === c) {
+    function findAction(c, cb) {
+        for (var action in ActionMappings) {
+            var vals = ActionMappings[action]
+            for (var i = 0; i < vals.length; i++) {
+                if (vals[i] === c) {
                     cb(action);
                     // Right now this means only the
                     // first action is matched. Should we
@@ -115,13 +124,14 @@ function Controls(elm) {
     }
 
     function keyDown(event) {
-        keyAction(event.keyCode, function (action) {
+        findAction(event.keyCode, function (action) {
             actions[action] = true;
+            eventBus.fire(action);
         });
     }
 
     function keyUp(event) {
-        keyAction(event.keyCode, function (action) {
+        findAction(event.keyCode, function (action) {
             actions[action] = false;
         });
     }
@@ -143,14 +153,21 @@ function Controls(elm) {
         event.preventDefault();
         event.stopPropagation();
 
-        eventBus.fire('mousedown', event);
+        console.log(event.button);
+        findAction(event.button, function (action) {
+            actions[action] = true;
+            console.log(action);
+            eventBus.fire(action);
+        });
     }
 
     function mouseUp(event) {
         event.preventDefault();
         event.stopPropagation();
 
-        eventBus.fire('mouseup', event);
+        findAction(event.button, function (action) {
+            actions[action] = false;
+        });
     }
 
     function mouseMove(event) {

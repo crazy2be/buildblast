@@ -36,7 +36,8 @@
                 z-index: 1;
             }
 
-            #selection {
+            #weapon-inventory,
+            #block-inventory {
                 position: absolute;
                 bottom: 0px;
                 width: 100%;
@@ -44,11 +45,13 @@
                 margin: 0px;
                 z-index: 1;
             }
-            #selection li {
+            #weapon-inventory li,
+            #block-inventory li {
                 display: inline;
                 padding: 8px;
             }
-            #selection li.selected {
+            #weapon-inventory li.selected,
+            #block-inventory li.selected {
                 padding: 3px;
                 border: 5px double;
             }
@@ -101,7 +104,8 @@
             <div id="xHair"></div>
             <div id="info"></div>
             <table id="connection-status"></table>
-            <ol id="selection"></ol>
+            <ol id="block-inventory"></ol>
+            <ol id="weapon-inventory"></ol>
         </div>
 
         <script src="lib/three.min.js"></script>

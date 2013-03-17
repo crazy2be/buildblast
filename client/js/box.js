@@ -1,3 +1,7 @@
+// Implements simple collision detection between the world
+// and a box whose center is at p and has a size described
+// by the given halfExtents. Does not do partial application
+// of movements. Feel free to improve it!
 function Box(world, p, halfExtents) {
     var self = this;
     var onGround = true;
