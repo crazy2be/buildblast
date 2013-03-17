@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/rand"
 )
 
 type ChunkGenerator interface {
@@ -35,23 +36,33 @@ func GenerateChunk(bg BlockGenerator, cc ChunkCoords) Chunk {
 	return blocks
 }
 
-type FlatArenaGenerator struct {}
+type MazeArenaGenerator struct {
+	rand *rand.Rand
+	seed float64
+}
 
-func NewFlatArenaGenerator() *FlatArenaGenerator {
-	fa := new(FlatArenaGenerator)
+func NewMazeArenaGenerator(seed float64) *MazeArenaGenerator {
+	fa := new(MazeArenaGenerator)
+	fa.seed = seed
 	return fa
 }
 
-func (fa *FlatArenaGenerator) Block(wc WorldCoords) Block {
-	if (wc.x < 32 && wc.x >= -32 &&
-		wc.z < 128 && wc.z >= -128 &&
-		wc.y >= 16) {
-			return BLOCK_AIR
+func (fa *MazeArenaGenerator) Block(wc WorldCoords) Block {
+	if (wc.x >= 32 || wc.x < -32 ||
+		wc.z >= 128 || wc.z < -128 ||
+		wc.y < 16) {
+			return BLOCK_DIRT
 	}
-	return BLOCK_DIRT
+
+	val := PerlinNoise(wc.x / 16, wc.z / 16, fa.seed)
+	if wc.y < 20 && val - math.Floor(val) < 0.05 {
+		return BLOCK_DIRT
+	}
+
+	return BLOCK_AIR
 }
 
-func (fa *FlatArenaGenerator) Chunk(cc ChunkCoords) Chunk {
+func (fa *MazeArenaGenerator) Chunk(cc ChunkCoords) Chunk {
 	return GenerateChunk(fa, cc)
 }
 
@@ -72,7 +83,7 @@ func (tg *TunnelGenerator) Block(wc WorldCoords) Block {
 	}
 	floor := math.Floor
 	abs := math.Abs
-	
+
 	height := tg.pa.heightAt(wc.x, wc.z)
 	diff := abs(wc.y - height)
 	if diff < 5 && abs(floor(height) - height) < 0.5 {

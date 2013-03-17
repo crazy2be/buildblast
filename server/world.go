@@ -28,7 +28,7 @@ func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
-	w.generator = NewFlatArenaGenerator()
+	w.generator = NewMazeArenaGenerator(seed)
 	w.players = make([]*Player, 0)
 	w.find = make(chan FindPlayerRequest)
 
