@@ -108,12 +108,13 @@ var Player = function (name, world, conn, controls) {
 
         var move = calcMove(dt, c);
 
-        box.setPos(boxCenter(camera));
-        var newPos = box.attemptMove(move);
-        if (abs(p.y - newPos.y) < 0.0001) {
+        var center = boxCenter(camera);
+        box.setPos(center.clone());
+        var newCenter = box.attemptMove(move);
+        if (abs(center.y - newCenter.y) < 0.0001) {
             velocityY = 0;
         }
-        camera.position = cameraPos(newPos);
+        camera.position = cameraPos(newCenter);
 
         var info = document.getElementById('info');
         if (info) {
