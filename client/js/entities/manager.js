@@ -1,4 +1,6 @@
 function EntityManager(scene, conn) {
+	var self = this;
+
 	var entities = {};
 
 	conn.on('entity-create', function (payload) {
@@ -31,4 +33,13 @@ function EntityManager(scene, conn) {
 		entity.removeFrom(scene);
 		delete entities[id];
 	});
+
+	self.entityAt = function (wx, wy, wz) {
+		for (var id in entities) {
+			var entity = entities[id];
+			if (entity.contains(wx, wy, wz)) {
+				return entity;
+			}
+		}
+	}
 }

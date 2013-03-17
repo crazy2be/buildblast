@@ -2,7 +2,7 @@
 // and a box whose center is at p and has a size described
 // by the given halfExtents. Does not do partial application
 // of movements. Feel free to improve it!
-function Box(world, p, halfExtents) {
+function Box(p, halfExtents) {
     var self = this;
     var onGround = true;
 
@@ -14,11 +14,11 @@ function Box(world, p, halfExtents) {
         return onGround;
     }
 
-    self.attemptMove = function (move) {
-        var gh = groundHeight();
+    self.attemptMove = function (world, move) {
+        var gh = groundHeight(world);
 
         if (p.y - gh < 0) {
-            p.y = gh + 0.05;
+            p.y = gh;
             onGround = true;
             return p;
         } else if (Math.abs(p.y - gh) < 0.05) {
@@ -28,28 +28,39 @@ function Box(world, p, halfExtents) {
         }
 
         p.x += move.x
-        if (inSolid()) {
+        if (inSolid(world)) {
             p.x -= move.x;
         }
 
         p.y += move.y;
-        if (inSolid()) {
+        if (inSolid(world)) {
             p.y -= move.y;
         }
 
         p.z += move.z;
-        if (inSolid()) {
+        if (inSolid(world)) {
             p.z -= move.z;
         }
 
         return p.clone();
     }
 
+    self.contains = function (x, y, z) {
+        var he = halfExtents;
+        var xs = p.x - he.x, xe = p.x + he.x;
+        var ys = p.y - he.y, ye = p.y + he.y;
+        var zs = p.z - he.z, ze = p.z + he.z;
+
+        return xs < x && xe > x &&
+            ys < y && ye > y &&
+            zs < z && ze > z;
+    }
+
     function bboxEach(fn, reduce) {
         var he = halfExtents;
-        var xs = p.x + he.x, xe = p.x - he.x;
-        var ys = p.y + he.y, ye = p.y - he.y;
-        var zs = p.z + he.z, ze = p.z - he.z;
+        var xs = p.x - he.x, xe = p.x + he.x;
+        var ys = p.y - he.y, ye = p.y + he.y;
+        var zs = p.z - he.z, ze = p.z + he.z;
         // TODO: Figure out where more points are needed
         // based on the size of the shape (we use this many
         // because this is needed given the current size of
@@ -71,12 +82,6 @@ function Box(world, p, halfExtents) {
         );
     }
 
-    function solid(x, y, z) {
-        var block = world.blockAt(x, y, z);
-        if (!block) return true;
-        else return block.solid();
-    }
-
     function logicalOr() {
         for (var i = 0; i < arguments.length; i++) {
             if (arguments[i]) return true;
@@ -84,11 +89,16 @@ function Box(world, p, halfExtents) {
         return false;
     }
 
-    function inSolid() {
+    function inSolid(world) {
+        function solid(x, y, z) {
+            var block = world.blockAt(x, y, z);
+            if (!block) return true;
+            else return block.solid();
+        }
         return bboxEach(solid, logicalOr);
     }
 
-    function groundHeight() {
+    function groundHeight(world) {
         var cg = world.findClosestGround;
         return bboxEach(cg, Math.max) + PLAYER_HEIGHT / 2;
     }

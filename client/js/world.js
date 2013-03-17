@@ -106,9 +106,9 @@ function World(scene, container) {
         }
     }
 
-    self.findTargetIntersection = function (camera) {
-        var precision = 0.01;
-        var maxDist = 100;
+    function findIntersection(camera, cb, precision, maxDist) {
+        var precision = precision || 0.01;
+        var maxDist = maxDist || 100;
         var look = new THREE.Vector3(0, 0, 0);
         var projector = new THREE.Projector();
         projector.unprojectVector(look, camera);
@@ -120,20 +120,37 @@ function World(scene, container) {
         while (dist < maxDist) {
             point.add(look);
             dist = camera.position.distanceTo(point);
-            var block = self.blockAt(point.x, point.y, point.z);
-            if (block && block.mineable()) {
+            var collision = cb(point.x, point.y, point.z);
+            if (collision) {
                 return {
                     point: point,
                     dist: dist,
-                    block: block,
-                }
+                };
             }
         }
     }
 
+    self.findPlayerIntersection = function (camera) {
+        function entityAt(wx, wy, wz) {
+            return entityManager.entityAt(wx, wy, wz);
+        }
+        return findIntersection(camera, entityAt, 0.1);
+    }
+
+    self.findBlockIntersection = function (camera) {
+        function blockAt(wx, wy, wz) {
+            var block = self.blockAt(wx, wy, wz);
+            return block && block.mineable();
+        }
+        return findIntersection(camera, blockAt);
+    }
+
     function doLookedAtBlockAction(camera, cmp, cb) {
-        var intersect = self.findTargetIntersection(camera);
-        if (!intersect) return;
+        var intersect = self.findBlockIntersection(camera);
+        if (!intersect) {
+            console.log("You aren't looking at anything!");
+            return;
+        }
         var p = intersect.point;
 
         function onFace(n) {

@@ -9,8 +9,13 @@ function WeaponInventory(world, camera) {
 
     var actions = [
         function () {
-            var intersect = world.findTargetIntersection(camera);
-            if (intersect) world.addSmallCube(intersect.point);
+            var intersect = world.findPlayerIntersection(camera);
+            if (intersect) {
+                console.log("Hit!!", intersect);
+                world.addSmallCube(intersect.point);
+            } else {
+                console.log("miss!!");
+            }
         }
     ];
 

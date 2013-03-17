@@ -63,7 +63,7 @@ function Player(name, world, conn, controls) {
             PLAYER_HEIGHT / 2,
             0.2
         );
-        return new Box(world, pos, halfExtents);
+        return new Box(pos, halfExtents);
     }
 
     function boxCenter(camera) {
@@ -116,7 +116,7 @@ function Player(name, world, conn, controls) {
 
         var center = boxCenter(camera);
         box.setPos(center.clone());
-        var newCenter = box.attemptMove(move);
+        var newCenter = box.attemptMove(world, move);
         if (abs(center.y - newCenter.y) < 0.0001) {
             velocityY = 0;
         }
