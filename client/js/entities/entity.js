@@ -11,29 +11,30 @@ function Entity() {
         color: 0xff0000,
         wireframe: true,
     });
-    var hitboxGeometry = new THREE.CubeGeometry(0.4, PLAYER_HEIGHT, 0.4);
+
+    var he = PLAYER_HALF_EXTENTS;
+    var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
     var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+
     var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
     var bodyMesh = new THREE.Mesh(bodyGeometry, material);
+
     var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
     var headMesh = new THREE.Mesh(headGeometry, material);
 
     self.setPos = function (newPos) {
         pos = newPos;
         var p = pos;
-        bodyMesh.position.set(p.x, p.y - PLAYER_EYE_HEIGHT + 1.3/2, p.z);
-        headMesh.position.set(p.x, p.y, p.z);
+        var h = PLAYER_HEIGHT;
+        var bh = PLAYER_BODY_HEIGHT;
+        bodyMesh.position.set(p.x, p.y - (h - bh)/2, p.z);
+        headMesh.position.set(p.x, p.y + bh/2, p.z);
         hitboxMesh.position.set(p.x, p.y, p.z);
         return self;
     }
 
     self.contains = function (x, y, z) {
-        var halfExtents = new THREE.Vector3(
-            0.2,
-            PLAYER_HEIGHT / 2,
-            0.2
-        );
-        var box = new Box(pos, halfExtents);
+        var box = new Box(pos, PLAYER_HALF_EXTENTS);
         return box.contains(x, y, z);
     }
 
@@ -44,14 +45,14 @@ function Entity() {
     }
 
     self.addTo = function (scene) {
-//         scene.add(bodyMesh);
-//         scene.add(headMesh);
+        scene.add(bodyMesh);
+        scene.add(headMesh);
         scene.add(hitboxMesh);
     }
 
     self.removeFrom = function (scene) {
-//         scene.remove(bodyMesh);
-//         scene.remove(headMesh);
+        scene.remove(bodyMesh);
+        scene.remove(headMesh);
         scene.remove(hitboxMesh);
     }
 }

@@ -1,12 +1,17 @@
 var PLAYER_EYE_HEIGHT = 1.6;
 var PLAYER_HEIGHT = 1.75;
+var PLAYER_BODY_HEIGHT = 1.3;
+var PLAYER_DIST_CENTER_EYE = PLAYER_EYE_HEIGHT - PLAYER_BODY_HEIGHT/2;
+var PLAYER_HALF_EXTENTS = new THREE.Vector3(
+    0.2,
+    PLAYER_HEIGHT / 2,
+    0.2
+);
 
 function Player(name, world, conn, controls) {
     var self = this;
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
-    camera.position.z = 100.5;
-    camera.position.y = CHUNK_HEIGHT / 2;
 
     var blockInventory = new BlockInventory(world, camera);
     controls.on('place', function () {
@@ -33,11 +38,11 @@ function Player(name, world, conn, controls) {
 
     self.update = function (dt) {
         var c = controls.sample();
+
+        doLook(camera, camera.position, c);
+        camera.position = calcNewPosition(dt, c);
+
         var p = camera.position;
-
-        doLook(camera, p, c);
-        p = camera.position = calcNewPosition(dt, c);
-
         blockInventory.update(p, c);
         weaponInventory.update(p, c);
 
@@ -66,18 +71,15 @@ function Player(name, world, conn, controls) {
         return new Box(pos, halfExtents);
     }
 
-    function boxCenter(camera) {
-        var pos = camera.position.clone();
-        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
-        pos.y -= PLAYER_EYE_HEIGHT/2 + above/2;
-        return pos;
+    function cameraPos(boxCen) {
+        boxCen.y += PLAYER_DIST_CENTER_EYE;
+        return boxCen;
     }
 
-    function cameraPos(center) {
-        var pos = center.clone();
-        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
-        pos.y += PLAYER_EYE_HEIGHT/2 + above/2;
-        return pos;
+    function boxCenter(cameraPos) {
+        var cpos = cameraPos;
+        cpos.y -= PLAYER_DIST_CENTER_EYE;
+        return cpos;
     }
 
     function round(n, digits) {
@@ -97,10 +99,9 @@ function Player(name, world, conn, controls) {
     var velocityY = 0;
     function calcNewPosition(dt, c) {
         var onGround = box.onGround();
+
         if (c.jump && onGround) {
             velocityY = 6;
-        } else if (onGround) {
-            velocityY = 0;
         } else {
             velocityY += dt * -9.81;
         }
@@ -114,25 +115,27 @@ function Player(name, world, conn, controls) {
             z: -sin(c.lon) * fw - cos(c.lon) * rt,
         };
 
-        var center = boxCenter(camera);
-        box.setPos(center.clone());
-        var newCenter = box.attemptMove(world, move);
-        if (abs(center.y - newCenter.y) < 0.0001) {
+        var center = camera.position.clone();
+        center.x -= PLAYER_DIST_CENTER_EYE;
+        box.setPos(center);
+        box.attemptMove(world, move);
+        if (move.y === 0) {
             velocityY = 0;
         }
-        return cameraPos(newCenter);
+        center.x += PLAYER_DIST_CENTER_EYE;
+        return center;
     }
 
     function updatePositionText(p) {
         var info = document.getElementById('info');
-        var p = camera.position;
-        if (info) {
-            info.innerHTML = JSON.stringify({
-                x: round(p.x, 2),
-                y: round(p.y, 2),
-                z: round(p.z, 2),
-            });
-        }
+        if (!info) return;
+
+        info.innerHTML = JSON.stringify({
+            x: round(p.x, 2),
+            y: round(p.y, 2),
+            z: round(p.z, 2),
+            g: box.onGround(),
+        });
     }
 
     var accumulatedTime = 0;
@@ -141,6 +144,7 @@ function Player(name, world, conn, controls) {
         var r = camera.rotation;
 
         accumulatedTime += dt;
+
         if (accumulatedTime < 0.1) return;
 
         accumulatedTime -= 0.1;

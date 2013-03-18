@@ -7,6 +7,9 @@ function Box(p, halfExtents) {
     var onGround = true;
 
     self.setPos = function (newPos) {
+        if (!(newPos instanceof THREE.Vector3)) {
+            throw Error("Box.setPos() requires a single vector as an argument!");
+        }
         p = newPos;
     }
 
@@ -17,7 +20,7 @@ function Box(p, halfExtents) {
     self.attemptMove = function (world, move) {
         var gh = groundHeight(world);
 
-        if (p.y - gh < 0) {
+        if (p.y - gh < 0 || inSolid(world)) {
             p.y = gh;
             onGround = true;
             return p;
@@ -30,19 +33,22 @@ function Box(p, halfExtents) {
         p.x += move.x
         if (inSolid(world)) {
             p.x -= move.x;
+            move.x = 0;
         }
 
         p.y += move.y;
         if (inSolid(world)) {
             p.y -= move.y;
+            move.y = 0;
         }
 
         p.z += move.z;
         if (inSolid(world)) {
             p.z -= move.z;
+            move.z = 0;
         }
 
-        return p.clone();
+        return p;
     }
 
     self.contains = function (x, y, z) {
