@@ -41,8 +41,8 @@ function Controls(elm) {
     var ActionMappings = {
         moveForward: [Keys.W, Keys.Up, Keys.Comma],
         moveLeft: [Keys.A, Keys.Left],
-        moveRight: [Keys.S, Keys.Right, Keys.E],
-        moveBack: [Keys.D, Keys.Down, Keys.O],
+        moveRight: [Keys.D, Keys.Right, Keys.E],
+        moveBack: [Keys.S, Keys.Down, Keys.O],
         jump: [Keys.Space],
 
         selectSlot1: [Keys.One, Keys.Ampersand],
