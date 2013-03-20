@@ -8,6 +8,9 @@ function World(scene, container) {
 
     var chunkManager = new ChunkManager(scene, conn, player);
     var entityHandler = new EntityHandler(scene, conn);
+    
+    var ambientLight = new THREE.AmbientLight(0xffffff);
+    scene.add(ambientLight);
 
     conn.on('block', processBlock);
 
@@ -198,10 +201,10 @@ function World(scene, container) {
                 return;
             }
             if (!document.xxgeom) {
-                loadModel('test');
+                loadModel('sniper');
             } else {
                 var model = new THREE.Mesh(document.xxgeom, new THREE.MeshFaceMaterial(document.xxmats));
-                model.scale.set(1, 1, 1);
+                model.scale.set(1, 1, -1);
                 model.position.set(wx, wy + 2, wz);
                 scene.add(model);
             }
