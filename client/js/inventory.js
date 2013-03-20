@@ -4,17 +4,19 @@ function BlockInventory(world, camera) {
     var slots = [
         'shovel',
         'block',
+        'test',
     ];
 
     var currentSlot = 0;
 
     self.doAction = function () {
         var selectedItem = slots[currentSlot];
-
         if (selectedItem == 'shovel') {
             world.removeLookedAtBlock(camera);
         } else if (selectedItem == 'block') {
             world.addLookedAtBlock(camera);
+        } else if (selectedItem == 'test') {
+            world.addTest(camera);
         } else {
             throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
         }
@@ -32,6 +34,8 @@ function BlockInventory(world, camera) {
             selectSlot(0);
         } else if (c.selectSlot2) {
             selectSlot(1);
+        } else if (c.selectSlot3) {
+            selectSlot(2);
         }
     }
 
