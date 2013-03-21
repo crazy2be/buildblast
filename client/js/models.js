@@ -8,15 +8,13 @@ Models.init = function(scene) {
         return new THREE.Mesh(geom, new THREE.MeshFaceMaterial(mats));
     }
     
+    Models.loaded = function () {
+        return Models.sniper != null && Models.world != null;
+    }
+    
     // Load the sniper
     loader.load('models/sniper/sniper.js',
         function (geometry, mats) {
-            // First time adding to the scene, it will lag, do this right away.
-            var model = getModel(geometry, mats);
-            model.position.set(0, 0, 0);
-            model.scale.set(0.001, 0.001, 0.001);
-            scene.add(model);
-            
             Models.sniper = function() {
                 if (model != null) {
                     scene.remove(model);
@@ -24,6 +22,33 @@ Models.init = function(scene) {
                 }
                 return getModel(geometry, mats);
             }
+            
+            // First time adding to the scene, it will lag, do this right away.
+            var model = getModel(geometry, mats);
+            model.position.set(0, 0, 0);
+            model.scale.set(0.001, 0.001, 0.001);
+            scene.add(model);
+            if (Models.loaded()) window.gameInit();
+        }
+    );
+    
+    // Load the world
+    loader.load('models/test/test.js',
+        function (geometry, mats) {
+            Models.world = function() {
+                if (model != null) {
+                    scene.remove(model);
+                    model = null;
+                }
+                return getModel(geometry, mats);
+            }
+            
+            // First time adding to the scene, it will lag, do this right away.
+            var model = getModel(geometry, mats);
+            model.position.set(0, 0, 0);
+            model.scale.set(0.001, 0.001, 0.001);
+            scene.add(model);
+            if (Models.loaded()) window.gameInit();
         }
     );
 }
