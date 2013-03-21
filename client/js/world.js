@@ -188,7 +188,6 @@ function World(scene, container) {
         doLookedAtBlockAction(camera, air, addBlock);
     }
     
-    // DEBUG - Ignore this nightmare
     self.addTest = function (camera) {
         function dirt(x, y, z) {
             var block = self.blockAt(x, y, z);
@@ -197,32 +196,13 @@ function World(scene, container) {
         }
 
         function addModel(wx, wy, wz) {
-            if (document.xxloader) {
-                return;
-            }
-            if (!document.xxgeom) {
-                loadModel('sniper');
-            } else {
-                var model = new THREE.Mesh(document.xxgeom, new THREE.MeshFaceMaterial(document.xxmats));
-                model.scale.set(1, 1, -1);
-                model.position.set(wx, wy + 2, wz);
-                scene.add(model);
-            }
+            var model = Models.sniper();
+            model.scale.set(1, 1, -1);
+            model.position.set(wx, wy + 2, wz);
+            scene.add(model);
         }
         doLookedAtBlockAction(camera, dirt, addModel);
     }
-
-    function loadModel (modelName) {
-        document.xxloader = new THREE.JSONLoader();
-        document.xxloader.load('models/' + modelName + '/' + modelName + '.js',
-            function (geometry, mats) {
-                document.xxgeom = geometry;
-                document.xxmats = mats;
-                document.xxloader = false;
-            }
-        );
-    }
-    // END DEBUG
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
