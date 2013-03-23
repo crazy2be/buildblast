@@ -9,6 +9,9 @@ var Player = function (name, world, conn, controls) {
     var gun = Models.pistol();
     gun.scale.set(1/2, 1/2, 1/2);
     world.addToScene(gun);
+    var shovel = Models.shovel();
+    shovel.scale.set(1/2, 1/2, 1/2);
+    world.addToScene(shovel);
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
     camera.position.z = 100.5;
@@ -93,12 +96,20 @@ var Player = function (name, world, conn, controls) {
         camera.lookAt(target);
     }
 
-    function doPointGun(gun, p, c) {
+    function doPointItem(item, position, c) {
         var target = new THREE.Vector3();
-        target.x = p.x + sin(c.lat) * cos(c.lon);
-        target.y = p.y + cos(c.lat);
-        target.z = p.z + sin(c.lat) * sin(c.lon);
-        gun.lookAt(target);
+        target.x = position.x + sin(c.lat) * cos(c.lon);
+        target.y = position.y + cos(c.lat);
+        target.z = position.z + sin(c.lat) * sin(c.lon);
+        item.lookAt(target);
+    }
+
+    function doPositionItem(item, playerPos, c, leftward) {
+        var pp = playerPos;
+        var ip = item.position;
+        ip.x = pp.x + -cos(c.lon) * 0.09 - sin(c.lon) * leftward;
+        ip.y = pp.y + -0.1;
+        ip.z = pp.z + -sin(c.lon) * 0.09 + cos(c.lon) * leftward;
     }
 
     var accumulatedTime = 0;
@@ -135,11 +146,10 @@ var Player = function (name, world, conn, controls) {
         vector.applyMatrix4(camera.matrixWorld);
         vector = vector.sub(p).normalize();
 
-        gun.position = new THREE.Vector3(p.x, p.y, p.z);
-        gun.position.x += -cos(c.lon) * 0.09 - sin(c.lon) * 0.1;
-        gun.position.y += -0.1;
-        gun.position.z += -sin(c.lon) * 0.09 + cos(c.lon) * 0.1,
-        doPointGun(gun, gun.position, c);
+        doPositionItem(gun, p, c, 0.1);
+        doPointItem(gun, gun.position, c);
+        doPositionItem(shovel, p, c, -0.1);
+        doPointItem(shovel, shovel.position, c);
 
         var info = document.getElementById('info');
         if (info) {
