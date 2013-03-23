@@ -87,12 +87,14 @@
 
             div#xHair {
                 position: absolute;
-                -moz-border-radius: 5px;
-                -webkit-border-radius: 5px;
-                border-radius: 5px;
-                border: solid 2px #000000;
-                width: 5px;
-                height: 5px;
+                background-image: url(img/crosshair.png);
+                width: 33px;
+                height: 33px;
+                /* If we make this 16.5 like it should be,
+                 * then it will jump by about a pixel or so
+                 * when the game loads, which sucks. */
+                margin-left: -16px;
+                margin-top: -16.5px;
                 top: 50%;
                 left: 50%;
                 z-index: 2;
