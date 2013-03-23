@@ -5,9 +5,9 @@ var Player = function (name, world, conn, controls) {
     var self = this;
 
     var velocityY = 0;
-    
-    var gun = Models.sniper();
-    gun.scale.set(0.1, 0.1, -0.1);
+
+    var gun = Models.pistol();
+    gun.scale.set(1, 1, 1);
     world.addToScene(gun);
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
@@ -92,7 +92,7 @@ var Player = function (name, world, conn, controls) {
         target.z = p.z + sin(c.lat) * sin(c.lon);
         camera.lookAt(target);
     }
-    
+
     function doPointGun(gun, p, c) {
         var target = new THREE.Vector3();
         target.x = p.x + sin(c.lat) * cos(c.lon);
@@ -134,11 +134,11 @@ var Player = function (name, world, conn, controls) {
         var vector = new THREE.Vector3(0, 0, -1);
         vector.applyMatrix4(camera.matrixWorld);
         vector = vector.sub(p).normalize();
-        
+
         gun.position = new THREE.Vector3(p.x, p.y, p.z);
-        gun.position.x += -cos(c.lon) * 0.09 + sin(c.lon) * 0.1;
-        gun.position.y += -0.1;
-        gun.position.z += -sin(c.lon) * 0.09 - cos(c.lon) * 0.1,
+        gun.position.x += -cos(c.lon) * 0.1 - sin(c.lon) * 0.1;
+        gun.position.y += -0.3;
+        gun.position.z += -sin(c.lon) * 0.1 + cos(c.lon) * 0.1,
         doPointGun(gun, gun.position, c);
 
         var info = document.getElementById('info');
