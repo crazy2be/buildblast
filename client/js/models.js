@@ -1,73 +1,37 @@
 function Models() {};
 
-Models.init = function(scene) {
-    // Load the static mesh and textures
+Models.init = function(scene, loadedCallback) {
     var loader = new THREE.JSONLoader();
 
-    function getModel(geom, mats) {
-        return new THREE.Mesh(geom, new THREE.MeshFaceMaterial(mats));
+    var modelsToLoad = {
+        pistol: 'models/pistol/pistol.js',
+        world: 'models/test/test.js',
+    };
+
+    function loadNextModel() {
+        var name = getAKey(modelsToLoad);
+        if (name === false) {
+            loadedCallback();
+            return;
+        }
+
+        var path = modelsToLoad[name];
+
+        loader.load(path, function (geom, mats) {
+            var mat = new THREE.MeshFaceMaterial(mats);
+            console.log(mats);
+
+            Models[name] = function () {
+                return new THREE.Mesh(geom, mat);
+            }
+            delete modelsToLoad[name]
+            loadNextModel();
+        });
     }
+    loadNextModel();
 
-    Models.loaded = function () {
-        return Models.sniper != null && Models.world != null && Models.pistol != null;
+    function getAKey(obj) {
+        for (var k in obj) return k;
+        return false;
     }
-
-    // Load the sniper
-    loader.load('models/sniper/sniper.js',
-        function (geometry, mats) {
-            Models.sniper = function() {
-                if (model != null) {
-                    scene.remove(model);
-                    model = null;
-                }
-                return getModel(geometry, mats);
-            }
-
-            // First time adding to the scene, it will lag, do this right away.
-            var model = getModel(geometry, mats);
-            model.position.set(0, 0, 0);
-            model.scale.set(0.001, 0.001, 0.001);
-            scene.add(model);
-            if (Models.loaded()) window.gameInit();
-        }
-    );
-
-    loader.load('models/pistol/pistol.js',
-        function (geometry, mats) {
-            Models.pistol = function () {
-                if (model != null) {
-                    scene.remove(model);
-                    model = null;
-                }
-                return getModel(geometry, mats);
-            }
-
-            // First time adding to the scene, it will lag, do this right away.
-            var model = getModel(geometry, mats);
-            model.position.set(0, 0, 0);
-            model.scale.set(1, 1, 1);
-            scene.add(model);
-            if (Models.loaded()) window.gameInit();
-        }
-    )
-
-    // Load the world
-    loader.load('models/test/test.js',
-        function (geometry, mats) {
-            Models.world = function() {
-                if (model != null) {
-                    scene.remove(model);
-                    model = null;
-                }
-                return getModel(geometry, mats);
-            }
-
-            // First time adding to the scene, it will lag, do this right away.
-            var model = getModel(geometry, mats);
-            model.position.set(0, 0, 0);
-            model.scale.set(0.001, 0.001, 0.001);
-            scene.add(model);
-            if (Models.loaded()) window.gameInit();
-        }
-    );
 }
