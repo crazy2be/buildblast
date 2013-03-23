@@ -9,9 +9,8 @@ window.onload = function () {
         return;
     }
 
-
-    var scene = new THREE.Scene();
-    Models.init(scene, function() {
+    Models.init(function() {
+        var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
 

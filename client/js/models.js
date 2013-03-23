@@ -1,6 +1,6 @@
 function Models() {};
 
-Models.init = function(scene, loadedCallback) {
+Models.init = function(loadedCallback) {
     var loader = new THREE.JSONLoader();
 
     var modelsToLoad = {
