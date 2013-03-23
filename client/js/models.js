@@ -7,6 +7,7 @@ Models.init = function(loadedCallback) {
         pistol: 'models/pistol/pistol.js',
         world: 'models/test/test.js',
         shovel: 'models/shovel/shovel.js',
+        block: 'models/block/block.js',
     };
 
     function loadNextModel() {

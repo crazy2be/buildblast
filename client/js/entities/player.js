@@ -7,10 +7,10 @@ var Player = function (name, world, conn, controls) {
     var velocityY = 0;
 
     var gun = Models.pistol();
-    gun.scale.set(1/2, 1/2, 1/2);
+    gun.scale.set(1/4, 1/4, 1/4);
     world.addToScene(gun);
-    var shovel = Models.shovel();
-    shovel.scale.set(1/2, 1/2, 1/2);
+    var shovel = Models.block();
+//     shovel.scale.set(1/8, 1/8, 1/8);
     world.addToScene(shovel);
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
