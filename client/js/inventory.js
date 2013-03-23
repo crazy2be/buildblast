@@ -23,13 +23,11 @@ function BlockInventory(world, camera) {
     var slots = [
         'shovel',
         'block',
-        'test',
     ];
 
     var models = [
         Models.shovel(),
         Models.block(),
-        Models.world(),
     ];
 
     var actions = [
@@ -39,9 +37,6 @@ function BlockInventory(world, camera) {
         function () {
             world.addLookedAtBlock(camera);
         },
-        function () {
-            world.addTest(camera);
-        }
     ];
 
     var elm = document.getElementById('block-inventory');

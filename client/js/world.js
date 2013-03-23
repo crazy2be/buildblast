@@ -1,10 +1,10 @@
 function World(scene, container) {
     var self = this;
-    
+
     self.addToScene = function (mesh) {
         scene.add(mesh);
     }
-    
+
     self.removeFromScene = function (mesh) {
         scene.remove(mesh);
     }
@@ -16,7 +16,7 @@ function World(scene, container) {
 
     var chunkManager = new ChunkManager(scene, conn, player);
     var entityHandler = new EntityHandler(scene, conn);
-    
+
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
 
@@ -37,7 +37,7 @@ function World(scene, container) {
 
     self.render = player.render;
     self.resize = player.resize;
-    
+
     self.addSmallCube = function (position) {
         if (!position) throw "Position required!";
         var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
@@ -194,22 +194,6 @@ function World(scene, container) {
             changeBlock(wx, wy, wz, Block.DIRT);
         }
         doLookedAtBlockAction(camera, air, addBlock);
-    }
-    
-    self.addTest = function (camera) {
-        function dirt(x, y, z) {
-            var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.DIRT);
-            else return false;
-        }
-
-        function addModel(wx, wy, wz) {
-            var model = Models.world();
-            model.scale.set(1, 1, 1);
-            model.position.set(wx, wy + 2, wz);
-            scene.add(model);
-        }
-        doLookedAtBlockAction(camera, dirt, addModel);
     }
 
     function changeBlock(wx, wy, wz, newType) {

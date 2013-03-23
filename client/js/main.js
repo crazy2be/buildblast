@@ -9,7 +9,9 @@ window.onload = function () {
         return;
     }
 
-    Models.init(function() {
+    Models.init(startGame);
+
+    function startGame() {
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
@@ -42,7 +44,7 @@ window.onload = function () {
             world.render(renderer, scene);
             stats.update();
         }
-    });
+    }
 };
 
 function fatalError(err) {
