@@ -7,7 +7,7 @@ var Player = function (name, world, conn, controls) {
     var velocityY = 0;
 
     var gun = Models.pistol();
-    gun.scale.set(1, 1, 1);
+    gun.scale.set(1/2, 1/2, 1/2);
     world.addToScene(gun);
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
@@ -136,9 +136,9 @@ var Player = function (name, world, conn, controls) {
         vector = vector.sub(p).normalize();
 
         gun.position = new THREE.Vector3(p.x, p.y, p.z);
-        gun.position.x += -cos(c.lon) * 0.1 - sin(c.lon) * 0.1;
-        gun.position.y += -0.3;
-        gun.position.z += -sin(c.lon) * 0.1 + cos(c.lon) * 0.1,
+        gun.position.x += -cos(c.lon) * 0.09 - sin(c.lon) * 0.1;
+        gun.position.y += -0.1;
+        gun.position.z += -sin(c.lon) * 0.09 + cos(c.lon) * 0.1,
         doPointGun(gun, gun.position, c);
 
         var info = document.getElementById('info');
