@@ -16,7 +16,7 @@ function WeaponInventory(world, camera) {
 
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm);
+    return new Inventory(world, camera, slots, models, actions, elm, 0.1);
 }
 
 function BlockInventory(world, camera) {
@@ -46,10 +46,10 @@ function BlockInventory(world, camera) {
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm);
+    return new Inventory(world, camera, slots, models, actions, elm, -0.1);
 }
 
-function Inventory(world, camera, slots, models, actions, elm) {
+function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
     var self = this;
 
     var currentSlot = -1;
@@ -64,6 +64,7 @@ function Inventory(world, camera, slots, models, actions, elm) {
     }
 
     function selectSlot(n) {
+        if (slots.length <= n) return;
         var html = generateInventoryHTML(slots, n);
         elm.innerHTML = html;
         if (currentSlot > -1) {
@@ -73,8 +74,31 @@ function Inventory(world, camera, slots, models, actions, elm) {
         currentSlot = n;
     }
 
-    self.update = function (controlState) {
+    function pointItem(item, c) {
+        var p = item.position;
+        var target = new THREE.Vector3();
+        target.x = p.x + sin(c.lat) * cos(c.lon);
+        target.y = p.y + cos(c.lat);
+        target.z = p.z + sin(c.lat) * sin(c.lon);
+        item.lookAt(target);
+    }
+
+    function positionItem(item, playerPos, c, leftward) {
+        var pp = playerPos;
+        var ip = item.position;
+        ip.x = pp.x + -cos(c.lon) * 0.09 - sin(c.lon) * leftward;
+        ip.y = pp.y + -0.1;
+        ip.z = pp.z + -sin(c.lon) * 0.09 + cos(c.lon) * leftward;
+    }
+
+
+    self.update = function (playerPosition, controlState) {
+        var p = playerPosition;
         var c = controlState;
+        var item = models[currentSlot];
+        positionItem(item, p, c, leftwardOffset);
+        pointItem(item, c);
+
         if (c.selectSlot1) {
             selectSlot(0);
         } else if (c.selectSlot2) {
