@@ -1,6 +1,14 @@
 function World(scene, container) {
     var self = this;
 
+    self.addToScene = function (mesh) {
+        scene.add(mesh);
+    }
+
+    self.removeFromScene = function (mesh) {
+        scene.remove(mesh);
+    }
+
     var playerName = "player-" + Math.random();
     var conn = new Conn(getWSURI("main/" + playerName));
     var controls = new Controls(container);
@@ -8,6 +16,9 @@ function World(scene, container) {
 
     var chunkManager = new ChunkManager(scene, conn, player);
     var entityHandler = new EntityHandler(scene, conn);
+
+    var ambientLight = new THREE.AmbientLight(0xffffff);
+    scene.add(ambientLight);
 
     conn.on('block', processBlock);
 
