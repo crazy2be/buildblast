@@ -2,9 +2,8 @@
 // and a box whose center is at p and has a size described
 // by the given halfExtents. Does not do partial application
 // of movements. Feel free to improve it!
-function Box(p, halfExtents) {
+function Box(p, halfExtents, centerOffset) {
     var self = this;
-    var onGround = true;
 
     self.setPos = function (newPos) {
         if (!(newPos instanceof THREE.Vector3)) {
@@ -13,21 +12,11 @@ function Box(p, halfExtents) {
         p = newPos;
     }
 
-    self.onGround = function () {
-        return onGround;
-    }
-
     self.attemptMove = function (world, move) {
-        var gh = groundHeight(world);
-
-        if (p.y - gh < 0) {
+        if (inSolid(world)) {
+            var gh = groundHeight(world);
+            move.y = p.y - gh;
             p.y = gh;
-            onGround = true;
-            return p;
-        } else if (Math.abs(p.y - gh) < 0.05) {
-            onGround = true;
-        } else {
-            onGround = false;
         }
 
         p.x += move.x
@@ -53,9 +42,10 @@ function Box(p, halfExtents) {
 
     self.contains = function (x, y, z) {
         var he = halfExtents;
-        var xs = p.x - he.x, xe = p.x + he.x;
-        var ys = p.y - he.y, ye = p.y + he.y;
-        var zs = p.z - he.z, ze = p.z + he.z;
+        var co = centerOffset;
+        var xs = p.x + co.x - he.x, xe = p.x + co.x + he.x;
+        var ys = p.y + co.y - he.y, ye = p.y + co.y + he.y;
+        var zs = p.z + co.z - he.z, ze = p.z + co.z + he.z;
 
         return xs < x && xe > x &&
             ys < y && ye > y &&
@@ -64,9 +54,10 @@ function Box(p, halfExtents) {
 
     function bboxEach(fn, reduce) {
         var he = halfExtents;
-        var xs = p.x - he.x, xe = p.x + he.x;
-        var ys = p.y - he.y, ye = p.y + he.y;
-        var zs = p.z - he.z, ze = p.z + he.z;
+        var co = centerOffset;
+        var xs = p.x + co.x - he.x, xe = p.x + co.x + he.x;
+        var ys = p.y + co.y - he.y, ye = p.y + co.y + he.y;
+        var zs = p.z + co.z - he.z, ze = p.z + co.z + he.z;
         // TODO: Figure out where more points are needed
         // based on the size of the shape (we use this many
         // because this is needed given the current size of
@@ -106,6 +97,6 @@ function Box(p, halfExtents) {
 
     function groundHeight(world) {
         var cg = world.findClosestGround;
-        return bboxEach(cg, Math.max) + PLAYER_HEIGHT / 2;
+        return bboxEach(cg, Math.max) + halfExtents.y;
     }
 }

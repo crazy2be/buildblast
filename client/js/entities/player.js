@@ -9,7 +9,7 @@ var PLAYER_HALF_EXTENTS = new THREE.Vector3(
 );
 var PLAYER_CENTER_OFFSET = new THREE.Vector3(
     0,
-    PLAYER_DIST_CENTER_EYE,
+    -PLAYER_DIST_CENTER_EYE,
     0
 );
 
@@ -43,11 +43,11 @@ function Player(name, world, conn, controls) {
 
     self.update = function (dt) {
         var c = controls.sample();
-
-        doLook(camera, camera.position, c);
-        camera.position = calcNewPosition(dt, c);
-
         var p = camera.position;
+
+        doLook(camera, p, c);
+        calcNewPosition(dt, c);
+
         blockInventory.update(p, c);
         weaponInventory.update(p, c);
 
@@ -82,13 +82,7 @@ function Player(name, world, conn, controls) {
     var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
     var velocityY = 0;
     function calcNewPosition(dt, c) {
-        var onGround = box.onGround();
-
-        if (c.jump && onGround) {
-            velocityY = 6;
-        } else {
-            velocityY += dt * -9.81;
-        }
+        velocityY += dt * -9.81;
 
         var v = 10;
         var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
@@ -99,15 +93,10 @@ function Player(name, world, conn, controls) {
             z: -sin(c.lon) * fw - cos(c.lon) * rt,
         };
 
-        var center = camera.position.clone();
-        center.y -= PLAYER_DIST_CENTER_EYE;
-        box.setPos(center);
         box.attemptMove(world, move);
         if (move.y === 0) {
-            velocityY = 0;
+            velocityY = c.jump ? 6 : 0;
         }
-        center.y += PLAYER_DIST_CENTER_EYE;
-        return center;
     }
 
     function updatePositionText(p) {
@@ -118,7 +107,7 @@ function Player(name, world, conn, controls) {
             x: round(p.x, 2),
             y: round(p.y, 2),
             z: round(p.z, 2),
-            g: box.onGround(),
+            v: round(velocityY, 2),
         });
     }
 
