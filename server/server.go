@@ -28,14 +28,14 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	p := NewClient(globalWorld, name)
-	p.Run(NewConn(ws))
+	c := NewClient(globalWorld, name)
+	c.Run(NewConn(ws))
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	p := globalWorld.FindClient(name)
-	p.RunChunks(NewConn(ws))
+	c := globalWorld.FindClient(name)
+	c.RunChunks(NewConn(ws))
 }
 
 func doProfile() {

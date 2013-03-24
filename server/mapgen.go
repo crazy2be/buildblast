@@ -25,9 +25,9 @@ func GenerateChunk(bg BlockGenerator, cc ChunkCoords) Chunk {
 			blocks[ox][oy] = make([]Block, cd)
 			for oz := 0; oz < cd; oz++ {
 				wc := WorldCoords {
-					x: float64(ox + cc.x*cw),
-					y: float64(oy + cc.y*ch),
-					z: float64(oz + cc.z*cd),
+					X: float64(ox + cc.X*cw),
+					Y: float64(oy + cc.Y*ch),
+					Z: float64(oz + cc.Z*cd),
 				}
 				blocks[ox][oy][oz] = bg.Block(wc)
 			}
@@ -48,14 +48,14 @@ func NewMazeArenaGenerator(seed float64) *MazeArenaGenerator {
 }
 
 func (fa *MazeArenaGenerator) Block(wc WorldCoords) Block {
-	if (wc.x >= 32 || wc.x < -32 ||
-		wc.z >= 128 || wc.z < -128 ||
-		wc.y < 16) {
+	if (wc.X >= 32 || wc.X < -32 ||
+		wc.Z >= 128 || wc.Z < -128 ||
+		wc.Y < 16) {
 			return BLOCK_DIRT
 	}
 
-	val := PerlinNoise(wc.x / 16, wc.z / 16, fa.seed)
-	if wc.y < 20 && val - math.Floor(val) < 0.05 {
+	val := PerlinNoise(wc.X / 16, wc.Z / 16, fa.seed)
+	if wc.Y < 20 && val - math.Floor(val) < 0.05 {
 		return BLOCK_DIRT
 	}
 
@@ -78,14 +78,16 @@ func NewTunnelGenerator(seed float64) *TunnelGenerator {
 
 func (tg *TunnelGenerator) Block(wc WorldCoords) Block {
 
-	if (wc.z >= 99 && wc.z <= 101 && wc.y > 14 && wc.y < 20 && wc.x >= -1 && wc.x <= 1) {
+	if (wc.Z >= 99 && wc.Z <= 101 &&
+		wc.Y > 14 && wc.Y < 20 &&
+		wc.X >= -1 && wc.X <= 1) {
 		return BLOCK_AIR
 	}
 	floor := math.Floor
 	abs := math.Abs
 
-	height := tg.pa.heightAt(wc.x, wc.z)
-	diff := abs(wc.y - height)
+	height := tg.pa.heightAt(wc.X, wc.Z)
+	diff := abs(wc.Y - height)
 	if diff < 5 && abs(floor(height) - height) < 0.5 {
 		return BLOCK_AIR
 	}

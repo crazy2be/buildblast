@@ -17,7 +17,7 @@ type World struct {
 
 	Join       chan *Client
 	Leave      chan *Client
-	Broadcast  chan *Message
+	Broadcast  chan Message
 	StateUpdate chan *PlayerState
 }
 
@@ -37,7 +37,7 @@ func NewWorld(seed float64) *World {
 
 	w.Join = make(chan *Client)
 	w.Leave = make(chan *Client)
-	w.Broadcast = make(chan *Message, 10)
+	w.Broadcast = make(chan Message, 10)
 	w.StateUpdate = make(chan *PlayerState, 10000000)
 
 	return w
@@ -71,7 +71,7 @@ func (w *World) FindClient(name string) *Client {
 	return <-req.resp
 }
 
-func (w *World) broadcast(m *Message) {
+func (w *World) broadcast(m Message) {
 	for name, p := range w.clients {
 		select {
 		case p.Broadcast <- m:
@@ -83,13 +83,15 @@ func (w *World) broadcast(m *Message) {
 }
 
 func (w *World) join(c *Client) {
-	m := NewMessage(MSG_ENTITY_CREATE)
-	m.Payload["id"] = c.name
+	m := MsgEntityCreate{
+		ID: c.name,
+	}
 	w.broadcast(m)
 
 	for _, otherClient := range w.clients {
-		m := NewMessage(MSG_ENTITY_CREATE)
-		m.Payload["id"] = otherClient.name
+		m := MsgEntityCreate{
+			ID: otherClient.name,
+		}
 		c.Broadcast <- m
 	}
 
@@ -110,8 +112,9 @@ func (w *World) leave(c *Client) {
 
 	log.Println("Client disconnected...", c.name)
 
-	m := NewMessage(MSG_ENTITY_REMOVE)
-	m.Payload["id"] = c.name
+	m := MsgEntityRemove{
+		ID: c.name,
+	}
 	w.broadcast(m)
 }
 

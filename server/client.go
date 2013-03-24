@@ -11,7 +11,7 @@ type Client struct {
 
 	name string
 
-	Broadcast chan *Message
+	Broadcast chan Message
 	cm *ChunkManager
 }
 
@@ -20,7 +20,7 @@ func NewClient(world *World, name string) *Client {
 	c.world = world
 	c.name = name
 
-	c.Broadcast = make(chan *Message, 10)
+	c.Broadcast = make(chan Message, 10)
 	c.cm = newChunkManager()
 
 	return c
@@ -36,9 +36,9 @@ func (c *Client) Run(conn *Conn) {
 				// A bit of a gross hack, but we don't want the player
 				// to recieve broadcast messages for the position of
 				// their own entity.
-				if m.Kind == MSG_ENTITY_POSITION && c.name == m.Payload["id"] {
-					continue
-				}
+// 				if m.Kind == MSG_ENTITY_POSITION && c.name == m.Payload["id"] {
+// 					continue
+// 				}
 				c.conn.Send(m)
 			default:
 				m := c.conn.Recv()
@@ -60,72 +60,66 @@ func (c *Client) RunChunks(conn *Conn) {
 			continue
 		}
 
-		m := NewMessage(MSG_CHUNK)
-		m.Payload["ccpos"] = cc.toMap()
-		m.Payload["size"] = map[string]interface{}{
-			"w": CHUNK_WIDTH,
-			"h": CHUNK_HEIGHT,
-			"d": CHUNK_DEPTH,
-		}
-
 		chunk := c.world.RequestChunk(cc)
-		m.Payload["data"] = chunk.Flatten()
+
+		m := MsgChunk{
+			CCPos: cc,
+			Size: Vec3{
+				X: CHUNK_WIDTH,
+				Y: CHUNK_HEIGHT,
+				Z: CHUNK_DEPTH,
+			},
+			Data: chunk.Flatten(),
+		}
 
 		conn.Send(m)
 	}
 }
 
-func (c *Client) handleMessage(m *Message) {
-	switch m.Kind {
-		case MSG_BLOCK:
-			c.handleBlock(m)
-		case MSG_PLAYER_POSITION:
-			c.handleClientPosition(m)
+func (c *Client) handleMessage(m Message) {
+	switch m.(type) {
+		case MsgBlock:
+			c.handleBlock(m.(MsgBlock))
+		case MsgPlayerPosition:
+			c.handleClientPosition(m.(MsgPlayerPosition))
 		default:
-			log.Print("Unknown message recieved from client of kind ", m.Kind)
+			log.Print("Unknown message recieved from client:", m)
 			return
 	}
 }
 
 func (c *Client) sendClientPos(wc WorldCoords) {
-	m := NewMessage(MSG_PLAYER_POSITION)
-	m.Payload["pos"] = wc.toMap()
+	m := MsgPlayerPosition{
+		Pos: wc,
+	}
 	c.conn.Send(m)
 }
 
-func (c *Client) handleBlock(m *Message) {
-	pl := m.Payload
-	wc := readWorldCoords(pl)
-	typ := Block(pl["type"].(float64))
-
-	c.world.ChangeBlock(wc, typ)
-	c.world.Broadcast <- m
+func (c *Client) handleBlock(m MsgBlock) {
+	c.world.ChangeBlock(m.Pos, m.Type)
+// 	c.world.Broadcast <- m
 }
 
-func (c *Client) handleClientPosition(m *Message) {
-	pl := m.Payload
-	// TODO: Verify position is valid
-	// (they didn't move too much in the last
-	// couple frames, and they are not currently
-	// in the ground).
-	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
-
-	pl["id"] = c.name
-	m.Kind = MSG_ENTITY_POSITION
-	c.world.Broadcast <- m
-	playerState := &PlayerState{
-		Position: wc,
-		Rotation: readVec3(pl["rot"].(map[string]interface{})),
-		Controls: readControlState(pl["controls"].(map[string]interface{})),
-		Name: c.name,
-	}
-	c.world.StateUpdate <- playerState
+func (c *Client) handleClientPosition(m MsgPlayerPosition) {
+	wc := m.Pos
+// 	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
+//
+// 	pl["id"] = c.name
+// 	m.Kind = MSG_ENTITY_POSITION
+// 	c.world.Broadcast <- m
+// 	playerState := &PlayerState{
+// 		Position: wc,
+// 		Rotation: readVec3(pl["rot"].(map[string]interface{})),
+// 		Controls: readControlState(pl["controls"].(map[string]interface{})),
+// 		Name: c.name,
+// 	}
+// 	c.world.StateUpdate <- playerState
 
 	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
 		return ChunkCoords{
-			x: cc.x + x,
-			y: cc.y + y,
-			z: cc.z + z,
+			X: cc.X + x,
+			Y: cc.Y + y,
+			Z: cc.Z + z,
 		}
 	}
 
@@ -155,9 +149,9 @@ func (c *Client) handleClientPosition(m *Message) {
 	});
 
 	oc := wc.Offset();
-	if oc.y <= 4 {
+	if oc.Y <= 4 {
 		c.cm.display(occ(cc, 0, -1, 0), 1);
-	} else if oc.y >= 28 {
+	} else if oc.Y >= 28 {
 		c.cm.display(occ(cc, 0, 1, 0), 1);
 	}
 }
