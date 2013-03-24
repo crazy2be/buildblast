@@ -4,8 +4,6 @@ var PLAYER_HEIGHT = 1.75;
 var Player = function (name, world, conn, controls) {
     var self = this;
 
-    var velocityY = 0;
-
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
     camera.position.z = 100.5;
     camera.position.y = CHUNK_HEIGHT / 2;
@@ -32,6 +30,24 @@ var Player = function (name, world, conn, controls) {
     self.name = function () {
         return name;
     }
+
+    self.update = function (dt) {
+        var c = controls.sample();
+        var p = camera.position;
+
+        doLook(camera, p, c);
+        p = camera.position = calcNewPosition(dt, c);
+
+        blockInventory.update(p, c);
+        weaponInventory.update(p, c);
+
+        updatePositionText(p);
+        updateNetwork(dt);
+    };
+
+    self.render = function (renderer, scene) {
+        renderer.render(scene, camera);
+    };
 
     conn.on('player-position', function (payload) {
         var p = payload.pos;
@@ -69,18 +85,6 @@ var Player = function (name, world, conn, controls) {
         return Math.round(n * factor) / factor;
     }
 
-    function calcMove(dt, c) {
-        var v = 10;
-        var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
-        var rt = dt*v*(c.moveRight ? 1 : c.moveLeft ? -1 : 0);
-        var move = {
-            x: -cos(c.lon) * fw + sin(c.lon) * rt,
-            y: velocityY * dt,
-            z: -sin(c.lon) * fw - cos(c.lon) * rt,
-        };
-        return move;
-    }
-
     function doLook(camera, p, c) {
         var target = new THREE.Vector3();
         target.x = p.x + sin(c.lat) * cos(c.lon);
@@ -89,16 +93,10 @@ var Player = function (name, world, conn, controls) {
         camera.lookAt(target);
     }
 
-    var accumulatedTime = 0;
     var box = setupBox();
-    self.update = function (dt) {
-        var c = controls.sample();
-        var p = camera.position;
-        var r = camera.rotation;
+    var velocityY = 0;
+    function calcNewPosition(dt, c) {
         var onGround = box.onGround();
-
-        doLook(camera, p, c);
-
         if (c.jump && onGround) {
             velocityY = 6;
         } else if (onGround) {
@@ -107,7 +105,14 @@ var Player = function (name, world, conn, controls) {
             velocityY += dt * -9.81;
         }
 
-        var move = calcMove(dt, c);
+        var v = 10;
+        var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
+        var rt = dt*v*(c.moveRight ? 1 : c.moveLeft ? -1 : 0);
+        var move = {
+            x: -cos(c.lon) * fw + sin(c.lon) * rt,
+            y: velocityY * dt,
+            z: -sin(c.lon) * fw - cos(c.lon) * rt,
+        };
 
         var center = boxCenter(camera);
         box.setPos(center.clone());
@@ -115,35 +120,37 @@ var Player = function (name, world, conn, controls) {
         if (abs(center.y - newCenter.y) < 0.0001) {
             velocityY = 0;
         }
-        camera.position = cameraPos(newCenter);
+        return cameraPos(newCenter);
+    }
 
+    function updatePositionText(p) {
         var info = document.getElementById('info');
+        var p = camera.position;
         if (info) {
             info.innerHTML = JSON.stringify({
                 x: round(p.x, 2),
                 y: round(p.y, 2),
                 z: round(p.z, 2),
-                g: onGround,
             });
         }
+    }
+
+    var accumulatedTime = 0;
+    function updateNetwork(dt) {
+        var p = camera.position;
+        var r = camera.rotation;
 
         accumulatedTime += dt;
-        if (accumulatedTime > 0.1) {
-            accumulatedTime -= 0.1;
-            if (accumulatedTime > 1) {
-                console.warn("Having trouble keeping up with minimum update speed of 10fps! (", accumulatedTime, " seconds behind). Trouble ahead...");
-                accumulatedTime = 0;
-            }
-            conn.queue('player-position', {
-                pos: {x: p.x, y: p.y, z: p.z},
-                rot: {x: r.x, y: r.y, z: r.z},
-            });
-        }
-        blockInventory.update(c);
-        weaponInventory.update(c);
-    };
+        if (accumulatedTime < 0.1) return;
 
-    self.render = function (renderer, scene) {
-        renderer.render(scene, camera);
-    };
+        accumulatedTime -= 0.1;
+        if (accumulatedTime > 1) {
+            console.warn("Having trouble keeping up with minimum update speed of 10fps! (", accumulatedTime, " seconds behind). Trouble ahead...");
+            accumulatedTime = 0;
+        }
+        conn.queue('player-position', {
+            pos: {x: p.x, y: p.y, z: p.z},
+            rot: {x: r.x, y: r.y, z: r.z},
+        });
+    }
 };

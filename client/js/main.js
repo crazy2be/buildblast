@@ -9,37 +9,41 @@ window.onload = function () {
         return;
     }
 
-    var clock = new THREE.Clock();
-    var scene = new THREE.Scene();
-    var world = new World(scene, container);
+    Models.init(startGame);
 
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    function startGame() {
+        var scene = new THREE.Scene();
+        var clock = new THREE.Clock();
+        var world = new World(scene, container);
 
-    container.querySelector('.loader').innerHTML = "";
-    container.appendChild(renderer.domElement);
-
-    var stats = new Stats();
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.top = '0px';
-    container.appendChild(stats.domElement);
-
-    window.addEventListener('resize', onWindowResize, false);
-
-    animate();
-
-    function onWindowResize() {
-        world.resize();
+        var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
-    }
 
-    function animate() {
-        requestAnimationFrame(animate);
+        container.querySelector('.loader').innerHTML = "";
+        container.appendChild(renderer.domElement);
 
-        var dt = clock.getDelta();
-        world.update(dt);
-        world.render(renderer, scene);
-        stats.update();
+        var stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.top = '0px';
+        container.appendChild(stats.domElement);
+
+        window.addEventListener('resize', onWindowResize, false);
+
+        animate();
+
+        function onWindowResize() {
+            world.resize();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            var dt = clock.getDelta();
+            world.update(dt);
+            world.render(renderer, scene);
+            stats.update();
+        }
     }
 };
 
