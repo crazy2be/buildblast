@@ -23,13 +23,16 @@ func (c *Conn) Send(m Message) {
 
 	cm := new(ClientMessage)
 	cm.Kind = typeToKind(m)
+
 	cm.Payload, err = json.Marshal(m)
 	if err != nil {
-		log.Print("Marshalling websocket message: ", err)
+		log.Println("Marshalling websocket message:", err)
+		return
 	}
+
 	err = websocket.JSON.Send(c.ws, cm)
 	if err != nil {
-		log.Print("Sending websocket message: ", err)
+		log.Println("Sending websocket message:", err)
 		return
 	}
 }
@@ -39,15 +42,17 @@ func (c *Conn) Recv() Message {
 	err := websocket.JSON.Receive(c.ws, cm)
 	if err != nil {
 		if err != io.EOF {
-			log.Print("Reading websocket message: ", err)
+			log.Println("Reading websocket message:", err)
 		}
 		return nil
 	}
+
 	m := kindToType(cm.Kind)
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
-		log.Println("Unmarshalling websocket message: ", err)
+		log.Println("Unmarshalling websocket message:", err)
 	}
+
 	return m
 }
 
@@ -64,7 +69,7 @@ func kindToType(kind MessageKind) Message {
 		case MSG_PLAYER_POSITION:
 			return &MsgPlayerPosition{}
 	}
-	panic("Unknown message recieved from client!")
+	panic("Unknown message recieved from client: " + string(kind))
 }
 
 func typeToKind(m Message) MessageKind {
@@ -82,5 +87,5 @@ func typeToKind(m Message) MessageKind {
 		case *MsgPlayerPosition:
 			return MSG_PLAYER_POSITION
 	}
-	panic("Attempted to send unknown message to client!" + reflect.TypeOf(m).String())
+	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }

@@ -13,17 +13,6 @@ type ControlState struct {
 	Lon float64
 }
 
-func readControlState(pl map[string]interface{}) ControlState {
-	return ControlState{
-// 		Forward: pl["moveForward"].(bool),
-// 		Left: pl["moveLeft"].(bool),
-// 		Right: pl["moveRight"].(bool),
-// 		Back: pl["moveBack"].(bool),
-// 		Lat: pl["lat"].(float64),
-// 		Lon: pl["lon"].(float64),
-	}
-}
-
 type PlayerState struct {
 	Position WorldCoords
 	Rotation Vec3

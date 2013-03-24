@@ -94,10 +94,7 @@ func (c *Client) handleBlock(m *MsgBlock) {
 
 func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	wc := m.Pos
-// 	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
-//
-// 	pl["id"] = c.name
-// 	m.Kind = MSG_ENTITY_POSITION
+
 	positionBroadcast := &MsgEntityPosition{
 		Pos: m.Pos,
 		Rot: m.Rot,
