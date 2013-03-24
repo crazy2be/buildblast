@@ -10,17 +10,17 @@ type World struct {
 	chunks      map[ChunkCoords]Chunk
 	generator   ChunkGenerator
 	chunkLock   sync.Mutex
-	players     []*Player
-	find       chan FindPlayerRequest
+	players     []*Client
+	find       chan FindClientRequest
 
-	Join       chan *Player
-	Leave      chan *Player
+	Join       chan *Client
+	Leave      chan *Client
 	Broadcast  chan *Message
 }
 
-type FindPlayerRequest struct {
+type FindClientRequest struct {
 	name string
-	resp chan *Player
+	resp chan *Client
 }
 
 func NewWorld(seed float64) *World {
@@ -28,11 +28,11 @@ func NewWorld(seed float64) *World {
 	w.seed = seed;
 	w.chunks = make(map[ChunkCoords]Chunk)
 	w.generator = NewMazeArenaGenerator(seed)
-	w.players = make([]*Player, 0)
-	w.find = make(chan FindPlayerRequest)
+	w.players = make([]*Client, 0)
+	w.find = make(chan FindClientRequest)
 
-	w.Join = make(chan *Player)
-	w.Leave = make(chan *Player)
+	w.Join = make(chan *Client)
+	w.Leave = make(chan *Client)
 	w.Broadcast = make(chan *Message, 10)
 
 	return w
@@ -56,10 +56,10 @@ func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
 
-func (w *World) FindPlayer(name string) *Player {
-	req := FindPlayerRequest {
+func (w *World) FindClient(name string) *Client {
+	req := FindClientRequest {
 		name: name,
-		resp: make(chan *Player),
+		resp: make(chan *Client),
 	}
 	w.find <- req
 
@@ -77,14 +77,14 @@ func (w *World) broadcast(m *Message) {
 	}
 }
 
-func (w *World) join(p *Player) {
+func (w *World) join(p *Client) {
 	m := NewMessage(MSG_ENTITY_CREATE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
 
-	for _, otherPlayer := range w.players {
+	for _, otherClient := range w.players {
 		m := NewMessage(MSG_ENTITY_CREATE)
-		m.Payload["id"] = otherPlayer.name
+		m.Payload["id"] = otherClient.name
 		p.Broadcast <- m
 	}
 
@@ -92,19 +92,19 @@ func (w *World) join(p *Player) {
 	log.Println("New player connected! Name: ", p.name)
 }
 
-func (w *World) leave(p *Player) {
-	i := w.findPlayer(p.name)
+func (w *World) leave(p *Client) {
+	i := w.findClient(p.name)
 	w.players[i] = w.players[len(w.players)-1]
 	w.players = w.players[0:len(w.players)-1]
 
-	log.Println("Player disconnected...", p.name)
+	log.Println("Client disconnected...", p.name)
 
 	m := NewMessage(MSG_ENTITY_REMOVE)
 	m.Payload["id"] = p.name
 	w.broadcast(m)
 }
 
-func (w *World) findPlayer(name string) int {
+func (w *World) findClient(name string) int {
 	for i, p := range w.players {
 		if p.name == name {
 			return i
@@ -123,7 +123,7 @@ func (w *World) Run() {
 		case m := <-w.Broadcast:
 			w.broadcast(m)
 		case req := <-w.find:
-			i := w.findPlayer(req.name)
+			i := w.findClient(req.name)
 			req.resp <- w.players[i]
 		}
 	}
