@@ -15,6 +15,12 @@ const (
 	CHUNK_HEIGHT = 32
 )
 
+var CHUNK_SIZE Vec3 = Vec3{
+	X: CHUNK_WIDTH,
+	Y: CHUNK_HEIGHT,
+	Z: CHUNK_DEPTH,
+}
+
 func (c Chunk) Block(oc OffsetCoords) Block {
 	return c[oc.X][oc.Y][oc.Z]
 }

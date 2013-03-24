@@ -72,24 +72,24 @@ func (w *World) FindClient(name string) *Client {
 }
 
 func (w *World) broadcast(m Message) {
-	for name, p := range w.clients {
+	for _, c := range w.clients {
 		select {
-		case p.Broadcast <- m:
+		case c.Broadcast <- m:
 		default:
-			log.Println("Cannot send broadcast message", m, "to player", name)
+			log.Println("Cannot send broadcast message", m, "to player", c.name)
 			// TODO: Kick player if not responding?
 		}
 	}
 }
 
 func (w *World) join(c *Client) {
-	m := MsgEntityCreate{
+	m := &MsgEntityCreate{
 		ID: c.name,
 	}
 	w.broadcast(m)
 
 	for _, otherClient := range w.clients {
-		m := MsgEntityCreate{
+		m := &MsgEntityCreate{
 			ID: otherClient.name,
 		}
 		c.Broadcast <- m
@@ -112,7 +112,7 @@ func (w *World) leave(c *Client) {
 
 	log.Println("Client disconnected...", c.name)
 
-	m := MsgEntityRemove{
+	m := &MsgEntityRemove{
 		ID: c.name,
 	}
 	w.broadcast(m)

@@ -216,9 +216,11 @@ function World(scene, container) {
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
-            x: wx,
-            y: wy,
-            z: wz,
+            pos: {
+                x: wx,
+                y: wy,
+                z: wz,
+            },
             type: newType,
         });
         applyBlockChange(wx, wy, wz, newType);

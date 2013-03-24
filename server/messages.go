@@ -22,6 +22,7 @@ type MsgEntityCreate struct {
 type MsgEntityPosition struct {
 	Pos   WorldCoords
 	Rot   Vec3
+	ID    string
 }
 
 type MsgEntityRemove struct {

@@ -33,22 +33,16 @@ func (c *Client) Run(conn *Conn) {
 
 	for {
 		select {
-			case m := <-c.Broadcast:
-				// A bit of a gross hack, but we don't want the player
-				// to recieve broadcast messages for the position of
-				// their own entity.
-// 				if m.Kind == MSG_ENTITY_POSITION && c.name == m.Payload["id"] {
-// 					continue
-// 				}
-				c.conn.Send(m)
-			default:
-				m := c.conn.Recv()
-				if m != nil {
-					c.handleMessage(m)
-				} else {
-					c.world.Leave <- c
-					return
-				}
+		case m := <-c.Broadcast:
+			c.conn.Send(m)
+		default:
+			m := c.conn.Recv()
+			if m != nil {
+				c.handleMessage(m)
+			} else {
+				c.world.Leave <- c
+				return
+			}
 		}
 	}
 }
@@ -65,11 +59,7 @@ func (c *Client) RunChunks(conn *Conn) {
 
 		m := &MsgChunk{
 			CCPos: cc,
-			Size: Vec3{
-				X: CHUNK_WIDTH,
-				Y: CHUNK_HEIGHT,
-				Z: CHUNK_DEPTH,
-			},
+			Size: CHUNK_SIZE,
 			Data: chunk.Flatten(),
 		}
 
@@ -97,6 +87,7 @@ func (c *Client) sendClientPos(wc WorldCoords) {
 }
 
 func (c *Client) handleBlock(m *MsgBlock) {
+	log.Println(m)
 	c.world.ChangeBlock(m.Pos, m.Type)
 // 	c.world.Broadcast <- m
 }
@@ -107,7 +98,12 @@ func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 //
 // 	pl["id"] = c.name
 // 	m.Kind = MSG_ENTITY_POSITION
-// 	c.world.Broadcast <- m
+	positionBroadcast := &MsgEntityPosition{
+		Pos: m.Pos,
+		Rot: m.Rot,
+		ID: c.name,
+	}
+	c.world.Broadcast <- positionBroadcast
 // 	playerState := &PlayerState{
 // 		Position: wc,
 // 		Rotation: readVec3(pl["rot"].(map[string]interface{})),
