@@ -1,7 +1,6 @@
 package main
 
 import (
-// 	"fmt"
 	"encoding/json"
 )
 
@@ -54,19 +53,3 @@ type ClientMessage struct {
 }
 
 type Message interface{}
-
-// struct {
-// 	Kind MessageKind
-// 	Payload interface{}
-// }
-
-// func NewMessage(kind MessageKind) *Message {
-// 	ms := new(Message)
-// 	ms.Kind = kind
-// // 	ms.Payload = make(map[string]interface{})
-// 	return ms
-// }
-//
-// func (m *Message) String() string {
-// 	return fmt.Sprintf("{kind: %s, payload: %v}", m.Kind, m.Payload)
-// }

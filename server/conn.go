@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log"
+	"reflect"
 	"encoding/json"
 	"code.google.com/p/go.net/websocket"
 )
@@ -43,38 +44,43 @@ func (c *Conn) Recv() Message {
 		return nil
 	}
 	m := kindToType(cm.Kind)
-	json.Unmarshal(cm.Payload, &m)
+	err = json.Unmarshal(cm.Payload, &m)
+	if err != nil {
+		log.Println("Unmarshalling websocket message: ", err)
+	}
 	return m
 }
 
-func kindToType(kind MessageKind) interface{} {
+func kindToType(kind MessageKind) Message {
 	switch kind {
 		case MSG_ENTITY_CREATE:
-			return MsgEntityCreate{}
+			return &MsgEntityCreate{}
 		case MSG_ENTITY_POSITION:
-			return MsgEntityPosition{}
+			return &MsgEntityPosition{}
 		case MSG_ENTITY_REMOVE:
-			return MsgEntityRemove{}
+			return &MsgEntityRemove{}
 		case MSG_BLOCK:
-			return MsgBlock{}
+			return &MsgBlock{}
 		case MSG_PLAYER_POSITION:
-			return MsgPlayerPosition{}
+			return &MsgPlayerPosition{}
 	}
 	panic("Unknown message recieved from client!")
 }
 
 func typeToKind(m Message) MessageKind {
 	switch m.(type) {
-		case MsgEntityCreate:
+		case *MsgEntityCreate:
 			return MSG_ENTITY_CREATE
-		case MsgEntityPosition:
+		case *MsgEntityPosition:
 			return MSG_ENTITY_POSITION
-		case MsgEntityRemove:
+		case *MsgEntityRemove:
 			return MSG_ENTITY_REMOVE
-		case MsgBlock:
+		case *MsgChunk:
+			return MSG_CHUNK
+		case *MsgBlock:
 			return MSG_BLOCK
-		case MsgPlayerPosition:
+		case *MsgPlayerPosition:
 			return MSG_PLAYER_POSITION
 	}
-	panic("Attempted to send unknown message to client!")
+	panic("Attempted to send unknown message to client!" + reflect.TypeOf(m).String())
 }

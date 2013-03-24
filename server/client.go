@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"time"
+	"reflect"
 )
 
 type Client struct {
@@ -62,7 +63,7 @@ func (c *Client) RunChunks(conn *Conn) {
 
 		chunk := c.world.RequestChunk(cc)
 
-		m := MsgChunk{
+		m := &MsgChunk{
 			CCPos: cc,
 			Size: Vec3{
 				X: CHUNK_WIDTH,
@@ -78,12 +79,12 @@ func (c *Client) RunChunks(conn *Conn) {
 
 func (c *Client) handleMessage(m Message) {
 	switch m.(type) {
-		case MsgBlock:
-			c.handleBlock(m.(MsgBlock))
-		case MsgPlayerPosition:
-			c.handleClientPosition(m.(MsgPlayerPosition))
+		case *MsgBlock:
+			c.handleBlock(m.(*MsgBlock))
+		case *MsgPlayerPosition:
+			c.handleClientPosition(m.(*MsgPlayerPosition))
 		default:
-			log.Print("Unknown message recieved from client:", m)
+			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
 }
@@ -95,12 +96,12 @@ func (c *Client) sendClientPos(wc WorldCoords) {
 	c.conn.Send(m)
 }
 
-func (c *Client) handleBlock(m MsgBlock) {
+func (c *Client) handleBlock(m *MsgBlock) {
 	c.world.ChangeBlock(m.Pos, m.Type)
 // 	c.world.Broadcast <- m
 }
 
-func (c *Client) handleClientPosition(m MsgPlayerPosition) {
+func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	wc := m.Pos
 // 	wc := readWorldCoords(pl["pos"].(map[string]interface{}))
 //
