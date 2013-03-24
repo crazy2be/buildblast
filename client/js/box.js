@@ -4,6 +4,7 @@
 // of movements. Feel free to improve it!
 function Box(p, halfExtents, centerOffset) {
     var self = this;
+    centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
     self.setPos = function (newPos) {
         if (!(newPos instanceof THREE.Vector3)) {
