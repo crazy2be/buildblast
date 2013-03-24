@@ -7,6 +7,11 @@ var PLAYER_HALF_EXTENTS = new THREE.Vector3(
     PLAYER_HEIGHT / 2,
     0.2
 );
+var PLAYER_CENTER_OFFSET = new THREE.Vector3(
+    0,
+    PLAYER_DIST_CENTER_EYE,
+    0
+);
 
 function Player(name, world, conn, controls) {
     var self = this;
@@ -61,27 +66,6 @@ function Player(name, world, conn, controls) {
         camera.rotation.set(r.x, r.y, r.z);
     });
 
-    function setupBox() {
-        var pos = boxCenter(camera);
-        var halfExtents = new THREE.Vector3(
-            0.2,
-            PLAYER_HEIGHT / 2,
-            0.2
-        );
-        return new Box(pos, halfExtents);
-    }
-
-    function cameraPos(boxCen) {
-        boxCen.y += PLAYER_DIST_CENTER_EYE;
-        return boxCen;
-    }
-
-    function boxCenter(cameraPos) {
-        var cpos = cameraPos;
-        cpos.y -= PLAYER_DIST_CENTER_EYE;
-        return cpos;
-    }
-
     function round(n, digits) {
         var factor = Math.pow(10, digits);
         return Math.round(n * factor) / factor;
@@ -95,7 +79,7 @@ function Player(name, world, conn, controls) {
         camera.lookAt(target);
     }
 
-    var box = setupBox();
+    var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
     var velocityY = 0;
     function calcNewPosition(dt, c) {
         var onGround = box.onGround();
@@ -116,13 +100,13 @@ function Player(name, world, conn, controls) {
         };
 
         var center = camera.position.clone();
-        center.x -= PLAYER_DIST_CENTER_EYE;
+        center.y -= PLAYER_DIST_CENTER_EYE;
         box.setPos(center);
         box.attemptMove(world, move);
         if (move.y === 0) {
             velocityY = 0;
         }
-        center.x += PLAYER_DIST_CENTER_EYE;
+        center.y += PLAYER_DIST_CENTER_EYE;
         return center;
     }
 

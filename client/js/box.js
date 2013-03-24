@@ -20,7 +20,7 @@ function Box(p, halfExtents) {
     self.attemptMove = function (world, move) {
         var gh = groundHeight(world);
 
-        if (p.y - gh < 0 || inSolid(world)) {
+        if (p.y - gh < 0) {
             p.y = gh;
             onGround = true;
             return p;
