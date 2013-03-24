@@ -4,3 +4,5 @@
 buildshoot-server
 buildshoot-server.exe
 .kateconfig
+.project
+.settings

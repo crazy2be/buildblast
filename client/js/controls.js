@@ -78,6 +78,7 @@ function Controls(elm) {
         }
 
         lon += movementX * lookSpeed;
+        lon %= 2 * Math.PI
         lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);
 

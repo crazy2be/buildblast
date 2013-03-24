@@ -16,7 +16,7 @@ function WeaponInventory(world, camera) {
 
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm, 0.1);
+    return new Inventory(world, camera, slots, models, actions, elm, 0.05);
 }
 
 function BlockInventory(world, camera) {
@@ -41,7 +41,7 @@ function BlockInventory(world, camera) {
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm, -0.1);
+    return new Inventory(world, camera, slots, models, actions, elm, -0.05);
 }
 
 function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
@@ -78,21 +78,36 @@ function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
         item.lookAt(target);
     }
 
-    function positionItem(item, playerPos, c, leftward) {
+    function positionItem(item, playerPos, c) {
         var pp = playerPos;
         var ip = item.position;
-        ip.x = pp.x + -cos(c.lon) * 0.09 - sin(c.lon) * leftward;
-        ip.y = pp.y + -0.1;
-        ip.z = pp.z + -sin(c.lon) * 0.09 + cos(c.lon) * leftward;
+        // http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
+        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon)
+        ip.y = pp.y + 0.15 * cos(c.lat);
+        ip.z = pp.z + 0.15 * sin(c.lat) * sin(c.lon);
     }
 
+    function postitionPerspective(item, leftward) {
+        var p = item.position;
+        var r = new THREE.Matrix4();
+        r.setRotationFromEuler(item.rotation, item.eulerOrder);
+
+        // Mov left / right
+        var mov = new THREE.Vector3(leftward, 0, 0);
+        mov.applyMatrix3(r);
+
+        p.x += mov.x;
+        p.y += mov.y;
+        p.z += mov.z;
+    }
 
     self.update = function (playerPosition, controlState) {
         var p = playerPosition;
         var c = controlState;
         var item = models[currentSlot];
-        positionItem(item, p, c, leftwardOffset);
+        positionItem(item, p, c);
         pointItem(item, c);
+        postitionPerspective(item, leftwardOffset);
 
         if (c.selectSlot1) {
             selectSlot(0);
