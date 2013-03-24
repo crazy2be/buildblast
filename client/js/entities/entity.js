@@ -1,4 +1,4 @@
-function Entity() {
+function Entity(id) {
     var self = this;
 
     var pos;
@@ -59,6 +59,10 @@ function Entity() {
         scene.remove(bodyMesh);
         scene.remove(headMesh);
         scene.remove(hitboxMesh);
+    }
+
+    self.id = function () {
+        return id;
     }
 }
 

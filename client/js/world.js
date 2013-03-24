@@ -125,6 +125,7 @@ function World(scene, container) {
                 return {
                     point: point,
                     dist: dist,
+                    item: collision,
                 };
             }
         }

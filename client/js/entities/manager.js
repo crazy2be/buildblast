@@ -9,7 +9,7 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity();
+		var entity = new Entity(id);
 		entity.addTo(scene);
 		entities[id] = entity;
 	});

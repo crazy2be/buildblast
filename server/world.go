@@ -11,7 +11,6 @@ type World struct {
 	generator   ChunkGenerator
 	chunkLock   sync.Mutex
 	players     []*Player
-	playerLock  sync.Mutex
 	find       chan FindPlayerRequest
 
 	Join       chan *Player
