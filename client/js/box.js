@@ -6,13 +6,6 @@ function Box(p, halfExtents, centerOffset) {
     var self = this;
     centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
-    self.setPos = function (newPos) {
-        if (!(newPos instanceof THREE.Vector3)) {
-            throw Error("Box.setPos() requires a single vector as an argument!");
-        }
-        p = newPos;
-    }
-
     self.attemptMove = function (world, move) {
         if (inSolid(world)) {
             var gh = groundHeight(world);
@@ -98,6 +91,6 @@ function Box(p, halfExtents, centerOffset) {
 
     function groundHeight(world) {
         var cg = world.findClosestGround;
-        return bboxEach(cg, Math.max) + halfExtents.y;
+        return bboxEach(cg, Math.max) + halfExtents.y - centerOffset.y;
     }
 }

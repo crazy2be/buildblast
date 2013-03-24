@@ -13,6 +13,7 @@ function Entity() {
     });
 
     var he = PLAYER_HALF_EXTENTS;
+    var co = PLAYER_CENTER_OFFSET;
     var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
     var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
 
@@ -24,17 +25,21 @@ function Entity() {
 
     self.setPos = function (newPos) {
         pos = newPos;
-        var p = pos;
+        var c = new THREE.Vector3(
+            pos.x + co.x,
+            pos.y + co.y,
+            pos.z + co.z
+        );
         var h = PLAYER_HEIGHT;
         var bh = PLAYER_BODY_HEIGHT;
-        bodyMesh.position.set(p.x, p.y - (h - bh)/2, p.z);
-        headMesh.position.set(p.x, p.y + bh/2, p.z);
-        hitboxMesh.position.set(p.x, p.y, p.z);
+        bodyMesh.position.set(c.x, c.y - (h - bh)/2, c.z);
+        headMesh.position.set(c.x, c.y + bh/2, c.z);
+        hitboxMesh.position.set(c.x, c.y, c.z);
         return self;
     }
 
     self.contains = function (x, y, z) {
-        var box = new Box(pos, PLAYER_HALF_EXTENTS);
+        var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
         return box.contains(x, y, z);
     }
 
