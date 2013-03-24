@@ -77,9 +77,9 @@ func (c *Client) RunChunks(conn *Conn) {
 
 func (c *Client) handleMessage(m *Message) {
 	switch m.Kind {
-		case "block":
+		case MSG_BLOCK:
 			c.handleBlock(m)
-		case "player-position":
+		case MSG_PLAYER_POSITION:
 			c.handleClientPosition(m)
 		default:
 			log.Print("Unknown message recieved from client of kind ", m.Kind)
@@ -113,6 +113,13 @@ func (c *Client) handleClientPosition(m *Message) {
 	pl["id"] = c.name
 	m.Kind = MSG_ENTITY_POSITION
 	c.world.Broadcast <- m
+	playerState := &PlayerState{
+		Position: wc,
+		Rotation: readVec3(pl["rot"].(map[string]interface{})),
+		Controls: readControlState(pl["controls"].(map[string]interface{})),
+		Name: c.name,
+	}
+	c.world.StateUpdate <- playerState
 
 	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
 		return ChunkCoords{

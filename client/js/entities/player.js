@@ -52,7 +52,7 @@ function Player(name, world, conn, controls) {
         weaponInventory.update(p, c);
 
         updatePositionText(p);
-        updateNetwork(dt);
+        updateNetwork(dt, p, camera.rotation, c);
     };
 
     self.render = function (renderer, scene) {
@@ -112,10 +112,7 @@ function Player(name, world, conn, controls) {
     }
 
     var accumulatedTime = 0;
-    function updateNetwork(dt) {
-        var p = camera.position;
-        var r = camera.rotation;
-
+    function updateNetwork(dt, p, r, c) {
         accumulatedTime += dt;
 
         if (accumulatedTime < 0.1) return;
@@ -128,6 +125,7 @@ function Player(name, world, conn, controls) {
         conn.queue('player-position', {
             pos: {x: p.x, y: p.y, z: p.z},
             rot: {x: r.x, y: r.y, z: r.z},
+            controls: c,
         });
     }
 };

@@ -12,6 +12,20 @@ func mod(a, b int) int {
 	return ((a % b) + b) % b
 }
 
+type Vec3 struct {
+	x float64
+	y float64
+	z float64
+}
+
+func readVec3(pl map[string]interface{}) Vec3 {
+	return Vec3{
+		x: pl["x"].(float64),
+		y: pl["y"].(float64),
+		z: pl["z"].(float64),
+	}
+}
+
 type WorldCoords struct {
 	x float64
 	y float64
@@ -19,11 +33,7 @@ type WorldCoords struct {
 }
 
 func readWorldCoords(pl map[string]interface{}) WorldCoords {
-	return WorldCoords{
-		x: pl["x"].(float64),
-		y: pl["y"].(float64),
-		z: pl["z"].(float64),
-	}
+	return WorldCoords(readVec3(pl))
 }
 
 func (wc WorldCoords) Chunk() ChunkCoords {
