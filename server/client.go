@@ -34,6 +34,9 @@ func (c *Client) Run(conn *Conn) {
 	for {
 		select {
 		case m := <-c.Broadcast:
+			if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
+				continue
+			}
 			c.conn.Send(m)
 		default:
 			m := c.conn.Recv()
