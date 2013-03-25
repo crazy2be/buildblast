@@ -159,5 +159,5 @@ func (c *Client) handleChat(m *MsgChat) {
 	m.ID = c.name
 	m.Time = time.Now().UnixNano() / 1000
 	c.world.Broadcast <- m
-	log.Print("[CHAT]", m.ID, m.Message);
+	log.Println("[CHAT]", m.ID, m.Message);
 }
