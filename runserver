@@ -1,15 +1,15 @@
 #!/bin/bash -e
 
-cd server
+cd server/src/main
 if go version; then
     echo "Compiling server..."
     go build -o buildshoot-server *.go
 
-    mv buildshoot-server ../client || mv buildshoot-server.exe ../client
-    cd ../client
+    mv buildshoot-server ../../../client
+    cd ../../../client
 
     echo "Starting server..."
-    ./buildshoot-server || ./buildshoot-server.exe
+    ./buildshoot-server
 
     exit 0
 else
