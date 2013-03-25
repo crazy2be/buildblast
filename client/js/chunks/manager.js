@@ -1,4 +1,4 @@
-function ChunkManager(scene, conn, player) {
+function ChunkManager(scene, player) {
     var self = this;
 
     var chunks = {};

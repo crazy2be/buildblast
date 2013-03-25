@@ -48,16 +48,20 @@ function initConn(payload) {
 var manager = new ChunkManager();
 
 function processChunk(payload) {
-    var size = payload.size;
-    if (size.w != CHUNK_WIDTH ||
-        size.h != CHUNK_HEIGHT ||
-        size.d != CHUNK_DEPTH
+    var size = payload.Size;
+    if (size.X != CHUNK_WIDTH ||
+        size.Y != CHUNK_HEIGHT ||
+        size.Z != CHUNK_DEPTH
     ) {
         throw "Got chunk of size which does not match our expected chunk size!";
     }
 
-    var cc = payload.ccpos;
-    var data = payload.data;
+    var cc = {
+        x: payload.CCPos.X,
+        y: payload.CCPos.Y,
+        z: payload.CCPos.Z,
+    };
+    var data = payload.Data;
 
     var blocks = new Uint8Array(data.length);
     for (var i = 0; i < blocks.length; i++) {
@@ -67,7 +71,7 @@ function processChunk(payload) {
     }
 
     var chunk = manager.get(cc);
-    if (chunk) throw "Got chunk data twice! Server bug! Ignoring message...";
+    if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
     chunk = new ChunkGeometry(cc, blocks, manager);
     manager.set(cc, chunk);

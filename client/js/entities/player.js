@@ -1,12 +1,22 @@
 var PLAYER_EYE_HEIGHT = 1.6;
 var PLAYER_HEIGHT = 1.75;
+var PLAYER_BODY_HEIGHT = 1.3;
+var PLAYER_DIST_CENTER_EYE = PLAYER_EYE_HEIGHT - PLAYER_BODY_HEIGHT/2;
+var PLAYER_HALF_EXTENTS = new THREE.Vector3(
+    0.2,
+    PLAYER_HEIGHT / 2,
+    0.2
+);
+var PLAYER_CENTER_OFFSET = new THREE.Vector3(
+    0,
+    -PLAYER_DIST_CENTER_EYE,
+    0
+);
 
-var Player = function (name, world, conn, controls) {
+function Player(name, world, conn, controls) {
     var self = this;
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
-    camera.position.z = 100.5;
-    camera.position.y = CHUNK_HEIGHT / 2;
 
     var blockInventory = new BlockInventory(world, camera);
     controls.on('place', function () {
@@ -36,13 +46,13 @@ var Player = function (name, world, conn, controls) {
         var p = camera.position;
 
         doLook(camera, p, c);
-        p = camera.position = calcNewPosition(dt, c);
+        calcNewPosition(dt, c);
 
         blockInventory.update(p, c);
         weaponInventory.update(p, c);
 
         updatePositionText(p);
-        updateNetwork(dt);
+        updateNetwork(dt, p, camera.rotation, c);
     };
 
     self.render = function (renderer, scene) {
@@ -55,30 +65,6 @@ var Player = function (name, world, conn, controls) {
         var r = payload.rot;
         camera.rotation.set(r.x, r.y, r.z);
     });
-
-    function setupBox() {
-        var pos = boxCenter(camera);
-        var halfExtents = new THREE.Vector3(
-            0.2,
-            PLAYER_HEIGHT / 2,
-            0.2
-        );
-        return new Box(world, pos, halfExtents);
-    }
-
-    function boxCenter(camera) {
-        var pos = camera.position.clone();
-        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
-        pos.y -= PLAYER_EYE_HEIGHT/2 + above/2;
-        return pos;
-    }
-
-    function cameraPos(center) {
-        var pos = center.clone();
-        var above = PLAYER_HEIGHT - PLAYER_EYE_HEIGHT;
-        pos.y += PLAYER_EYE_HEIGHT/2 + above/2;
-        return pos;
-    }
 
     function round(n, digits) {
         var factor = Math.pow(10, digits);
@@ -93,17 +79,10 @@ var Player = function (name, world, conn, controls) {
         camera.lookAt(target);
     }
 
-    var box = setupBox();
+    var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
     var velocityY = 0;
     function calcNewPosition(dt, c) {
-        var onGround = box.onGround();
-        if (c.jump && onGround) {
-            velocityY = 6;
-        } else if (onGround) {
-            velocityY = 0;
-        } else {
-            velocityY += dt * -9.81;
-        }
+        velocityY += dt * -9.81;
 
         var v = 10;
         var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
@@ -114,33 +93,28 @@ var Player = function (name, world, conn, controls) {
             z: -sin(c.lon) * fw - cos(c.lon) * rt,
         };
 
-        var center = boxCenter(camera);
-        box.setPos(center.clone());
-        var newCenter = box.attemptMove(move);
-        if (abs(center.y - newCenter.y) < 0.0001) {
-            velocityY = 0;
+        box.attemptMove(world, move);
+        if (move.y === 0) {
+            velocityY = c.jump ? 6 : 0;
         }
-        return cameraPos(newCenter);
     }
 
     function updatePositionText(p) {
         var info = document.getElementById('info');
-        var p = camera.position;
-        if (info) {
-            info.innerHTML = JSON.stringify({
-                x: round(p.x, 2),
-                y: round(p.y, 2),
-                z: round(p.z, 2),
-            });
-        }
+        if (!info) return;
+
+        info.innerHTML = JSON.stringify({
+            x: round(p.x, 2),
+            y: round(p.y, 2),
+            z: round(p.z, 2),
+            v: round(velocityY, 2),
+        });
     }
 
     var accumulatedTime = 0;
-    function updateNetwork(dt) {
-        var p = camera.position;
-        var r = camera.rotation;
-
+    function updateNetwork(dt, p, r, c) {
         accumulatedTime += dt;
+
         if (accumulatedTime < 0.1) return;
 
         accumulatedTime -= 0.1;
@@ -151,6 +125,7 @@ var Player = function (name, world, conn, controls) {
         conn.queue('player-position', {
             pos: {x: p.x, y: p.y, z: p.z},
             rot: {x: r.x, y: r.y, z: r.z},
+            controls: c,
         });
     }
 };

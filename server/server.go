@@ -17,7 +17,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
 }
 
-func getPlayerName(config *websocket.Config) string {
+func getClientName(config *websocket.Config) string {
 	path := config.Location.Path
 	bits := strings.Split(path, "/")
 	if len(bits) < 4 {
@@ -27,15 +27,15 @@ func getPlayerName(config *websocket.Config) string {
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
-	name := getPlayerName(ws.Config())
-	p := NewPlayer(globalWorld, name)
-	p.Run(ws)
+	name := getClientName(ws.Config())
+	c := NewClient(globalWorld, name)
+	c.Run(NewConn(ws))
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
-	name := getPlayerName(ws.Config())
-	p := globalWorld.FindPlayer(name)
-	p.RunChunks(ws)
+	name := getClientName(ws.Config())
+	c := globalWorld.FindClient(name)
+	c.RunChunks(NewConn(ws))
 }
 
 func doProfile() {

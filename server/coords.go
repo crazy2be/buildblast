@@ -4,68 +4,51 @@ import (
 	"math"
 )
 
-func floor(n float64) int {
-	return int(math.Floor(n));
-}
-
-func mod(a, b int) int {
-	return ((a % b) + b) % b
+type Vec3 struct {
+	X float64
+	Y float64
+	Z float64
 }
 
 type WorldCoords struct {
-	x float64
-	y float64
-	z float64
-}
-
-func readWorldCoords(pl map[string]interface{}) WorldCoords {
-	return WorldCoords{
-		x: pl["x"].(float64),
-		y: pl["y"].(float64),
-		z: pl["z"].(float64),
-	}
+	X float64
+	Y float64
+	Z float64
 }
 
 func (wc WorldCoords) Chunk() ChunkCoords {
+	floor := func (n float64) int {
+		return int(math.Floor(n));
+	}
 	return ChunkCoords{
-		x: floor(wc.x / float64(CHUNK_WIDTH)),
-		y: floor(wc.y / float64(CHUNK_HEIGHT)),
-		z: floor(wc.z / float64(CHUNK_DEPTH)),
+		X: floor(wc.X / float64(CHUNK_WIDTH)),
+		Y: floor(wc.Y / float64(CHUNK_HEIGHT)),
+		Z: floor(wc.Z / float64(CHUNK_DEPTH)),
 	}
 }
 
 func (wc WorldCoords) Offset() OffsetCoords {
+	floor := func (n float64) int {
+		return int(math.Floor(n));
+	}
+	mod := func (a, b int) int {
+		return ((a % b) + b) % b
+	}
 	return OffsetCoords{
-		x: mod(floor(wc.x), CHUNK_WIDTH),
-		y: mod(floor(wc.y), CHUNK_HEIGHT),
-		z: mod(floor(wc.z), CHUNK_DEPTH),
+		X: mod(floor(wc.X), CHUNK_WIDTH),
+		Y: mod(floor(wc.Y), CHUNK_HEIGHT),
+		Z: mod(floor(wc.Z), CHUNK_DEPTH),
 	}
 }
 
-func (wc WorldCoords) toMap() map[string]interface{} {
-	m := make(map[string]interface{})
-	m["x"] = wc.x
-	m["y"] = wc.y
-	m["z"] = wc.z
-	return m
-}
-
 type ChunkCoords struct {
-	x int
-	y int
-	z int
-}
-
-func (cc ChunkCoords) toMap() map[string]interface{} {
-	m := make(map[string]interface{})
-	m["x"] = cc.x
-	m["y"] = cc.y
-	m["z"] = cc.z
-	return m
+	X int
+	Y int
+	Z int
 }
 
 type OffsetCoords struct {
-	x int
-	y int
-	z int
+	X int
+	Y int
+	Z int
 }

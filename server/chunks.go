@@ -15,12 +15,18 @@ const (
 	CHUNK_HEIGHT = 32
 )
 
+var CHUNK_SIZE Vec3 = Vec3{
+	X: CHUNK_WIDTH,
+	Y: CHUNK_HEIGHT,
+	Z: CHUNK_DEPTH,
+}
+
 func (c Chunk) Block(oc OffsetCoords) Block {
-	return c[oc.x][oc.y][oc.z]
+	return c[oc.X][oc.Y][oc.Z]
 }
 
 func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
-	c[oc.x][oc.y][oc.z] = newBlock
+	c[oc.X][oc.Y][oc.Z] = newBlock
 }
 
 // Flatten returns the chunk data as a string. It
