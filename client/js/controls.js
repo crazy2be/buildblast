@@ -15,6 +15,7 @@ function Controls(elm) {
         Down: 40,
 
         Space: 32,
+        Enter: 13,
 
         One: 49,
         Two: 50,
@@ -34,7 +35,7 @@ function Controls(elm) {
         Left: 0,
         Middle: 1,
         Right: 2,
-    }
+    };
 
     // We have programmer's dvorak keys in here too, because
     // so far there is no reason not to.
@@ -51,6 +52,8 @@ function Controls(elm) {
 
         shoot: [MouseButtons.Left],
         place: [MouseButtons.Right],
+
+        chat: [Keys.Enter],
     };
 
     var self = this;
@@ -78,7 +81,7 @@ function Controls(elm) {
         }
 
         lon += movementX * lookSpeed;
-        lon %= 2 * Math.PI
+        lon %= 2 * Math.PI;
         lat -= movementY * lookSpeed;
         lat = clamp(lat, -Math.PI + 0.01, -0.01);
 
@@ -110,7 +113,7 @@ function Controls(elm) {
 
     function findAction(c, cb) {
         for (var action in ActionMappings) {
-            var vals = ActionMappings[action]
+            var vals = ActionMappings[action];
             for (var i = 0; i < vals.length; i++) {
                 if (vals[i] === c) {
                     cb(action);

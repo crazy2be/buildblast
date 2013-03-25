@@ -20,7 +20,10 @@ function World(scene, container) {
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
 
+    var chatting = false;
+
     conn.on('block', processBlock);
+    conn.on('chat', processChat);
 
     function processBlock(payload) {
         var wx = payload.x;
@@ -30,10 +33,34 @@ function World(scene, container) {
         applyBlockChange(wx, wy, wz, type);
     }
 
+    function processChat(payload) {
+        $("#chatMessages").append(payload.ID + ": " + payload.Message + "\n");
+    }
+
     self.update = function (dt) {
         player.update(dt);
         chunkManager.update(dt);
+
+        var c = controls.sample();
+        if (c.chat) {
+            if (!chatting) {
+                $("#chatInput").focus();
+                chatting = true;
+            }
+        }
     }
+
+    $("#chatInput").keypress(function(event) {
+        if (event.which == 13) {
+            chatting = false;
+            if ($("#chatInput").val() !== "") {
+                conn.queue('chat', { Message: $("#chatInput").val()});
+                $("#chatInput").val("");
+            }
+            $("#chatInput").blur();
+            $(container).focus();
+        }
+    });
 
     self.render = player.render;
     self.resize = player.resize;

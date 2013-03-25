@@ -13,6 +13,7 @@ const (
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_PLAYER_POSITION = MessageKind("player-position")
+	MSG_CHAT            = MessageKind("chat")
 )
 
 type MsgEntityCreate struct {
@@ -46,6 +47,12 @@ type MsgPlayerPosition struct {
 	Pos      WorldCoords
 	Rot      Vec3
 	Controls ControlState
+}
+
+type MsgChat struct {
+	ID      string
+	Time    int64
+	Message string
 }
 
 type ClientMessage struct {
