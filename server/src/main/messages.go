@@ -13,6 +13,7 @@ const (
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_PLAYER_POSITION = MessageKind("player-position")
+	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 )
 
 type MsgEntityCreate struct {
@@ -42,10 +43,17 @@ type MsgBlock struct {
 	Type Block
 }
 
+// Eventially this message will go away, once the server
+// understands how to simulate clients. For now it stays.
 type MsgPlayerPosition struct {
-	Pos      WorldCoords
-	Rot      Vec3
-	Controls ControlState
+	Pos       WorldCoords
+	Rot       Vec3
+}
+
+type MsgControlsState struct {
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
+	Controls  ControlState
 }
 
 type ClientMessage struct {

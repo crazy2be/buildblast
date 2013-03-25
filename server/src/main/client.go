@@ -12,7 +12,12 @@ type Client struct {
 
 	name string
 
+	// Channel of messages queued by the world to be
+	// sent out to this client.
 	Broadcast chan Message
+	// Channel of player state updates, to be consumed by
+	// the world when simulating.
+	ControlState chan *ControlState
 	cm *ChunkManager
 }
 
@@ -22,6 +27,7 @@ func NewClient(world *World, name string) *Client {
 	c.name = name
 
 	c.Broadcast = make(chan Message, 10)
+	c.ControlState = make(chan *ControlState, 10)
 	c.cm = newChunkManager()
 
 	return c
@@ -76,41 +82,33 @@ func (c *Client) handleMessage(m Message) {
 			c.handleBlock(m.(*MsgBlock))
 		case *MsgPlayerPosition:
 			c.handleClientPosition(m.(*MsgPlayerPosition))
+		case *MsgControlsState:
+			c.handleControlsState(m.(*MsgControlsState))
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
 }
 
-func (c *Client) sendClientPos(wc WorldCoords) {
-	m := MsgPlayerPosition{
-		Pos: wc,
-	}
-	c.conn.Send(m)
+func (c *Client) handleControlsState(m *MsgControlsState) {
+	m.Controls.Timestamp = m.Timestamp
+	c.ControlState <- &m.Controls
 }
 
 func (c *Client) handleBlock(m *MsgBlock) {
-	log.Println(m)
 	c.world.ChangeBlock(m.Pos, m.Type)
-// 	c.world.Broadcast <- m
+	c.world.Broadcast <- m
 }
 
 func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	wc := m.Pos
 
-	positionBroadcast := &MsgEntityPosition{
-		Pos: m.Pos,
-		Rot: m.Rot,
-		ID: c.name,
-	}
-	c.world.Broadcast <- positionBroadcast
-// 	playerState := &PlayerState{
-// 		Position: wc,
-// 		Rotation: readVec3(pl["rot"].(map[string]interface{})),
-// 		Controls: readControlState(pl["controls"].(map[string]interface{})),
-// 		Name: c.name,
+// 	positionBroadcast := &MsgEntityPosition{
+// 		Pos: m.Pos,
+// 		Rot: m.Rot,
+// 		ID: c.name,
 // 	}
-// 	c.world.StateUpdate <- playerState
+// 	c.world.Broadcast <- positionBroadcast
 
 	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
 		return ChunkCoords{

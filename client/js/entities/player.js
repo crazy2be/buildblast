@@ -85,8 +85,8 @@ function Player(name, world, conn, controls) {
         velocityY += dt * -9.81;
 
         var v = 10;
-        var fw = dt*v*(c.moveForward ? 1 : c.moveBack ? -1 : 0);
-        var rt = dt*v*(c.moveRight ? 1 : c.moveLeft ? -1 : 0);
+        var fw = dt*v*(c.forward ? 1 : c.back ? -1 : 0);
+        var rt = dt*v*(c.right ? 1 : c.left ? -1 : 0);
         var move = {
             x: -cos(c.lon) * fw + sin(c.lon) * rt,
             y: velocityY * dt,
@@ -112,20 +112,26 @@ function Player(name, world, conn, controls) {
     }
 
     var accumulatedTime = 0;
+    var interval = 1/20;
     function updateNetwork(dt, p, r, c) {
         accumulatedTime += dt;
 
-        if (accumulatedTime < 0.1) return;
+        if (accumulatedTime < interval) return;
 
-        accumulatedTime -= 0.1;
+        accumulatedTime -= interval;
+
         if (accumulatedTime > 1) {
             console.warn("Having trouble keeping up with minimum update speed of 10fps! (", accumulatedTime, " seconds behind). Trouble ahead...");
             accumulatedTime = 0;
         }
+
         conn.queue('player-position', {
             pos: {x: p.x, y: p.y, z: p.z},
             rot: {x: r.x, y: r.y, z: r.z},
+        });
+        conn.queue('controls-state', {
             controls: c,
+            timestamp: window.performance.now(),
         });
     }
 };

@@ -39,10 +39,10 @@ function Controls(elm) {
     // We have programmer's dvorak keys in here too, because
     // so far there is no reason not to.
     var ActionMappings = {
-        moveForward: [Keys.W, Keys.Up, Keys.Comma],
-        moveLeft: [Keys.A, Keys.Left],
-        moveRight: [Keys.D, Keys.Right, Keys.E],
-        moveBack: [Keys.S, Keys.Down, Keys.O],
+        forward: [Keys.W, Keys.Up, Keys.Comma],
+        left: [Keys.A, Keys.Left],
+        right: [Keys.D, Keys.Right, Keys.E],
+        back: [Keys.S, Keys.Down, Keys.O],
         jump: [Keys.Space],
 
         selectSlot1: [Keys.One, Keys.Ampersand],

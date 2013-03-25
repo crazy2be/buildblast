@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+// 	"fmt"
 	"time"
 	"sync"
 )
@@ -13,12 +14,12 @@ type World struct {
 	chunkLock   sync.Mutex
 	clients     []*Client
 	players     []*Player
+	previousTime time.Time
 	find       chan FindClientRequest
 
 	Join       chan *Client
 	Leave      chan *Client
 	Broadcast  chan Message
-	StateUpdate chan *PlayerState
 }
 
 type FindClientRequest struct {
@@ -38,7 +39,6 @@ func NewWorld(seed float64) *World {
 	w.Join = make(chan *Client)
 	w.Leave = make(chan *Client)
 	w.Broadcast = make(chan Message, 10)
-	w.StateUpdate = make(chan *PlayerState, 10000000)
 
 	return w
 }
@@ -95,10 +95,10 @@ func (w *World) join(c *Client) {
 		c.Broadcast <- m
 	}
 
-	p := NewPlayer(c.name, WorldCoords{0.0, 0.0, 0.0})
+	p := &Player{}
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
-	log.Println("New player connected! Name: ", p.Name)
+	log.Println("New player connected! Name: ", c.name)
 }
 
 func (w *World) leave(c *Client) {
@@ -128,7 +128,16 @@ func (w *World) findClient(name string) int {
 }
 
 func (w *World) simulateStep(now time.Time) {
-// 	println(now)
+	dt := now.Sub(w.previousTime)
+	for i, p := range w.players {
+		p.simulateStep(w.clients[i], dt)
+		m := &MsgEntityPosition{
+			Pos: p.pos,
+			Rot: p.rot,
+			ID: w.clients[i].name,
+		}
+		w.broadcast(m)
+	}
 }
 
 func (w *World) Run() {

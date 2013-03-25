@@ -1,7 +1,8 @@
 package main
 
 import (
-
+	"log"
+	"time"
 )
 
 type ControlState struct {
@@ -11,20 +12,30 @@ type ControlState struct {
 	Back bool
 	Lat float64
 	Lon float64
+	Timestamp float64
 }
 
-type PlayerState struct {
-	Position WorldCoords
-	Rotation Vec3
-	Controls ControlState
-	Name     string
+type Player struct {
+	pos       WorldCoords
+	rot       Vec3
+	controls  ControlState
 }
 
-
-type Player PlayerState
-func NewPlayer(name string, pos WorldCoords) *Player {
-	p := new(Player)
-	p.Name = name
-	p.Position = pos
-	return p
+func (p *Player) simulateStep(c *Client, dt time.Duration) {
+	controls := <-c.ControlState
+	dist := float64(dt) / 100000000000000000000
+	if controls.Forward {
+		log.Println("Moving by ", dist)
+		p.pos.X += dist
+	} else if controls.Back {
+		log.Println("Moving by ", dist)
+		p.pos.X -= dist
+	}
+	if controls.Left {
+		log.Println("Moving by ", dist)
+		p.pos.Z += dist
+	} else if controls.Right {
+		log.Println("Moving by ", dist)
+		p.pos.Z -= dist
+	}
 }
