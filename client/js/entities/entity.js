@@ -1,20 +1,46 @@
-function Entity() {
+function Entity(id) {
     var self = this;
+
+    var pos;
 
     var material = new THREE.MeshBasicMaterial({
         color: 0x0000ff,
         wireframe: true,
     });
+    var hitboxMaterial = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: true,
+    });
+
+    var he = PLAYER_HALF_EXTENTS;
+    var co = PLAYER_CENTER_OFFSET;
+    var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
+    var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+
     var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
     var bodyMesh = new THREE.Mesh(bodyGeometry, material);
+
     var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
     var headMesh = new THREE.Mesh(headGeometry, material);
 
     self.setPos = function (newPos) {
-        var p = newPos;
-        bodyMesh.position.set(p.x, p.y - PLAYER_EYE_HEIGHT + 1.3/2, p.z);
-        headMesh.position.set(p.x, p.y, p.z);
+        pos = newPos;
+        var c = new THREE.Vector3(
+            pos.x + co.x,
+            pos.y + co.y,
+            pos.z + co.z
+        );
+        var h = PLAYER_HEIGHT;
+        var bh = PLAYER_BODY_HEIGHT;
+        bodyMesh.position.set(c.x, c.y - (h - bh)/2, c.z);
+        headMesh.position.set(c.x, c.y + bh/2, c.z);
+        hitboxMesh.position.set(c.x, c.y, c.z);
         return self;
+    }
+
+    self.contains = function (x, y, z) {
+        var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+        return box.contains(x, y, z);
     }
 
     self.setRot = function (newRot) {
@@ -26,42 +52,17 @@ function Entity() {
     self.addTo = function (scene) {
         scene.add(bodyMesh);
         scene.add(headMesh);
+        scene.add(hitboxMesh);
     }
 
     self.removeFrom = function (scene) {
         scene.remove(bodyMesh);
         scene.remove(headMesh);
+        scene.remove(hitboxMesh);
+    }
+
+    self.id = function () {
+        return id;
     }
 }
 
-function EntityHandler(scene, conn) {
-    entities = {};
-    conn.on('entity-create', function (payload) {
-        var id = payload.id;
-        if (entities[id]) {
-            console.warn("Got entity-create message for entity which already exists!", id);
-            return;
-        }
-        var entity = new Entity();
-        entity.addTo(scene);
-        entities[id] = entity;
-    });
-    conn.on('entity-position', function (payload) {
-        var id = payload.id;
-        var entity = entities[id];
-        if (!entity) {
-            console.warn("Got entity-position message for entity which does not exist!", id);
-        }
-        entity.setPos(payload.pos);
-        entity.setRot(payload.rot);
-    });
-    conn.on('entity-remove', function (payload) {
-        var id = payload.id;
-        var entity = entities[id];
-        if (!entity) {
-            console.warn("Got entity-remove command for entity which does not exist: ", id);
-        }
-        entity.removeFrom(scene);
-        delete entities[id];
-    });
-}

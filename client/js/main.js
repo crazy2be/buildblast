@@ -1,4 +1,3 @@
-window.onerror = fatalError;
 window.onload = function () {
     var container = document.getElementById('container');
     var tester = new FeatureTester();
@@ -45,6 +44,14 @@ window.onload = function () {
             stats.update();
         }
     }
+};
+
+window.onerror = function (msg, url, lineno) {
+    fatalError({
+        message: msg,
+        filename: url,
+        lineno: lineno,
+    });
 };
 
 function fatalError(err) {
