@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 	"math"
+
+	"buildblast/physics"
 )
 
 type ControlState struct {
@@ -16,10 +18,26 @@ type ControlState struct {
 	Timestamp float64
 }
 
+var PLAYER_EYE_HEIGHT = 1.6;
+var PLAYER_HEIGHT = 1.75;
+var PLAYER_BODY_HEIGHT = 1.3;
+var PLAYER_DIST_CENTER_EYE = PLAYER_EYE_HEIGHT - PLAYER_BODY_HEIGHT/2;
+var PLAYER_HALF_EXTENTS = Vec3{
+	0.2,
+	PLAYER_HEIGHT / 2,
+	0.2,
+};
+var PLAYER_CENTER_OFFSET = Vec3{
+	0,
+	-PLAYER_DIST_CENTER_EYE,
+	0,
+};
+
 type Player struct {
 	pos       WorldCoords
 	rot       Vec3
 	vy        float64
+	box       physics.Box
 	controls  ControlState
 }
 

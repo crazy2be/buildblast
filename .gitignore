@@ -6,3 +6,5 @@ buildshoot-server.exe
 .kateconfig
 .project
 .settings
+bin
+pkg
