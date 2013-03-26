@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"time"
+	"math"
 )
 
 type ControlState struct {
@@ -18,24 +19,37 @@ type ControlState struct {
 type Player struct {
 	pos       WorldCoords
 	rot       Vec3
+	vy        float64
 	controls  ControlState
 }
 
 func (p *Player) simulateStep(c *Client, dt time.Duration) {
 	controls := <-c.ControlState
-	dist := float64(dt) / 100000000000000000000
+	sec := dt.Seconds()
+
+	p.vy += sec * -9.81
+
+	fw := 0.0
 	if controls.Forward {
-		log.Println("Moving by ", dist)
-		p.pos.X += dist
+		fw = 1 * sec * 10
 	} else if controls.Back {
-		log.Println("Moving by ", dist)
-		p.pos.X -= dist
+		fw = -1 * sec * 10
 	}
-	if controls.Left {
-		log.Println("Moving by ", dist)
-		p.pos.Z += dist
-	} else if controls.Right {
-		log.Println("Moving by ", dist)
-		p.pos.Z -= dist
+
+	rt := 0.0
+	if controls.Right {
+		rt = 1 * sec * 10
+	} else if controls.Left {
+		rt = -1 * sec * 10
 	}
+
+	cos := math.Cos
+	sin := math.Sin
+	dx := -cos(controls.Lon) * fw + sin(controls.Lon) * rt
+	dy := p.vy * sec
+	dz := -sin(controls.Lon) * fw - cos(controls.Lon) * rt
+	log.Println("Moving client", c.name, "by", dx, dy, dz)
+	p.pos.X += dx
+// 	p.pos.Y += dy
+	p.pos.Z += dz
 }

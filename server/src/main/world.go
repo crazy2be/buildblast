@@ -34,6 +34,7 @@ func NewWorld(seed float64) *World {
 	w.generator = NewMazeArenaGenerator(seed)
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
+	w.previousTime = time.Now()
 	w.find = make(chan FindClientRequest)
 
 	w.Join = make(chan *Client)
@@ -129,6 +130,7 @@ func (w *World) findClient(name string) int {
 
 func (w *World) simulateStep(now time.Time) {
 	dt := now.Sub(w.previousTime)
+	w.previousTime = now
 	for i, p := range w.players {
 		p.simulateStep(w.clients[i], dt)
 		m := &MsgEntityPosition{
