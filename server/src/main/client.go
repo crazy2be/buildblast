@@ -76,6 +76,8 @@ func (c *Client) handleMessage(m Message) {
 			c.handleBlock(m.(*MsgBlock))
 		case *MsgPlayerPosition:
 			c.handleClientPosition(m.(*MsgPlayerPosition))
+		case *MsgChat:
+			c.handleChat(m.(*MsgChat))
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
@@ -145,10 +147,17 @@ func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 		c.cm.display(newCC, -dist)
 	});
 
-	oc := wc.Offset();
+	oc := wc.Offset()
 	if oc.Y <= 4 {
-		c.cm.display(occ(cc, 0, -1, 0), 1);
+		c.cm.display(occ(cc, 0, -1, 0), 1)
 	} else if oc.Y >= 28 {
-		c.cm.display(occ(cc, 0, 1, 0), 1);
+		c.cm.display(occ(cc, 0, 1, 0), 1)
 	}
+}
+
+func (c *Client) handleChat(m *MsgChat) {
+	m.ID = c.name
+	m.Time = time.Now().UnixNano() / 1000
+	c.world.Broadcast <- m
+	log.Println("[CHAT]", m.ID, m.Message);
 }

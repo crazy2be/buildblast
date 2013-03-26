@@ -110,9 +110,37 @@
                 left: 50%;
                 z-index: 2;
             }
+
+            #chatContainer {
+                position: absolute;
+                pointer-events:none;
+                width: 100%;
+                line-height: 0px;
+                left: 0;
+                bottom: 5%;
+                opacity: 0.5;
+                z-index: 2;
+            }
+
+            #chatMessages {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                height: 150px;
+            }
+
+            #chatInput {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
         </style>
     </head>
     <body>
+        <div id="chatContainer">
+            <textarea id="chatMessages" readonly></textarea>
+            <textarea id="chatInput"></textarea>
+        </div>
         <div id="container">
             <p class="loader">
                 <br /><br /><br /><br /><br />

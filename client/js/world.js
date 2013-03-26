@@ -21,6 +21,11 @@ function World(scene, container) {
     scene.add(ambientLight);
 
     conn.on('block', processBlock);
+    conn.on('chat', processChat);
+
+    controls.on('chat', function() {
+        $("#chatInput").focus();
+    });
 
     function processBlock(payload) {
         var wx = payload.x;
@@ -30,10 +35,35 @@ function World(scene, container) {
         applyBlockChange(wx, wy, wz, type);
     }
 
+    function processChat(payload) {
+        $("#chatMessages").append(payload.ID + ": " + payload.Message + "\n");
+    }
+
     self.update = function (dt) {
         player.update(dt);
         chunkManager.update(dt);
     }
+
+    // The textbox receives the enter event when we
+    // first focus it, this var is used to ignore it.
+    var entered = false;
+    $("#chatInput").keyup(function(event) {
+        if (event.which !== 13) return;
+        if (!entered) {
+            entered = true;
+            $("#chatInput").val("");
+            return;
+        }
+        entered = false;
+        if ($("#chatInput").val() !== "") {
+            conn.queue('chat', {
+                Message: $("#chatInput").val().replace("\n", ""),
+            });
+            $("#chatInput").val("");
+        }
+        $("#chatInput").blur();
+        container.focus();
+    });
 
     self.render = player.render;
     self.resize = player.resize;
