@@ -55,20 +55,12 @@ function Controls(elm) {
 
     var self = this;
 
-    var lookSpeed = 0.005;
-
-    var movementX = 0;
-    var movementY = 0;
-
-    var lat = -1/2 * Math.PI;
-    var lon = 1/2 * Math.PI;
-
-    var actions = {};
+    var actions = {
+        lat: -1/2 * Math.PI,
+        lon: 1/2 * Math.PI,
+    };
 
     self.sample = function() {
-        function clamp(n, a, b) {
-            return Math.max(a, Math.min(b, n));
-        }
         function clone(o) {
             var newO = {};
             for (var k in o) {
@@ -77,36 +69,8 @@ function Controls(elm) {
             return newO;
         }
 
-        lon += movementX * lookSpeed;
-        lon %= 2 * Math.PI
-        lat -= movementY * lookSpeed;
-        lat = clamp(lat, -Math.PI + 0.01, -0.01);
-
-        movementX = 0;
-        movementY = 0;
-
-        // Meh, I don't really like the way this works,
-        // but it works for now.
-        var state = clone(actions);
-        state.lat = lat;
-        state.lon = lon;
-        return state;
+        return clone(actions);
     };
-
-    var eventBus = new EventBus();
-    self.on = eventBus.on;
-    self.off = eventBus.off;
-
-    onPointerLock(pointerLockChange);
-
-    elm.tabIndex = "-1";
-    elm.addEventListener('contextmenu', function (event) {
-        event.preventDefault();
-    }, false);
-    elm.addEventListener('mousedown', mouseDown, false);
-    elm.addEventListener('mouseup', mouseUp, false);
-    elm.addEventListener('keydown', keyDown, false);
-    elm.addEventListener('keyup', keyUp, false);
 
     function findAction(c, cb) {
         for (var action in ActionMappings) {
@@ -139,22 +103,11 @@ function Controls(elm) {
 
     function mouseDown(event) {
         elm.focus();
-
-        if (!pointerLocked()) {
-            // Firefox currently only allows us to access
-            // pointer lock if the document is in full screen.
-            // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
-            if ('mozPointerLockElement' in document) {
-                requestFullscreen();
-            }
-            requestPointerLock();
-            return;
-        }
-
+        attemptPointerLock();
+        if (!pointerLocked()) return;
         event.preventDefault();
         event.stopPropagation();
 
-        console.log(event.button);
         findAction(event.button, function (action) {
             actions[action] = true;
             console.log(action);
@@ -172,14 +125,51 @@ function Controls(elm) {
     }
 
     function mouseMove(event) {
-        movementX += event.movementX  ||
+        function clamp(n, a, b) {
+            return Math.max(a, Math.min(b, n));
+        }
+        var lookSpeed = 0.005;
+
+        var x = event.movementX  ||
             event.mozMovementX    ||
             event.webkitMovementX ||
             0;
-        movementY += event.movementY  ||
+        var y = event.movementY  ||
             event.mozMovementY    ||
             event.webkitMovementY ||
             0;
+
+        actions.lon += x * lookSpeed;
+        actions.lon %= 2 * Math.PI;
+        actions.lat -= y * lookSpeed;
+        actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
+    }
+
+    var eventBus = new EventBus();
+    self.on = eventBus.on;
+    self.off = eventBus.off;
+
+    onPointerLock(pointerLockChange);
+
+    elm.tabIndex = "-1";
+    elm.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+    }, false);
+    elm.addEventListener('mousedown', mouseDown, false);
+    elm.addEventListener('mouseup', mouseUp, false);
+    elm.addEventListener('keydown', keyDown, false);
+    elm.addEventListener('keyup', keyUp, false);
+
+    function attemptPointerLock() {
+        if (pointerLocked()) return;
+
+        // Firefox currently only allows us to access
+        // pointer lock if the document is in full screen.
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
+        if ('mozPointerLockElement' in document) {
+            requestFullscreen();
+        }
+        requestPointerLock();
     }
 
     function pointerLockChange() {

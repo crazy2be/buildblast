@@ -23,10 +23,10 @@ function World(scene, container) {
     conn.on('block', processBlock);
 
     function processBlock(payload) {
-        var wx = payload.x;
-        var wy = payload.y;
-        var wz = payload.z;
-        var type = payload.type;
+        var wx = payload.Pos.X;
+        var wy = payload.Pos.Y;
+        var wz = payload.Pos.Z;
+        var type = payload.Type;
         applyBlockChange(wx, wy, wz, type);
     }
 
@@ -216,12 +216,12 @@ function World(scene, container) {
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
-            pos: {
-                x: wx,
-                y: wy,
-                z: wz,
+            Pos: {
+                X: wx,
+                Y: wy,
+                Z: wz,
             },
-            type: newType,
+            Type: newType,
         });
         applyBlockChange(wx, wy, wz, newType);
     }
