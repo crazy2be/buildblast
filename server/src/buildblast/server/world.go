@@ -5,12 +5,15 @@ import (
 // 	"fmt"
 	"time"
 	"sync"
+
+	"buildblast/mapgen"
+	"buildblast/coords"
 )
 
 type World struct {
 	seed        float64
-	chunks      map[ChunkCoords]Chunk
-	generator   ChunkGenerator
+	chunks      map[coords.Chunk]mapgen.Chunk
+	generator   mapgen.ChunkSource
 	chunkLock   sync.Mutex
 	clients     []*Client
 	players     []*Player
@@ -30,8 +33,8 @@ type FindClientRequest struct {
 func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
-	w.chunks = make(map[ChunkCoords]Chunk)
-	w.generator = NewMazeArenaGenerator(seed)
+	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
+	w.generator = mapgen.NewMazeArena(seed)
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
 	w.previousTime = time.Now()
@@ -44,7 +47,7 @@ func NewWorld(seed float64) *World {
 	return w
 }
 
-func (w *World) RequestChunk(cc ChunkCoords) Chunk {
+func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	w.chunkLock.Lock()
 	defer w.chunkLock.Unlock()
 
@@ -57,7 +60,7 @@ func (w *World) RequestChunk(cc ChunkCoords) Chunk {
 	return chunk
 }
 
-func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
+func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 	chunk := w.RequestChunk(wc.Chunk())
 	chunk.SetBlock(wc.Offset(), newBlock)
 }

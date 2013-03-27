@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+
+	"buildblast/coords"
+	"buildblast/mapgen"
 )
 
 type MessageKind string
@@ -21,8 +24,8 @@ type MsgEntityCreate struct {
 }
 
 type MsgEntityPosition struct {
-	Pos   WorldCoords
-	Rot   Vec3
+	Pos   coords.World
+	Rot   coords.Vec3
 	ID    string
 }
 
@@ -31,23 +34,23 @@ type MsgEntityRemove struct {
 }
 
 type MsgChunk struct {
-	CCPos ChunkCoords
-	Size  Vec3
+	CCPos coords.Chunk
+	Size  coords.Vec3
 	// Go is really slow at encoding arrays. This
 	// is much faster (and more space efficient)
 	Data  string
 }
 
 type MsgBlock struct {
-	Pos  WorldCoords
-	Type Block
+	Pos  coords.World
+	Type mapgen.Block
 }
 
 // Eventially this message will go away, once the server
 // understands how to simulate clients. For now it stays.
 type MsgPlayerPosition struct {
-	Pos       WorldCoords
-	Rot       Vec3
+	Pos       coords.World
+	Rot       coords.Vec3
 }
 
 type MsgControlsState struct {

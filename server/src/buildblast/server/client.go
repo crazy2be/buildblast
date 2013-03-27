@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 	"reflect"
+
+	"buildblast/coords"
 )
 
 type Client struct {
@@ -68,7 +70,7 @@ func (c *Client) RunChunks(conn *Conn) {
 
 		m := &MsgChunk{
 			CCPos: cc,
-			Size: CHUNK_SIZE,
+			Size: coords.CHUNK_SIZE,
 			Data: chunk.Flatten(),
 		}
 
@@ -110,15 +112,15 @@ func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 // 	}
 // 	c.world.Broadcast <- positionBroadcast
 
-	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
-		return ChunkCoords{
+	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
+		return coords.Chunk{
 			X: cc.X + x,
 			Y: cc.Y + y,
 			Z: cc.Z + z,
 		}
 	}
 
-	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
+	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
 		abs := func (n int) int {
 			if n < 0 {
 				return -n
@@ -139,7 +141,7 @@ func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	}
 
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
+	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
 		c.cm.display(newCC, -dist)
 	});
 
