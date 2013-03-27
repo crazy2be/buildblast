@@ -42,6 +42,16 @@ type Player struct {
 	controls  ControlState
 }
 
+func NewPlayer() *Player {
+	return &Player{
+		pos: coords.World{
+			X: 0,
+			Y: 22,
+			Z: 0,
+		},
+	}
+}
+
 func (p *Player) simulateStep(c *Client, dt time.Duration) {
 	controls := <-c.ControlState
 	sec := dt.Seconds()
@@ -64,11 +74,19 @@ func (p *Player) simulateStep(c *Client, dt time.Duration) {
 
 	cos := math.Cos
 	sin := math.Sin
-	dx := -cos(controls.Lon) * fw + sin(controls.Lon) * rt
-	dy := p.vy * sec
-	dz := -sin(controls.Lon) * fw - cos(controls.Lon) * rt
-	log.Println("Moving client", c.name, "by", dx, dy, dz)
-	p.pos.X += dx
-// 	p.pos.Y += dy
-	p.pos.Z += dz
+
+	move := coords.Vec3{
+		X: -cos(controls.Lon) * fw + sin(controls.Lon) * rt,
+		Y: p.vy * sec,
+		Z: -sin(controls.Lon) * fw - cos(controls.Lon) * rt,
+	}
+	box := physics.NewBoxOffset(p.pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET)
+	move = box.AttemptMove(c.world, move)
+	log.Println("Moving client", c.name, "by", move ,"(currently at ", p.pos, ")")
+	if (move.Y == 0) {
+		p.vy = 0
+	}
+	p.pos.X += move.X
+	p.pos.Y += move.Y
+	p.pos.Z += move.Z
 }

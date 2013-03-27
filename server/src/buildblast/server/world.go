@@ -60,6 +60,19 @@ func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	return chunk
 }
 
+func (w *World) Block(wc coords.World) mapgen.Block {
+	w.chunkLock.Lock()
+	defer w.chunkLock.Unlock()
+
+	cc := wc.Chunk()
+	oc := wc.Offset()
+	chunk := w.chunks[cc]
+	if chunk == nil {
+		return mapgen.BLOCK_NIL
+	}
+	return chunk.Block(oc)
+}
+
 func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 	chunk := w.RequestChunk(wc.Chunk())
 	chunk.SetBlock(wc.Offset(), newBlock)
@@ -99,7 +112,7 @@ func (w *World) join(c *Client) {
 		c.Broadcast <- m
 	}
 
-	p := &Player{}
+	p := NewPlayer()
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
 	log.Println("New player connected! Name: ", c.name)

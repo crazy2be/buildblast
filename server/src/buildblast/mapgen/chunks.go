@@ -7,9 +7,14 @@ import (
 type Block byte
 
 const (
+	BLOCK_NIL  = Block(0)
 	BLOCK_AIR  = Block(1)
 	BLOCK_DIRT = Block(2)
 )
+
+func (b Block) Solid() bool {
+	return b == BLOCK_DIRT
+}
 
 type Chunk [][][]Block
 
