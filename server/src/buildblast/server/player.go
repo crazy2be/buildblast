@@ -53,7 +53,12 @@ func NewPlayer() *Player {
 }
 
 func (p *Player) simulateStep(c *Client, dt time.Duration) {
-	controls := <-c.ControlState
+	var controls *ControlState
+	select {
+		case controls = <-c.ControlState:
+		default: return
+	}
+
 	sec := dt.Seconds()
 
 	p.vy += sec * -9.81
