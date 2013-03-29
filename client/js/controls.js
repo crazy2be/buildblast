@@ -8,6 +8,8 @@ function Controls(elm) {
         A: 65,
         S: 83,
         D: 68,
+        Q: 81,
+        E: 69,
 
         Left: 37,
         Up: 38,
@@ -24,6 +26,8 @@ function Controls(elm) {
 
         E: 69,
         O: 79,
+        Semicolon: 186,
+        Period: 190,
 
         Ampersand: 55,
         LeftSquareBraket: 219,
@@ -54,9 +58,8 @@ function Controls(elm) {
         right: [Keys.D],
         back: [Keys.S],
 
-        selectSlot1: [Keys.One, Keys.Ampersand],
-        selectSlot2: [Keys.Two, Keys.LeftSquareBraket],
-        selectSlot3: [Keys.Three, Keys.RightCurlyBraket],
+        nextWeapon: [Keys.Q],
+        nextBlock: [Keys.E],
     };
 
     var ActionMappingsDvorak = {
@@ -64,6 +67,9 @@ function Controls(elm) {
         left: [Keys.A],
         right: [Keys.E],
         back: [Keys.O],
+
+        nextWeapon: [Keys.Semicolon],
+        nextBlock: [Keys.Period],
     }
 
     if (window.localStorage["useDvorak"]) {

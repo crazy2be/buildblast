@@ -19,7 +19,7 @@ function WeaponInventory(world, camera) {
 
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, elm, 0.05);
+    return new Inventory(world, camera, slots, elm, 0.05, 'nextWeapon', 'activateWeapon');
 }
 
 function BlockInventory(world, camera) {
@@ -46,10 +46,10 @@ function BlockInventory(world, camera) {
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, elm, -0.05);
+    return new Inventory(world, camera, slots, elm, -0.05, 'nextBlock', 'activateBlock');
 }
 
-function Inventory(world, camera, slots, elm, leftwardOffset) {
+function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
     var self = this;
 
     var currentSlot = -1;
@@ -106,6 +106,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset) {
         p.z += mov.z;
     }
 
+    var nextWasDown = false;
     self.update = function (playerPosition, controlState) {
         var p = playerPosition;
         var c = controlState;
@@ -114,12 +115,13 @@ function Inventory(world, camera, slots, elm, leftwardOffset) {
         pointItem(item, c);
         postitionPerspective(item, leftwardOffset);
 
-        if (c.selectSlot1) {
-            selectSlot(0);
-        } else if (c.selectSlot2) {
-            selectSlot(1);
-        } else if (c.selectSlot3) {
-            selectSlot(2);
+        if (!nextWasDown && c[nextAction]) {
+            selectSlot((currentSlot + 1) % slots.length);
+        }
+        nextWasDown = c[nextAction];
+
+        if (c[activateAction]) {
+            self.doAction();
         }
     }
 

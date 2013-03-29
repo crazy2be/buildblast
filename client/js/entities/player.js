@@ -19,14 +19,8 @@ function Player(name, world, conn, controls) {
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
     var blockInventory = new BlockInventory(world, camera);
-    controls.on('place', function () {
-        blockInventory.doAction();
-    });
 
     var weaponInventory = new WeaponInventory(world, camera)
-    controls.on('shoot', function () {
-        weaponInventory.doAction();
-    });
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
