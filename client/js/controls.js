@@ -36,22 +36,41 @@ function Controls(elm) {
         Right: 2,
     }
 
+    var ActionMappingsBase = {
+        forward: [Keys.Up],
+        left: [Keys.Left],
+        right: [Keys.Right],
+        back: [Keys.Down],
+        jump: [Keys.Space],
+
+        activateWeapon: [MouseButtons.Left],
+        activateBlock: [MouseButtons.Right],
+    }
     // We have programmer's dvorak keys in here too, because
     // so far there is no reason not to.
-    var ActionMappings = {
-        forward: [Keys.W, Keys.Up, Keys.Comma],
-        left: [Keys.A, Keys.Left],
-        right: [Keys.D, Keys.Right, Keys.E],
-        back: [Keys.S, Keys.Down, Keys.O],
-        jump: [Keys.Space],
+    var ActionMappingsQwerty = {
+        forward: [Keys.W],
+        left: [Keys.A],
+        right: [Keys.D],
+        back: [Keys.S],
 
         selectSlot1: [Keys.One, Keys.Ampersand],
         selectSlot2: [Keys.Two, Keys.LeftSquareBraket],
         selectSlot3: [Keys.Three, Keys.RightCurlyBraket],
-
-        shoot: [MouseButtons.Left],
-        place: [MouseButtons.Right],
     };
+
+    var ActionMappingsDvorak = {
+        forward: [Keys.Comma],
+        left: [Keys.A],
+        right: [Keys.E],
+        back: [Keys.O],
+    }
+
+    if (window.localStorage["useDvorak"]) {
+        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
+    } else {
+        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
+    }
 
     var self = this;
 
@@ -61,44 +80,38 @@ function Controls(elm) {
     };
 
     self.sample = function() {
-        function clone(o) {
-            var newO = {};
-            for (var k in o) {
-                newO[k] = o[k];
-            }
-            return newO;
-        }
-
         return clone(actions);
     };
 
-    function findAction(c, cb) {
-        for (var action in ActionMappings) {
-            var vals = ActionMappings[action]
-            for (var i = 0; i < vals.length; i++) {
-                if (vals[i] === c) {
-                    cb(action);
-                    // Right now this means only the
-                    // first action is matched. Should we
-                    // support matching more than one action?
-                    return;
-                }
+    function findAction(trigger) {
+        for (var action in mapping) {
+            var triggers = mapping[action]
+            for (var i = 0; i < triggers.length; i++) {
+                if (triggers[i] === trigger) return action;
             }
         }
-        console.log("Warning: Unrecognized keyCode: ", c);
+        console.log("Warning: Unrecognized trigger: ", trigger);
+    }
+
+    function actionStart(trigger) {
+        var action = findAction(trigger);
+        if (!action) return;
+        actions[action] = true;
+        eventBus.fire(action);
+    }
+
+    function actionEnd(trigger) {
+        var action = findAction(trigger);
+        if (!action) return;
+        actions[action] = false;
     }
 
     function keyDown(event) {
-        findAction(event.keyCode, function (action) {
-            actions[action] = true;
-            eventBus.fire(action);
-        });
+        actionStart(event.keyCode);
     }
 
     function keyUp(event) {
-        findAction(event.keyCode, function (action) {
-            actions[action] = false;
-        });
+        actionEnd(event.keyCode);
     }
 
     function mouseDown(event) {
@@ -108,20 +121,14 @@ function Controls(elm) {
         event.preventDefault();
         event.stopPropagation();
 
-        findAction(event.button, function (action) {
-            actions[action] = true;
-            console.log(action);
-            eventBus.fire(action);
-        });
+        actionStart(event.button);
     }
 
     function mouseUp(event) {
         event.preventDefault();
         event.stopPropagation();
 
-        findAction(event.button, function (action) {
-            actions[action] = false;
-        });
+        actionEnd(event.button);
     }
 
     function mouseMove(event) {
@@ -205,5 +212,25 @@ function Controls(elm) {
         return document.pointerLockElement === elm ||
             document.mozPointerLockElement === elm ||
             document.webkitPointerLockElement === elm;
+    }
+
+    function mergeMappings(base, more) {
+        var mappings = clone(base);
+        for (var action in more) {
+            if (base[action]) {
+                mappings[action] = base[action].concat(more[action]);
+            } else {
+                mappings[action] = more[action].slice();
+            }
+        }
+        return mappings;
+    }
+
+    function clone(o) {
+        var newO = {};
+        for (var k in o) {
+            newO[k] = o[k];
+        }
+        return newO;
     }
 };
