@@ -159,7 +159,7 @@ func (w *World) simulateStep(now time.Time) {
 }
 
 func (w *World) Run() {
-	updateTicker := time.Tick(time.Second / 20)
+	updateTicker := time.Tick(time.Second / 60)
 	for {
 		select {
 		case p := <-w.Join:

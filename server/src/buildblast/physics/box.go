@@ -61,8 +61,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 	b.ze += amount.Z
 	if (b.inSolid(world)) {
 		b.zs -= amount.Z
-		b.ym -= amount.Z
-		b.ye -= amount.Z
+		b.ze -= amount.Z
 		amount.Z = 0
 	}
 

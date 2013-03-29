@@ -14,6 +14,7 @@ type ControlState struct {
 	Left bool
 	Right bool
 	Back bool
+	Jump bool
 	Lat float64
 	Lon float64
 	Timestamp float64
@@ -87,11 +88,22 @@ func (p *Player) simulateStep(c *Client, dt time.Duration) {
 	}
 	box := physics.NewBoxOffset(p.pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET)
 	move = box.AttemptMove(c.world, move)
+
 	log.Println("Moving client", c.name, "by", move ,"(currently at ", p.pos, ")")
 	if (move.Y == 0) {
-		p.vy = 0
+		if (controls.Jump) {
+			p.vy = 6
+		} else {
+			p.vy = 0
+		}
 	}
+
 	p.pos.X += move.X
 	p.pos.Y += move.Y
 	p.pos.Z += move.Z
+
+	m := &MsgPlayerPosition{
+		Pos: p.pos,
+	}
+	c.conn.Send(m)
 }

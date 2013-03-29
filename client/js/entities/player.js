@@ -19,7 +19,6 @@ function Player(name, world, conn, controls) {
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
     var blockInventory = new BlockInventory(world, camera);
-
     var weaponInventory = new WeaponInventory(world, camera)
 
     self.resize = function () {
@@ -40,7 +39,7 @@ function Player(name, world, conn, controls) {
         var p = camera.position;
 
         doLook(camera, p, c);
-        calcNewPosition(dt, c);
+//         calcNewPosition(dt, c);
 
         blockInventory.update(p, c);
         weaponInventory.update(p, c);
@@ -54,10 +53,8 @@ function Player(name, world, conn, controls) {
     };
 
     conn.on('player-position', function (payload) {
-        var p = payload.pos;
-        camera.position.set(p.x, p.y, p.z);
-        var r = payload.rot;
-        camera.rotation.set(r.x, r.y, r.z);
+        var p = payload.Pos;
+        camera.position.set(p.X, p.Y, p.Z);
     });
 
     function round(n, digits) {

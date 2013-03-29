@@ -50,7 +50,6 @@ type MsgBlock struct {
 // understands how to simulate clients. For now it stays.
 type MsgPlayerPosition struct {
 	Pos       coords.World
-	Rot       coords.Vec3
 }
 
 type MsgControlsState struct {

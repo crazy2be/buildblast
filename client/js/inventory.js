@@ -54,7 +54,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
 
     var currentSlot = -1;
 
-    self.doAction = function () {
+    function activateCurrentSlot() {
         var action = slots[currentSlot].action;
         if (action) {
             action();
@@ -121,7 +121,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         nextWasDown = c[nextAction];
 
         if (c[activateAction]) {
-            self.doAction();
+            activateCurrentSlot();
         }
     }
 
