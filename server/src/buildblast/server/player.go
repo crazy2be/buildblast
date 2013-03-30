@@ -17,7 +17,9 @@ type ControlState struct {
 	Jump bool
 	Lat float64
 	Lon float64
+
 	Timestamp float64
+	FrameTime float64
 }
 
 var PLAYER_EYE_HEIGHT = 1.6;
@@ -47,7 +49,7 @@ func NewPlayer() *Player {
 	return &Player{
 		pos: coords.World{
 			X: 0,
-			Y: 22,
+			Y: 27,
 			Z: 0,
 		},
 	}
@@ -60,7 +62,7 @@ func (p *Player) simulateStep(c *Client, dt time.Duration) {
 		default: return
 	}
 
-	sec := dt.Seconds()
+	sec := controls.FrameTime//dt.Seconds()
 
 	p.vy += sec * -9.81
 

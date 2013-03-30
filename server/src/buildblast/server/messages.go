@@ -55,6 +55,7 @@ type MsgPlayerPosition struct {
 type MsgControlsState struct {
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
+	FrameTime float64
 	Controls  ControlState
 }
 

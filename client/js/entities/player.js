@@ -37,6 +37,8 @@ function Player(name, world, conn, controls) {
     self.update = function (dt) {
         var c = controls.sample();
         var p = camera.position;
+        var P = newPlayerPosition;
+        camera.position.set(P.x, P.y, P.z);
 
         doLook(camera, p, c);
 //         calcNewPosition(dt, c);
@@ -52,9 +54,10 @@ function Player(name, world, conn, controls) {
         renderer.render(scene, camera);
     };
 
+    var newPlayerPosition = new THREE.Vector3(0.0, 0.0, 0.0);
     conn.on('player-position', function (payload) {
         var p = payload.Pos;
-        camera.position.set(p.X, p.Y, p.Z);
+        newPlayerPosition.set(p.X, p.Y, p.Z);
     });
 
     function round(n, digits) {
@@ -102,27 +105,15 @@ function Player(name, world, conn, controls) {
         });
     }
 
-    var accumulatedTime = 0;
-    var interval = 1/20;
     function updateNetwork(dt, p, r, c) {
-        accumulatedTime += dt;
-
-        if (accumulatedTime < interval) return;
-
-        accumulatedTime -= interval;
-
-        if (accumulatedTime > 1) {
-            console.warn("Having trouble keeping up with minimum update speed of 10fps! (", accumulatedTime, " seconds behind). Trouble ahead...");
-            accumulatedTime = 0;
-        }
-
+        // Still used for chunk loading. Really shouldn't be.
         conn.queue('player-position', {
             pos: {x: p.x, y: p.y, z: p.z},
-            rot: {x: r.x, y: r.y, z: r.z},
         });
         conn.queue('controls-state', {
-            controls: c,
-            timestamp: window.performance.now(),
+            Controls: c,
+            Timestamp: window.performance.now(),
+            FrameTime: dt,
         });
     }
 };

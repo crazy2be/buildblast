@@ -94,6 +94,7 @@ func (c *Client) handleMessage(m Message) {
 
 func (c *Client) handleControlsState(m *MsgControlsState) {
 	m.Controls.Timestamp = m.Timestamp
+	m.Controls.FrameTime = m.FrameTime
 	c.ControlState <- &m.Controls
 }
 

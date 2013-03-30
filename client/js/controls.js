@@ -103,7 +103,6 @@ function Controls(elm) {
         var action = findAction(trigger);
         if (!action) return;
         actions[action] = true;
-        eventBus.fire(action);
     }
 
     function actionEnd(trigger) {
@@ -157,10 +156,6 @@ function Controls(elm) {
         actions.lat -= y * lookSpeed;
         actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
     }
-
-    var eventBus = new EventBus();
-    self.on = eventBus.on;
-    self.off = eventBus.off;
 
     onPointerLock(pointerLockChange);
 
