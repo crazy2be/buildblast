@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"time"
 	"math"
 
 	"buildblast/physics"
@@ -18,8 +17,7 @@ type ControlState struct {
 	Lat float64
 	Lon float64
 
-	Timestamp float64
-	FrameTime float64
+	Timestamp float64 // In ms
 }
 
 var PLAYER_EYE_HEIGHT = 1.6;
@@ -42,7 +40,7 @@ type Player struct {
 	rot       coords.Vec3
 	vy        float64
 	box       physics.Box
-	controls  ControlState
+	controls  *ControlState
 }
 
 func NewPlayer() *Player {
@@ -52,32 +50,48 @@ func NewPlayer() *Player {
 			Y: 27,
 			Z: 0,
 		},
+		controls: &ControlState{},
 	}
 }
 
-func (p *Player) simulateStep(c *Client, dt time.Duration) {
+func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
 	var controls *ControlState
 	select {
 		case controls = <-c.ControlState:
-		default: return
+		default: return nil
 	}
 
-	sec := controls.FrameTime//dt.Seconds()
+	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
-	p.vy += sec * -9.81
+	if dt > 1.0 {
+		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping.")
+		dt = 1.0
+	}
+
+	p.simulateTick(dt, c.world, controls)
+
+	p.controls = controls
+
+	return &MsgPlayerPosition{
+		Pos: p.pos,
+	}
+}
+
+func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) {
+	p.vy += dt * -9.81
 
 	fw := 0.0
 	if controls.Forward {
-		fw = 1 * sec * 10
+		fw = 1 * dt * 10
 	} else if controls.Back {
-		fw = -1 * sec * 10
+		fw = -1 * dt * 10
 	}
 
 	rt := 0.0
 	if controls.Right {
-		rt = 1 * sec * 10
+		rt = 1 * dt * 10
 	} else if controls.Left {
-		rt = -1 * sec * 10
+		rt = -1 * dt * 10
 	}
 
 	cos := math.Cos
@@ -85,13 +99,14 @@ func (p *Player) simulateStep(c *Client, dt time.Duration) {
 
 	move := coords.Vec3{
 		X: -cos(controls.Lon) * fw + sin(controls.Lon) * rt,
-		Y: p.vy * sec,
+		Y: p.vy * dt,
 		Z: -sin(controls.Lon) * fw - cos(controls.Lon) * rt,
 	}
-	box := physics.NewBoxOffset(p.pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET)
-	move = box.AttemptMove(c.world, move)
 
-	log.Println("Moving client", c.name, "by", move ,"(currently at ", p.pos, ")")
+	box := physics.NewBoxOffset(p.pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET)
+
+	move = box.AttemptMove(world, move)
+
 	if (move.Y == 0) {
 		if (controls.Jump) {
 			p.vy = 6
@@ -103,9 +118,4 @@ func (p *Player) simulateStep(c *Client, dt time.Duration) {
 	p.pos.X += move.X
 	p.pos.Y += move.Y
 	p.pos.Z += move.Z
-
-	m := &MsgPlayerPosition{
-		Pos: p.pos,
-	}
-	c.conn.Send(m)
 }

@@ -144,15 +144,18 @@ func (w *World) findClient(name string) int {
 	return -1
 }
 
-func (w *World) simulateStep(now time.Time) {
-	dt := now.Sub(w.previousTime)
-	w.previousTime = now
+func (w *World) simulateStep() {
 	for i, p := range w.players {
-		p.simulateStep(w.clients[i], dt)
+		client := w.clients[i]
+
+		playerPosMsg := p.simulateStep(client, w)
+		if playerPosMsg != nil {
+			client.conn.Send(playerPosMsg)
+		}
+
 		m := &MsgEntityPosition{
 			Pos: p.pos,
-			Rot: p.rot,
-			ID: w.clients[i].name,
+			ID: client.name,
 		}
 		w.broadcast(m)
 	}
@@ -171,8 +174,8 @@ func (w *World) Run() {
 		case req := <-w.find:
 			i := w.findClient(req.name)
 			req.resp <- w.clients[i]
-		case now := <- updateTicker:
-			w.simulateStep(now)
+		case <-updateTicker:
+			w.simulateStep()
 		}
 	}
 }

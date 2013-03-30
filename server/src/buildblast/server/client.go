@@ -94,7 +94,6 @@ func (c *Client) handleMessage(m Message) {
 
 func (c *Client) handleControlsState(m *MsgControlsState) {
 	m.Controls.Timestamp = m.Timestamp
-	m.Controls.FrameTime = m.FrameTime
 	c.ControlState <- &m.Controls
 }
 
@@ -105,13 +104,6 @@ func (c *Client) handleBlock(m *MsgBlock) {
 
 func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	wc := m.Pos
-
-// 	positionBroadcast := &MsgEntityPosition{
-// 		Pos: m.Pos,
-// 		Rot: m.Rot,
-// 		ID: c.name,
-// 	}
-// 	c.world.Broadcast <- positionBroadcast
 
 	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
 		return coords.Chunk{

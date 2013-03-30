@@ -36,6 +36,9 @@ func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset c
 
 func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.Vec3 {
 	if b.inSolid(world) {
+		amount.X = 0
+		amount.Y = 1
+		amount.Z = 0
 		return amount
 	}
 
@@ -77,8 +80,11 @@ func (b *Box) inSolid(world mapgen.BlockSource) bool {
 		block := world.Block(coords.World{x, y, z})
 		return block.Solid()
 	}
-	xs := b.xs; xe := b.xe; ys := b.ys; ym := b.ym
-	ye := b.ye; zs := b.zs; ze := b.ze
+
+	xs := b.xs; xe := b.xe
+	ys := b.ys; ym := b.ym; ye := b.ye
+	zs := b.zs; ze := b.ze
+
 	return solid(xs, ys, zs) || solid(xs, ys, ze) ||
 		   solid(xs, ym, zs) || solid(xs, ym, ze) ||
 		   solid(xs, ye, zs) || solid(xs, ye, ze) ||
