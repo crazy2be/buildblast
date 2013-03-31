@@ -1,7 +1,5 @@
 var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
     vertexColors: THREE.VertexColors,
-//     transparent: true,
-//     opacity: 0.5,
 });
 
 function Chunk(blocks, geometries, scene, quality) {

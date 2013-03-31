@@ -50,8 +50,7 @@ function Controls(elm) {
         activateWeapon: [MouseButtons.Left],
         activateBlock: [MouseButtons.Right],
     }
-    // We have programmer's dvorak keys in here too, because
-    // so far there is no reason not to.
+
     var ActionMappingsQwerty = {
         forward: [Keys.W],
         left: [Keys.A],
