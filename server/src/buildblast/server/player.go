@@ -74,6 +74,8 @@ func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
 
 	return &MsgPlayerPosition{
 		Pos: p.pos,
+		VelocityY: p.vy,
+		Timestamp: controls.Timestamp,
 	}
 }
 

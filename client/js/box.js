@@ -6,6 +6,10 @@ function Box(p, halfExtents, centerOffset) {
     var self = this;
     centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
+    self.setPos = function (newPos) {
+        p = newPos;
+    }
+
     self.attemptMove = function (world, move) {
         if (inSolid(world)) {
             var gh = groundHeight(world);

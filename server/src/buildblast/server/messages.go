@@ -46,17 +46,17 @@ type MsgBlock struct {
 	Type mapgen.Block
 }
 
-// Eventially this message will go away, once the server
-// understands how to simulate clients. For now it stays.
 type MsgPlayerPosition struct {
 	Pos       coords.World
+	VelocityY float64
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
 }
 
 type MsgControlsState struct {
+	Controls  ControlState
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
-	FrameTime float64
-	Controls  ControlState
 }
 
 type ClientMessage struct {
