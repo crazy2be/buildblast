@@ -39,48 +39,19 @@ function Player(name, world, conn, controls) {
     };
 
     self.update = function (dt) {
-        //         var c = controls.sample();
-        //         var p = camera.position;
-        //         calcNewPosition();
-        //
-        //         doLook(camera, p, c);
-        //
-        //         blockInventory.update(p, c);
-        //         weaponInventory.update(p, c);
-        //
-        //         updatePositionText(p);
-        //         updateNetwork(dt, p, camera.rotation, c);
-
         var c = controls.sample();
         sendControlsToNetwork(c);
         sendPositionToNetwork(camera.position); // TO DO: Remove
 
         var p = applyRemainingClientPredictions();
-        updatePositionText(p);
-        doLook(camera, camera.position, c);
         camera.position.set(p.x, p.y, p.z);
+
+        doLook(camera, camera.position, c);
+        blockInventory.update(p, c);
+        weaponInventory.update(p, c);
     };
 
     var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-    var velocityY = 0;
-    function calcNewPosition(dt, c, p) {
-        velocityY += dt * -9.81;
-
-        var v = 10;
-        var fw = dt*v*(c.forward ? 1 : c.back ? -1 : 0);
-        var rt = dt*v*(c.right ? 1 : c.left ? -1 : 0);
-        var move = {
-            x: -cos(c.lon) * fw + sin(c.lon) * rt,
-            y: velocityY * dt,
-            z: -sin(c.lon) * fw - cos(c.lon) * rt,
-        };
-
-        box.attemptMove(world, move);
-        if (move.y === 0) {
-            velocityY = c.jump ? 6 : 0;
-        }
-    }
-
     function applyUserCommand(pos, c, vy, dt) {
         vy += dt * -9.81;
 
@@ -113,26 +84,28 @@ function Player(name, world, conn, controls) {
             t = uc.Timestamp;
             vy = applyUserCommand(pos, c, vy, dt);
         }
+        updatePositionText(pos, vy);
         return pos;
     }
 
     var latestConfirmedPosition = {
         Pos: new THREE.Vector3(0.0, 0.0, 0.0),
-        Timestamp: -1.0,
+        Timestamp: 0.0,
         VelocityY: 0.0,
     };
     var userCommands = [];
     conn.on('player-position', function (payload) {
         var p = payload.Pos;
         var t = payload.Timestamp;
+        var vy = payload.VelocityY;
         var cmd = userCommands.shift();
         if (cmd.Timestamp !== t) {
             // We should probably handle this more gracefully.
             throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
         }
         latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
-        latestConfirmedPosition.Timestamp = cmd.Timestamp;
-        latestConfirmedPosition.VelocityY = cmd.VelocityY || 0;
+        latestConfirmedPosition.Timestamp = t;
+        latestConfirmedPosition.VelocityY = vy;
     });
 
     function sendControlsToNetwork(c) {
@@ -160,7 +133,7 @@ function Player(name, world, conn, controls) {
         camera.lookAt(target);
     }
 
-    function updatePositionText(p) {
+    function updatePositionText(p, vy) {
         var info = document.getElementById('info');
         if (!info) return;
 
@@ -168,7 +141,7 @@ function Player(name, world, conn, controls) {
             x: round(p.x, 2),
             y: round(p.y, 2),
             z: round(p.z, 2),
-            v: round(velocityY, 2),
+            v: round(vy, 2),
         });
     }
 
