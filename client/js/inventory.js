@@ -87,7 +87,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var pp = playerPos;
         var ip = item.position;
         // http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon)
+        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon);
         ip.y = pp.y + 0.15 * cos(c.lat);
         ip.z = pp.z + 0.15 * sin(c.lat) * sin(c.lon);
     }
