@@ -150,7 +150,7 @@ func (w *World) simulateStep() {
 
 		playerPosMsg := p.simulateStep(client, w)
 		if playerPosMsg != nil {
-			client.conn.Send(playerPosMsg)
+			client.PositionUpdates <- playerPosMsg
 		}
 
 		m := &MsgEntityPosition{

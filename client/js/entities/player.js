@@ -41,7 +41,6 @@ function Player(name, world, conn, controls) {
     self.update = function (dt) {
         var c = controls.sample();
         sendControlsToNetwork(c);
-        sendPositionToNetwork(camera.position); // TO DO: Remove
 
         var p = applyRemainingClientPredictions();
         camera.position.set(p.x, p.y, p.z);
@@ -74,9 +73,10 @@ function Player(name, world, conn, controls) {
     }
 
     function applyRemainingClientPredictions() {
-        var pos = latestConfirmedPosition.Pos.clone();
-        var vy = latestConfirmedPosition.VelocityY;
-        var t = latestConfirmedPosition.Timestamp;
+        var confirmed = latestConfirmedPosition;
+        var pos = confirmed.Pos.clone();
+        var vy = confirmed.VelocityY;
+        var t = confirmed.Timestamp;
         for (var i = 0; i < userCommands.length; i++) {
             var uc = userCommands[i];
             var c = uc.Controls;
@@ -84,6 +84,12 @@ function Player(name, world, conn, controls) {
             t = uc.Timestamp;
             vy = applyUserCommand(pos, c, vy, dt);
         }
+
+        var lag = (userCommands[userCommands.length - 1].Timestamp - confirmed.Timestamp) / 1000;
+        if (lag > 1.0) {
+            console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
+        }
+
         updatePositionText(pos, vy);
         return pos;
     }
@@ -115,14 +121,6 @@ function Player(name, world, conn, controls) {
         };
         conn.queue('controls-state', userCommand);
         userCommands.push(userCommand);
-    }
-
-    function sendPositionToNetwork(p) {
-        // Still used for chunk loading. Really shouldn't be.
-        // TODO: Kill this.
-        conn.queue('player-position', {
-            pos: {x: p.x, y: p.y, z: p.z},
-        });
     }
 
     function doLook(camera, p, c) {
