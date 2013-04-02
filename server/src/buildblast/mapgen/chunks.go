@@ -1,31 +1,28 @@
-package main
+package mapgen
+
+import (
+	"buildblast/coords"
+)
 
 type Block byte
 
 const (
+	BLOCK_NIL  = Block(0)
 	BLOCK_AIR  = Block(1)
 	BLOCK_DIRT = Block(2)
 )
 
-type Chunk [][][]Block
-
-const (
-	CHUNK_WIDTH  = 32
-	CHUNK_DEPTH  = 32
-	CHUNK_HEIGHT = 32
-)
-
-var CHUNK_SIZE Vec3 = Vec3{
-	X: CHUNK_WIDTH,
-	Y: CHUNK_HEIGHT,
-	Z: CHUNK_DEPTH,
+func (b Block) Solid() bool {
+	return b == BLOCK_DIRT
 }
 
-func (c Chunk) Block(oc OffsetCoords) Block {
+type Chunk [][][]Block
+
+func (c Chunk) Block(oc coords.Offset) Block {
 	return c[oc.X][oc.Y][oc.Z]
 }
 
-func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
+func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 	c[oc.X][oc.Y][oc.Z] = newBlock
 }
 
@@ -42,9 +39,9 @@ func (c Chunk) SetBlock(oc OffsetCoords, newBlock Block) {
 //     isn't particulilly fast at serializing large
 //     arrays of numbers.
 func (c Chunk) Flatten() string {
-	cw := CHUNK_WIDTH
-	ch := CHUNK_HEIGHT
-	cd := CHUNK_DEPTH
+	cw := coords.CHUNK_WIDTH
+	ch := coords.CHUNK_HEIGHT
+	cd := coords.CHUNK_DEPTH
 	data := make([]byte, cw*ch*cd)
 	for x := 0; x < cw; x++ {
 		for y := 0; y < ch; y++ {
