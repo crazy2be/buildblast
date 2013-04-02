@@ -70,7 +70,9 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         if (currentSlot > -1) {
             world.removeFromScene(slots[currentSlot].model);
         }
-        world.addToScene(slots[n].model);
+        var model = slots[n].model;
+        model.scale.set(1/16, 1/16, 1/16);
+        world.addToScene(model);
         currentSlot = n;
     }
 
