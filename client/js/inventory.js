@@ -19,7 +19,7 @@ function BlastInventory(world, camera) {
 
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, elm, 0.05, 'nextWeapon', 'activateWeapon');
+    return new Inventory(world, camera, slots, elm, 1, 'nextWeapon', 'activateWeapon');
 }
 
 function BuildInventory(world, camera) {
@@ -46,7 +46,7 @@ function BuildInventory(world, camera) {
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, elm, -0.05, 'nextBlock', 'activateBlock');
+    return new Inventory(world, camera, slots, elm, -1, 'nextBlock', 'activateBlock');
 }
 
 function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
@@ -83,13 +83,24 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         item.lookAt(target);
     }
 
-    function positionItem(item, playerPos, c) {
+    function positionItem(item, playerPos, c, leftward) {
         var pp = playerPos;
         var ip = item.position;
+
         // http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon);
-        ip.y = pp.y + 0.15 * cos(c.lat);
-        ip.z = pp.z + 0.15 * sin(c.lat) * sin(c.lon);
+        var theta = c.lat - 0.5;
+        var phi = c.lon;
+        var r = 0.15;
+        var offset = sphericalToCartesian(r, theta, phi);
+        ip.copy(pp).add(offset);
+    }
+
+    function sphericalToCartesian(r, theta, phi) {
+        return new THREE.Vector3(
+            r*sin(theta)*cos(phi),
+            r*cos(theta),
+            r*sin(theta)*sin(phi)
+        );
     }
 
     function postitionPerspective(item, leftward) {
@@ -111,9 +122,9 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var p = playerPosition;
         var c = controlState;
         var item = slots[currentSlot].model;
-        positionItem(item, p, c);
         pointItem(item, c);
-        postitionPerspective(item, leftwardOffset);
+        positionItem(item, p, c, leftwardOffset);
+        postitionPerspective(item, leftwardOffset*0.05);
 
         if (!nextWasDown && c[nextAction]) {
             selectSlot((currentSlot + 1) % slots.length);
