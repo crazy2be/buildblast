@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+
+	"buildblast/coords"
+	"buildblast/mapgen"
 )
 
 type MessageKind string
@@ -13,6 +16,7 @@ const (
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_PLAYER_POSITION = MessageKind("player-position")
+	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 )
 
 type MsgEntityCreate struct {
@@ -20,8 +24,8 @@ type MsgEntityCreate struct {
 }
 
 type MsgEntityPosition struct {
-	Pos   WorldCoords
-	Rot   Vec3
+	Pos   coords.World
+	Rot   coords.Vec3
 	ID    string
 }
 
@@ -30,22 +34,29 @@ type MsgEntityRemove struct {
 }
 
 type MsgChunk struct {
-	CCPos ChunkCoords
-	Size  Vec3
+	CCPos coords.Chunk
+	Size  coords.Vec3
 	// Go is really slow at encoding arrays. This
 	// is much faster (and more space efficient)
 	Data  string
 }
 
 type MsgBlock struct {
-	Pos  WorldCoords
-	Type Block
+	Pos  coords.World
+	Type mapgen.Block
 }
 
 type MsgPlayerPosition struct {
-	Pos      WorldCoords
-	Rot      Vec3
-	Controls ControlState
+	Pos       coords.World
+	VelocityY float64
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
+}
+
+type MsgControlsState struct {
+	Controls  ControlState
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
 }
 
 type ClientMessage struct {

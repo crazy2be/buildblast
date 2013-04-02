@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 	"reflect"
+
+	"buildblast/coords"
 )
 
 type Client struct {
@@ -12,7 +14,13 @@ type Client struct {
 
 	name string
 
+	// Channel of messages queued by the world to be
+	// sent out to this client.
 	Broadcast chan Message
+	PositionUpdates chan *MsgPlayerPosition
+	// Channel of player state updates, to be consumed by
+	// the world when simulating.
+	ControlState chan *ControlState
 	cm *ChunkManager
 }
 
@@ -22,6 +30,8 @@ func NewClient(world *World, name string) *Client {
 	c.name = name
 
 	c.Broadcast = make(chan Message, 10)
+	c.PositionUpdates = make(chan *MsgPlayerPosition, 10)
+	c.ControlState = make(chan *ControlState, 10)
 	c.cm = newChunkManager()
 
 	return c
@@ -38,6 +48,9 @@ func (c *Client) Run(conn *Conn) {
 				continue
 			}
 			c.conn.Send(m)
+		case m := <- c.PositionUpdates:
+			c.conn.Send(m)
+			c.queueNearbyChunks(m.Pos)
 		default:
 			m := c.conn.Recv()
 			if m != nil {
@@ -62,7 +75,7 @@ func (c *Client) RunChunks(conn *Conn) {
 
 		m := &MsgChunk{
 			CCPos: cc,
-			Size: CHUNK_SIZE,
+			Size: coords.CHUNK_SIZE,
 			Data: chunk.Flatten(),
 		}
 
@@ -74,53 +87,34 @@ func (c *Client) handleMessage(m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			c.handleBlock(m.(*MsgBlock))
-		case *MsgPlayerPosition:
-			c.handleClientPosition(m.(*MsgPlayerPosition))
+		case *MsgControlsState:
+			c.handleControlsState(m.(*MsgControlsState))
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
 }
 
-func (c *Client) sendClientPos(wc WorldCoords) {
-	m := MsgPlayerPosition{
-		Pos: wc,
-	}
-	c.conn.Send(m)
+func (c *Client) handleControlsState(m *MsgControlsState) {
+	m.Controls.Timestamp = m.Timestamp
+	c.ControlState <- &m.Controls
 }
 
 func (c *Client) handleBlock(m *MsgBlock) {
-	log.Println(m)
 	c.world.ChangeBlock(m.Pos, m.Type)
-// 	c.world.Broadcast <- m
+	c.world.Broadcast <- m
 }
 
-func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
-	wc := m.Pos
-
-	positionBroadcast := &MsgEntityPosition{
-		Pos: m.Pos,
-		Rot: m.Rot,
-		ID: c.name,
-	}
-	c.world.Broadcast <- positionBroadcast
-// 	playerState := &PlayerState{
-// 		Position: wc,
-// 		Rotation: readVec3(pl["rot"].(map[string]interface{})),
-// 		Controls: readControlState(pl["controls"].(map[string]interface{})),
-// 		Name: c.name,
-// 	}
-// 	c.world.StateUpdate <- playerState
-
-	occ := func (cc ChunkCoords, x, y, z int) ChunkCoords {
-		return ChunkCoords{
+func (c *Client) queueNearbyChunks(wc coords.World) {
+	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
+		return coords.Chunk{
 			X: cc.X + x,
 			Y: cc.Y + y,
 			Z: cc.Z + z,
 		}
 	}
 
-	eachWithin := func (cc ChunkCoords, xdist, ydist, zdist int, cb func (newCC ChunkCoords, dist int)) {
+	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
 		abs := func (n int) int {
 			if n < 0 {
 				return -n
@@ -141,7 +135,7 @@ func (c *Client) handleClientPosition(m *MsgPlayerPosition) {
 	}
 
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC ChunkCoords, dist int) {
+	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
 		c.cm.display(newCC, -dist)
 	});
 

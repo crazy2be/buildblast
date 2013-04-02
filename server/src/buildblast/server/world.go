@@ -2,23 +2,27 @@ package main
 
 import (
 	"log"
+// 	"fmt"
 	"time"
 	"sync"
+
+	"buildblast/mapgen"
+	"buildblast/coords"
 )
 
 type World struct {
 	seed        float64
-	chunks      map[ChunkCoords]Chunk
-	generator   ChunkGenerator
+	chunks      map[coords.Chunk]mapgen.Chunk
+	generator   mapgen.ChunkSource
 	chunkLock   sync.Mutex
 	clients     []*Client
 	players     []*Player
+	previousTime time.Time
 	find       chan FindClientRequest
 
 	Join       chan *Client
 	Leave      chan *Client
 	Broadcast  chan Message
-	StateUpdate chan *PlayerState
 }
 
 type FindClientRequest struct {
@@ -29,21 +33,21 @@ type FindClientRequest struct {
 func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
-	w.chunks = make(map[ChunkCoords]Chunk)
-	w.generator = NewMazeArenaGenerator(seed)
+	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
+	w.generator = mapgen.NewMazeArena(seed)
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
+	w.previousTime = time.Now()
 	w.find = make(chan FindClientRequest)
 
 	w.Join = make(chan *Client)
 	w.Leave = make(chan *Client)
 	w.Broadcast = make(chan Message, 10)
-	w.StateUpdate = make(chan *PlayerState, 10000000)
 
 	return w
 }
 
-func (w *World) RequestChunk(cc ChunkCoords) Chunk {
+func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	w.chunkLock.Lock()
 	defer w.chunkLock.Unlock()
 
@@ -56,7 +60,20 @@ func (w *World) RequestChunk(cc ChunkCoords) Chunk {
 	return chunk
 }
 
-func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
+func (w *World) Block(wc coords.World) mapgen.Block {
+	w.chunkLock.Lock()
+	defer w.chunkLock.Unlock()
+
+	cc := wc.Chunk()
+	oc := wc.Offset()
+	chunk := w.chunks[cc]
+	if chunk == nil {
+		return mapgen.BLOCK_NIL
+	}
+	return chunk.Block(oc)
+}
+
+func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 	chunk := w.RequestChunk(wc.Chunk())
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
@@ -95,10 +112,10 @@ func (w *World) join(c *Client) {
 		c.Broadcast <- m
 	}
 
-	p := NewPlayer(c.name, WorldCoords{0.0, 0.0, 0.0})
+	p := NewPlayer()
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
-	log.Println("New player connected! Name: ", p.Name)
+	log.Println("New player connected! Name: ", c.name)
 }
 
 func (w *World) leave(c *Client) {
@@ -127,12 +144,25 @@ func (w *World) findClient(name string) int {
 	return -1
 }
 
-func (w *World) simulateStep(now time.Time) {
-// 	println(now)
+func (w *World) simulateStep() {
+	for i, p := range w.players {
+		client := w.clients[i]
+
+		playerPosMsg := p.simulateStep(client, w)
+		if playerPosMsg != nil {
+			client.PositionUpdates <- playerPosMsg
+		}
+
+		m := &MsgEntityPosition{
+			Pos: p.pos,
+			ID: client.name,
+		}
+		w.broadcast(m)
+	}
 }
 
 func (w *World) Run() {
-	updateTicker := time.Tick(time.Second / 20)
+	updateTicker := time.Tick(time.Second / 60)
 	for {
 		select {
 		case p := <-w.Join:
@@ -144,8 +174,8 @@ func (w *World) Run() {
 		case req := <-w.find:
 			i := w.findClient(req.name)
 			req.resp <- w.clients[i]
-		case now := <- updateTicker:
-			w.simulateStep(now)
+		case <-updateTicker:
+			w.simulateStep()
 		}
 	}
 }
