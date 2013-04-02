@@ -18,8 +18,8 @@ function Player(name, world, conn, controls) {
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
-    var blockInventory = new BlockInventory(world, camera);
-    var weaponInventory = new WeaponInventory(world, camera);
+    var buildInventory = new BuildInventory(world, camera);
+    var blastInventory = new BlastInventory(world, camera);
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -46,8 +46,8 @@ function Player(name, world, conn, controls) {
         camera.position.set(p.x, p.y, p.z);
 
         doLook(camera, camera.position, c);
-        blockInventory.update(p, c);
-        weaponInventory.update(p, c);
+        buildInventory.update(p, c);
+        blastInventory.update(p, c);
     };
 
     var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);

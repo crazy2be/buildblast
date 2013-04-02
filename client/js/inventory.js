@@ -1,4 +1,4 @@
-function WeaponInventory(world, camera) {
+function BlastInventory(world, camera) {
     var slots = [
         {
             name: 'pistol',
@@ -22,7 +22,7 @@ function WeaponInventory(world, camera) {
     return new Inventory(world, camera, slots, elm, 0.05, 'nextWeapon', 'activateWeapon');
 }
 
-function BlockInventory(world, camera) {
+function BuildInventory(world, camera) {
     var slots = [
         {
             name: 'shovel',
