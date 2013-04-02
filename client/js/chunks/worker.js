@@ -79,9 +79,10 @@ function processChunk(payload) {
 }
 
 function processBlockChange(payload) {
-    var wc = payload.wc;
-    var type = payload.type;
-    var coords = worldToChunk(wc.x, wc.y, wc.z);
+    var pos = payload.Pos;
+    var type = payload.Type;
+    var x = pos.X, y = pos.Y, z = pos.Z;
+    var coords = worldToChunk(x, y, z);
     var cc = coords.c;
     var oc = coords.o;
 
@@ -106,17 +107,17 @@ function processBlockChange(payload) {
     var changedChunks = [];
     changedChunks.push(cc);
 
-    function invalidate(wx, wy, wz) {
-        coords = worldToChunk(wx, wy, wz);
+    function invalidate(x, y, z) {
+        coords = worldToChunk(x, y, z);
         changedChunks.push(coords.c);
     }
 
-    invalidate(wc.x + 1, wc.y, wc.z);
-    invalidate(wc.x - 1, wc.y, wc.z);
-    invalidate(wc.x, wc.y + 1, wc.z);
-    invalidate(wc.x, wc.y - 1, wc.z);
-    invalidate(wc.x, wc.y, wc.z + 1);
-    invalidate(wc.x, wc.y, wc.z - 1);
+    invalidate(x + 1, y, z);
+    invalidate(x - 1, y, z);
+    invalidate(x, y + 1, z);
+    invalidate(x, y - 1, z);
+    invalidate(x, y, z + 1);
+    invalidate(x, y, z - 1);
 
     changedChunks = unique(changedChunks);
 

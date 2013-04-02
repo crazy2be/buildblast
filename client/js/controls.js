@@ -8,6 +8,8 @@ function Controls(elm) {
         A: 65,
         S: 83,
         D: 68,
+        Q: 81,
+        E: 69,
 
         Left: 37,
         Up: 38,
@@ -25,6 +27,8 @@ function Controls(elm) {
 
         E: 69,
         O: 79,
+        Semicolon: 186,
+        Period: 190,
 
         Ampersand: 55,
         LeftSquareBraket: 219,
@@ -37,68 +41,121 @@ function Controls(elm) {
         Right: 2,
     };
 
-    // We have programmer's dvorak keys in here too, because
-    // so far there is no reason not to.
-    var ActionMappings = {
-        moveForward: [Keys.W, Keys.Up, Keys.Comma],
-        moveLeft: [Keys.A, Keys.Left],
-        moveRight: [Keys.D, Keys.Right, Keys.E],
-        moveBack: [Keys.S, Keys.Down, Keys.O],
+    var ActionMappingsBase = {
+        forward: [Keys.Up],
+        left: [Keys.Left],
+        right: [Keys.Right],
+        back: [Keys.Down],
         jump: [Keys.Space],
 
-        selectSlot1: [Keys.One, Keys.Ampersand],
-        selectSlot2: [Keys.Two, Keys.LeftSquareBraket],
-        selectSlot3: [Keys.Three, Keys.RightCurlyBraket],
+        activateWeapon: [MouseButtons.Left],
+        activateBlock: [MouseButtons.Right],
+    }
 
-        shoot: [MouseButtons.Left],
-        place: [MouseButtons.Right],
+    var ActionMappingsQwerty = {
+        forward: [Keys.W],
+        left: [Keys.A],
+        right: [Keys.D],
+        back: [Keys.S],
 
-        chat: [Keys.Enter],
+        nextWeapon: [Keys.Q],
+        nextBlock: [Keys.E],
     };
+
+    var ActionMappingsDvorak = {
+        forward: [Keys.Comma],
+        left: [Keys.A],
+        right: [Keys.E],
+        back: [Keys.O],
+
+        nextWeapon: [Keys.Semicolon],
+        nextBlock: [Keys.Period],
+    }
+
+    if (window.localStorage["useDvorak"]) {
+        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
+    } else {
+        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
+    }
 
     var self = this;
 
-    var lookSpeed = 0.005;
-
-    var movementX = 0;
-    var movementY = 0;
-
-    var lat = -1/2 * Math.PI;
-    var lon = 1/2 * Math.PI;
-
-    var actions = {};
+    var actions = {
+        lat: -1/2 * Math.PI,
+        lon: 1/2 * Math.PI,
+    };
 
     self.sample = function() {
+        return clone(actions);
+    };
+
+    function findAction(trigger) {
+        for (var action in mapping) {
+            var triggers = mapping[action]
+            for (var i = 0; i < triggers.length; i++) {
+                if (triggers[i] === trigger) return action;
+            }
+        }
+        console.log("Warning: Unrecognized trigger: ", trigger);
+    }
+
+    function actionStart(trigger) {
+        var action = findAction(trigger);
+        if (!action) return;
+        actions[action] = true;
+    }
+
+    function actionEnd(trigger) {
+        var action = findAction(trigger);
+        if (!action) return;
+        actions[action] = false;
+    }
+
+    function keyDown(event) {
+        actionStart(event.keyCode);
+    }
+
+    function keyUp(event) {
+        actionEnd(event.keyCode);
+    }
+
+    function mouseDown(event) {
+        elm.focus();
+        attemptPointerLock();
+        if (!pointerLocked()) return;
+        event.preventDefault();
+        event.stopPropagation();
+
+        actionStart(event.button);
+    }
+
+    function mouseUp(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        actionEnd(event.button);
+    }
+
+    function mouseMove(event) {
         function clamp(n, a, b) {
             return Math.max(a, Math.min(b, n));
         }
-        function clone(o) {
-            var newO = {};
-            for (var k in o) {
-                newO[k] = o[k];
-            }
-            return newO;
-        }
+        var lookSpeed = 0.005;
 
-        lon += movementX * lookSpeed;
-        lon %= 2 * Math.PI;
-        lat -= movementY * lookSpeed;
-        lat = clamp(lat, -Math.PI + 0.01, -0.01);
+        var x = event.movementX  ||
+            event.mozMovementX    ||
+            event.webkitMovementX ||
+            0;
+        var y = event.movementY  ||
+            event.mozMovementY    ||
+            event.webkitMovementY ||
+            0;
 
-        movementX = 0;
-        movementY = 0;
-
-        // Meh, I don't really like the way this works,
-        // but it works for now.
-        var state = clone(actions);
-        state.lat = lat;
-        state.lon = lon;
-        return state;
-    };
-
-    var eventBus = new EventBus();
-    self.on = eventBus.on;
-    self.off = eventBus.off;
+        actions.lon += x * lookSpeed;
+        actions.lon %= 2 * Math.PI;
+        actions.lat -= y * lookSpeed;
+        actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
+    }
 
     onPointerLock(pointerLockChange);
 
@@ -111,78 +168,16 @@ function Controls(elm) {
     elm.addEventListener('keydown', keyDown, false);
     elm.addEventListener('keyup', keyUp, false);
 
-    function findAction(c, cb) {
-        for (var action in ActionMappings) {
-            var vals = ActionMappings[action];
-            for (var i = 0; i < vals.length; i++) {
-                if (vals[i] === c) {
-                    cb(action);
-                    // Right now this means only the
-                    // first action is matched. Should we
-                    // support matching more than one action?
-                    return;
-                }
-            }
+    function attemptPointerLock() {
+        if (pointerLocked()) return;
+
+        // Firefox currently only allows us to access
+        // pointer lock if the document is in full screen.
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
+        if ('mozPointerLockElement' in document) {
+            requestFullscreen();
         }
-        console.log("Warning: Unrecognized keyCode: ", c);
-    }
-
-    function keyDown(event) {
-        findAction(event.keyCode, function (action) {
-            actions[action] = true;
-            eventBus.fire(action);
-        });
-    }
-
-    function keyUp(event) {
-        findAction(event.keyCode, function (action) {
-            actions[action] = false;
-        });
-    }
-
-    function mouseDown(event) {
-        elm.focus();
-
-        if (!pointerLocked()) {
-            // Firefox currently only allows us to access
-            // pointer lock if the document is in full screen.
-            // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
-            if ('mozPointerLockElement' in document) {
-                requestFullscreen();
-            }
-            requestPointerLock();
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        console.log(event.button);
-        findAction(event.button, function (action) {
-            actions[action] = true;
-            console.log(action);
-            eventBus.fire(action);
-        });
-    }
-
-    function mouseUp(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        findAction(event.button, function (action) {
-            actions[action] = false;
-        });
-    }
-
-    function mouseMove(event) {
-        movementX += event.movementX  ||
-            event.mozMovementX    ||
-            event.webkitMovementX ||
-            0;
-        movementY += event.movementY  ||
-            event.mozMovementY    ||
-            event.webkitMovementY ||
-            0;
+        requestPointerLock();
     }
 
     function pointerLockChange() {
@@ -218,5 +213,25 @@ function Controls(elm) {
         return document.pointerLockElement === elm ||
             document.mozPointerLockElement === elm ||
             document.webkitPointerLockElement === elm;
+    }
+
+    function mergeMappings(base, more) {
+        var mappings = clone(base);
+        for (var action in more) {
+            if (base[action]) {
+                mappings[action] = base[action].concat(more[action]);
+            } else {
+                mappings[action] = more[action].slice();
+            }
+        }
+        return mappings;
+    }
+
+    function clone(o) {
+        var newO = {};
+        for (var k in o) {
+            newO[k] = o[k];
+        }
+        return newO;
     }
 };

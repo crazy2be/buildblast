@@ -1,61 +1,61 @@
-function WeaponInventory(world, camera) {
+function BlastInventory(world, camera) {
     var slots = [
-        'pistol',
-    ];
-
-    var models = [
-        Models.pistol(),
-    ];
-
-    var actions = [
-        function () {
-            var intersect = world.findPlayerIntersection(camera);
-            if (intersect) {
-                console.log("Hit!!", intersect, intersect.item);
-                world.addSmallCube(intersect.point);
-            } else {
-                console.log("miss!!");
-            }
+        {
+            name: 'pistol',
+            model: Models.pistol(),
+            action: pistolAction,
         }
     ];
 
+    function pistolAction() {
+        var intersect = world.findPlayerIntersection(camera);
+        if (intersect) {
+            console.log("Hit!!", intersect, intersect.item);
+            world.addSmallCube(intersect.point);
+        } else {
+            console.log("miss!!");
+        }
+    }
+
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm, 0.05);
+    return new Inventory(world, camera, slots, elm, 0.05, 'nextWeapon', 'activateWeapon');
 }
 
-function BlockInventory(world, camera) {
+function BuildInventory(world, camera) {
     var slots = [
-        'shovel',
-        'block',
+        {
+            name: 'shovel',
+            model: Models.shovel(),
+            action: shovelAction,
+        },
+        {
+            name: 'block',
+            model: Models.block(),
+            action: blockAction,
+        }
     ];
 
-    var models = [
-        Models.shovel(),
-        Models.block(),
-    ];
+    function shovelAction() {
+        world.removeLookedAtBlock(camera);
+    }
 
-    var actions = [
-        function () {
-            world.removeLookedAtBlock(camera);
-        },
-        function () {
-            world.addLookedAtBlock(camera);
-        },
-    ];
+    function blockAction() {
+        world.addLookedAtBlock(camera);
+    }
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, models, actions, elm, -0.05);
+    return new Inventory(world, camera, slots, elm, -0.05, 'nextBlock', 'activateBlock');
 }
 
-function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
+function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
     var self = this;
 
     var currentSlot = -1;
 
-    self.doAction = function () {
-        var action = actions[currentSlot];
+    function activateCurrentSlot() {
+        var action = slots[currentSlot].action;
         if (action) {
             action();
         } else {
@@ -68,9 +68,9 @@ function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
         var html = generateInventoryHTML(slots, n);
         elm.innerHTML = html;
         if (currentSlot > -1) {
-            world.removeFromScene(models[currentSlot]);
+            world.removeFromScene(slots[currentSlot].model);
         }
-        world.addToScene(models[n]);
+        world.addToScene(slots[n].model);
         currentSlot = n;
     }
 
@@ -87,7 +87,7 @@ function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
         var pp = playerPos;
         var ip = item.position;
         // http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon)
+        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon);
         ip.y = pp.y + 0.15 * cos(c.lat);
         ip.z = pp.z + 0.15 * sin(c.lat) * sin(c.lon);
     }
@@ -106,20 +106,22 @@ function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
         p.z += mov.z;
     }
 
+    var nextWasDown = false;
     self.update = function (playerPosition, controlState) {
         var p = playerPosition;
         var c = controlState;
-        var item = models[currentSlot];
+        var item = slots[currentSlot].model;
         positionItem(item, p, c);
         pointItem(item, c);
         postitionPerspective(item, leftwardOffset);
 
-        if (c.selectSlot1) {
-            selectSlot(0);
-        } else if (c.selectSlot2) {
-            selectSlot(1);
-        } else if (c.selectSlot3) {
-            selectSlot(2);
+        if (!nextWasDown && c[nextAction]) {
+            selectSlot((currentSlot + 1) % slots.length);
+        }
+        nextWasDown = c[nextAction];
+
+        if (c[activateAction]) {
+            activateCurrentSlot();
         }
     }
 
@@ -129,11 +131,11 @@ function Inventory(world, camera, slots, models, actions, elm, leftwardOffset) {
 function generateInventoryHTML(slots, selectedIndex) {
     var html = "";
     for (var i = 0; i < selectedIndex; i++) {
-        html += "<li>" + slots[i] + "</li>";
+        html += "<li>" + slots[i].name + "</li>";
     }
-    html += "<li class='selected'>" + slots[selectedIndex] + "</li>";
+    html += "<li class='selected'>" + slots[selectedIndex].name + "</li>";
     for (var i = selectedIndex+1; i < slots.length; i++) {
-        html += "<li>" + slots[i] + "</li>";
+        html += "<li>" + slots[i].name + "</li>";
     }
     return html;
 }
