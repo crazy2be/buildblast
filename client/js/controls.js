@@ -48,9 +48,11 @@ function Controls(elm) {
         back: [Keys.Down],
         jump: [Keys.Space],
 
+        chat: [Keys.Enter],
+
         activateWeapon: [MouseButtons.Left],
         activateBlock: [MouseButtons.Right],
-    }
+    };
 
     var ActionMappingsQwerty = {
         forward: [Keys.W],
@@ -70,12 +72,13 @@ function Controls(elm) {
 
         nextWeapon: [Keys.Semicolon],
         nextBlock: [Keys.Period],
-    }
+    };
 
+    var mapping;
     if (window.localStorage["useDvorak"]) {
-        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
+        mapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
     } else {
-        var mapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
+        mapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
     }
 
     var self = this;
@@ -91,7 +94,7 @@ function Controls(elm) {
 
     function findAction(trigger) {
         for (var action in mapping) {
-            var triggers = mapping[action]
+            var triggers = mapping[action];
             for (var i = 0; i < triggers.length; i++) {
                 if (triggers[i] === trigger) return action;
             }
