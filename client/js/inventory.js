@@ -83,7 +83,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         item.lookAt(target);
     }
 
-    function positionItem(item, playerPos, c, leftward) {
+    function positionItem(item, playerPos, c) {
         var pp = playerPos;
         var ip = item.position;
 
@@ -108,8 +108,10 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var r = new THREE.Matrix4();
         r.setRotationFromEuler(item.rotation, item.eulerOrder);
 
+        var amount = leftward * aspectRatio * 0.05;
+
         // Mov left / right
-        var mov = new THREE.Vector3(leftward, 0, 0);
+        var mov = new THREE.Vector3(amount, 0, 0);
         mov.applyMatrix3(r);
 
         p.x += mov.x;
@@ -123,8 +125,8 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var c = controlState;
         var item = slots[currentSlot].model;
         pointItem(item, c);
-        positionItem(item, p, c, leftwardOffset);
-        postitionPerspective(item, leftwardOffset*0.05);
+        positionItem(item, p, c);
+        postitionPerspective(item, leftwardOffset);
 
         if (!nextWasDown && c[nextAction]) {
             selectSlot((currentSlot + 1) % slots.length);
@@ -134,6 +136,11 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         if (c[activateAction]) {
             activateCurrentSlot();
         }
+    }
+
+    var aspectRatio = 1.0;
+    self.resize = function () {
+        aspectRatio = window.innerWidth / window.innerHeight;
     }
 
     selectSlot(0);

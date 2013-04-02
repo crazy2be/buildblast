@@ -24,6 +24,8 @@ function Player(name, world, conn, controls) {
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        blockInventory.resize();
+        weaponInventory.resize();
     };
 
     self.pos = function () {
