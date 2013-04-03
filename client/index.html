@@ -26,6 +26,7 @@
             #container canvas {
                 position: absolute;
                 top: 0px;
+                left: 0px;
             }
 
             #info {
@@ -110,9 +111,47 @@
                 left: 50%;
                 z-index: 2;
             }
+
+            #chat-container {
+                position: absolute;
+                pointer-events:none;
+                width: 100%;
+                left: 0;
+                bottom: 5%;
+                z-index: 2;
+            }
+
+            #chat-messages {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                max-height: 150px;
+                overflow-y: auto;
+            }
+
+            .chat-message-wrapper {
+                text-align: left;
+            }
+
+            .chat-message {
+                background-color: rgba(255, 255, 255, 0.5);
+                display: inline-block;
+            }
+
+            #chat-input {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                opacity: 0.5;
+                visibility: hidden;
+            }
         </style>
     </head>
     <body>
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <input type="text" id="chat-input"/>
+        </div>
         <div id="container">
             <p class="loader">
                 <br /><br /><br /><br /><br />
@@ -131,6 +170,7 @@
         <script src="lib/jquery.min.js"></script>
         <script src="lib/eventBus.js"></script>
 
+        <script src="js/chat.js"></script>
         <script src="js/controls.js"></script>
         <script src="js/featureTester.js"></script>
         <script src="js/chunks/include.js"></script>
