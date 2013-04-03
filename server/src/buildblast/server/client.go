@@ -152,6 +152,6 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 func (c *Client) handleChat(m *MsgChat) {
 	m.DisplayName = c.name
 	m.Time = time.Now().UnixNano() / 1000
-	c.world.Broadcast <- m
 	log.Println("[CHAT]", m.DisplayName + ":", m.Message);
+	c.world.Broadcast <- m
 }
