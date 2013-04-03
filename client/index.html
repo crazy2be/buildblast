@@ -116,10 +116,8 @@
                 position: absolute;
                 pointer-events:none;
                 width: 100%;
-                line-height: 0px;
                 left: 0;
                 bottom: 5%;
-                opacity: 0.5;
                 z-index: 2;
             }
 
@@ -128,18 +126,30 @@
                 margin: 0;
                 padding: 0;
                 height: 150px;
+                overflow-y: auto;
+            }
+
+            .chatMessageWrapper {
+                text-align: left;
+            }
+
+            .chatMessage {
+                background-color: rgba(255, 255, 255, 0.5);
+                display: inline-block;
             }
 
             #chatInput {
                 width: 100%;
                 margin: 0;
                 padding: 0;
+                opacity: 0.5;
+                visibility: hidden;
             }
         </style>
     </head>
     <body>
         <div id="chatContainer">
-            <textarea id="chatMessages" readonly></textarea>
+            <div id="chatMessages"></div>
             <textarea id="chatInput"></textarea>
         </div>
         <div id="container">

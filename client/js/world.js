@@ -34,7 +34,7 @@ function World(scene, container) {
     self.update = function (dt) {
         player.update(dt);
         chunkManager.update(dt);
-        chat.update();
+        chat.update(dt);
     }
 
     self.render = player.render;
