@@ -15,14 +15,14 @@ function Chat(controls, conn, container) {
             enterPressed = true;
         } else if (enterPressed) {
             enterPressed = false;
-            $("#chatInput").css("visibility", "visible");
-            $("#chatInput").focus();
+            $("#chat-input").css("visibility", "visible");
+            $("#chat-input").focus();
         }
 
-        if ($("#chatInput").is(":focus")) {
+        if ($("#chat-input").is(":focus")) {
             chatOpacity = 1;
             currentTime = chatVisibleTime;
-            $("#chatMessages").css("opacity", 1);
+            $("#chat-messages").css("opacity", 1);
         } else {
             if (chatOpacity > 0) {
 	            var reduceTime = 0;
@@ -36,30 +36,30 @@ function Chat(controls, conn, container) {
 	            }
 	            chatOpacity -= reduceTime / chatFadeTime;
                 chatOpacity = max(chatOpacity, 0);
-	            $("#chatMessages").css("opacity", chatOpacity);
+	            $("#chat-messages").css("opacity", chatOpacity);
             }
         }
     };
 
-    $("#chatInput").keyup(function(event) {
+    $("#chat-input").keyup(function(event) {
         if (event.which !== 13) return;
-        $("#chatInput").css("visibility", "hidden");
-        var text = $.trim($("#chatInput").val());
+        $("#chat-input").css("visibility", "hidden");
+        var text = $.trim($("#chat-input").val());
         if (text !== '') {
             conn.queue('chat', {
-                Message: $("#chatInput").val(),
+                Message: $("#chat-input").val(),
             });
         }
-        $("#chatInput").val("");
-        $("#chatInput").blur();
+        $("#chat-input").val("");
+        $("#chat-input").blur();
         container.focus();
     });
 
     function processChat(payload) {
-        $("#chatMessages").append("<div class='chatMessageWrapper'><div class='chatMessage'>"
+        $("#chat-messages").append("<div class='chat-message-wrapper'><div class='chat-message'>"
                 + payload.ID + ": " + payload.Message
                 + "</div></div>");
-        $("#chatMessages").scrollTop($("#chatMessages")[0].scrollHeight);
+        $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
         chatOpacity = 1;
         currentTime = chatVisibleTime;
     }

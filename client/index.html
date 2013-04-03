@@ -112,7 +112,7 @@
                 z-index: 2;
             }
 
-            #chatContainer {
+            #chat-container {
                 position: absolute;
                 pointer-events:none;
                 width: 100%;
@@ -121,7 +121,7 @@
                 z-index: 2;
             }
 
-            #chatMessages {
+            #chat-messages {
                 width: 100%;
                 margin: 0;
                 padding: 0;
@@ -129,16 +129,16 @@
                 overflow-y: auto;
             }
 
-            .chatMessageWrapper {
+            .chat-message-wrapper {
                 text-align: left;
             }
 
-            .chatMessage {
+            .chat-message {
                 background-color: rgba(255, 255, 255, 0.5);
                 display: inline-block;
             }
 
-            #chatInput {
+            #chat-input {
                 width: 100%;
                 margin: 0;
                 padding: 0;
@@ -148,9 +148,9 @@
         </style>
     </head>
     <body>
-        <div id="chatContainer">
-            <div id="chatMessages"></div>
-            <textarea id="chatInput"></textarea>
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <input type="text" id="chat-input"/>
         </div>
         <div id="container">
             <p class="loader">
