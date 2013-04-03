@@ -61,9 +61,9 @@ type MsgControlsState struct {
 }
 
 type MsgChat struct {
-	ID      string
-	Time    int64
-	Message string
+	DisplayName string
+	Time        int64
+	Message     string
 }
 
 type ClientMessage struct {

@@ -3,10 +3,10 @@ function Chat(controls, conn, container) {
 
     var enterPressed = false;
 
-    var chatVisibleTime = 3; // In seconds
-    var chatFadeTime = 3;    // In seconds
-    var chatOpacity = 0;
-    var currentTime = 0;
+    var chatVisibleTime = 3.0; // In seconds
+    var chatFadeTime = 3.0;    // In seconds
+    var chatOpacity = 0.0;
+    var currentTime = 0.0;
 
     conn.on('chat', processChat);
 
@@ -20,24 +20,33 @@ function Chat(controls, conn, container) {
         }
 
         if ($("#chat-input").is(":focus")) {
+            // When chatting keep the chat box opaque.
             chatOpacity = 1;
             currentTime = chatVisibleTime;
             $("#chat-messages").css("opacity", 1);
         } else {
-            if (chatOpacity > 0) {
-	            var reduceTime = 0;
-	            if (currentTime > 0) {
-	                 currentTime -= dt;
-	                 if (currentTime < 0) {
-	                     reduceTime = -currentTime;
-	                 }
-	            } else {
-	                reduceTime = dt;
-	            }
-	            chatOpacity -= reduceTime / chatFadeTime;
-                chatOpacity = max(chatOpacity, 0);
-	            $("#chat-messages").css("opacity", chatOpacity);
+            // When not chatting, fade based out based on activity of the chat.
+
+            // If the opacity <= 0, don't need to do anything.
+            if (chatOpacity <= 0) return;
+            // The amount of time the box has faded this update.
+            var fadeTime = 0;
+
+            if (currentTime > 0) {
+                // If there is still time left to be visible, update how much is left.
+                currentTime -= dt;
+                if (currentTime < 0) {
+                    // All the visible time was used up, fade the amount of time we
+                    // over used.
+                    fadeTime = -currentTime;
+                }
+            } else {
+                // No visible time left, just fade the passed time.
+                fadeTime = dt;
             }
+            chatOpacity -= fadeTime / chatFadeTime;
+            chatOpacity = max(chatOpacity, 0);
+            $("#chat-messages").css("opacity", chatOpacity);
         }
     };
 
@@ -56,13 +65,12 @@ function Chat(controls, conn, container) {
     });
 
     function processChat(payload) {
-        var $message = $("<div class='chat-message-wrapper'><div class='chat-message'>"
-                + payload.ID + ": " + payload.Message
-                + "</div></div>");
-        $message.attr("time", payload.Time);
+        var $message = $("<div class='chat-message'></div>");
+        $message.text(payload.DisplayName + ": " + payload.Message);
+        $message = $("<div class='chat-message-wrapper'></div>").append($message);
+        $message.attr("data-time", payload.Time);
         $("#chat-messages").append($message);
-        var elements = $("#chat-messages").children('div').get();
-        elements.sort(sortChat);
+        var elements = $("#chat-messages").children('div').sort(sortChat);
         $("#chat-messages").empty();
         $.each(elements, function(i, elm) { $("#chat-messages").append(elm); });
         $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
@@ -71,9 +79,8 @@ function Chat(controls, conn, container) {
     }
 
     function sortChat(a, b) {
-        var aTime = $(a).attr("time");
-        var bTime = $(b).attr("time");
-        console.log("hello", aTime, bTime);
+        var aTime = $(a).attr("data-time");
+        var bTime = $(b).attr("data-time");
         return aTime > bTime ? 1 : -1;
     }
 }
