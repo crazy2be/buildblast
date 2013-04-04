@@ -116,9 +116,16 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var mov = new THREE.Vector3(amount, 0, 0);
         mov.applyMatrix3(r);
 
-        p.x += mov.x;
-        p.y += mov.y;
-        p.z += mov.z;
+        p.add(mov);
+    }
+
+    var offsetx = Math.random();
+    var offsetz = Math.random();
+    function addJitter(item) {
+        offsetx += Math.random() / 30;
+        offsetz += Math.random() / 30;
+        item.position.x += Math.sin(offsetx) / 400;
+        item.position.z += Math.sin(offsetz) / 400;
     }
 
     var nextWasDown = false;
@@ -129,6 +136,7 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         pointItem(item, c);
         positionItem(item, p, c);
         postitionPerspective(item, leftwardOffset);
+        addJitter(item);
 
         if (!nextWasDown && c[nextAction]) {
             selectSlot((currentSlot + 1) % slots.length);
