@@ -19,7 +19,7 @@ function BlastInventory(world, camera) {
 
     var elm = document.getElementById('weapon-inventory');
 
-    return new Inventory(world, camera, slots, elm, 0.05, 'nextWeapon', 'activateWeapon');
+    return new Inventory(world, camera, slots, elm, 1, 'nextWeapon', 'activateWeapon');
 }
 
 function BuildInventory(world, camera) {
@@ -46,7 +46,7 @@ function BuildInventory(world, camera) {
 
     var elm = document.getElementById('block-inventory');
 
-    return new Inventory(world, camera, slots, elm, -0.05, 'nextBlock', 'activateBlock');
+    return new Inventory(world, camera, slots, elm, -1, 'nextBlock', 'activateBlock');
 }
 
 function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
@@ -70,7 +70,9 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         if (currentSlot > -1) {
             world.removeFromScene(slots[currentSlot].model);
         }
-        world.addToScene(slots[n].model);
+        var model = slots[n].model;
+        model.scale.set(1/16, 1/16, 1/16);
+        world.addToScene(model);
         currentSlot = n;
     }
 
@@ -86,10 +88,21 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
     function positionItem(item, playerPos, c) {
         var pp = playerPos;
         var ip = item.position;
+
         // http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-        ip.x = pp.x + 0.15 * sin(c.lat) * cos(c.lon);
-        ip.y = pp.y + 0.15 * cos(c.lat);
-        ip.z = pp.z + 0.15 * sin(c.lat) * sin(c.lon);
+        var theta = c.lat - 0.5;
+        var phi = c.lon;
+        var r = 0.15;
+        var offset = sphericalToCartesian(r, theta, phi);
+        ip.copy(pp).add(offset);
+    }
+
+    function sphericalToCartesian(r, theta, phi) {
+        return new THREE.Vector3(
+            r*sin(theta)*cos(phi),
+            r*cos(theta),
+            r*sin(theta)*sin(phi)
+        );
     }
 
     function postitionPerspective(item, leftward) {
@@ -97,13 +110,22 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var r = new THREE.Matrix4();
         r.setRotationFromEuler(item.rotation, item.eulerOrder);
 
+        var amount = leftward * aspectRatio * 0.05;
+
         // Mov left / right
-        var mov = new THREE.Vector3(leftward, 0, 0);
+        var mov = new THREE.Vector3(amount, 0, 0);
         mov.applyMatrix3(r);
 
-        p.x += mov.x;
-        p.y += mov.y;
-        p.z += mov.z;
+        p.add(mov);
+    }
+
+    var offsetx = Math.random();
+    var offsetz = Math.random();
+    function addJitter(item) {
+        offsetx += Math.random() / 30;
+        offsetz += Math.random() / 30;
+        item.position.x += Math.sin(offsetx) / 400;
+        item.position.z += Math.sin(offsetz) / 400;
     }
 
     var nextWasDown = false;
@@ -111,9 +133,10 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         var p = playerPosition;
         var c = controlState;
         var item = slots[currentSlot].model;
-        positionItem(item, p, c);
         pointItem(item, c);
+        positionItem(item, p, c);
         postitionPerspective(item, leftwardOffset);
+        addJitter(item);
 
         if (!nextWasDown && c[nextAction]) {
             selectSlot((currentSlot + 1) % slots.length);
@@ -123,6 +146,11 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         if (c[activateAction]) {
             activateCurrentSlot();
         }
+    }
+
+    var aspectRatio = 1.0;
+    self.resize = function () {
+        aspectRatio = window.innerWidth / window.innerHeight;
     }
 
     selectSlot(0);

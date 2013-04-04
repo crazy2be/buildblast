@@ -14,6 +14,7 @@ window.onload = function () {
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
+        world.resize();
 
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
