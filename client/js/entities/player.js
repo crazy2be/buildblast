@@ -91,9 +91,6 @@ function Player(name, world, conn, controls) {
         if (lag > 1.0) {
             console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
         }
-        if (lag > 0.1) {
-            console.log("Slight lag:", lag, "seconds");
-        }
 
         updatePositionText(pos, vy);
         return pos;
