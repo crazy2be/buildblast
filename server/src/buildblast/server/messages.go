@@ -17,6 +17,7 @@ const (
 	MSG_BLOCK           = MessageKind("block")
 	MSG_PLAYER_POSITION = MessageKind("player-position")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
+	MSG_CHAT            = MessageKind("chat")
 )
 
 type MsgEntityCreate struct {
@@ -57,6 +58,12 @@ type MsgControlsState struct {
 	Controls  ControlState
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
+}
+
+type MsgChat struct {
+	DisplayName string
+	Time        int64
+	Message     string
 }
 
 type ClientMessage struct {

@@ -89,6 +89,8 @@ func (c *Client) handleMessage(m Message) {
 			c.handleBlock(m.(*MsgBlock))
 		case *MsgControlsState:
 			c.handleControlsState(m.(*MsgControlsState))
+		case *MsgChat:
+			c.handleChat(m.(*MsgChat))
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
@@ -139,10 +141,17 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 		c.cm.display(newCC, -dist)
 	});
 
-	oc := wc.Offset();
+	oc := wc.Offset()
 	if oc.Y <= 4 {
-		c.cm.display(occ(cc, 0, -1, 0), 1);
+		c.cm.display(occ(cc, 0, -1, 0), 1)
 	} else if oc.Y >= 28 {
-		c.cm.display(occ(cc, 0, 1, 0), 1);
+		c.cm.display(occ(cc, 0, 1, 0), 1)
 	}
+}
+
+func (c *Client) handleChat(m *MsgChat) {
+	m.DisplayName = c.name
+	m.Time = time.Now().UnixNano() / 1000
+	log.Println("[CHAT]", m.DisplayName + ":", m.Message);
+	c.world.Broadcast <- m
 }
