@@ -5,43 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <link rel="stylesheet" href="css/main.css" />
-        <style>
-#chat-container {
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    bottom: 32px;
-    padding: 10px;
-}
-#chat-container .messages {
-    max-height: 150px;
-    overflow-y: auto;
-}
-#chat-container .message-wrapper {
-    text-align: left;
-}
-#chat-container .message {
-    display: inline-block;
-    padding: 4px;
-    opacity: 0;
-    background-color: rgba(255, 255, 255, 0.5);
-}
-#chat-container.active .message {
-    opacity: 1;
-    color: black;
-}
-#chat-container .input {
-    width: 100%;
-    opacity: 0;
-    padding: 4px;
-    border: rgba(255, 255, 255, 1) solid 2px;
-    background: rgba(255, 255, 255, 0.5);
-}
-#chat-container .input:focus {
-    outline: none;
-    opacity: 1;
-}
-        </style>
+        <link rel="stylesheet" href="css/chat.css" />
     </head>
     <body>
         <div id="container">
@@ -53,7 +17,7 @@
             <div id="hud">
                 <div id="info"></div>
                 <div id="crosshair"></div>
-                <div id="chat-container">
+                <div id="chat">
                     <div class="messages"></div>
                     <input type="text" class="input"/>
                 </div>

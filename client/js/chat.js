@@ -1,19 +1,34 @@
-function Chat(controls, conn, gameContainer) {
+function Chat(controls, conn, container) {
     var self = this;
 
     var firstEnter = false;
     var focused = false;
-
-    var container = document.getElementById("chat-container");
-    var $input = $("#chat-container .input");
+    var chat = document.getElementById("chat");
 
     conn.on('chat', processChat);
 
-    $input.keydown(function (event) {
-        if (event.which !== 13) event.stopPropagation();
-    });
+    var $input = $("#chat .input");
+    $input.on('keydown', keydown);
+    $input.on('keyup'  , keyup  );
+    $input.on('focus'  , focus  );
+    $input.on('blur'   , blur   );
 
-    $input.keyup(function(event) {
+    self.update = function (dt) {
+        updateTweens(dt);
+
+        if (!controls.sample().chat) return;
+
+        if (focused) return;
+
+        $input.focus();
+        firstEnter = true;
+    };
+
+    function keydown(event) {
+        if (event.which !== 13) event.stopPropagation();
+    }
+
+    function keyup(event) {
         if (event.which !== 13) return;
 
         if (firstEnter) {
@@ -29,29 +44,18 @@ function Chat(controls, conn, gameContainer) {
         }
 
         $input.val("").blur();
-        gameContainer.focus();
-    });
+        container.focus();
+    }
 
-    $input.on('focus', function () {
-        container.classList.add('active');
+    function focus(event) {
+        chat.classList.add('active');
         focused = true;
-    });
+    }
 
-    $input.on('blur', function () {
-        container.classList.remove('active');
+    function blur(event) {
+        chat.classList.remove('active');
         focused = false;
-    });
-
-    self.update = function (dt) {
-        updateTweens(dt);
-
-        if (!controls.sample().chat) return;
-
-        if (focused) return;
-
-        $input.focus();
-        firstEnter = true;
-    };
+    }
 
     function processChat(payload) {
         var message = document.createElement('div');
@@ -63,7 +67,7 @@ function Chat(controls, conn, gameContainer) {
         wrapper.className = "message-wrapper";
         wrapper.appendChild(message);
 
-        var messages = container.querySelector(".messages");
+        var messages = chat.querySelector(".messages");
         messages.appendChild(wrapper);
         messages.scrollTop = messages.scrollHeight;
     }
