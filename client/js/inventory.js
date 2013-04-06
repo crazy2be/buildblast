@@ -22,7 +22,7 @@ function BuildInventory(world, camera) {
 
     var elm = document.querySelector('#inventory .build');
 
-    return new Inventory(world, camera, slots, elm, -1, 'nextBlock', 'activateBlock');
+    return new Inventory(world, camera, slots, elm, 1, 'nextBuilder', 'activateBuilder');
 }
 
 function BlastInventory(world, camera) {
@@ -46,7 +46,7 @@ function BlastInventory(world, camera) {
 
     var elm = document.querySelector('#inventory .blast');
 
-    return new Inventory(world, camera, slots, elm, 1, 'nextWeapon', 'activateWeapon');
+    return new Inventory(world, camera, slots, elm, -1, 'nextBlaster', 'activateBlaster');
 }
 
 function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {

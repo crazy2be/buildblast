@@ -50,8 +50,8 @@ function Controls(elm) {
 
         chat: [Keys.Enter],
 
-        activateWeapon: [MouseButtons.Left],
-        activateBlock: [MouseButtons.Right],
+        activateBuilder: [MouseButtons.Left],
+        activateBlaster: [MouseButtons.Right],
     };
 
     var ActionMappingsQwerty = {
@@ -60,8 +60,8 @@ function Controls(elm) {
         right: [Keys.D],
         back: [Keys.S],
 
-        nextWeapon: [Keys.Q],
-        nextBlock: [Keys.E],
+        nextBuilder: [Keys.Q],
+        nextBlaster: [Keys.E],
     };
 
     var ActionMappingsDvorak = {
@@ -70,8 +70,8 @@ function Controls(elm) {
         right: [Keys.E],
         back: [Keys.O],
 
-        nextWeapon: [Keys.Semicolon],
-        nextBlock: [Keys.Period],
+        nextBuilder: [Keys.Semicolon],
+        nextBlaster: [Keys.Period],
     };
 
     var mapping;
