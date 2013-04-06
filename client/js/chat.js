@@ -1,25 +1,19 @@
 function Chat(controls, conn, gameContainer) {
-    self = this;
+    var self = this;
 
-    var enterPressed = false;
     var firstEnter = false;
     var focused = false;
+
     var container = document.getElementById("chat-container");
     var $input = $("#chat-container .input");
 
     conn.on('chat', processChat);
 
     $input.keydown(function (event) {
-        if (!focused) return;
-
-        if (event.which !== 13) {
-            event.stopPropagation();
-        }
+        if (event.which !== 13) event.stopPropagation();
     });
 
     $input.keyup(function(event) {
-        if (!focused) return;
-
         if (event.which !== 13) return;
 
         if (firstEnter) {
@@ -33,6 +27,7 @@ function Chat(controls, conn, gameContainer) {
                 Message: $input.val(),
             });
         }
+
         $input.val("").blur();
         gameContainer.focus();
     });
@@ -47,13 +42,7 @@ function Chat(controls, conn, gameContainer) {
         focused = false;
     });
 
-    var accumulatedTime = 0.0;
     self.update = function (dt) {
-        accumulatedTime += dt;
-        if (accumulatedTime > 1.0) {
-            accumulatedTime = 0.0;
-            console.log(document.activeElement);
-        }
         updateTweens(dt);
 
         if (!controls.sample().chat) return;
@@ -73,7 +62,6 @@ function Chat(controls, conn, gameContainer) {
         var wrapper = document.createElement("div");
         wrapper.className = "message-wrapper";
         wrapper.appendChild(message);
-        wrapper.setAttribute("data-time", payload.Time);
 
         var messages = container.querySelector(".messages");
         messages.appendChild(wrapper);
@@ -88,25 +76,27 @@ function Chat(controls, conn, gameContainer) {
     function updateTweens(dt) {
         for (var i = 0; i < tweens.length; i++) {
             var tween = tweens[i];
+            tween.update(dt, focused);
             if (tween.finished()) {
                 tween.end();
                 tweens.splice(i, 1);
-                continue;
             }
-            tween.update(dt, focused);
         }
     }
 
     function Tween(elm) {
         var self = this;
-        var totalTime = 1.0;
+        var totalTime = 6.0;
         var elapsedTime = 0.0;
 
         self.update = function (dt, focused) {
             elapsedTime += dt;
-            var alpha = (1.0 - elapsedTime / totalTime) / 2;
-            if (focused) alpha = 0.5;
-            elm.style.background = rgba(255, 255, 255, alpha);
+            var completion = elapsedTime / totalTime;
+            var alpha = 1.0;
+            if (!focused && completion > 0.75) {
+                alpha = (1.0 - completion) * 4;
+            }
+            elm.style.opacity = alpha;
         }
 
         self.finished = function () {
@@ -114,12 +104,7 @@ function Chat(controls, conn, gameContainer) {
         }
 
         self.end = function () {
-            elm.style.background = '';
-        }
-
-        function rgba(r, g, b, alpha) {
-            var a = (~~(Math.min(Math.max(alpha, 0), 1) * 100)) / 100
-            return "rgba(" + ~~r + "," + ~~g + "," + ~~b + "," + a + ")";
+            elm.style.opacity = '';
         }
     }
 }
