@@ -41,7 +41,7 @@ a {
 	padding: 5px;
 }
 
-#connection-status {
+#fatal-error {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -50,7 +50,7 @@ a {
 	text-align: center;
 	color: red;
 }
-#connection-status td {
+#fatal-error td {
 	vertical-align: middle;
 }
 

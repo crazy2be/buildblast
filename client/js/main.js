@@ -57,7 +57,7 @@ window.onerror = function (msg, url, lineno) {
 };
 
 function fatalError(err) {
-    var st = document.getElementById("connection-status");
+    var st = document.getElementById("fatal-error");
     st.innerHTML = ["<tr><td>",
         "<h1>Fatal Error!</h1>",
         "<p>",
