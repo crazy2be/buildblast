@@ -1,0 +1,109 @@
+body {
+	font-family: Monospace;
+	font-size: 13px;
+	text-align: center;
+	background: #bfd1e5;
+}
+
+a {
+	color: #a06851;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+#container,
+#container #hud,
+#container #loader,
+#container #opengl {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	overflow: hidden;
+}
+#container #hud,
+#container #loader {
+	z-index: 1;
+	pointer-events: none;
+}
+
+#info {
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	padding: 5px;
+	z-index: 1;
+}
+#weapon-inventory,
+#block-inventory {
+	position: absolute;
+	bottom: 0px;
+	padding: 10px;
+	margin: 0px;
+	z-index: 1;
+}
+#weapon-inventory {
+	left: 0px;
+}
+#block-inventory {
+	right: 0px;
+}
+#weapon-inventory li,
+#block-inventory li {
+	display: inline;
+	padding: 4px;
+	border: 2px solid transparent;
+	text-shadow: #FFF 0px 0px 1px;
+	font-weight: bold;
+}
+#weapon-inventory li.selected,
+#block-inventory li.selected {
+	-webkit-animation: item-selected 1s forwards;
+}
+
+@-webkit-keyframes item-selected {
+	from {
+		background: rgba(255, 255, 255, 0.5);
+		border-color: rgba(255, 255, 255, 1);
+	}
+	to {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+	}
+}
+
+#connection-status {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+	text-align: center;
+	color: red;
+}
+#connection-status td {
+	vertical-align: middle;
+}
+
+#oldie {
+	position: relative;
+	z-index: 2;
+}
+
+#crosshair {
+	position: absolute;
+	background-image: url(../img/crosshair.png);
+	background-repeat: no-repeat;
+	width: 36px;
+	height: 36px;
+	margin-left: -18px;
+	margin-top: -18px;
+	top: 50%;
+	left: 50%;
+	z-index: 2;
+}

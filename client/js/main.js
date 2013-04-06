@@ -19,8 +19,8 @@ window.onload = function () {
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
 
-        container.querySelector('.loader').innerHTML = "";
-        container.appendChild(renderer.domElement);
+        container.querySelector('#loader').innerHTML = "";
+        container.querySelector('#opengl').appendChild(renderer.domElement);
 
         var stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -38,12 +38,12 @@ window.onload = function () {
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-
             var dt = clock.getDelta();
             world.update(dt);
             world.render(renderer, scene);
             stats.update();
+
+            requestAnimationFrame(animate);
         }
     }
 };
