@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/inventory.css" />
         <link rel="stylesheet" href="css/chat.css" />
     </head>
     <body>
@@ -17,13 +18,19 @@
             <div id="hud">
                 <div id="info"></div>
                 <div id="crosshair"></div>
-                <div id="chat">
-                    <div class="messages"></div>
-                    <input type="text" class="input"/>
-                </div>
                 <table id="connection-status"></table>
-                <ol id="block-inventory"></ol>
-                <ol id="weapon-inventory"></ol>
+                <div class="bottom">
+                    <div id="chat">
+                        <div class="messages"></div>
+                        <input type="text" class="input"/>
+                    </div>
+                    <table id="inventory">
+                        <tr>
+                            <td class="build"></td>
+                            <td class="blast"></td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 

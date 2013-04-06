@@ -1,27 +1,3 @@
-function BlastInventory(world, camera) {
-    var slots = [
-        {
-            name: 'pistol',
-            model: Models.pistol(),
-            action: pistolAction,
-        }
-    ];
-
-    function pistolAction() {
-        var intersect = world.findPlayerIntersection(camera);
-        if (intersect) {
-            console.log("Hit!!", intersect, intersect.item);
-            world.addSmallCube(intersect.point);
-        } else {
-            console.log("miss!!");
-        }
-    }
-
-    var elm = document.getElementById('weapon-inventory');
-
-    return new Inventory(world, camera, slots, elm, 1, 'nextWeapon', 'activateWeapon');
-}
-
 function BuildInventory(world, camera) {
     var slots = [
         {
@@ -44,9 +20,33 @@ function BuildInventory(world, camera) {
         world.addLookedAtBlock(camera);
     }
 
-    var elm = document.getElementById('block-inventory');
+    var elm = document.querySelector('#inventory .build');
 
     return new Inventory(world, camera, slots, elm, -1, 'nextBlock', 'activateBlock');
+}
+
+function BlastInventory(world, camera) {
+    var slots = [
+        {
+            name: 'pistol',
+            model: Models.pistol(),
+            action: pistolAction,
+        }
+    ];
+
+    function pistolAction() {
+        var intersect = world.findPlayerIntersection(camera);
+        if (intersect) {
+            console.log("Hit!!", intersect, intersect.item);
+            world.addSmallCube(intersect.point);
+        } else {
+            console.log("miss!!");
+        }
+    }
+
+    var elm = document.querySelector('#inventory .blast');
+
+    return new Inventory(world, camera, slots, elm, 1, 'nextWeapon', 'activateWeapon');
 }
 
 function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
