@@ -218,11 +218,10 @@ function ChunkGeometry(cc, blocks, manager) {
             function n(q) {
                 return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
             }
-            var add = 0.1;
             var val = n(8) + n(32);
             if (abs(r - 4) > 0.001) val += n(4);
             if (abs(r - 2) > 0.001) val += n(2);
-            return clamp(val/2 + 0.4, 0.0, 0.8) + add;
+            return clamp(val/2 + 0.5, 0.0, 1.0);
         }
 
         function v(x, y, z) {
