@@ -89,7 +89,7 @@ function ChunkGeometry(cc, blocks, manager) {
             position: {
                 itemSize: 3,
                 array: vertsa,
-                numItems: verts.length * 3,
+                numItems: verts.length,
             },
             index: {
                 itemSize: 1,
