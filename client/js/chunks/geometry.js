@@ -242,6 +242,7 @@ function ChunkGeometry(cc, blocks, manager) {
             c = hex(0x784800);
             c2 = hex(0x000000);
             if (mat === 2) {
+                // http://colorschemedesigner.com/#2Q41R--iOv5vy
                 c = hex(0x007608);
                 c2 = hex(0x004E05);
             }

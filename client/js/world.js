@@ -108,20 +108,20 @@ function World(scene, container) {
         }
     }
 
+    var projector = new THREE.Projector();
     function findIntersection(camera, cb, precision, maxDist) {
         var precision = precision || 0.01;
         var maxDist = maxDist || 100;
-        var look = new THREE.Vector3(0, 0, 0);
-        var projector = new THREE.Projector();
+        var look = new THREE.Vector3(0, 0, 1);
+        // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
         projector.unprojectVector(look, camera);
 
-        look.sub(camera.position).setLength(precision);
+        var pos = camera.position;
+        look.sub(pos).setLength(precision);
 
-        var point = camera.position.clone();
-        var dist = 0;
-        while (dist < maxDist) {
+        var point = pos.clone();
+        for (var dist = 0; dist < maxDist; dist += precision) {
             point.add(look);
-            dist = camera.position.distanceTo(point);
             var collision = cb(point.x, point.y, point.z);
             if (collision) {
                 return {
