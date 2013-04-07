@@ -222,10 +222,7 @@ function ChunkGeometry(cc, blocks, manager) {
             var val = n(8) + n(32);
             if (abs(r - 4) > 0.001) val += n(4);
             if (abs(r - 2) > 0.001) val += n(2);
-            if (inCenter(x, y, z)) {
-                add = 0.1;
-            }
-            return clamp(val/2 + 0.4, 0, 0.8) + add;
+            return clamp(val/2 + 0.4, 0.0, 0.8) + add;
         }
 
         function v(x, y, z) {
@@ -241,22 +238,30 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-3, l-2, l-1);
             index.push(l-2, l-5, l-1);
 
+            var c, c2;
             // Dirt color from http://www.colourlovers.com/color/784800/dirt
-            var c = [120/255, 72/255, 0];
+            c = hex(0x784800);
+            c2 = hex(0x000000);
             if (mat === 2) {
-                c = [0, 1, 0];
+                c = hex(0x007608);
+                c2 = hex(0x004E05);
             }
 
-            var r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
+            for (var i = 0; i < 5; i++) {
+                var n = noise.shift();
+                var r = c.r*n + c2.r*(1 - n);
+                var g = c.g*n + c2.g*(1 - n);
+                var b = c.b*n + c2.b*(1 - n);
+                color.push(r/255, g/255, b/255);
+            }
+
+            function hex(num) {
+                return {
+                    r: (num >> 16) & 0xFF,
+                    g: (num >> 8)  & 0xFF,
+                    b:  num        & 0xFF,
+                };
+            }
         }
 
         function anyTransparent(ox, oy, oz, w, h, d) {
