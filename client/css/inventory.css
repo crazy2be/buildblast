@@ -1,0 +1,31 @@
+#inventory {
+	width: 100%;
+	padding: 2px 6px 10px 6px;
+}
+#inventory .build {
+	text-align: left;
+}
+#inventory .blast {
+	text-align: right;
+}
+#inventory li {
+	display: inline;
+	padding: 4px;
+	border: 2px solid transparent;
+	text-shadow: #FFF 0px 0px 1px;
+	font-weight: bold;
+}
+#inventory li.selected {
+	-webkit-animation: item-selected 1s forwards;
+}
+
+@-webkit-keyframes item-selected {
+	from {
+		background: rgba(255, 255, 255, 0.5);
+		border-color: rgba(255, 255, 255, 1);
+	}
+	to {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+	}
+}
