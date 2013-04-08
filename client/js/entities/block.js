@@ -47,6 +47,37 @@ Block.PROPERTIES = [
     /** STONE  */ Block.SOLID | Block.MINEABLE,
 ];
 
+Block.getColours = function (blockType, face) {
+    if (blockType === Block.DIRT) {
+        if (face === 2) {
+            // Top face
+            return {
+                c: hex(0x007608),
+                c2: hex(0x004E05),
+            };
+        } else {
+            return {
+                c: hex(0x784800),
+                c2: hex(0x000000),
+            };
+        }
+    } else if (blockType == blockType){
+        return {
+            c: hex(0x5E5E5E),
+            c2: hex(0x000000),
+        };
+    } else {
+        throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
+    }
+    function hex(num) {
+        return {
+            r: (num >> 16) & 0xFF,
+            g: (num >> 8)  & 0xFF,
+            b:  num        & 0xFF,
+        };
+    }
+}
+
 Block.isMineable = function (block) {
     return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
 }

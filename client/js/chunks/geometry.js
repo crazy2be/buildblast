@@ -238,17 +238,9 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var c, c2;
             // Dirt color from http://www.colourlovers.com/color/784800/dirt
-            if (blockTypeAt(ox, oy, oz) === Block.DIRT) {
-                c = hex(0x784800);
-                c2 = hex(0x000000);
-                if (mat === 2) {
-                    c = hex(0x007608);
-                    c2 = hex(0x004E05);
-                }
-            } else {
-                c = hex(0x5E5E5E);
-                c2 = hex(0x000000);
-            }
+            var colours = Block.getColours(blockTypeAt(ox, oy, oz), mat);
+            c = colours.c;
+            c2 = colours.c2;
 
             for (var i = 0; i < 5; i++) {
                 var n = noise.shift();
@@ -256,14 +248,6 @@ function ChunkGeometry(cc, blocks, manager) {
                 var g = c.g*n + c2.g*(1 - n);
                 var b = c.b*n + c2.b*(1 - n);
                 color.push(r/255, g/255, b/255);
-            }
-
-            function hex(num) {
-                return {
-                    r: (num >> 16) & 0xFF,
-                    g: (num >> 8)  & 0xFF,
-                    b:  num        & 0xFF,
-                };
             }
         }
 
