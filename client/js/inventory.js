@@ -9,6 +9,11 @@ function BuildInventory(world, camera) {
             name: 'block',
             model: Models.block(),
             action: blockAction,
+        },
+        {
+            name: 'stone',
+            model: Models.stone(),
+            action: stoneAction,
         }
     ];
 
@@ -17,7 +22,11 @@ function BuildInventory(world, camera) {
     }
 
     function blockAction() {
-        world.addLookedAtBlock(camera);
+        world.addLookedAtBlock(camera, Block.DIRT);
+    }
+
+    function stoneAction() {
+        world.addLookedAtBlock(camera, Block.STONE);
     }
 
     var elm = document.querySelector('#inventory .build');

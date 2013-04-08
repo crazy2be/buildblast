@@ -119,7 +119,7 @@ function ChunkGeometry(cc, blocks, manager) {
         return Block.isTransparent(bl);
     }
 
-    function getBlock(ox, oy, oz) {
+    function blockTypeAt(ox, oy, oz) {
         if (ox < 0) {
             return nxc ? nxc.block(cw - 1, oy, oz) : null;
         } else if (ox >= cw) {
@@ -238,7 +238,7 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var c, c2;
             // Dirt color from http://www.colourlovers.com/color/784800/dirt
-            if (getBlock(ox, oy, oz) === Block.DIRT) {
+            if (blockTypeAt(ox, oy, oz) === Block.DIRT) {
                 c = hex(0x784800);
                 c2 = hex(0x000000);
                 if (mat === 2) {
@@ -271,7 +271,7 @@ function ChunkGeometry(cc, blocks, manager) {
             for (var x = 0; x < w; x++) {
                 for (var y = 0; y < h; y++) {
                     for (var z = 0; z < d; z++) {
-                        if (t(getBlock(ox + x, oy + y, oz + z))) {
+                        if (t(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return true;
                         }
                     }
@@ -284,7 +284,7 @@ function ChunkGeometry(cc, blocks, manager) {
             for (var x = 0; x < r; x++) {
                 for (var y = 0; y < r; y++) {
                     for (var z = 0; z < r; z++) {
-                        if (!t(getBlock(ox + x, oy + y, oz + z))) {
+                        if (!t(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return false;
                         }
                     }
@@ -295,7 +295,7 @@ function ChunkGeometry(cc, blocks, manager) {
 
         function transparent(ox, oy, oz) {
             if (r === 1) {
-                return t(getBlock(ox, oy, oz));
+                return t(blockTypeAt(ox, oy, oz));
             }
 
             if (ox < 0 || ox >= cw) {

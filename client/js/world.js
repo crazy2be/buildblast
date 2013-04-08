@@ -204,16 +204,16 @@ function World(scene, container) {
         doLookedAtBlockAction(camera, dirt, removeBlock);
     }
 
-    self.addLookedAtBlock = function (camera) {
-        function air(x, y, z) {
+    self.addLookedAtBlock = function (camera, blockType) {
+        function trans(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.AIR);
+            if (block) return block.isTrans();
             else return false;
         }
         function addBlock(wx, wy, wz) {
-            changeBlock(wx, wy, wz, Block.DIRT);
+            changeBlock(wx, wy, wz, blockType);
         }
-        doLookedAtBlockAction(camera, air, addBlock);
+        doLookedAtBlockAction(camera, trans, addBlock);
     }
 
     function changeBlock(wx, wy, wz, newType) {
