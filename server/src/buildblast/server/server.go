@@ -2,13 +2,17 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"fmt"
 	"log"
 	"time"
 	"strings"
 	"net/http"
 	"runtime"
 	"runtime/pprof"
+
 	"code.google.com/p/go.net/websocket"
+	"github.com/sbinet/liner"
 )
 
 var globalWorld = NewWorld(float64(time.Now().Unix()))
@@ -55,7 +59,48 @@ func doProfile() {
 	}()
 }
 
+func setupPrompt() {
+	quit := make(chan bool)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	state := liner.NewLiner()
+	go prompt(quit, state)
+
+	go func() {
+		<-c
+		fmt.Println()
+		quit <- true
+	}()
+
+	go func() {
+		<-quit
+		state.Close()
+		os.Exit(0)
+	}()
+}
+
+func prompt(quit chan bool, state *liner.State) {
+	for {
+		cmd, err := state.Prompt(" >>> ")
+		if err != nil {
+			fmt.Println()
+			log.Println("ERROR:", err)
+			quit <- true
+			return
+		}
+		log.Println("Read command:", cmd)
+		if cmd == "exit" {
+			quit <- true
+			return
+		}
+	}
+}
+
 func main() {
+	setupPrompt()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalWorld.Run()
 
