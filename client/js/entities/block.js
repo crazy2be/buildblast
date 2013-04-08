@@ -18,7 +18,7 @@ function Block(type) {
         return Block.isMineable(self.type);
     }
 
-    self.isTrans = function () {
+    self.trans = function () {
         return Block.isTransparent(self.type);
     }
 

@@ -69,7 +69,7 @@ function World(scene, container) {
             return false;
         }
         var block = chunk.block(oc);
-        if (block.isTrans()) {
+        if (block.trans()) {
             // Try and find ground below
             while (true) {
                 oc.y--;
@@ -99,7 +99,7 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.isTrans()) {
+                if (block && block.trans()) {
                     return oc.y + cc.y * CHUNK_HEIGHT;
                 }
             }
@@ -207,7 +207,7 @@ function World(scene, container) {
     self.addLookedAtBlock = function (camera, blockType) {
         function trans(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isTrans();
+            if (block) return block.trans();
             else return false;
         }
         function addBlock(wx, wy, wz) {
