@@ -116,11 +116,10 @@ function ChunkGeometry(cc, blocks, manager) {
     }
 
     function t(bl) {
-        // Transparent
-        return bl === 0x1;
+        return Block.isTransparent(bl);
     }
 
-    function b(ox, oy, oz) {
+    function getBlock(ox, oy, oz) {
         if (ox < 0) {
             return nxc ? nxc.block(cw - 1, oy, oz) : null;
         } else if (ox >= cw) {
@@ -229,7 +228,7 @@ function ChunkGeometry(cc, blocks, manager) {
             noise.push(noiseFunc(x, y, z));
         }
 
-        function f(mat, normal) {
+        function f(mat) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
             index.push(l-5, l-4, l-1);
@@ -239,11 +238,16 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var c, c2;
             // Dirt color from http://www.colourlovers.com/color/784800/dirt
-            c = hex(0x784800);
-            c2 = hex(0x000000);
-            if (mat === 2) {
-                c = hex(0x007608);
-                c2 = hex(0x004E05);
+            if (getBlock(ox, oy, oz) === Block.DIRT) {
+                c = hex(0x784800);
+                c2 = hex(0x000000);
+                if (mat === 2) {
+                    c = hex(0x007608);
+                    c2 = hex(0x004E05);
+                }
+            } else {
+                c = hex(0x5E5E5E);
+                c2 = hex(0x000000);
             }
 
             for (var i = 0; i < 5; i++) {
@@ -267,7 +271,7 @@ function ChunkGeometry(cc, blocks, manager) {
             for (var x = 0; x < w; x++) {
                 for (var y = 0; y < h; y++) {
                     for (var z = 0; z < d; z++) {
-                        if (t(b(ox + x, oy + y, oz + z))) {
+                        if (t(getBlock(ox + x, oy + y, oz + z))) {
                             return true;
                         }
                     }
@@ -280,7 +284,7 @@ function ChunkGeometry(cc, blocks, manager) {
             for (var x = 0; x < r; x++) {
                 for (var y = 0; y < r; y++) {
                     for (var z = 0; z < r; z++) {
-                        if (!t(b(ox + x, oy + y, oz + z))) {
+                        if (!t(getBlock(ox + x, oy + y, oz + z))) {
                             return false;
                         }
                     }
@@ -291,7 +295,7 @@ function ChunkGeometry(cc, blocks, manager) {
 
         function transparent(ox, oy, oz) {
             if (r === 1) {
-                return t(b(ox, oy, oz));
+                return t(getBlock(ox, oy, oz));
             }
 
             if (ox < 0 || ox >= cw) {

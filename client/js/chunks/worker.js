@@ -3,6 +3,7 @@
 var parent = self;
 
 importScripts(
+    '../entities/block.js',
     'common.js',
     'geometry.js',
     'noise.js',

@@ -7,9 +7,10 @@ import (
 type Block byte
 
 const (
-	BLOCK_NIL  = Block(0)
-	BLOCK_AIR  = Block(1)
-	BLOCK_DIRT = Block(2)
+	BLOCK_NIL   = Block(0)
+	BLOCK_AIR   = Block(1)
+	BLOCK_DIRT  = Block(2)
+	BLOCK_STONE = Block(3)
 
 	// See "Block encoding.txt"
 
@@ -25,6 +26,7 @@ var BLOCK_PROPERTIES []uint32 = []uint32 {
 	/** NIL    */ 0,
 	/** AIR    */ BLOCK_TRANSPARENT,
 	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
 }
 
 func (b Block) Solid() bool {

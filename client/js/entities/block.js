@@ -19,16 +19,17 @@ function Block(type) {
     }
 
     self.isTrans = function () {
-        return Block.inSubtype(self.type, Block.TRANSPARENT);
+        return Block.isTransparent(self.type);
     }
 
     self.solid = function () {
-        return Block.inSubtype(self.type, Block.SOLID);
+        return Block.isSolid(self.type);
     }
 }
 
-Block.AIR  = 0x1;
-Block.DIRT = 0x2;
+Block.AIR   = 0x1;
+Block.DIRT  = 0x2;
+Block.STONE = 0x3;
 
 //See "Block encoding.txt"
 
@@ -43,10 +44,19 @@ Block.PROPERTIES = [
     /** NIL    */ 0,
     /** AIR    */ Block.TRANSPARENT,
     /** DIRT   */ Block.SOLID | Block.MINEABLE,
+    /** STONE  */ Block.SOLID | Block.MINEABLE,
 ];
 
 Block.isMineable = function (block) {
     return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
+}
+
+Block.isTransparent = function (block) {
+    return Block.inSubtype(block, Block.TRANSPARENT);
+}
+
+Block.isSolid = function (block) {
+    return Block.inSubtype(block, Block.SOLID);
 }
 
 Block.inSubtype = function (block, subtype) {
