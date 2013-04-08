@@ -1,5 +1,5 @@
 // I use self for other things. Parent makes
-// a lot more sence anyway.
+// a lot more sense anyway.
 var parent = self;
 
 importScripts(

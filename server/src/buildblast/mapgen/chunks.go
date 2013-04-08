@@ -10,10 +10,25 @@ const (
 	BLOCK_NIL  = Block(0)
 	BLOCK_AIR  = Block(1)
 	BLOCK_DIRT = Block(2)
+
+	// See "Block encoding.txt"
+
+	// Properties
+	BLOCK_MINEABLE    = 0x80000000
+
+	// Subtypes
+	BLOCK_TRANSPARENT = 0x1
+	BLOCK_SOLID       = 0x2
 )
 
+var BLOCK_PROPERTIES []uint32 = []uint32 {
+	/** NIL    */ 0,
+	/** AIR    */ BLOCK_TRANSPARENT,
+	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
+}
+
 func (b Block) Solid() bool {
-	return b == BLOCK_DIRT
+	return BLOCK_PROPERTIES[b] & 0xF == BLOCK_SOLID;
 }
 
 type Chunk [][][]Block

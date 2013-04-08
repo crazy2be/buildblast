@@ -14,24 +14,41 @@ function Block(type) {
         return self.type == type;
     }
 
-    self.isTrans = function () {
-        return self.type == Block.AIR;
+    self.mineable = function () {
+        return Block.isMineable(self.type);
     }
 
-    self.mineable = function () {
-        return self.type == Block.DIRT;
+    self.isTrans = function () {
+        return Block.inSubtype(self.type, Block.TRANSPARENT);
     }
 
     self.solid = function () {
-        return Block.solid(self.type);
+        return Block.inSubtype(self.type, Block.SOLID);
     }
 }
 
-Block.AIR = 0x1;
+Block.AIR  = 0x1;
 Block.DIRT = 0x2;
-Block.transparent = function (block) {
-    return block == Block.AIR;
+
+//See "Block encoding.txt"
+
+//Block properties
+Block.MINEABLE    = 0x80000000;
+
+//Subtypes
+Block.TRANSPARENT = 0x1;
+Block.SOLID       = 0x2;
+
+Block.PROPERTIES = [
+    /** NIL    */ 0,
+    /** AIR    */ Block.TRANSPARENT,
+    /** DIRT   */ Block.SOLID | Block.MINEABLE,
+];
+
+Block.isMineable = function (block) {
+    return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
 }
-Block.solid = function (block) {
-    return block == Block.DIRT;
+
+Block.inSubtype = function (block, subtype) {
+    return (Block.PROPERTIES[block] & 0xF) == subtype;
 }
