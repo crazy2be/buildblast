@@ -52,11 +52,13 @@ Block.getColours = function (blockType, face) {
         if (face === 2) {
             // Top face
             return {
+                // http://colorschemedesigner.com/#2Q41R--iOv5vy
                 c: hex(0x007608),
                 c2: hex(0x004E05),
             };
         } else {
             return {
+                // Dirt color from http://www.colourlovers.com/color/784800/dirt
                 c: hex(0x784800),
                 c2: hex(0x000000),
             };

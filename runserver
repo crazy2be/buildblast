@@ -3,7 +3,7 @@
 if go version; then
 	export GOPATH=`pwd`/server
     echo "Compiling server..."
-    go install buildblast/server
+    go get buildblast/server
 
     cd client
     echo "Starting server..."

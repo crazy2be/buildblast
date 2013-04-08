@@ -237,7 +237,6 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-2, l-5, l-1);
 
             var c, c2;
-            // Dirt color from http://www.colourlovers.com/color/784800/dirt
             var colours = Block.getColours(blockTypeAt(ox, oy, oz), mat);
             c = colours.c;
             c2 = colours.c2;
