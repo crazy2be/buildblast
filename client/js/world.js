@@ -69,7 +69,7 @@ function World(scene, container) {
             return false;
         }
         var block = chunk.block(oc);
-        if (block.trans()) {
+        if (block.empty()) {
             // Try and find ground below
             while (true) {
                 oc.y--;
@@ -99,12 +99,12 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.trans()) {
+                if (block && block.empty()) {
                     return oc.y + cc.y * CHUNK_HEIGHT;
                 }
             }
         } else {
-            throw "findClosestGround only knows how to deal with solid and transparent blocks. Got " + block.getType();
+            throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
     }
 
@@ -193,7 +193,7 @@ function World(scene, container) {
     }
 
     self.removeLookedAtBlock = function (camera) {
-        function dirt(x, y, z) {
+        function mineable(x, y, z) {
             var block = self.blockAt(x, y, z);
             if (block) return block.mineable();
             else return false;
@@ -201,19 +201,19 @@ function World(scene, container) {
         function removeBlock(wx, wy, wz) {
             changeBlock(wx, wy, wz, Block.AIR);
         }
-        doLookedAtBlockAction(camera, dirt, removeBlock);
+        doLookedAtBlockAction(camera, mineable, removeBlock);
     }
 
     self.addLookedAtBlock = function (camera, blockType) {
-        function trans(x, y, z) {
+        function empty(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.trans();
+            if (block) return block.empty();
             else return false;
         }
         function addBlock(wx, wy, wz) {
             changeBlock(wx, wy, wz, blockType);
         }
-        doLookedAtBlockAction(camera, trans, addBlock);
+        doLookedAtBlockAction(camera, empty, addBlock);
     }
 
     function changeBlock(wx, wy, wz, newType) {

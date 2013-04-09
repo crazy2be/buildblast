@@ -115,10 +115,6 @@ function ChunkGeometry(cc, blocks, manager) {
         };
     }
 
-    function t(bl) {
-        return Block.isTransparent(bl);
-    }
-
     function blockTypeAt(ox, oy, oz) {
         if (ox < 0) {
             return nxc ? nxc.block(cw - 1, oy, oz) : null;
@@ -140,14 +136,14 @@ function ChunkGeometry(cc, blocks, manager) {
     function addBlockGeometry(verts, index, color, ox, oy, oz, quality) {
         var r = 1 / quality;
         var noise = [];
-        if (transparent(ox, oy, oz)) return;
+        if (empty(ox, oy, oz)) return;
 
-        var px = transparent(ox + r, oy, oz);
-        var nx = transparent(ox - r, oy, oz);
-        var py = transparent(ox, oy + r, oz);
-        var ny = transparent(ox, oy - r, oz);
-        var pz = transparent(ox, oy, oz + r);
-        var nz = transparent(ox, oy, oz - r);
+        var px = empty(ox + r, oy, oz);
+        var nx = empty(ox - r, oy, oz);
+        var py = empty(ox, oy + r, oz);
+        var ny = empty(ox, oy - r, oz);
+        var pz = empty(ox, oy, oz + r);
+        var nz = empty(ox, oy, oz - r);
 
         var wx = ox + cx*cw;
         var wy = oy + cy*ch;
@@ -228,7 +224,7 @@ function ChunkGeometry(cc, blocks, manager) {
             noise.push(noiseFunc(x, y, z));
         }
 
-        function f(mat) {
+        function f(face) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
             index.push(l-5, l-4, l-1);
@@ -237,9 +233,9 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-2, l-5, l-1);
 
             var c, c2;
-            var colours = Block.getColours(blockTypeAt(ox, oy, oz), mat);
-            c = colours.c;
-            c2 = colours.c2;
+            var colours = Block.getColours(blockTypeAt(ox, oy, oz), face);
+            c = colours.light;
+            c2 = colours.dark;
 
             for (var i = 0; i < 5; i++) {
                 var n = noise.shift();
@@ -250,11 +246,11 @@ function ChunkGeometry(cc, blocks, manager) {
             }
         }
 
-        function anyTransparent(ox, oy, oz, w, h, d) {
+        function anyEmpty(ox, oy, oz, w, h, d) {
             for (var x = 0; x < w; x++) {
                 for (var y = 0; y < h; y++) {
                     for (var z = 0; z < d; z++) {
-                        if (t(blockTypeAt(ox + x, oy + y, oz + z))) {
+                        if (Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return true;
                         }
                     }
@@ -263,11 +259,11 @@ function ChunkGeometry(cc, blocks, manager) {
             return false;
         }
 
-        function allTransparent(ox, oy, oz, w, h, d) {
+        function allEmpty(ox, oy, oz, w, h, d) {
             for (var x = 0; x < r; x++) {
                 for (var y = 0; y < r; y++) {
                     for (var z = 0; z < r; z++) {
-                        if (!t(blockTypeAt(ox + x, oy + y, oz + z))) {
+                        if (!Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return false;
                         }
                     }
@@ -276,19 +272,19 @@ function ChunkGeometry(cc, blocks, manager) {
             return true;
         }
 
-        function transparent(ox, oy, oz) {
+        function empty(ox, oy, oz) {
             if (r === 1) {
-                return t(blockTypeAt(ox, oy, oz));
+                return Block.isEmpty(blockTypeAt(ox, oy, oz));
             }
 
             if (ox < 0 || ox >= cw) {
-                return anyTransparent(ox, oy, oz, 1, r, r);
+                return anyEmpty(ox, oy, oz, 1, r, r);
             } else if (oy < 0 || oy >= ch) {
-                return anyTransparent(ox, oy, oz, r, 1, r);
+                return anyEmpty(ox, oy, oz, r, 1, r);
             } else if (oz < 0 || oz >= cd) {
-                return anyTransparent(ox, oy, oz, r, r, 1);
+                return anyEmpty(ox, oy, oz, r, r, 1);
             } else {
-                return allTransparent(ox, oy, oz, r, r, r);
+                return allEmpty(ox, oy, oz, r, r, r);
             }
         }
     }

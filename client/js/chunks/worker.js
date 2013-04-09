@@ -10,6 +10,13 @@ importScripts(
     '../conn.js'
 );
 
+var log = function (message) {
+    parent.postMessage({
+        kind: 'log',
+        payload: message
+    });
+}
+
 function sendChunk() {
     var chunk = manager.top();
     if (!chunk) return;
