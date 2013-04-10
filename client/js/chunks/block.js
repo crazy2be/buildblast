@@ -65,10 +65,7 @@ Block.getColours = function (blockType, face) {
         result.dark  = hex(0x000000);
     } else {
         // TODO: Fix this during the process of killing downscaling.
-        // Default to dirt just like the current dev copy does.
-        result.light = hex(0x784800);
-        result.dark  = hex(0x000000);
-        //throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
+        throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
     }
     return result;
     function hex(num) {

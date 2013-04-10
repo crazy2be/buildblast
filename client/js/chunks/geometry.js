@@ -133,6 +133,31 @@ function ChunkGeometry(cc, blocks, manager) {
         }
     }
 
+    function mostCommonBlock(ox, oy, oz, r) {
+        var count = {};
+        for (var x = ox; x < ox + r; x++) {
+            for (var y = oy; y < oy + r; y++) {
+                for (var z = oz; z < oz + r; z++) {
+                    var tempBlock = blockTypeAt(x, y, z);
+                    if (!(tempBlock in count)) {
+                        count[tempBlock] = 1;
+                    } else {
+                        count[tempBlock]++;
+                    }
+                }
+            }
+        }
+        var maxBlock = -1;
+        var maxValue = -1;
+        for (var key in count) {
+            if (count[key] > maxValue && !Block.isEmpty(parseInt(key))) {
+                maxBlock = key;
+                maxValue = count[key];
+            }
+        }
+        return parseInt(maxBlock);
+    }
+
     function addBlockGeometry(verts, index, color, ox, oy, oz, quality) {
         var r = 1 / quality;
         var noise = [];
@@ -149,13 +174,21 @@ function ChunkGeometry(cc, blocks, manager) {
         var wy = oy + cy*ch;
         var wz = oz + cz*cd;
 
+        var blockType;
+        if (r === 1) {
+            blockType = blockTypeAt(ox, oy, oz);
+        } else {
+            blockType = mostCommonBlock(ox, oy, oz, r);
+        }
+        if (blockType < 0) return;
+
         if (px) {
             v(wx + r, wy    , wz    );
             v(wx + r, wy + r, wz    );
             v(wx + r, wy + r, wz + r);
             v(wx + r, wy    , wz + r);
             v(wx + r, wy + r/2, wz + r/2);
-            f(0);
+            f(0, blockType);
         }
         if (nx) {
             v(wx, wy    , wz + r);
@@ -163,7 +196,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx, wy + r, wz    );
             v(wx, wy    , wz    );
             v(wx, wy + r/2, wz + r/2);
-            f(1);
+            f(1, blockType);
         }
         if (py) {
             v(wx    , wy + r, wz + r);
@@ -171,7 +204,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz    );
             v(wx    , wy + r, wz    );
             v(wx + r/2, wy + r, wz + r/2);
-            f(2);
+            f(2, blockType);
         }
         if (ny) {
             v(wx    , wy, wz    );
@@ -179,7 +212,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy, wz + r);
             v(wx    , wy, wz + r);
             v(wx + r/2, wy, wz + r/2);
-            f(3);
+            f(3, blockType);
         }
         if (pz) {
             v(wx    , wy    , wz + r);
@@ -187,7 +220,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz + r);
             v(wx    , wy + r, wz + r);
             v(wx + r/2, wy + r/2, wz + r);
-            f(4);
+            f(4, blockType);
         }
         if (nz) {
             v(wx    , wy + r, wz);
@@ -195,7 +228,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy    , wz);
             v(wx    , wy    , wz);
             v(wx + r/2, wy + r/2, wz);
-            f(5);
+            f(5, blockType);
         }
         return;
         function mod(a, b) {
@@ -224,7 +257,7 @@ function ChunkGeometry(cc, blocks, manager) {
             noise.push(noiseFunc(x, y, z));
         }
 
-        function f(face) {
+        function f(face, blockType) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
             index.push(l-5, l-4, l-1);
@@ -233,7 +266,7 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-2, l-5, l-1);
 
             var c, c2;
-            var colours = Block.getColours(blockTypeAt(ox, oy, oz), face);
+            var colours = Block.getColours(blockType, face);
             c = colours.light;
             c2 = colours.dark;
 
