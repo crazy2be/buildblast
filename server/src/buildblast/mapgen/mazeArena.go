@@ -26,7 +26,7 @@ func (fa *MazeArena) Block(wc coords.World) Block {
 
 	val := PerlinNoise(wc.X / 16, wc.Z / 16, fa.seed)
 	if wc.Y < 20 && val - math.Floor(val) < 0.05 {
-		return BLOCK_DIRT
+		return BLOCK_STONE
 	}
 
 	return BLOCK_AIR
