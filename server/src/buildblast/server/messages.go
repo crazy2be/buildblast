@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"encoding/json"
 
 	"buildblast/coords"
@@ -72,3 +74,12 @@ type ClientMessage struct {
 }
 
 type Message interface{}
+
+func ServerMessage (message string) *MsgChat {
+	m := &MsgChat {
+		DisplayName: "SERVER",
+		Time: time.Now().UnixNano() / 1000,
+		Message: message,
+	}
+	return m;
+}

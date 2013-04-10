@@ -88,6 +88,11 @@ func (w *World) FindClient(name string) *Client {
 	return <-req.resp
 }
 
+func (w *World) announce(message string) {
+	log.Println("[ANNOUNCE]", message)
+	w.broadcast(ServerMessage(message))
+}
+
 func (w *World) broadcast(m Message) {
 	for _, c := range w.clients {
 		select {
