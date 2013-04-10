@@ -3,14 +3,15 @@
 var parent = self;
 
 importScripts(
-    '../entities/block.js',
+    'block.js',
     'common.js',
     'geometry.js',
     'noise.js',
     '../conn.js'
 );
 
-var log = function (message) {
+var console = {};
+console.log = function (message) {
     parent.postMessage({
         kind: 'log',
         payload: message
