@@ -145,6 +145,12 @@ function Player(name, world, conn, controls) {
         });
     }
 
+    conn.on('player-state', function (payload) {
+        var health = document.getElementById('health-value');
+        if (!health) return;
+        health.innerHTML = payload.Hp.toString();
+    });
+
     function round(n, digits) {
         var factor = Math.pow(10, digits);
         return Math.round(n * factor) / factor;

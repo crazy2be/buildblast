@@ -72,6 +72,8 @@ func kindToType(kind MessageKind) Message {
 			return &MsgControlsState{}
 		case MSG_CHAT:
 			return &MsgChat{}
+		case MSG_PLAYER_STATE:
+			return &MsgPlayerState{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -94,6 +96,8 @@ func typeToKind(m Message) MessageKind {
 			return MSG_CONTROLS_STATE
 		case *MsgChat:
 			return MSG_CHAT
+		case *MsgPlayerState:
+			return MSG_PLAYER_STATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }

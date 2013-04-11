@@ -163,6 +163,11 @@ func (w *World) simulateStep() {
 			ID: client.name,
 		}
 		w.broadcast(m)
+
+		m2 := &MsgPlayerState {
+			Hp: p.hp,
+		}
+		client.Broadcast <- m2
 	}
 }
 

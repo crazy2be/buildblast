@@ -20,6 +20,7 @@ const (
 	MSG_PLAYER_POSITION = MessageKind("player-position")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
+	MSG_PLAYER_STATE    = MessageKind("player-state")
 )
 
 type MsgEntityCreate struct {
@@ -66,6 +67,10 @@ type MsgChat struct {
 	DisplayName string
 	Time        int64
 	Message     string
+}
+
+type MsgPlayerState struct {
+	Hp          int
 }
 
 type ClientMessage struct {
