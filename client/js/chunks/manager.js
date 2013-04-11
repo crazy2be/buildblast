@@ -45,6 +45,8 @@ function ChunkManager(scene, player) {
             processHideChunk(payload);
         } else if (e.data.kind === 'chunk-quality-change') {
             processQualityChange(payload);
+        } else if (e.data.kind === 'log') {
+            console.log(e.data.payload);
         }
     }
 

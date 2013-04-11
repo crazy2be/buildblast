@@ -7,7 +7,6 @@ function include(path, names) {
 }
 
 include('/js/entities/', [
-    'block',
     'entity',
     'manager',
 	'player',

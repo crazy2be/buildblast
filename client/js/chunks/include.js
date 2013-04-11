@@ -10,4 +10,5 @@ include('/js/chunks/', [
     'common',
     'chunk',
     'manager',
+    'block',
 ]);

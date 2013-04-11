@@ -69,7 +69,7 @@ function World(scene, container) {
             return false;
         }
         var block = chunk.block(oc);
-        if (block.isType(Block.AIR)) {
+        if (block.empty()) {
             // Try and find ground below
             while (true) {
                 oc.y--;
@@ -82,11 +82,11 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.isType(Block.DIRT)) {
+                if (block && block.solid()) {
                     return oc.y + cc.y * CHUNK_HEIGHT + 1;
                 }
             }
-        } else if (block.isType(Block.DIRT)) {
+        } else if (block.solid()) {
             // Try and find air above
             while (true) {
                 oc.y++;
@@ -99,12 +99,12 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.isType(Block.AIR)) {
+                if (block && block.empty()) {
                     return oc.y + cc.y * CHUNK_HEIGHT;
                 }
             }
         } else {
-            throw "findClosestGround only knows how to deal with ground and air blocks. Got " + block.getType();
+            throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
     }
 
@@ -193,27 +193,27 @@ function World(scene, container) {
     }
 
     self.removeLookedAtBlock = function (camera) {
-        function dirt(x, y, z) {
+        function mineable(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.DIRT);
+            if (block) return block.mineable();
             else return false;
         }
         function removeBlock(wx, wy, wz) {
             changeBlock(wx, wy, wz, Block.AIR);
         }
-        doLookedAtBlockAction(camera, dirt, removeBlock);
+        doLookedAtBlockAction(camera, mineable, removeBlock);
     }
 
-    self.addLookedAtBlock = function (camera) {
-        function air(x, y, z) {
+    self.addLookedAtBlock = function (camera, blockType) {
+        function empty(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.AIR);
+            if (block) return block.empty();
             else return false;
         }
         function addBlock(wx, wy, wz) {
-            changeBlock(wx, wy, wz, Block.DIRT);
+            changeBlock(wx, wy, wz, blockType);
         }
-        doLookedAtBlockAction(camera, air, addBlock);
+        doLookedAtBlockAction(camera, empty, addBlock);
     }
 
     function changeBlock(wx, wy, wz, newType) {

@@ -1,13 +1,22 @@
 // I use self for other things. Parent makes
-// a lot more sence anyway.
+// a lot more sense anyway.
 var parent = self;
 
 importScripts(
+    'block.js',
     'common.js',
     'geometry.js',
     'noise.js',
     '../conn.js'
 );
+
+var console = {};
+console.log = function (message) {
+    parent.postMessage({
+        kind: 'log',
+        payload: message
+    });
+}
 
 function sendChunk() {
     var chunk = manager.top();
