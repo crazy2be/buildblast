@@ -116,7 +116,7 @@ function Player(name, world, conn, controls) {
         latestConfirmedPosition.VelocityY = vy;
 
         var health = document.getElementById('health-value');
-        if (!health) {
+        if (health) {
             health.innerText = payload.Hp;
         }
     });
