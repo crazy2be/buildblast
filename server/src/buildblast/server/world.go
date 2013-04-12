@@ -88,6 +88,11 @@ func (w *World) FindClient(name string) *Client {
 	return <-req.resp
 }
 
+func (w *World) announce(message string) {
+	log.Println("[ANNOUNCE]", message)
+	w.broadcast(ServerMessage(message))
+}
+
 func (w *World) broadcast(m Message) {
 	for _, c := range w.clients {
 		select {
@@ -115,7 +120,7 @@ func (w *World) join(c *Client) {
 	p := NewPlayer()
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
-	log.Println("New player connected! Name: ", c.name)
+	w.announce(c.name + " has joined the game!")
 }
 
 func (w *World) leave(c *Client) {
@@ -127,7 +132,7 @@ func (w *World) leave(c *Client) {
 	w.players[i] = w.players[len(w.players)-1]
 	w.players = w.players[0:len(w.players)-1]
 
-	log.Println("Client disconnected...", c.name)
+	w.announce(c.name + " has left the game :(")
 
 	m := &MsgEntityRemove{
 		ID: c.name,
@@ -148,9 +153,9 @@ func (w *World) simulateStep() {
 	for i, p := range w.players {
 		client := w.clients[i]
 
-		playerPosMsg := p.simulateStep(client, w)
-		if playerPosMsg != nil {
-			client.PositionUpdates <- playerPosMsg
+		playerStateMsg := p.simulateStep(client, w)
+		if playerStateMsg != nil {
+			client.StateUpdates <- playerStateMsg
 		}
 
 		m := &MsgEntityPosition{

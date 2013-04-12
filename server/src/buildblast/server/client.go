@@ -17,7 +17,7 @@ type Client struct {
 	// Channel of messages queued by the world to be
 	// sent out to this client.
 	Broadcast chan Message
-	PositionUpdates chan *MsgPlayerPosition
+	StateUpdates chan *MsgPlayerState
 	// Channel of player state updates, to be consumed by
 	// the world when simulating.
 	ControlState chan *ControlState
@@ -30,7 +30,7 @@ func NewClient(world *World, name string) *Client {
 	c.name = name
 
 	c.Broadcast = make(chan Message, 10)
-	c.PositionUpdates = make(chan *MsgPlayerPosition, 10)
+	c.StateUpdates = make(chan *MsgPlayerState, 10)
 	c.ControlState = make(chan *ControlState, 10)
 	c.cm = newChunkManager()
 
@@ -48,7 +48,7 @@ func (c *Client) Run(conn *Conn) {
 				continue
 			}
 			c.conn.Send(m)
-		case m := <- c.PositionUpdates:
+		case m := <- c.StateUpdates:
 			c.conn.Send(m)
 			c.queueNearbyChunks(m.Pos)
 		default:
@@ -149,9 +149,14 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 	}
 }
 
+func (c *Client) announce(message string) {
+	log.Println("[ANNOUNCE] (", c.name, ")", message)
+	c.conn.Send(ServerMessage(message))
+}
+
 func (c *Client) handleChat(m *MsgChat) {
 	m.DisplayName = c.name
 	m.Time = time.Now().UnixNano() / 1000
-	log.Println("[CHAT]", m.DisplayName + ":", m.Message);
+	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
 	c.world.Broadcast <- m
 }
