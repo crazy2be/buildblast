@@ -148,7 +148,7 @@ function Player(name, world, conn, controls) {
     conn.on('player-state', function (payload) {
         var health = document.getElementById('health-value');
         if (!health) return;
-        health.innerHTML = payload.Hp.toString();
+        health.innerText = payload.Hp;
     });
 
     function round(n, digits) {

@@ -80,7 +80,7 @@ type ClientMessage struct {
 
 type Message interface{}
 
-func ServerMessage (message string) *MsgChat {
+func ServerMessage(message string) *MsgChat {
 	m := &MsgChat {
 		DisplayName: "SERVER",
 		Time: time.Now().UnixNano() / 1000,

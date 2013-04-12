@@ -120,7 +120,7 @@ func (w *World) join(c *Client) {
 	p := NewPlayer()
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
-	w.announce(c.displayName + " has joined the game!")
+	w.announce(c.name + " has joined the game!")
 }
 
 func (w *World) leave(c *Client) {
@@ -132,7 +132,7 @@ func (w *World) leave(c *Client) {
 	w.players[i] = w.players[len(w.players)-1]
 	w.players = w.players[0:len(w.players)-1]
 
-	w.announce(c.displayName + " has left the game :(")
+	w.announce(c.name + " has left the game :(")
 
 	m := &MsgEntityRemove{
 		ID: c.name,

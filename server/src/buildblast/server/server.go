@@ -90,9 +90,6 @@ func promptLoop(quit chan bool, state *liner.State) {
 			quit <- true
 			return
 		}
-		if HandleServerCommand(cmd) {
-			continue
-		}
 		if cmd == "exit" {
 			quit <- true
 			return

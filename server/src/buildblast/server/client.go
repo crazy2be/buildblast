@@ -13,7 +13,6 @@ type Client struct {
 	conn *Conn
 
 	name string
-	displayName string
 
 	// Channel of messages queued by the world to be
 	// sent out to this client.
@@ -29,7 +28,6 @@ func NewClient(world *World, name string) *Client {
 	c := new(Client)
 	c.world = world
 	c.name = name
-	c.displayName = name
 
 	c.Broadcast = make(chan Message, 10)
 	c.PositionUpdates = make(chan *MsgPlayerPosition, 10)
@@ -153,14 +151,11 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 
 func (c *Client) announce(message string) {
 	log.Println("[ANNOUNCE] (", c.name, ")", message)
-	c.Broadcast <- ServerMessage(message)
+	c.conn.Send(ServerMessage(message))
 }
 
 func (c *Client) handleChat(m *MsgChat) {
-	if HandleCommand(c, m.Message) {
-		return
-	}
-	m.DisplayName = c.displayName
+	m.DisplayName = c.name
 	m.Time = time.Now().UnixNano() / 1000
 	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
 	c.world.Broadcast <- m
