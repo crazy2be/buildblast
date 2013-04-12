@@ -35,12 +35,18 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 	0,
 };
 
+// Gameplay state defaults
+var PLAYER_MAX_HP = 100;
+
 type Player struct {
 	pos       coords.World
 	rot       coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
+
+	// Gameplay state
+	hp        int
 }
 
 func NewPlayer() *Player {
@@ -51,10 +57,11 @@ func NewPlayer() *Player {
 			Z: 0,
 		},
 		controls: &ControlState{},
+		hp: PLAYER_MAX_HP,
 	}
 }
 
-func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
+func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
 	var controls *ControlState
 	select {
 		case controls = <-c.ControlState:
@@ -72,10 +79,11 @@ func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
 
 	p.controls = controls
 
-	return &MsgPlayerPosition{
+	return &MsgPlayerState{
 		Pos: p.pos,
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
+		Hp: p.hp,
 	}
 }
 
@@ -120,4 +128,17 @@ func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) 
 	p.pos.X += move.X
 	p.pos.Y += move.Y
 	p.pos.Z += move.Z
+}
+
+func (p *Player) hurt(dmg int) bool {
+	p.hp -= dmg
+	return p.dead()
+}
+
+func (p *Player) heal(hps int) {
+	p.hp += hps
+}
+
+func (p *Player) dead() bool {
+	return p.hp <= 0
 }

@@ -9,7 +9,13 @@ function World(scene, container) {
         scene.remove(mesh);
     }
 
-    var playerName = "player-" + Math.random();
+    var playerName = localStorage.playerName;
+    if (!playerName) {
+        do {
+            playerName = prompt("Please enter your name.","Unknown");
+        } while (playerName == null || playerName === "");
+        localStorage.playerName = playerName;
+    }
     var conn = new Conn(getWSURI("main/" + playerName));
     var controls = new Controls(container);
     var player = new Player(playerName, self, conn, controls);
