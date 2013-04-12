@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"encoding/json"
 
 	"buildblast/coords"
@@ -15,9 +17,9 @@ const (
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
-	MSG_PLAYER_POSITION = MessageKind("player-position")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
+	MSG_PLAYER_STATE    = MessageKind("player-state")
 )
 
 type MsgEntityCreate struct {
@@ -47,13 +49,6 @@ type MsgBlock struct {
 	Type mapgen.Block
 }
 
-type MsgPlayerPosition struct {
-	Pos       coords.World
-	VelocityY float64
-	// JavaScript performance.now() timestamp.
-	Timestamp float64
-}
-
 type MsgControlsState struct {
 	Controls  ControlState
 	// JavaScript performance.now() timestamp.
@@ -66,9 +61,26 @@ type MsgChat struct {
 	Message     string
 }
 
+type MsgPlayerState struct {
+	Pos       coords.World
+	VelocityY float64
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
+	Hp        int
+}
+
 type ClientMessage struct {
 	Kind MessageKind
 	Payload json.RawMessage
 }
 
 type Message interface{}
+
+func ServerMessage(message string) *MsgChat {
+	m := &MsgChat {
+		DisplayName: "SERVER",
+		Time: time.Now().UnixNano() / 1000,
+		Message: message,
+	}
+	return m;
+}

@@ -66,7 +66,7 @@ func setupPrompt() {
 	signal.Notify(c, os.Interrupt)
 
 	state := liner.NewLiner()
-	go prompt(quit, state)
+	go promptLoop(quit, state)
 
 	go func() {
 		<-c
@@ -81,7 +81,7 @@ func setupPrompt() {
 	}()
 }
 
-func prompt(quit chan bool, state *liner.State) {
+func promptLoop(quit chan bool, state *liner.State) {
 	for {
 		cmd, err := state.Prompt(" >>> ")
 		if err != nil {
@@ -90,7 +90,6 @@ func prompt(quit chan bool, state *liner.State) {
 			quit <- true
 			return
 		}
-		log.Println("Read command:", cmd)
 		if cmd == "exit" {
 			quit <- true
 			return
