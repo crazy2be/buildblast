@@ -66,8 +66,6 @@ func kindToType(kind MessageKind) Message {
 			return &MsgEntityRemove{}
 		case MSG_BLOCK:
 			return &MsgBlock{}
-		case MSG_PLAYER_POSITION:
-			return &MsgPlayerPosition{}
 		case MSG_CONTROLS_STATE:
 			return &MsgControlsState{}
 		case MSG_CHAT:
@@ -90,8 +88,6 @@ func typeToKind(m Message) MessageKind {
 			return MSG_CHUNK
 		case *MsgBlock:
 			return MSG_BLOCK
-		case *MsgPlayerPosition:
-			return MSG_PLAYER_POSITION
 		case *MsgControlsState:
 			return MSG_CONTROLS_STATE
 		case *MsgChat:

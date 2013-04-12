@@ -17,7 +17,6 @@ const (
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
-	MSG_PLAYER_POSITION = MessageKind("player-position")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
 	MSG_PLAYER_STATE    = MessageKind("player-state")
@@ -50,13 +49,6 @@ type MsgBlock struct {
 	Type mapgen.Block
 }
 
-type MsgPlayerPosition struct {
-	Pos       coords.World
-	VelocityY float64
-	// JavaScript performance.now() timestamp.
-	Timestamp float64
-}
-
 type MsgControlsState struct {
 	Controls  ControlState
 	// JavaScript performance.now() timestamp.
@@ -70,7 +62,11 @@ type MsgChat struct {
 }
 
 type MsgPlayerState struct {
-	Hp          int
+	Pos       coords.World
+	VelocityY float64
+	// JavaScript performance.now() timestamp.
+	Timestamp float64
+	Hp        int
 }
 
 type ClientMessage struct {

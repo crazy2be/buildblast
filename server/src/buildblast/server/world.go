@@ -153,9 +153,9 @@ func (w *World) simulateStep() {
 	for i, p := range w.players {
 		client := w.clients[i]
 
-		playerPosMsg := p.simulateStep(client, w)
-		if playerPosMsg != nil {
-			client.PositionUpdates <- playerPosMsg
+		playerStateMsg := p.simulateStep(client, w)
+		if playerStateMsg != nil {
+			client.StateUpdates <- playerStateMsg
 		}
 
 		m := &MsgEntityPosition{
@@ -163,11 +163,6 @@ func (w *World) simulateStep() {
 			ID: client.name,
 		}
 		w.broadcast(m)
-
-		m2 := &MsgPlayerState {
-			Hp: p.hp,
-		}
-		client.Broadcast <- m2
 	}
 }
 

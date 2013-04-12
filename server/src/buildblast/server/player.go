@@ -61,7 +61,7 @@ func NewPlayer() *Player {
 	}
 }
 
-func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
+func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
 	var controls *ControlState
 	select {
 		case controls = <-c.ControlState:
@@ -79,10 +79,11 @@ func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerPosition {
 
 	p.controls = controls
 
-	return &MsgPlayerPosition{
+	return &MsgPlayerState{
 		Pos: p.pos,
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
+		Hp: p.hp,
 	}
 }
 

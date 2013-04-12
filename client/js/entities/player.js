@@ -102,7 +102,7 @@ function Player(name, world, conn, controls) {
         VelocityY: 0.0,
     };
     var userCommands = [];
-    conn.on('player-position', function (payload) {
+    conn.on('player-state', function (payload) {
         var p = payload.Pos;
         var t = payload.Timestamp;
         var vy = payload.VelocityY;
@@ -114,6 +114,11 @@ function Player(name, world, conn, controls) {
         latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
         latestConfirmedPosition.Timestamp = t;
         latestConfirmedPosition.VelocityY = vy;
+
+        var health = document.getElementById('health-value');
+        if (!health) {
+            health.innerText = payload.Hp;
+        }
     });
 
     function sendControlsToNetwork(c) {
@@ -144,12 +149,6 @@ function Player(name, world, conn, controls) {
             v: round(vy, 2),
         });
     }
-
-    conn.on('player-state', function (payload) {
-        var health = document.getElementById('health-value');
-        if (!health) return;
-        health.innerText = payload.Hp;
-    });
 
     function round(n, digits) {
         var factor = Math.pow(10, digits);
