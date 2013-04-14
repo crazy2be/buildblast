@@ -165,7 +165,6 @@ func (w *World) simulateStep() {
 		w.broadcast(m)
 
 		if debugRayMsg != nil {
-			log.Println(debugRayMsg.Pos)
 			client.Broadcast <- debugRayMsg
 		}
 	}
