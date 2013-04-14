@@ -28,6 +28,7 @@ function World(scene, container) {
     scene.add(ambientLight);
 
     conn.on('block', processBlock);
+    conn.on('debug-ray', processRay);
 
     function processBlock(payload) {
         var wx = payload.Pos.X;
@@ -35,6 +36,11 @@ function World(scene, container) {
         var wz = payload.Pos.Z;
         var type = payload.Type;
         applyBlockChange(wx, wy, wz, type);
+    }
+
+    function processRay(payload) {
+        var pos = new THREE.Vector3(payload.Pos.x, payload.Pos.y, paylod.Pos.z);
+        self.addSmallCube(pos);
     }
 
     self.update = function (dt) {

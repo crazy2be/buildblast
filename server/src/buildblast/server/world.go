@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"log"
@@ -153,7 +153,7 @@ func (w *World) simulateStep() {
 	for i, p := range w.players {
 		client := w.clients[i]
 
-		playerStateMsg := p.simulateStep(client, w)
+		playerStateMsg, _ := p.simulateStep(client, w)
 		if playerStateMsg != nil {
 			client.StateUpdates <- playerStateMsg
 		}
