@@ -2,6 +2,8 @@ package main
 
 import (
 	"math"
+	"container/list"
+	"log"
 
 	"buildblast/coords"
 	"buildblast/mapgen"
@@ -20,6 +22,11 @@ func (ray *Ray) dist(to coords.World) float64 {
 		math.Pow(ray.pos.Z - to.Z, 2))
 }
 
+type ChunkHit struct {
+	pos   coords.Chunk
+	dist  float64
+}
+
 func FindIntersection(world *World, player *Player, controls *ControlState) *coords.World {
 	rayPosition := player.pos
 	rayPosition.Y += PLAYER_EYE_HEIGHT
@@ -30,9 +37,9 @@ func FindIntersection(world *World, player *Player, controls *ControlState) *coo
 	lat := controls.Lat
 	lon := controls.Lon
 	rayDir := coords.Vec3{
-		X: cos(lat) * cos(lon),
-		Y: sin(lat),
-		Z: cos(lat) * sin(lon),
+		X: sin(lat) * cos(lon),
+		Y: cos(lat),
+		Z: sin(lat) * sin(lon),
 	}
 	iRayDir := coords.Vec3{
 		X: 1 / rayDir.X,
@@ -56,7 +63,19 @@ func FindIntersection(world *World, player *Player, controls *ControlState) *coo
 }
 
 func trace(ray *Ray, chunks map[coords.Chunk]mapgen.Chunk) *coords.World {
-	
+	// Find which chunks we intersect
+	list := list.New()
+	for k, _ := range chunks {
+		val := intersect(k.World(), coords.CHUNK_WIDTH, ray)
+		if val != nil {
+			hit := &ChunkHit{
+				pos: k,
+				dist: ray.dist(k.World()),
+			}
+			list.PushBack(hit)
+		}
+	}
+	log.Println("Hit", list.Len(), "chunks!")
 	return nil
 }
 

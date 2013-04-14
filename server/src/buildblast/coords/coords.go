@@ -47,6 +47,14 @@ type Chunk struct {
 	Z int
 }
 
+func (cc Chunk) World() World {
+	return World{
+		X: float64(cc.X * CHUNK_WIDTH),
+		Y: float64(cc.Y * CHUNK_HEIGHT),
+		Z: float64(cc.Z * CHUNK_DEPTH),
+	}
+}
+
 type Offset struct {
 	X int
 	Y int

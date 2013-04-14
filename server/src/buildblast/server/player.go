@@ -77,7 +77,15 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 	}
 
 	p.simulateTick(dt, c.world, controls)
-	target := FindIntersection(c.world, p, controls)
+	var msgDebugRay *MsgDebugRay
+	if controls.ActivateBlaster {
+		target := FindIntersection(c.world, p, controls)
+		if target != nil {
+			msgDebugRay = &MsgDebugRay{
+				Pos: *target,
+			}
+		}
+	}
 
 	p.controls = controls
 
@@ -86,9 +94,7 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
-	}, &MsgDebugRay{
-		Pos: *target,
-	}
+	}, msgDebugRay
 }
 
 func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) {
