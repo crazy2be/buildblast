@@ -98,13 +98,14 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 		var players []*physics.Box
 		for _, v := range w.players {
 			if v == p {
+				players = append(players, nil)
 				continue
 			}
 			players = append(players, physics.NewBoxOffset(p.history.PositionAt(controls.Timestamp),
 				PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET))
 		}
 
-		target, index := FindIntersection(c.world, p.pos, p.dir, &players)
+		target, index := FindIntersection(c.world, p.pos, p.dir, players)
 		if target != nil && index < 0 {
 			// Hit a wall
 			msgDebugRay = &MsgDebugRay{

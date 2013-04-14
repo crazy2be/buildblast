@@ -22,7 +22,7 @@ func (ray *Ray) move(dist float64) {
 	ray.pos.Z += dist * ray.dir.Z
 }
 
-func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Vec3, players *[]*physics.Box) (*coords.World, int) {
+func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Vec3, players []*physics.Box) (*coords.World, int) {
 	ray := &Ray{
 		pos: pos,
 		dir: dir,
@@ -32,7 +32,10 @@ func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Ve
 	for dist := 0.0; dist < MAX_DIST; dist += PRECISION {
 		ray.move(PRECISION)
 		// Check players for hits
-		for i, v := range *players {
+		for i, v := range players {
+			if v == nil {
+				continue
+			}
 			if !v.Contains(ray.pos) {
 				continue
 			}
