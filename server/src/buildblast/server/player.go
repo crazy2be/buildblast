@@ -55,7 +55,7 @@ func (p *PlayerStateRingBuffer) PositionAt(t float64) coords.World {
 
 	var older PlayerState
 	var newer PlayerState
-	for i := 0; i < l; i++ {
+	for i := 1; i <= l; i++ {
 		older = p.buf[((p.offset - i) + l) % l]
 		if older.t <= t {
 			break
