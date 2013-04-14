@@ -41,7 +41,6 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
-	rot       coords.Vec3 // This is unused
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
