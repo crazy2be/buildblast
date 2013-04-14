@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"sort"
 
@@ -42,9 +43,6 @@ type ByDist struct { ChunkHits }
 func (s ByDist) Less(i, j int) bool { return s.ChunkHits[i].dist < s.ChunkHits[j].dist }
 
 func FindIntersection(world *World, player *Player, controls *ControlState) *coords.World {
-	rayPosition := player.pos
-	rayPosition.Y += PLAYER_EYE_HEIGHT
-
 	cos := math.Cos
 	sin := math.Sin
 
@@ -55,13 +53,14 @@ func FindIntersection(world *World, player *Player, controls *ControlState) *coo
 		Y: cos(lat),
 		Z: sin(lat) * sin(lon),
 	}
+	fmt.Println("Calculated look as", rayDir, "with lat", lat, "and lon", lon)
 	iRayDir := coords.Vec3{
 		X: 1 / rayDir.X,
 		Y: 1 / rayDir.Y,
 		Z: 1 / rayDir.Z,
 	}
 	ray := &Ray{
-		pos: rayPosition,
+		pos: player.pos,
 		dir: rayDir,
 		idir: iRayDir,
 	}
@@ -79,16 +78,24 @@ func FindIntersection(world *World, player *Player, controls *ControlState) *coo
 func trace(ray *Ray, chunks map[coords.Chunk]mapgen.Chunk) *coords.World {
 	// Find which chunks we intersect
 	var chunkHits []*ChunkHit
+	hit := &ChunkHit{
+		pos: ray.pos.Chunk(),
+		dist: 0,
+	}
+	chunkHits = append(chunkHits, hit)
 	for k, _ := range chunks {
 		val := intersect(k.World(), coords.CHUNK_WIDTH, ray)
-		if val != nil {
-			hit := &ChunkHit{
-				pos: k,
-				dist: ray.dist(k.World()),
-			}
-			chunkHits = append(chunkHits, hit)
+		if val == nil {
+			continue
 		}
+
+		hit := &ChunkHit{
+			pos: k,
+			dist: ray.dist(*val),
+		}
+		chunkHits = append(chunkHits, hit)
 	}
+
 	if len(chunkHits) == 0 {
 		return nil
 	}
@@ -101,26 +108,30 @@ func trace(ray *Ray, chunks map[coords.Chunk]mapgen.Chunk) *coords.World {
 		for x, a := range chunk {
 			for y, b := range a {
 				for z, block := range b {
-					if block.Solid() {
-						worldPos := coords.World {
-							X: float64(v.pos.X + x),
-							Y: float64(v.pos.Y + y),
-							Z: float64(v.pos.Z + z),
+					if !block.Solid() {
+						continue
+					}
+
+					worldPos := coords.World {
+						X: float64(v.pos.X + x),
+						Y: float64(v.pos.Y + y),
+						Z: float64(v.pos.Z + z),
+					}
+					val := intersect(worldPos, 1, ray)
+					if val == nil {
+						continue
+					}
+
+					dist := ray.dist(*val)
+					if firstBlock == nil {
+						firstBlock = &BlockHit{
+							pos: &worldPos,
+							dist: dist,
 						}
-						val := intersect(worldPos, 1, ray)
-						if val != nil {
-							dist := ray.dist(*val)
-							if firstBlock == nil {
-								firstBlock = &BlockHit{
-									pos: val,
-									dist: dist,
-								}
-							} else {
-								if dist < firstBlock.dist {
-									firstBlock.pos = val
-									firstBlock.dist = dist
-								}
-							}
+					} else {
+						if dist < firstBlock.dist {
+							firstBlock.pos = &worldPos
+							firstBlock.dist = dist
 						}
 					}
 				}
@@ -153,17 +164,18 @@ func intersect(pos coords.World, size float64, ray *Ray) *coords.World {
 	zmin := min(tz1, tz2)
 	zmax := max(tz1, tz2)
 
-	tmin := max(max(xmin, ymin), zmin)
-	tmax := min(min(xmax, ymax), zmax)
+	tmin := max(max(max(xmin, ymin), zmin), math.Inf(-1))
+	tmax := min(min(min(xmax, ymax), zmax), math.Inf(1))
 
-	if (tmax >= max(0, tmin)) && (tmin < math.Inf(1)) {
-		return &coords.World{
-			X: xmin,
-			Y: ymin,
-			Z: zmin,
-		}
+	if tmax < tmin {
+		return nil
 	}
-	return nil
+
+	return &coords.World{
+		X: xmin,
+		Y: ymin,
+		Z: zmin,
+	}
 }
 
 
