@@ -8,7 +8,6 @@ import (
 	"buildblast/coords"
 )
 
-
 type ControlState struct {
 	Forward         bool
 	Left            bool
