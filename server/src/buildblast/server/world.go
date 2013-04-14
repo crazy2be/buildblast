@@ -153,7 +153,7 @@ func (w *World) simulateStep() {
 	for i, p := range w.players {
 		client := w.clients[i]
 
-		playerStateMsg := p.simulateStep(client, w)
+		playerStateMsg, debugRayMsg := p.simulateStep(client, w)
 		if playerStateMsg != nil {
 			client.StateUpdates <- playerStateMsg
 		}
@@ -163,6 +163,10 @@ func (w *World) simulateStep() {
 			ID: client.name,
 		}
 		w.broadcast(m)
+
+		if debugRayMsg != nil {
+			client.Broadcast <- debugRayMsg
+		}
 	}
 }
 
