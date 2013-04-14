@@ -20,6 +20,7 @@ const (
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
 	MSG_PLAYER_STATE    = MessageKind("player-state")
+	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 )
 
 type MsgEntityCreate struct {
@@ -67,6 +68,10 @@ type MsgPlayerState struct {
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
 	Hp        int
+}
+
+type MsgDebugRay struct {
+	Pos coords.World
 }
 
 type ClientMessage struct {

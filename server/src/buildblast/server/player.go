@@ -9,13 +9,14 @@ import (
 )
 
 type ControlState struct {
-	Forward bool
-	Left bool
-	Right bool
-	Back bool
-	Jump bool
-	Lat float64
-	Lon float64
+	Forward         bool
+	Left            bool
+	Right           bool
+	Back            bool
+	Jump            bool
+	ActivateBlaster bool
+	Lat             float64
+	Lon             float64
 
 	Timestamp float64 // In ms
 }
@@ -40,7 +41,7 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
-	rot       coords.Vec3
+	dir       coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
@@ -56,17 +57,30 @@ func NewPlayer() *Player {
 			Y: 27,
 			Z: 0,
 		},
+		dir: coords.Vec3{
+			X: 0,
+			Y: 0,
+			Z: 0,
+		},
 		controls: &ControlState{},
 		hp: PLAYER_MAX_HP,
 	}
 }
 
-func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
+func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRay) {
 	var controls *ControlState
 	select {
 		case controls = <-c.ControlState:
-		default: return nil
+		default: return nil, nil
 	}
+
+	cos := math.Cos
+	sin := math.Sin
+	lat := controls.Lat
+	lon := controls.Lon
+	p.dir.X = sin(lat) * cos(lon)
+	p.dir.Y = cos(lat)
+	p.dir.Z = sin(lat) * sin(lon)
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
@@ -76,6 +90,15 @@ func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
 	}
 
 	p.simulateTick(dt, c.world, controls)
+	var msgDebugRay *MsgDebugRay
+	if controls.ActivateBlaster {
+		target := FindIntersection(c.world, p.pos, p.dir)
+		if target != nil {
+			msgDebugRay = &MsgDebugRay{
+				Pos: *target,
+			}
+		}
+	}
 
 	p.controls = controls
 
@@ -84,7 +107,7 @@ func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
-	}
+	}, msgDebugRay
 }
 
 func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) {
