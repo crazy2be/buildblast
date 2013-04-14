@@ -10,7 +10,7 @@ type Vec3 struct {
 	Z float64
 }
 
-func (vec *Vec3) dist(to Vec3) float64 {
+func (vec *Vec3) Dist(to Vec3) float64 {
 	return math.Sqrt(
 		math.Pow(vec.X - to.X, 2) +
 		math.Pow(vec.Y - to.Y, 2) +
