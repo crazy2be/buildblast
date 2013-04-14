@@ -5,6 +5,12 @@ import (
 	"buildblast/mapgen"
 )
 
+// xs means x start, xe means x end, etc.
+// We have a middle value for y because otherwise
+// players can impale themselves on blocks (since
+// players are > 1 block high). Note that this means
+// this implementation is not completely generic.
+// Oh well, it also means that it's really fast!
 type Box struct {
 	xs float64
 	xe float64
@@ -72,7 +78,9 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 }
 
 func (b *Box) Contains(position coords.World) bool {
-	panic("Contains() not implemented!")
+	return b.xs < x && b.xe > x &&
+		b.ys < y && b.ye > y &&
+		b.zs < z && b.ze > z
 }
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
