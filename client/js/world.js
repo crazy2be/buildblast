@@ -39,7 +39,7 @@ function World(scene, container) {
     }
 
     function processRay(payload) {
-        var pos = new THREE.Vector3(payload.Pos.x, payload.Pos.y, paylod.Pos.z);
+        var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
         self.addSmallCube(pos);
     }
 

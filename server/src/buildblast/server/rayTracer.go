@@ -2,8 +2,7 @@ package main
 
 import (
 	"math"
-	"container/list"
-	"log"
+	"sort"
 
 	"buildblast/coords"
 	"buildblast/mapgen"
@@ -26,6 +25,21 @@ type ChunkHit struct {
 	pos   coords.Chunk
 	dist  float64
 }
+
+type BlockHit struct {
+	pos  *coords.World
+	dist float64
+}
+
+// ChunkHit sorting interface
+type ChunkHits []*ChunkHit
+
+func (ch ChunkHits) Len() int { return len(ch) }
+func (ch ChunkHits) Swap(i, j int) { ch[i], ch[j] = ch[j], ch[i] }
+
+type ByDist struct { ChunkHits }
+
+func (s ByDist) Less(i, j int) bool { return s.ChunkHits[i].dist < s.ChunkHits[j].dist }
 
 func FindIntersection(world *World, player *Player, controls *ControlState) *coords.World {
 	rayPosition := player.pos
@@ -64,7 +78,7 @@ func FindIntersection(world *World, player *Player, controls *ControlState) *coo
 
 func trace(ray *Ray, chunks map[coords.Chunk]mapgen.Chunk) *coords.World {
 	// Find which chunks we intersect
-	list := list.New()
+	var chunkHits []*ChunkHit
 	for k, _ := range chunks {
 		val := intersect(k.World(), coords.CHUNK_WIDTH, ray)
 		if val != nil {
@@ -72,10 +86,50 @@ func trace(ray *Ray, chunks map[coords.Chunk]mapgen.Chunk) *coords.World {
 				pos: k,
 				dist: ray.dist(k.World()),
 			}
-			list.PushBack(hit)
+			chunkHits = append(chunkHits, hit)
 		}
 	}
-	log.Println("Hit", list.Len(), "chunks!")
+	if len(chunkHits) == 0 {
+		return nil
+	}
+	sort.Sort(ByDist{chunkHits})
+
+	// Go through the chunks we hit and find the block
+	for _, v := range chunkHits {
+		var firstBlock *BlockHit
+		chunk := chunks[v.pos]
+		for x, a := range chunk {
+			for y, b := range a {
+				for z, block := range b {
+					if block.Solid() {
+						worldPos := coords.World {
+							X: float64(v.pos.X + x),
+							Y: float64(v.pos.Y + y),
+							Z: float64(v.pos.Z + z),
+						}
+						val := intersect(worldPos, 1, ray)
+						if val != nil {
+							dist := ray.dist(*val)
+							if firstBlock == nil {
+								firstBlock = &BlockHit{
+									pos: val,
+									dist: dist,
+								}
+							} else {
+								if dist < firstBlock.dist {
+									firstBlock.pos = val
+									firstBlock.dist = dist
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if firstBlock != nil {
+			return firstBlock.pos
+		}
+	}
 	return nil
 }
 
