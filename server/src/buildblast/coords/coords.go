@@ -10,11 +10,14 @@ type Vec3 struct {
 	Z float64
 }
 
-type World struct {
-	X float64
-	Y float64
-	Z float64
+func (vec *Vec3) dist(to Vec3) float64 {
+	return math.Sqrt(
+		math.Pow(vec.X - to.X, 2) +
+		math.Pow(vec.Y - to.Y, 2) +
+		math.Pow(vec.Z - to.Z, 2))
 }
+
+type World Vec3
 
 func (wc World) Chunk() Chunk {
 	floor := func (n float64) int {
@@ -45,14 +48,6 @@ type Chunk struct {
 	X int
 	Y int
 	Z int
-}
-
-func (cc Chunk) World() World {
-	return World{
-		X: float64(cc.X * CHUNK_WIDTH),
-		Y: float64(cc.Y * CHUNK_HEIGHT),
-		Z: float64(cc.Z * CHUNK_DEPTH),
-	}
 }
 
 type Offset struct {

@@ -41,6 +41,7 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
+	dir       coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
@@ -56,6 +57,11 @@ func NewPlayer() *Player {
 			Y: 27,
 			Z: 0,
 		},
+		dir: coords.Vec3{
+			X: 0,
+			Y: 0,
+			Z: 0,
+		},
 		controls: &ControlState{},
 		hp: PLAYER_MAX_HP,
 	}
@@ -68,6 +74,14 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 		default: return nil, nil
 	}
 
+	cos := math.Cos
+	sin := math.Sin
+	lat := controls.Lat
+	lon := controls.Lon
+	p.dir.X = sin(lat) * cos(lon)
+	p.dir.Y = cos(lat)
+	p.dir.Z = sin(lat) * sin(lon)
+
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -78,7 +92,7 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 	p.simulateTick(dt, c.world, controls)
 	var msgDebugRay *MsgDebugRay
 	if controls.ActivateBlaster {
-		target := FindIntersection(c.world, p, controls)
+		target := FindIntersection(c.world, p.pos, p.dir)
 		if target != nil {
 			msgDebugRay = &MsgDebugRay{
 				Pos: *target,
