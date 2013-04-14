@@ -94,11 +94,25 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 	p.simulateTick(dt, c.world, controls)
 	var msgDebugRay *MsgDebugRay
 	if controls.ActivateBlaster {
-		target := FindIntersection(c.world, p.pos, p.dir)
-		if target != nil {
+		// Compile a list of player bounding boxes, based on this shooters time
+		var players []*physics.Box
+		for _, v := range w.players {
+			if v == p {
+				continue
+			}
+			players = append(players, physics.NewBoxOffset(p.history.PositionAt(controls.Timestamp),
+				PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET))
+		}
+
+		target, index := FindIntersection(c.world, p.pos, p.dir, &players)
+		if target != nil && index < 0 {
+			// Hit a wall
 			msgDebugRay = &MsgDebugRay{
 				Pos: *target,
 			}
+		} else if target == nil && index >= 0 {
+			// Hit a player
+			w.players[index].hurt(10)
 		}
 	}
 
@@ -181,16 +195,16 @@ type PlayerHistory struct {
 }
 
 func NewPlayerHistory() *PlayerHistory {
-	p := new(PlayerHistory)
-	p.buf = make([]PlayerHistoryEntry, 100)
-	return p
+	ph := new(PlayerHistory)
+	ph.buf = make([]PlayerHistoryEntry, 100)
+	return ph
 }
 
-func (p *PlayerHistory) Add(t float64, pos coords.World) {
-	p.buf[p.offset] = PlayerHistoryEntry{pos, t}
-	p.offset++
-	if p.offset >= len(p.buf) {
-		p.offset = 0
+func (ph *PlayerHistory) Add(t float64, pos coords.World) {
+	ph.buf[ph.offset] = PlayerHistoryEntry{pos, t}
+	ph.offset++
+	if ph.offset >= len(ph.buf) {
+		ph.offset = 0
 	}
 }
 
@@ -200,16 +214,16 @@ func (p *PlayerHistory) Add(t float64, pos coords.World) {
 // ring buffer, return that entry. If t is between
 // two entries in the ring buffer, interpolate
 // between them.
-func (p *PlayerHistory) PositionAt(t float64) coords.World {
-	l := len(p.buf)
+func (ph *PlayerHistory) PositionAt(t float64) coords.World {
+	l := len(ph.buf)
 
-	newest := p.buf[((p.offset - 1) + l) % l]
+	newest := ph.buf[((ph.offset - 1) + l) % l]
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
 		return newest.pos
 	}
 
-	oldest := p.buf[(p.offset + l) % l]
+	oldest := ph.buf[(ph.offset + l) % l]
 	if oldest.t >= t {
 		return oldest.pos
 	}
@@ -217,7 +231,7 @@ func (p *PlayerHistory) PositionAt(t float64) coords.World {
 	var older PlayerHistoryEntry
 	var newer PlayerHistoryEntry
 	for i := 1; i <= l; i++ {
-		older = p.buf[((p.offset - i) + l) % l]
+		older = ph.buf[((ph.offset - i) + l) % l]
 		if older.t <= t {
 			break
 		}

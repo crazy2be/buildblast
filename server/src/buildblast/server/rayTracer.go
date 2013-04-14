@@ -3,6 +3,7 @@ package main
 import (
 	"buildblast/mapgen"
 	"buildblast/coords"
+	"buildblast/physics"
 )
 
 const (
@@ -21,7 +22,7 @@ func (ray *Ray) move(dist float64) {
 	ray.pos.Z += dist * ray.dir.Z
 }
 
-func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Vec3) *coords.World {
+func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Vec3, players *[]*physics.Box) (*coords.World, int) {
 	ray := &Ray{
 		pos: pos,
 		dir: dir,
@@ -30,10 +31,18 @@ func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Ve
 	// find our intersection
 	for dist := 0.0; dist < MAX_DIST; dist += PRECISION {
 		ray.move(PRECISION)
+		// Check players for hits
+		for i, v := range *players {
+			if !v.Contains(ray.pos) {
+				continue
+			}
+			return nil, i
+		}
+		// Check geometry for hits
 		block := blocks.Block(ray.pos)
 		if block.Solid() {
-			return &ray.pos
+			return &ray.pos, -1
 		}
 	}
-	return nil
+	return nil, -1
 }
