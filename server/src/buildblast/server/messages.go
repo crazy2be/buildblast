@@ -63,11 +63,12 @@ type MsgChat struct {
 }
 
 type MsgPlayerState struct {
-	Pos       coords.World
-	VelocityY float64
+	Pos        coords.World
+	VelocityY  float64
 	// JavaScript performance.now() timestamp.
-	Timestamp float64
-	Hp        int
+	Timestamp  float64
+	ServerTime int64
+	Hp         int
 }
 
 type MsgDebugRay struct {
@@ -84,7 +85,7 @@ type Message interface{}
 func ServerMessage(message string) *MsgChat {
 	m := &MsgChat {
 		DisplayName: "SERVER",
-		Time: time.Now().UnixNano() / 1000,
+		Time: time.Now().UnixNano() / 1e6,
 		Message: message,
 	}
 	return m;

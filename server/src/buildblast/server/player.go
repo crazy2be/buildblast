@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"time"
 
 	"buildblast/physics"
 	"buildblast/coords"
@@ -125,6 +126,7 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
+		ServerTime: time.Now().UnixNano() / 1e6,
 	}, msgDebugRay
 }
 

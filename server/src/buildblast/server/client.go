@@ -156,7 +156,7 @@ func (c *Client) announce(message string) {
 
 func (c *Client) handleChat(m *MsgChat) {
 	m.DisplayName = c.name
-	m.Time = time.Now().UnixNano() / 1000
+	m.Time = time.Now().UnixNano() / 1e6
 	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
 	c.world.Broadcast <- m
 }

@@ -21,6 +21,9 @@ function Player(name, world, conn, controls) {
     var buildInventory = new BuildInventory(world, camera);
     var blastInventory = new BlastInventory(world, camera);
 
+    var serverTime = 0;
+    var lastTimeOffset = 0;
+
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -115,6 +118,9 @@ function Player(name, world, conn, controls) {
         latestConfirmedPosition.Timestamp = t;
         latestConfirmedPosition.VelocityY = vy;
 
+        lastTimeOffset = window.performance.now();
+        serverTime = payload.ServerTime;
+
         var health = document.getElementById('health-value');
         if (health) {
             health.innerText = payload.Hp;
@@ -124,7 +130,7 @@ function Player(name, world, conn, controls) {
     function sendControlsToNetwork(c) {
         var userCommand = {
             Controls: c,
-            Timestamp: window.performance.now(),
+            Timestamp: serverTime + window.performance.now() - lastTimeOffset,
         };
         conn.queue('controls-state', userCommand);
         userCommands.push(userCommand);
