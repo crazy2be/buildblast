@@ -78,9 +78,10 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 }
 
 func (b *Box) Contains(position coords.World) bool {
-	return b.xs < x && b.xe > x &&
-		b.ys < y && b.ye > y &&
-		b.zs < z && b.ze > z
+	p := position
+	return b.xs < p.X && b.xe > p.X &&
+		b.ys < p.Y && b.ye > p.Y &&
+		b.zs < p.Z && b.ze > p.Z
 }
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
