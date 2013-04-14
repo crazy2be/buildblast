@@ -1,8 +1,7 @@
 package main
 
 import (
-	"math"
-
+	"buildblast/mapgen"
 	"buildblast/coords"
 )
 
@@ -16,39 +15,22 @@ type Ray struct {
 	dir    coords.Vec3
 }
 
-func (ray *Ray) dist(to coords.World) float64 {
-	return math.Sqrt(
-		math.Pow(ray.pos.X - to.X, 2) +
-		math.Pow(ray.pos.Y - to.Y, 2) +
-		math.Pow(ray.pos.Z - to.Z, 2))
-}
-
 func (ray *Ray) move(dist float64) {
 	ray.pos.X += dist * ray.dir.X
 	ray.pos.Y += dist * ray.dir.Y
 	ray.pos.Z += dist * ray.dir.Z
 }
 
-func FindIntersection(world *World, player *Player, controls *ControlState) *coords.World {
-	cos := math.Cos
-	sin := math.Sin
-
-	lat := controls.Lat
-	lon := controls.Lon
-	rayDir := coords.Vec3{
-		X: sin(lat) * cos(lon),
-		Y: cos(lat),
-		Z: sin(lat) * sin(lon),
-	}
+func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Vec3) *coords.World {
 	ray := &Ray{
-		pos: player.pos,
-		dir: rayDir,
+		pos: pos,
+		dir: dir,
 	}
 
 	// find our intersection
 	for dist := 0.0; dist < MAX_DIST; dist += PRECISION {
 		ray.move(PRECISION)
-		block := world.Block(ray.pos)
+		block := blocks.Block(ray.pos)
 		if block.Solid() {
 			return &ray.pos
 		}

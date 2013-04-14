@@ -52,9 +52,11 @@ function World(scene, container) {
     self.render = player.render;
     self.resize = player.resize;
 
+    var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
+    var smallCubeMat = new THREE.MeshNormalMaterial();
     self.addSmallCube = function (position) {
         if (!position) throw "Position required!";
-        var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
+        var cube = new THREE.Mesh( smallCube, smallCubeMat );
         cube.position = position;
         scene.add(cube);
     }
