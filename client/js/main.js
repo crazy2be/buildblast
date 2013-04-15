@@ -38,7 +38,6 @@ window.onload = function () {
         }
 
         function animate() {
-            pausecomp(Math.random() * 50)
             var dt = clock.getDelta();
             world.update(dt);
             world.render(renderer, scene);
@@ -72,13 +71,6 @@ function fatalError(err) {
         "</p>",
         "<p>Press F5 to attempt a rejoin</p>",
         "</td></tr>"].join("\n");
-}
-
-function pausecomp(millis) {
-    var date = new Date();
-    var curDate = null;
-    do { curDate = new Date(); }
-    while(curDate-date < millis);
 }
 
 var sin = Math.sin;

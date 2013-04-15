@@ -88,7 +88,7 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
-		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping.")
+		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s")
 		dt = 1.0
 	}
 

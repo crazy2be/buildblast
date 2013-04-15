@@ -86,6 +86,10 @@ function Player(name, world, conn, controls) {
             var uc = userCommands[i];
             var c = uc.Controls;
             var dt = (uc.Timestamp - t) / 1000;
+            if (dt > 1.0) {
+                console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
+                dt = 1.0;
+            }
             t = uc.Timestamp;
             vy = applyUserCommand(pos, c, vy, dt);
         }
