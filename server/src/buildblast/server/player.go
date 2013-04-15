@@ -91,6 +91,9 @@ func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRa
 		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s")
 		dt = 1.0
 	}
+	if dt < 0.0 {
+		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
+	}
 
 	p.simulateTick(dt, c.world, controls)
 	var msgDebugRay *MsgDebugRay
