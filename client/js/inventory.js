@@ -47,7 +47,6 @@ function BlastInventory(world, camera) {
         var intersect = world.findPlayerIntersection(camera);
         if (intersect) {
             console.log("Hit!!", intersect, intersect.item);
-            world.addSmallCube(intersect.point);
         } else {
             console.log("miss!!");
         }

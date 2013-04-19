@@ -168,6 +168,10 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 		world.players[index].hurt(10)
 	}
 
+	if target == nil {
+		return nil
+	}
+
 	return &MsgDebugRay{
 		Pos: *target,
 	}
