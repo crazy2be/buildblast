@@ -12,11 +12,9 @@ function Box(p, halfExtents, centerOffset) {
 
     self.attemptMove = function (world, move) {
         if (inSolid(world)) {
-            move.x = 0;
-            move.y = 1;
-            move.z = 0;
-            p.y += 1;
-            return p;
+            var gh = groundHeight(world);
+            move.y = p.y - gh;
+            p.y = gh;
         }
 
         p.x += move.x
@@ -93,5 +91,10 @@ function Box(p, halfExtents, centerOffset) {
             else return block.solid();
         }
         return bboxEach(solid, logicalOr);
+    }
+
+    function groundHeight(world) {
+        var cg = world.findClosestGround;
+        return bboxEach(cg, Math.max) + halfExtents.y - centerOffset.y;
     }
 }
