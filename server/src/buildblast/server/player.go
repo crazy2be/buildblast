@@ -42,7 +42,7 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
-	dir       coords.Vec3
+	look       coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
@@ -65,7 +65,7 @@ func NewPlayer() *Player {
 	}
 }
 
-func (p *Player) simulateStep(w *World, controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
+func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -76,8 +76,10 @@ func (p *Player) simulateStep(w *World, controls *ControlState) (*MsgPlayerState
 		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
 	}
 
-	msgDebugRay := p.simulateInventory(dt, w, controls)
-	p.simulateMovement(dt, w, controls)
+	p.updateLook(controls)
+
+	msgDebugRay := p.simulateBlaster(dt, world, controls)
+	p.simulateMovement(dt, world, controls)
 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
@@ -134,18 +136,16 @@ func (p *Player) simulateMovement(dt float64, world *World, controls *ControlSta
 	p.pos.Z += move.Z
 }
 
-func (p *Player) simulateInventory(dt float64, world *World, controls *ControlState) *MsgDebugRay {
+func (p *Player) updateLook(controls *ControlState) {
 	cos := math.Cos
 	sin := math.Sin
 
 	lat := controls.Lat
 	lon := controls.Lon
 
-	p.dir.X = sin(lat) * cos(lon)
-	p.dir.Y = cos(lat)
-	p.dir.Z = sin(lat) * sin(lon)
-
-	return p.simulateBlaster(dt, world, controls)
+	p.look.X = sin(lat) * cos(lon)
+	p.look.Y = cos(lat)
+	p.look.Z = sin(lat) * sin(lon)
 }
 
 func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlState) *MsgDebugRay {
@@ -163,7 +163,7 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 		players = append(players, v.BoxAt(controls.Timestamp))
 	}
 
-	target, index := FindIntersection(world, p.pos, p.dir, players)
+	target, index := FindIntersection(world, p.pos, p.look, players)
 	if index >= 0 {
 		world.players[index].hurt(10)
 	}
