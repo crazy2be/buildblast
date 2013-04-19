@@ -65,13 +65,7 @@ func NewPlayer() *Player {
 	}
 }
 
-func (p *Player) simulateStep(c *Client, w *World) (*MsgPlayerState, *MsgDebugRay) {
-	var controls *ControlState
-	select {
-		case controls = <-c.ControlState:
-		default: return nil, nil
-	}
-
+func (p *Player) simulateStep(w *World, controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -172,7 +166,6 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 	target, index := FindIntersection(world, p.pos, p.dir, players)
 	if index >= 0 {
 		world.players[index].hurt(10)
-		return nil
 	}
 
 	return &MsgDebugRay{
