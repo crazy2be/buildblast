@@ -73,55 +73,6 @@ function World(scene, container) {
         else return block;
     }
 
-    self.findClosestGround = function (wx, wy, wz) {
-        var cords = worldToChunk(wx, wy, wz);
-        var cc = cords.c;
-        var oc = cords.o;
-
-        var chunk = chunkManager.chunk(cc);
-        if (!chunk) {
-            return false;
-        }
-        var block = chunk.block(oc);
-        if (block.empty()) {
-            // Try and find ground below
-            while (true) {
-                oc.y--;
-                if (oc.y < 0) {
-                    oc.y = CHUNK_HEIGHT - 1;
-                    cc.y--;
-                    chunk = chunkManager.chunk(cc);
-                    if (!chunk) {
-                        return oc.y + cc.y * CHUNK_HEIGHT + 1;
-                    }
-                }
-                block = chunk.block(oc);
-                if (block && block.solid()) {
-                    return oc.y + cc.y * CHUNK_HEIGHT + 1;
-                }
-            }
-        } else if (block.solid()) {
-            // Try and find air above
-            while (true) {
-                oc.y++;
-                if (oc.y >= CHUNK_HEIGHT) {
-                    oc.y = 0;
-                    cc.y++;
-                    chunk = chunkManager.chunk(cc);
-                    if (!chunk) {
-                        return oc.y + cc.y * CHUNK_HEIGHT;
-                    }
-                }
-                block = chunk.block(oc);
-                if (block && block.empty()) {
-                    return oc.y + cc.y * CHUNK_HEIGHT;
-                }
-            }
-        } else {
-            throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
-        }
-    }
-
     var projector = new THREE.Projector();
     function findIntersection(camera, cb, precision, maxDist) {
         var precision = precision || 0.01;
