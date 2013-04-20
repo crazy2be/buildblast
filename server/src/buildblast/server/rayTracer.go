@@ -39,7 +39,7 @@ func FindIntersection(blocks mapgen.BlockSource, pos coords.World, dir coords.Ve
 			if !v.Contains(ray.pos) {
 				continue
 			}
-			return nil, i
+			return &ray.pos, i
 		}
 		// Check geometry for hits
 		block := blocks.Block(ray.pos)
