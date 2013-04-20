@@ -10,10 +10,8 @@ function World(scene, container) {
     }
 
     var playerName = localStorage.playerName;
-    if (!playerName) {
-        do {
-            playerName = prompt("Please enter your name.","Unknown");
-        } while (playerName == null || playerName === "");
+    while (!playerName) {
+        playerName = prompt("Please enter your name.","Unknown");
         localStorage.playerName = playerName;
     }
     var conn = new Conn(getWSURI("main/" + playerName));
