@@ -30,6 +30,7 @@
 	'js/./player/blastInventory.js',
 	'js/./player/inventory.js',
 	'js/./player/controls.js',
+	'js/./player/playerPrediction.js',
 	'js/./player/buildInventory.js',
 	'js/./player/player.js',
 ]));

@@ -20,9 +20,7 @@ function Player(name, world, conn, controls) {
 
     var buildInventory = new BuildInventory(world, camera);
     var blastInventory = new BlastInventory(world, camera);
-
-    var serverTime = 0;
-    var lastTimeOffset = 0;
+    var prediction = new PlayerPrediction(world, conn, camera.position);
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -45,9 +43,8 @@ function Player(name, world, conn, controls) {
 
     self.update = function (dt) {
         var c = controls.sample();
-        sendControlsToNetwork(c);
 
-        var p = applyRemainingClientPredictions();
+        var p = prediction.update(c);
         camera.position.set(p.x, p.y, p.z);
 
         doLook(camera, camera.position, c);
@@ -55,113 +52,11 @@ function Player(name, world, conn, controls) {
         blastInventory.update(p, c);
     };
 
-    var box = new Box(camera.position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-    function applyUserCommand(pos, c, vy, dt) {
-        vy += dt * -9.81;
-
-        var dist = 10 * dt;
-        var fw = dist*(c.forward ? 1 : c.back ? -1 : 0);
-        var rt = dist*(c.right ? 1 : c.left ? -1 : 0);
-        var move = {
-            x: -cos(c.lon) * fw + sin(c.lon) * rt,
-            y: vy * dt,
-            z: -sin(c.lon) * fw - cos(c.lon) * rt,
-        };
-        if (isNaN(move.y)) debugger;
-
-        box.setPos(pos);
-        box.attemptMove(world, move);
-        if (move.y === 0) {
-            vy = c.jump ? 6 : 0;
-        }
-        return vy;
-    }
-
-    function applyRemainingClientPredictions() {
-        var confirmed = latestConfirmedPosition;
-        var pos = confirmed.Pos.clone();
-        var vy = confirmed.VelocityY;
-        var t = confirmed.Timestamp;
-        for (var i = 0; i < userCommands.length; i++) {
-            var uc = userCommands[i];
-            var c = uc.Controls;
-            var dt = (uc.Timestamp - t) / 1000;
-            if (dt > 1.0) {
-                console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
-                dt = 1.0;
-            }
-            t = uc.Timestamp;
-            vy = applyUserCommand(pos, c, vy, dt);
-        }
-
-        var lag = (userCommands[userCommands.length - 1].Timestamp - confirmed.Timestamp) / 1000;
-        if (lag > 1.0) {
-            console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
-        }
-
-        updatePositionText(pos, vy);
-        return pos;
-    }
-
-    var latestConfirmedPosition = {
-        Pos: new THREE.Vector3(0.0, 0.0, 0.0),
-        Timestamp: 0.0,
-        VelocityY: 0.0,
-    };
-    var userCommands = [];
-    conn.on('player-state', function (payload) {
-        var p = payload.Pos;
-        var t = payload.Timestamp;
-        var vy = payload.VelocityY;
-        var cmd = userCommands.shift();
-        if (cmd.Timestamp !== t) {
-            // We should probably handle this more gracefully.
-            throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
-        }
-        latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
-        latestConfirmedPosition.Timestamp = t;
-        latestConfirmedPosition.VelocityY = vy;
-
-        lastTimeOffset = window.performance.now();
-        serverTime = payload.ServerTime;
-
-        var health = document.getElementById('health-value');
-        if (health) {
-            health.innerText = payload.Hp;
-        }
-    });
-
-    function sendControlsToNetwork(c) {
-        var userCommand = {
-            Controls: c,
-            Timestamp: serverTime + window.performance.now() - lastTimeOffset,
-        };
-        conn.queue('controls-state', userCommand);
-        userCommands.push(userCommand);
-    }
-
     function doLook(camera, p, c) {
         var target = new THREE.Vector3();
         target.x = p.x + sin(c.lat) * cos(c.lon);
         target.y = p.y + cos(c.lat);
         target.z = p.z + sin(c.lat) * sin(c.lon);
         camera.lookAt(target);
-    }
-
-    function updatePositionText(p, vy) {
-        var info = document.getElementById('info');
-        if (!info) return;
-
-        info.innerHTML = JSON.stringify({
-            x: round(p.x, 2),
-            y: round(p.y, 2),
-            z: round(p.z, 2),
-            v: round(vy, 2),
-        });
-    }
-
-    function round(n, digits) {
-        var factor = Math.pow(10, digits);
-        return Math.round(n * factor) / factor;
     }
 };
