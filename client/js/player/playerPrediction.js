@@ -1,18 +1,18 @@
 function PlayerPrediction(world, conn, position) {
 	var self = this;
 
-	var serverTime = 0;
-	var lastTimeOffset = 0;
+	var clock = new Clock(conn);
 
 	self.update = function (controls) {
 		sendControlsToNetwork(controls);
 		return applyRemainingClientPredictions();
 	}
 
+	var timeOffset = Date.now();
 	function sendControlsToNetwork(c) {
 		var userCommand = {
 			Controls: c,
-			Timestamp: serverTime + window.performance.now() - lastTimeOffset,
+			Timestamp: clock.time(),
 		};
 		conn.queue('controls-state', userCommand);
 		userCommands.push(userCommand);
@@ -36,9 +36,6 @@ function PlayerPrediction(world, conn, position) {
 		latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
 		latestConfirmedPosition.Timestamp = t;
 		latestConfirmedPosition.VelocityY = vy;
-
-		lastTimeOffset = window.performance.now();
-		serverTime = payload.ServerTime;
 
 		var health = document.getElementById('health-value');
 		if (health) {

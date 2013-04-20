@@ -83,6 +83,11 @@ func (c *Client) RunChunks(conn *Conn) {
 	}
 }
 
+func (c *Client) announce(message string) {
+	log.Println("[ANNOUNCE] (", c.name, ")", message)
+	c.conn.Send(ServerMessage(message))
+}
+
 func (c *Client) handleMessage(m Message) {
 	switch m.(type) {
 		case *MsgBlock:
@@ -91,15 +96,12 @@ func (c *Client) handleMessage(m Message) {
 			c.handleControlsState(m.(*MsgControlsState))
 		case *MsgChat:
 			c.handleChat(m.(*MsgChat))
+		case *MsgNtpSync:
+			c.handleNtpSync(m.(*MsgNtpSync))
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
-}
-
-func (c *Client) handleControlsState(m *MsgControlsState) {
-	m.Controls.Timestamp = m.Timestamp
-	c.ControlState <- &m.Controls
 }
 
 func (c *Client) handleBlock(m *MsgBlock) {
@@ -149,9 +151,9 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 	}
 }
 
-func (c *Client) announce(message string) {
-	log.Println("[ANNOUNCE] (", c.name, ")", message)
-	c.conn.Send(ServerMessage(message))
+func (c *Client) handleControlsState(m *MsgControlsState) {
+	m.Controls.Timestamp = m.Timestamp
+	c.ControlState <- &m.Controls
 }
 
 func (c *Client) handleChat(m *MsgChat) {
@@ -159,4 +161,9 @@ func (c *Client) handleChat(m *MsgChat) {
 	m.Time = time.Now().UnixNano() / 1e6
 	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
 	c.world.Broadcast <- m
+}
+
+func (c *Client) handleNtpSync(m *MsgNtpSync) {
+	m.ServerTime = float64(time.Now().UnixNano()) / 1e6
+	c.conn.Send(m)
 }

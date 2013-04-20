@@ -21,6 +21,7 @@ const (
 	MSG_CHAT            = MessageKind("chat")
 	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
+	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 )
 
 type MsgEntityCreate struct {
@@ -73,6 +74,10 @@ type MsgPlayerState struct {
 
 type MsgDebugRay struct {
 	Pos coords.World
+}
+
+type MsgNtpSync struct {
+	ServerTime float64
 }
 
 type ClientMessage struct {
