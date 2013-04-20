@@ -164,6 +164,6 @@ func (c *Client) handleChat(m *MsgChat) {
 }
 
 func (c *Client) handleNtpSync(m *MsgNtpSync) {
-	m.ServerTime = float64(time.Now().UnixNano() / 1e6)
+	m.ServerTime = float64(time.Now().UnixNano()) / 1e6
 	c.conn.Send(m)
 }

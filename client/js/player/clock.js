@@ -29,8 +29,7 @@ function Clock(conn) {
 	}
 
 	function now() {
-		// return window.performance.now();
-		return Date.now();
+		return window.performance.now();
 	}
 
 	startSync();
