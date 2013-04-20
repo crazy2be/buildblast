@@ -1,62 +1,3 @@
-function BuildInventory(world, camera) {
-    var slots = [
-        {
-            name: 'shovel',
-            model: Models.shovel(),
-            action: shovelAction,
-        },
-        {
-            name: 'block',
-            model: Models.block(),
-            action: blockAction,
-        },
-        {
-            name: 'stone',
-            model: Models.stone(),
-            action: stoneAction,
-        }
-    ];
-
-    function shovelAction() {
-        world.removeLookedAtBlock(camera);
-    }
-
-    function blockAction() {
-        world.addLookedAtBlock(camera, Block.DIRT);
-    }
-
-    function stoneAction() {
-        world.addLookedAtBlock(camera, Block.STONE);
-    }
-
-    var elm = document.querySelector('#inventory .build');
-
-    return new Inventory(world, camera, slots, elm, 1, 'nextBuilder', 'activateBuilder');
-}
-
-function BlastInventory(world, camera) {
-    var slots = [
-        {
-            name: 'pistol',
-            model: Models.pistol(),
-            action: pistolAction,
-        }
-    ];
-
-    function pistolAction() {
-        var intersect = world.findPlayerIntersection(camera);
-        if (intersect) {
-            console.log("Hit!!", intersect, intersect.item);
-        } else {
-            console.log("miss!!");
-        }
-    }
-
-    var elm = document.querySelector('#inventory .blast');
-
-    return new Inventory(world, camera, slots, elm, -1, 'nextBlaster', 'activateBlaster');
-}
-
 function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
     var self = this;
 
@@ -71,9 +12,21 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         }
     }
 
+    function generateHTML(slots, selectedIndex) {
+        var html = "";
+        for (var i = 0; i < selectedIndex; i++) {
+            html += "<li>" + slots[i].name + "</li>";
+        }
+        html += "<li class='selected'>" + slots[selectedIndex].name + "</li>";
+        for (var i = selectedIndex+1; i < slots.length; i++) {
+            html += "<li>" + slots[i].name + "</li>";
+        }
+        return html;
+    }
+
     function selectSlot(n) {
         if (slots.length <= n) return;
-        var html = generateInventoryHTML(slots, n);
+        var html = generateHTML(slots, n);
         elm.innerHTML = html;
         if (currentSlot > -1) {
             world.removeFromScene(slots[currentSlot].model);
@@ -162,16 +115,4 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
     }
 
     selectSlot(0);
-}
-
-function generateInventoryHTML(slots, selectedIndex) {
-    var html = "";
-    for (var i = 0; i < selectedIndex; i++) {
-        html += "<li>" + slots[i].name + "</li>";
-    }
-    html += "<li class='selected'>" + slots[selectedIndex].name + "</li>";
-    for (var i = selectedIndex+1; i < slots.length; i++) {
-        html += "<li>" + slots[i].name + "</li>";
-    }
-    return html;
 }
