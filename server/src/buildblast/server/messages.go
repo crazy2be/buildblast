@@ -77,7 +77,6 @@ type MsgDebugRay struct {
 }
 
 type MsgNtpSync struct {
-	ClientTime float64
 	ServerTime float64
 }
 

@@ -8,19 +8,22 @@ function Clock(conn) {
 		return offset + now();
 	}
 
+	var clientTime;
 	function startSync() {
-		conn.queue('ntp-sync', {
-			ClientTime: now(),
-		});
+		clientTime = now();
+		conn.queue('ntp-sync', {});
 	}
 
 	function proccessSync(payload) {
 		// http://en.wikipedia.org/wiki/Network_Time_Protocol
-		var t0 = payload.ClientTime;
-		var t12 = payload.ServerTime;
-		var t3 = now();
+		var t0, t1, t2, t3;
+		t0 = clientTime;
+		// Assume t1 === t2 since that makes things
+		// easier on the server side.
+		t1 = t2 = payload.ServerTime;
+		t3 = now();
 
-		var newOffset = t12 - (t0 - t3)/2;
+		var newOffset = ((t1 - t0) + (t2 - t3))/2;
 		console.log("Syncronized time with server. We were off by ", offset - newOffset, "ms.");
 		offset = newOffset;
 	}
