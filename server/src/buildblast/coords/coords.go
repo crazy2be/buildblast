@@ -11,10 +11,10 @@ type Vec3 struct {
 }
 
 func (vec *Vec3) Dist(to Vec3) float64 {
-	return math.Sqrt(
-		math.Pow(vec.X - to.X, 2) +
-		math.Pow(vec.Y - to.Y, 2) +
-		math.Pow(vec.Z - to.Z, 2))
+	dx := vec.X - to.X
+	dy := vec.Y - to.Y
+	dz := vec.Z - to.Z
+	return math.Sqrt(dx*dx + dy*dy + dz*dz)
 }
 
 type World Vec3

@@ -90,7 +90,10 @@ func (w *World) FindClient(name string) *Client {
 
 func (w *World) announce(message string) {
 	log.Println("[ANNOUNCE]", message)
-	w.broadcast(ServerMessage(message))
+	w.broadcast(&MsgChat{
+		DisplayName: "SERVER",
+		Message: message,
+	})
 }
 
 func (w *World) broadcast(m Message) {

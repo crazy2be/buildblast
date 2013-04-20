@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"encoding/json"
 
 	"buildblast/coords"
@@ -59,7 +57,6 @@ type MsgControlsState struct {
 
 type MsgChat struct {
 	DisplayName string
-	Time        int64
 	Message     string
 }
 
@@ -68,7 +65,6 @@ type MsgPlayerState struct {
 	VelocityY  float64
 	// JavaScript performance.now() timestamp.
 	Timestamp  float64
-	ServerTime int64
 	Hp         int
 }
 
@@ -86,12 +82,3 @@ type ClientMessage struct {
 }
 
 type Message interface{}
-
-func ServerMessage(message string) *MsgChat {
-	m := &MsgChat {
-		DisplayName: "SERVER",
-		Time: time.Now().UnixNano() / 1e6,
-		Message: message,
-	}
-	return m;
-}

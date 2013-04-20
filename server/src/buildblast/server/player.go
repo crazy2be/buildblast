@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math"
-	"time"
 
 	"buildblast/physics"
 	"buildblast/coords"
@@ -42,7 +41,7 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
-	look       coords.Vec3
+	look      coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
@@ -89,7 +88,6 @@ func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerS
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
-		ServerTime: time.Now().UnixNano() / 1e6,
 	}, msgDebugRay
 }
 

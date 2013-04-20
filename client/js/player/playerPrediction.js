@@ -1,94 +1,94 @@
 function PlayerPrediction(world, conn, position) {
-	var self = this;
+    var self = this;
 
-	var clock = new Clock(conn);
+    var clock = new Clock(conn);
 
-	self.update = function (controls) {
-		sendControlsToNetwork(controls);
-		return applyRemainingClientPredictions();
-	}
+    self.update = function (controls) {
+        sendControlsToNetwork(controls);
+        return applyRemainingClientPredictions();
+    }
 
-	var timeOffset = Date.now();
-	function sendControlsToNetwork(c) {
-		var userCommand = {
-			Controls: c,
-			Timestamp: clock.time(),
-		};
-		conn.queue('controls-state', userCommand);
-		userCommands.push(userCommand);
-	}
+    var timeOffset = Date.now();
+    function sendControlsToNetwork(c) {
+        var userCommand = {
+            Controls: c,
+            Timestamp: clock.time(),
+        };
+        conn.queue('controls-state', userCommand);
+        userCommands.push(userCommand);
+    }
 
-	var latestConfirmedPosition = {
-		Pos: new THREE.Vector3(0.0, 0.0, 0.0),
-		Timestamp: 0.0,
-		VelocityY: 0.0,
-	};
-	var userCommands = [];
-	conn.on('player-state', function (payload) {
-		var p = payload.Pos;
-		var t = payload.Timestamp;
-		var vy = payload.VelocityY;
-		var cmd = userCommands.shift();
-		if (cmd.Timestamp !== t) {
-			// We should probably handle this more gracefully.
-			throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
-		}
-		latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
-		latestConfirmedPosition.Timestamp = t;
-		latestConfirmedPosition.VelocityY = vy;
+    var latestConfirmedPosition = {
+        Pos: new THREE.Vector3(0.0, 0.0, 0.0),
+        Timestamp: 0.0,
+        VelocityY: 0.0,
+    };
+    var userCommands = [];
+    conn.on('player-state', function (payload) {
+        var p = payload.Pos;
+        var t = payload.Timestamp;
+        var vy = payload.VelocityY;
+        var cmd = userCommands.shift();
+        if (cmd.Timestamp !== t) {
+            // We should probably handle this more gracefully.
+            throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
+        }
+        latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
+        latestConfirmedPosition.Timestamp = t;
+        latestConfirmedPosition.VelocityY = vy;
 
-		var health = document.getElementById('health-value');
-		if (health) {
-			health.innerText = payload.Hp;
-		}
-	});
+        var health = document.getElementById('health-value');
+        if (health) {
+            health.innerText = payload.Hp;
+        }
+    });
 
-	function applyRemainingClientPredictions() {
-		var confirmed = latestConfirmedPosition;
-		var pos = confirmed.Pos.clone();
-		var vy = confirmed.VelocityY;
-		var t = confirmed.Timestamp;
-		for (var i = 0; i < userCommands.length; i++) {
-			var uc = userCommands[i];
-			var c = uc.Controls;
-			var dt = (uc.Timestamp - t) / 1000;
-			if (dt > 1.0) {
-				console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
-				dt = 1.0;
-			}
-			t = uc.Timestamp;
-			vy = applyUserCommand(pos, c, vy, dt);
-		}
+    function applyRemainingClientPredictions() {
+        var confirmed = latestConfirmedPosition;
+        var pos = confirmed.Pos.clone();
+        var vy = confirmed.VelocityY;
+        var t = confirmed.Timestamp;
+        for (var i = 0; i < userCommands.length; i++) {
+            var uc = userCommands[i];
+            var c = uc.Controls;
+            var dt = (uc.Timestamp - t) / 1000;
+            if (dt > 1.0) {
+                console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
+                dt = 1.0;
+            }
+            t = uc.Timestamp;
+            vy = applyUserCommand(pos, c, vy, dt);
+        }
 
-		var lag = (userCommands[userCommands.length - 1].Timestamp - confirmed.Timestamp) / 1000;
-		if (lag > 1.0) {
-			console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
-		}
+        var lag = (userCommands[userCommands.length - 1].Timestamp - confirmed.Timestamp) / 1000;
+        if (lag > 1.0) {
+            console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
+        }
 
-		updatePositionText(pos, vy);
-		return pos;
-	}
+        updatePositionText(pos, vy);
+        return pos;
+    }
 
-	var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-	function applyUserCommand(pos, c, vy, dt) {
-		vy += dt * -9.81;
+    var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+    function applyUserCommand(pos, c, vy, dt) {
+        vy += dt * -9.81;
 
-		var dist = 10 * dt;
-		var fw = dist*(c.forward ? 1 : c.back ? -1 : 0);
-		var rt = dist*(c.right ? 1 : c.left ? -1 : 0);
-		var move = {
-			x: -cos(c.lon) * fw + sin(c.lon) * rt,
-			y: vy * dt,
-			z: -sin(c.lon) * fw - cos(c.lon) * rt,
-		};
+        var dist = 10 * dt;
+        var fw = dist*(c.forward ? 1 : c.back ? -1 : 0);
+        var rt = dist*(c.right ? 1 : c.left ? -1 : 0);
+        var move = {
+            x: -cos(c.lon) * fw + sin(c.lon) * rt,
+            y: vy * dt,
+            z: -sin(c.lon) * fw - cos(c.lon) * rt,
+        };
 
-		box.setPos(pos);
-		box.attemptMove(world, move);
-		if (move.y === 0) {
-			vy = c.jump ? 6 : 0;
-		}
-		return vy;
-	}
+        box.setPos(pos);
+        box.attemptMove(world, move);
+        if (move.y === 0) {
+            vy = c.jump ? 6 : 0;
+        }
+        return vy;
+    }
 
     function updatePositionText(p, vy) {
         var info = document.getElementById('info');
@@ -100,10 +100,10 @@ function PlayerPrediction(world, conn, position) {
             z: round(p.z, 2),
             v: round(vy, 2),
         });
-	}
+    }
 
-	function round(n, digits) {
-		var factor = Math.pow(10, digits);
-		return Math.round(n * factor) / factor;
-	}
+    function round(n, digits) {
+        var factor = Math.pow(10, digits);
+        return Math.round(n * factor) / factor;
+    }
 }
