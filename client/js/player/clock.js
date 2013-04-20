@@ -10,7 +10,7 @@ function Clock(conn) {
 
 	function startSync() {
 		conn.queue('ntp-sync', {
-			ClientTime: now() + 5000,
+			ClientTime: now(),
 		});
 	}
 
