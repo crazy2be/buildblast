@@ -35,6 +35,11 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 	-PLAYER_DIST_CENTER_EYE,
 	0,
 };
+var PLAYER_SPAWN = coords.World{
+	X: 0,
+	Y: 27,
+	Z: 0,
+}
 
 // Gameplay state defaults
 var PLAYER_MAX_HP = 100;
@@ -53,11 +58,7 @@ type Player struct {
 
 func NewPlayer() *Player {
 	return &Player{
-		pos: coords.World{
-			X: 0,
-			Y: 27,
-			Z: 0,
-		},
+		pos: PLAYER_SPAWN,
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
@@ -164,7 +165,7 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 	ray := physics.NewRay(p.pos, p.look)
 	target, index := ray.FindAnyIntersect(world, players)
 	if index >= 0 {
-		world.players[index].hurt(10)
+		world.players[index].Hurt(10)
 	}
 
 	if target == nil {
@@ -190,15 +191,14 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
-func (p *Player) hurt(dmg int) bool {
+func (p *Player) Hurt(dmg int) {
 	p.hp -= dmg
-	return p.dead()
+	if p.hp <= 0 {
+		p.Respawn()
+	}
 }
 
-func (p *Player) heal(hps int) {
-	p.hp += hps
-}
-
-func (p *Player) dead() bool {
-	return p.hp <= 0
+func (p *Player) Respawn() {
+	p.pos = PLAYER_SPAWN
+	p.hp = PLAYER_MAX_HP
 }
