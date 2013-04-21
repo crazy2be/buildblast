@@ -10,11 +10,30 @@ type Vec3 struct {
 	Z float64
 }
 
-func (vec *Vec3) Dist(to Vec3) float64 {
+func (vec *Vec3) Dist(to *Vec3) float64 {
 	dx := vec.X - to.X
 	dy := vec.Y - to.Y
 	dz := vec.Z - to.Z
 	return math.Sqrt(dx*dx + dy*dy + dz*dz)
+}
+
+func (vec *Vec3) Length() float64 {
+	x := vec.X; y := vec.Y; z := vec.Z
+	return math.Sqrt(x*x + y*y + z*z)
+}
+
+func (vec *Vec3) SetLength(n float64) {
+	mag := vec.Length()
+	r := n / mag
+	vec.X *= r
+	vec.Y *= r
+	vec.Z *= r
+}
+
+func (vec *Vec3) Add(other *Vec3) {
+	vec.X += other.X
+	vec.Y += other.Y
+	vec.Z += other.Z
 }
 
 type World Vec3

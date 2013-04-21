@@ -161,7 +161,8 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 		players = append(players, v.BoxAt(controls.Timestamp))
 	}
 
-	target, index := FindIntersection(world, p.pos, p.look, players)
+	ray := physics.NewRay(p.pos, p.look)
+	target, index := ray.FindAnyIntersect(world, players)
 	if index >= 0 {
 		world.players[index].hurt(10)
 	}
