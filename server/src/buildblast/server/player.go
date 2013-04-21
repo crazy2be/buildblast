@@ -51,21 +51,25 @@ type Player struct {
 	box       physics.Box
 	controls  *ControlState
 	history   *PlayerHistory
+	world     *World
+	name      string
 
 	// Gameplay state
 	hp        int
 }
 
-func NewPlayer() *Player {
+func NewPlayer(world *World, name string) *Player {
 	return &Player{
 		pos: PLAYER_SPAWN,
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
+		world: world,
+		name: name,
 	}
 }
 
-func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
+func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -78,8 +82,8 @@ func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerS
 
 	p.updateLook(controls)
 
-	msgDebugRay := p.simulateBlaster(dt, world, controls)
-	p.simulateMovement(dt, world, controls)
+	msgDebugRay := p.simulateBlaster(dt, controls)
+	p.simulateMovement(dt, controls)
 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
@@ -92,7 +96,7 @@ func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerS
 	}, msgDebugRay
 }
 
-func (p *Player) simulateMovement(dt float64, world *World, controls *ControlState) {
+func (p *Player) simulateMovement(dt float64, controls *ControlState) {
 	p.vy += dt * -9.81
 
 	fw := 0.0
@@ -120,7 +124,7 @@ func (p *Player) simulateMovement(dt float64, world *World, controls *ControlSta
 
 	box := p.Box()
 
-	move = box.AttemptMove(world, move)
+	move = box.AttemptMove(p.world, move)
 
 	if (move.Y == 0) {
 		if (controls.Jump) {
@@ -147,14 +151,14 @@ func (p *Player) updateLook(controls *ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlState) *MsgDebugRay {
+func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRay {
 	if !controls.ActivateBlaster {
 		return nil
 	}
 
 	// Compile a list of player bounding boxes, based on this shooters time
 	var players []*physics.Box
-	for _, v := range world.players {
+	for _, v := range p.world.players {
 		if v == p {
 			players = append(players, nil)
 			continue
@@ -163,9 +167,9 @@ func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlStat
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
-	target, index := ray.FindAnyIntersect(world, players)
+	target, index := ray.FindAnyIntersect(p.world, players)
 	if index >= 0 {
-		world.players[index].Hurt(10)
+		p.world.players[index].Hurt(10, p.name)
 	}
 
 	if target == nil {
@@ -191,10 +195,11 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
-func (p *Player) Hurt(dmg int) {
+func (p *Player) Hurt(dmg int, name string) {
 	p.hp -= dmg
 	if p.hp <= 0 {
 		p.Respawn()
+		p.world.announce(p.name + " was killed by " + name)
 	}
 }
 
