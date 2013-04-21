@@ -18,33 +18,47 @@ function PlayerPrediction(world, conn, position) {
         userCommands.push(userCommand);
     }
 
-    var latestConfirmedPosition = {
+    var lastConfirmedPrediction = {
         Pos: new THREE.Vector3(0.0, 0.0, 0.0),
         Timestamp: 0.0,
         VelocityY: 0.0,
+        Hp: 100,
     };
     var userCommands = [];
     conn.on('player-state', function (payload) {
-        var p = payload.Pos;
-        var t = payload.Timestamp;
-        var vy = payload.VelocityY;
         var cmd = userCommands.shift();
-        if (cmd.Timestamp !== t) {
+        if (cmd.Timestamp !== payload.Timestamp) {
             // We should probably handle this more gracefully.
             throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
         }
-        latestConfirmedPosition.Pos.set(p.X, p.Y, p.Z);
-        latestConfirmedPosition.Timestamp = t;
-        latestConfirmedPosition.VelocityY = vy;
+        var prevhp = lastConfirmedPrediction.Hp;
+        var p = payload.Pos;
+        payload.Pos = new THREE.Vector3(p.X, p.Y, p.Z);
+        lastConfirmedPrediction = payload;
+
+        var hp = payload.Hp;
+        if (hp === prevhp) return;
 
         var health = document.getElementById('health-value');
-        if (health) {
-            health.innerText = payload.Hp;
+        if (!health) return;
+
+        health.style.width = hp + '%';
+        if (hp < 25) {
+            health.classList.add('critical');
+        } else if (hp < 50) {
+            health.classList.add('low');
+        } else {
+            health.classList.remove('critical');
+            health.classList.remove('low');
         }
+
+        // Force animations to restart
+        var newHealth = health.cloneNode(true);
+        health.parentNode.replaceChild(newHealth, health);
     });
 
     function applyRemainingClientPredictions() {
-        var confirmed = latestConfirmedPosition;
+        var confirmed = lastConfirmedPrediction;
         var pos = confirmed.Pos.clone();
         var vy = confirmed.VelocityY;
         var t = confirmed.Timestamp;

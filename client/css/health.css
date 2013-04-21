@@ -1,0 +1,42 @@
+#health {
+	float: left;
+	padding: 6px;
+}
+#health-bar {
+	width: 100px;
+	height: 20px;
+	margin-bottom: 6px;
+	display: inline-block;
+	background: rgba(255, 255, 255, 0.05);
+	border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+#health-value {
+	height: 16px;
+	background: #00FF00;
+	opacity: 0.125;
+	-webkit-animation: flash-health 1s forwards;
+}
+#health-value.low {
+	background: #FFFF00;
+	opacity: 0.25;
+	-webkit-animation: flash-health-low 0.25s alternate infinite;
+}
+#health-value.critical {
+	background: #FF0000;
+	opacity: 0.5;
+	-webkit-animation: flash-health 0.125s alternate infinite;
+}
+
+@-webkit-keyframes flash-health {
+	from {opacity: 0.5  }
+	to   {opacity: 0.125}
+}
+@-webkit-keyframes flash-health-low {
+	from {opacity: 0.5 }
+	to   {opactiy: 0.25}
+}
+@-webkit-keyframes flash-health-critical {
+	from {opacity: 1  }
+	to   {opacity: 0.5}
+}
