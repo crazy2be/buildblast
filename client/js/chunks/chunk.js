@@ -27,9 +27,10 @@ function Chunk(blocks, geometries, scene, quality) {
 
     self.block = function (oc) {
         if (validChunkOffset(oc.x, oc.y, oc.z)) {
-            // A single array is mesurably faster to
-            // index (approximently twice as fast),
-            // and is a lot less garbage to clean up.
+            // A flattened array is mesurably faster to
+            // index (approximently twice as fast) as
+            // an array of arrays, and is a lot less
+            // garbage to clean up.
             return new Block(blocks[
                 oc.x * CHUNK_WIDTH * CHUNK_HEIGHT +
                 oc.y * CHUNK_WIDTH +

@@ -50,11 +50,13 @@ func doProfile() {
 	pprof.StartCPUProfile(f)
 
 	go func () {
-		for i := 1; i < 5; i++ {
+		cycles := 4
+		for i := 0; i < cycles; i++ {
+			log.Print((cycles - i) * 30, " seconds left")
 			<-time.After(30*time.Second)
-			log.Print(i * 30, " seconds past")
 		}
 		pprof.StopCPUProfile()
+		log.Print("Done! Exiting...")
 		os.Exit(1)
 	}()
 }

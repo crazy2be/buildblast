@@ -10,10 +10,8 @@ function World(scene, container) {
     }
 
     var playerName = localStorage.playerName;
-    if (!playerName) {
-        do {
-            playerName = prompt("Please enter your name.","Unknown");
-        } while (playerName == null || playerName === "");
+    while (!playerName) {
+        playerName = prompt("Please enter your name.","Unknown");
         localStorage.playerName = playerName;
     }
     var conn = new Conn(getWSURI("main/" + playerName));
@@ -28,6 +26,7 @@ function World(scene, container) {
     scene.add(ambientLight);
 
     conn.on('block', processBlock);
+    conn.on('debug-ray', processRay);
 
     function processBlock(payload) {
         var wx = payload.Pos.X;
@@ -35,6 +34,11 @@ function World(scene, container) {
         var wz = payload.Pos.Z;
         var type = payload.Type;
         applyBlockChange(wx, wy, wz, type);
+    }
+
+    function processRay(payload) {
+        var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
+        self.addSmallCube(pos);
     }
 
     self.update = function (dt) {
@@ -46,9 +50,11 @@ function World(scene, container) {
     self.render = player.render;
     self.resize = player.resize;
 
+    var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
+    var smallCubeMat = new THREE.MeshNormalMaterial();
     self.addSmallCube = function (position) {
         if (!position) throw "Position required!";
-        var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
+        var cube = new THREE.Mesh( smallCube, smallCubeMat );
         cube.position = position;
         scene.add(cube);
     }

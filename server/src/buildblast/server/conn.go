@@ -72,6 +72,10 @@ func kindToType(kind MessageKind) Message {
 			return &MsgChat{}
 		case MSG_PLAYER_STATE:
 			return &MsgPlayerState{}
+		case MSG_DEBUG_RAY:
+			return &MsgDebugRay{}
+		case MSG_NTP_SYNC:
+			return &MsgNtpSync{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -94,6 +98,10 @@ func typeToKind(m Message) MessageKind {
 			return MSG_CHAT
 		case *MsgPlayerState:
 			return MSG_PLAYER_STATE
+		case *MsgDebugRay:
+			return MSG_DEBUG_RAY
+		case *MsgNtpSync:
+			return MSG_NTP_SYNC
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }

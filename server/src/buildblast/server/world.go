@@ -90,7 +90,10 @@ func (w *World) FindClient(name string) *Client {
 
 func (w *World) announce(message string) {
 	log.Println("[ANNOUNCE]", message)
-	w.broadcast(ServerMessage(message))
+	w.broadcast(&MsgChat{
+		DisplayName: "SERVER",
+		Message: message,
+	})
 }
 
 func (w *World) broadcast(m Message) {
@@ -126,6 +129,7 @@ func (w *World) join(c *Client) {
 func (w *World) leave(c *Client) {
 	i := w.findClient(c.name)
 
+	// Remove the client and player from our lists.
 	w.clients[i] = w.clients[len(w.clients)-1]
 	w.clients = w.clients[0:len(w.clients)-1]
 
@@ -153,9 +157,25 @@ func (w *World) simulateStep() {
 	for i, p := range w.players {
 		client := w.clients[i]
 
-		playerStateMsg := p.simulateStep(client, w)
+		var controls *ControlState
+		select {
+		case controls = <-client.ControlState:
+		default: continue
+		}
+
+		playerStateMsg, debugRayMsg := p.simulateStep(w, controls)
+
 		if playerStateMsg != nil {
-			client.StateUpdates <- playerStateMsg
+			select {
+			case client.StateUpdates <- playerStateMsg:
+			default:
+			}
+		}
+		if debugRayMsg != nil {
+			select {
+			case client.Broadcast <- debugRayMsg:
+			default:
+			}
 		}
 
 		m := &MsgEntityPosition{
