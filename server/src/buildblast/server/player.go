@@ -9,13 +9,14 @@ import (
 )
 
 type ControlState struct {
-	Forward bool
-	Left bool
-	Right bool
-	Back bool
-	Jump bool
-	Lat float64
-	Lon float64
+	Forward         bool
+	Left            bool
+	Right           bool
+	Back            bool
+	Jump            bool
+	ActivateBlaster bool
+	Lat             float64
+	Lon             float64
 
 	Timestamp float64 // In ms
 }
@@ -40,10 +41,11 @@ var PLAYER_MAX_HP = 100;
 
 type Player struct {
 	pos       coords.World
-	rot       coords.Vec3
+	look      coords.Vec3
 	vy        float64
 	box       physics.Box
 	controls  *ControlState
+	history   *PlayerHistory
 
 	// Gameplay state
 	hp        int
@@ -57,37 +59,39 @@ func NewPlayer() *Player {
 			Z: 0,
 		},
 		controls: &ControlState{},
+		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
 	}
 }
 
-func (p *Player) simulateStep(c *Client, w *World) *MsgPlayerState {
-	var controls *ControlState
-	select {
-		case controls = <-c.ControlState:
-		default: return nil
-	}
-
+func (p *Player) simulateStep(world *World, controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
-		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping.")
+		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s")
 		dt = 1.0
 	}
+	if dt < 0.0 {
+		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
+	}
 
-	p.simulateTick(dt, c.world, controls)
+	p.updateLook(controls)
+
+	msgDebugRay := p.simulateBlaster(dt, world, controls)
+	p.simulateMovement(dt, world, controls)
 
 	p.controls = controls
+	p.history.Add(controls.Timestamp, p.pos)
 
 	return &MsgPlayerState{
 		Pos: p.pos,
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
-	}
+	}, msgDebugRay
 }
 
-func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) {
+func (p *Player) simulateMovement(dt float64, world *World, controls *ControlState) {
 	p.vy += dt * -9.81
 
 	fw := 0.0
@@ -113,7 +117,7 @@ func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) 
 		Z: -sin(controls.Lon) * fw - cos(controls.Lon) * rt,
 	}
 
-	box := physics.NewBoxOffset(p.pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET)
+	box := p.Box()
 
 	move = box.AttemptMove(world, move)
 
@@ -128,6 +132,62 @@ func (p *Player) simulateTick(dt float64, world *World, controls *ControlState) 
 	p.pos.X += move.X
 	p.pos.Y += move.Y
 	p.pos.Z += move.Z
+}
+
+func (p *Player) updateLook(controls *ControlState) {
+	cos := math.Cos
+	sin := math.Sin
+
+	lat := controls.Lat
+	lon := controls.Lon
+
+	p.look.X = sin(lat) * cos(lon)
+	p.look.Y = cos(lat)
+	p.look.Z = sin(lat) * sin(lon)
+}
+
+func (p *Player) simulateBlaster(dt float64, world *World, controls *ControlState) *MsgDebugRay {
+	if !controls.ActivateBlaster {
+		return nil
+	}
+
+	// Compile a list of player bounding boxes, based on this shooters time
+	var players []*physics.Box
+	for _, v := range world.players {
+		if v == p {
+			players = append(players, nil)
+			continue
+		}
+		players = append(players, v.BoxAt(controls.Timestamp))
+	}
+
+	ray := physics.NewRay(p.pos, p.look)
+	target, index := ray.FindAnyIntersect(world, players)
+	if index >= 0 {
+		world.players[index].hurt(10)
+	}
+
+	if target == nil {
+		return nil
+	}
+
+	return &MsgDebugRay{
+		Pos: *target,
+	}
+}
+
+func (p *Player) Box() *physics.Box {
+	return physics.NewBoxOffset(
+		p.pos,
+		PLAYER_HALF_EXTENTS,
+		PLAYER_CENTER_OFFSET)
+}
+
+func (p *Player) BoxAt(t float64) *physics.Box {
+	return physics.NewBoxOffset(
+		p.history.PositionAt(t),
+		PLAYER_HALF_EXTENTS,
+		PLAYER_CENTER_OFFSET)
 }
 
 func (p *Player) hurt(dmg int) bool {

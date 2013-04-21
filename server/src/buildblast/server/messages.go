@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	"encoding/json"
 
 	"buildblast/coords"
@@ -20,6 +18,8 @@ const (
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
 	MSG_PLAYER_STATE    = MessageKind("player-state")
+	MSG_DEBUG_RAY       = MessageKind("debug-ray")
+	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 )
 
 type MsgEntityCreate struct {
@@ -57,16 +57,23 @@ type MsgControlsState struct {
 
 type MsgChat struct {
 	DisplayName string
-	Time        int64
 	Message     string
 }
 
 type MsgPlayerState struct {
-	Pos       coords.World
-	VelocityY float64
+	Pos        coords.World
+	VelocityY  float64
 	// JavaScript performance.now() timestamp.
-	Timestamp float64
-	Hp        int
+	Timestamp  float64
+	Hp         int
+}
+
+type MsgDebugRay struct {
+	Pos coords.World
+}
+
+type MsgNtpSync struct {
+	ServerTime float64
 }
 
 type ClientMessage struct {
@@ -75,12 +82,3 @@ type ClientMessage struct {
 }
 
 type Message interface{}
-
-func ServerMessage(message string) *MsgChat {
-	m := &MsgChat {
-		DisplayName: "SERVER",
-		Time: time.Now().UnixNano() / 1000,
-		Message: message,
-	}
-	return m;
-}

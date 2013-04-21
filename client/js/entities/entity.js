@@ -39,6 +39,7 @@ function Entity(id) {
     }
 
     self.contains = function (x, y, z) {
+        if (!pos) return;
         var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
         return box.contains(x, y, z);
     }
