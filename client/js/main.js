@@ -32,7 +32,6 @@ window.onload = function () {
 
         animate();
 
-
         function onWindowResize() {
             world.resize();
             renderer.setSize(window.innerWidth, window.innerHeight);
