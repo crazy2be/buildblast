@@ -86,6 +86,7 @@ function Controls(elm) {
     var actions = {
         lat: -1/2 * Math.PI,
         lon: 1/2 * Math.PI,
+        // Actions are added here as keys are pressed
     };
 
     self.sample = function() {
@@ -184,12 +185,15 @@ function Controls(elm) {
     }
 
     function pointerLockChange() {
+        var instructions = document.getElementById('instructions');
         if (pointerLocked()) {
             // Pointer was just locked, enable the mousemove listener
             elm.addEventListener('mousemove', mouseMove, false);
+            elm.classList.add('interactive');
         } else {
             // Pointer was just unlocked, disable the mousemove listener
             elm.removeEventListener('mousemove', mouseMove, false);
+            elm.classList.remove('interactive');
         }
     }
 

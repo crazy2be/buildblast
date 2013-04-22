@@ -19,8 +19,8 @@ window.onload = function () {
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
 
-        container.querySelector('#loader').innerHTML = "";
         container.querySelector('#opengl').appendChild(renderer.domElement);
+        document.querySelector('#splash h1').innerHTML = 'Click to play!';
 
         var stats = new Stats();
         stats.domElement.style.position = 'absolute';
@@ -31,6 +31,7 @@ window.onload = function () {
         window.addEventListener('resize', onWindowResize, false);
 
         animate();
+
 
         function onWindowResize() {
             world.resize();

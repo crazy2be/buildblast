@@ -21,25 +21,20 @@ a {
 }
 #container,
 #container #hud,
-#container #loader,
+#container #splash,
 #container #opengl {
 	position: absolute;
 	top: 0px;
 	left: 0px;
 	right: 0px;
 	bottom: 0px;
+	width: 100%;
+	height: 100%;
 }
 #container #hud,
-#container #loader {
+#container #splash {
 	z-index: 1;
 	pointer-events: none;
-}
-
-#info {
-	position: absolute;
-	top: 0px;
-	width: 100%;
-	padding: 5px;
 }
 
 #fatal-error {
@@ -60,7 +55,11 @@ a {
 	z-index: 2;
 }
 
+#container.interactive #crosshair {
+	display: block;
+}
 #crosshair {
+	display: none;
 	position: absolute;
 	background-image: url(../img/crosshair.png);
 	background-repeat: no-repeat;
