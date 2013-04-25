@@ -48,11 +48,6 @@ var PerfChart = function (opts) {
 		graph.appendChild(bar);
 	}
 
-	var updateGraph = function (elm, value) {
-		var child = elm.appendChild(elm.firstChild);
-		child.style.height = value + 'px';
-	}
-
 	function formatMS(ms) {
 		var suffix = 'ms';
 		if (ms > 1000) {
@@ -64,12 +59,32 @@ var PerfChart = function (opts) {
 		return str + suffix;
 	}
 
+	function clamp(n, a, b) {
+		return max(a, min(b, n));
+	}
+
+	function addDataPoint(ms) {
+		title.innerText = formatMS(ms) + opts.title;
+		if (ms > opts.maxValue) {
+			container.style.backgroundColor = 'red';
+		} else {
+			container.style.backgroundColor = '#020';
+		}
+
+		var val = clamp(1 - ms/opts.maxValue, 1/30, 1)*30;
+
+		var child = graph.appendChild(graph.firstChild);
+		child.style.height = val + 'px';
+
+		if (ms > opts.maxValue) {
+			child.style.backgroundColor = 'red';
+		} else {
+			child.style.backgroundColor = '#131';
+		}
+	}
+
 	return {
 		elm: wrapper,
-		addDataPoint: function (ms) {
-			title.innerText = formatMS(ms) + opts.title;
-			var val = ms / opts.maxValue;
-			updateGraph(graph, Math.min(1, 1 - val)*30);
-		},
+		addDataPoint: addDataPoint,
 	}
 };
