@@ -1,0 +1,75 @@
+var PerfChart = function (opts) {
+	defaultOpts = {
+		title: '',
+		maxValue: 200,
+	}
+	opts = opts || {};
+	for (var opt in defaultOpts) {
+		if (!(opt in opts)) {
+			opts[opt] = defaultOpts[opt];
+		}
+	}
+
+	var wrapper = document.createElement('div');
+	wrapper.style.cssText = [
+		'width: 80px',
+		'opacity: 0.9'].join(';');
+
+	var container = document.createElement('div');
+	container.style.cssText = [
+		'padding: 0 0 3px 3px',
+		'text-align: left',
+		'background-color: #020'].join(';');
+	wrapper.appendChild(container);
+
+	var title = document.createElement('div');
+	title.style.cssText = [
+		'color: #0f0',
+		'font-size: 9px',
+		'line-height: 15px',
+		'white-space: pre'].join(';');
+	container.appendChild(title);
+
+	var graph = document.createElement('div');
+	graph.style.cssText = [
+		'position: relative',
+		'width: 74px',
+		'height: 30px',
+		'background-color: #0f0'].join(';');
+	container.appendChild(graph);
+
+	while (graph.children.length < 74) {
+		var bar = document.createElement('span');
+		bar.style.cssText = [
+			'width: 1px;',
+			'height: 30px',
+			'float: left',
+			'background-color: #131'].join(';');
+		graph.appendChild(bar);
+	}
+
+	var updateGraph = function (elm, value) {
+		var child = elm.appendChild(elm.firstChild);
+		child.style.height = value + 'px';
+	}
+
+	function formatMS(ms) {
+		var suffix = 'ms';
+		if (ms > 1000) {
+			ms /= 1000;
+			suffix = 's ';
+		}
+		var str = ms.toFixed(2);
+		while (str.length < 6) str = ' ' + str;
+		return str + suffix;
+	}
+
+	return {
+		elm: wrapper,
+		addDataPoint: function (ms) {
+			title.innerText = formatMS(ms) + opts.title;
+			var val = ms / opts.maxValue;
+			updateGraph(graph, Math.min(1, 1 - val)*30);
+		},
+	}
+};

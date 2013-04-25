@@ -2,8 +2,13 @@ function PlayerPrediction(world, conn, position) {
     var self = this;
 
     var clock = new Clock(conn);
-    var lagStats = new LagStats();
-    document.getElementById('container').appendChild(lagStats.domElement);
+    var lagStats = new PerfChart({
+        title: ' lag'
+    });
+    lagStats.elm.style.position = 'absolute';
+    lagStats.elm.style.top = '74px';
+    lagStats.elm.style.right = '80px';
+    document.getElementById('container').appendChild(lagStats.elm);
 
     self.update = function (controls) {
         sendControlsToNetwork(controls);

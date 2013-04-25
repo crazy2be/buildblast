@@ -22,11 +22,13 @@ window.onload = function () {
         container.querySelector('#opengl').appendChild(renderer.domElement);
         document.querySelector('#splash h1').innerHTML = 'Click to play!';
 
-        var stats = new Stats();
-        stats.domElement.style.position = 'absolute';
-        stats.domElement.style.top = '0px';
-        stats.domElement.style.right = '0px';
-        container.appendChild(stats.domElement);
+        var speed = new PerfChart({
+            'title': ' render',
+        });
+        speed.elm.style.position = 'absolute';
+        speed.elm.style.top = '74px';
+        speed.elm.style.right = '0px';
+        container.appendChild(speed.elm);
 
         window.addEventListener('resize', onWindowResize, false);
 
@@ -41,7 +43,7 @@ window.onload = function () {
             var dt = clock.getDelta();
             world.update(dt);
             world.render(renderer, scene);
-            stats.update();
+            speed.addDataPoint(dt*1000);
 
             requestAnimationFrame(animate);
         }
