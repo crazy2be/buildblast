@@ -8,7 +8,7 @@ var LagStats = function () {
 	container.appendChild(msDiv);
 
 	var msText = document.createElement('div');
-	msText.style.cssText = 'color:#0f0;font-size:9px;line-height:15px';
+	msText.style.cssText = 'color:#0f0;font-size:9px;line-height:15px;white-space:pre;';
 	msText.innerHTML = 'MS lag';
 	msDiv.appendChild(msText);
 
@@ -28,15 +28,20 @@ var LagStats = function () {
 	}
 
 	function formatMS(ms) {
+		var suffix = 'ms';
+		if (ms > 1000) {
+			ms /= 1000;
+			suffix = 's ';
+		}
 		var str = ms.toFixed(2);
-		while (str.length < 6) str = '&nbsp;' + str;
-		return str;
+		while (str.length < 6) str = ' ' + str;
+		return str + suffix;
 	}
 
 	return {
 		domElement: container,
 		addDataPoint: function (ms) {
-			msText.innerHTML = formatMS(ms) + 'ms lag';
+			msText.innerText = formatMS(ms) + ' lag';
 			updateGraph(msGraph, Math.min(1, 1 - ms/200)*30);
 		},
 	}
