@@ -28,6 +28,7 @@
 	'js/./entities/manager.js',
 	'js/./entities/entity.js',
 	'js/./player/blastInventory.js',
+	'js/./player/lag.js',
 	'js/./player/inventory.js',
 	'js/./player/controls.js',
 	'js/./player/clock.js',

@@ -2,6 +2,8 @@ function PlayerPrediction(world, conn, position) {
     var self = this;
 
     var clock = new Clock(conn);
+    var lagStats = new LagStats();
+    document.getElementById('container').appendChild(lagStats.domElement);
 
     self.update = function (controls) {
         sendControlsToNetwork(controls);
@@ -31,6 +33,7 @@ function PlayerPrediction(world, conn, position) {
             // We should probably handle this more gracefully.
             throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
         }
+        lagStats.addDataPoint(clock.time() - cmd.Timestamp);
         var prevhp = lastConfirmedPrediction.Hp;
         var p = payload.Pos;
         payload.Pos = new THREE.Vector3(p.X, p.Y, p.Z);
