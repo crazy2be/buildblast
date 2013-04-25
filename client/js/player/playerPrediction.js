@@ -2,13 +2,6 @@ function PlayerPrediction(world, conn, position) {
     var self = this;
 
     var clock = new Clock(conn);
-    var lagStats = new PerfChart({
-        title: ' lag'
-    });
-    lagStats.elm.style.position = 'absolute';
-    lagStats.elm.style.top = '74px';
-    lagStats.elm.style.right = '80px';
-    document.getElementById('container').appendChild(lagStats.elm);
 
     self.update = function (controls) {
         sendControlsToNetwork(controls);
@@ -38,31 +31,11 @@ function PlayerPrediction(world, conn, position) {
             // We should probably handle this more gracefully.
             throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
         }
-        lagStats.addDataPoint(clock.time() - cmd.Timestamp);
         var prevhp = lastConfirmedPrediction.Hp;
         var p = payload.Pos;
         payload.Pos = new THREE.Vector3(p.X, p.Y, p.Z);
         lastConfirmedPrediction = payload;
 
-        var hp = payload.Hp;
-        if (hp === prevhp) return;
-
-        var health = document.getElementById('health-value');
-        if (!health) return;
-
-        health.style.width = hp + '%';
-        if (hp < 25) {
-            health.classList.add('critical');
-        } else if (hp < 50) {
-            health.classList.add('low');
-        } else {
-            health.classList.remove('critical');
-            health.classList.remove('low');
-        }
-
-        // Force animations to restart
-        var newHealth = health.cloneNode(true);
-        health.parentNode.replaceChild(newHealth, health);
     });
 
     function applyRemainingClientPredictions() {
@@ -82,11 +55,10 @@ function PlayerPrediction(world, conn, position) {
             vy = applyUserCommand(pos, c, vy, dt);
         }
 
-        var lag = (userCommands[userCommands.length - 1].Timestamp - confirmed.Timestamp) / 1000;
-        if (lag > 1.0) {
-            console.warn("Heavy lag! Corrections may be painful... (", lag, " seconds since last server confirmation)");
-        }
-
+        var latest = userCommands[userCommands.length - 1];
+        var lag = latest.Timestamp - confirmed.Timestamp;
+        updateLagStats(lag);
+        updateHealthBar(latest.Hp);
         updatePositionText(pos, vy);
         return pos;
     }
@@ -112,14 +84,52 @@ function PlayerPrediction(world, conn, position) {
         return vy;
     }
 
-    function updatePositionText(p, vy) {
+    var prevhp = -1;
+    function updateHealthBar(hp) {
+        if (hp === prevhp) return;
+        prevhp = hp;
+
+        var health = document.getElementById('health-value');
+        if (!health) return;
+
+        health.style.width = hp + '%';
+        if (hp < 25) {
+            health.classList.add('critical');
+        } else if (hp < 50) {
+            health.classList.add('low');
+        } else {
+            health.classList.remove('critical');
+            health.classList.remove('low');
+        }
+
+        // Force animations to restart
+        var newHealth = health.cloneNode(true);
+        health.parentNode.replaceChild(newHealth, health);
+    }
+
+    var lagStats = new PerfChart({
+        title: ' lag'
+    });
+    lagStats.elm.style.position = 'absolute';
+    lagStats.elm.style.top = '74px';
+    lagStats.elm.style.right = '80px';
+    document.getElementById('container').appendChild(lagStats.elm);
+    function updateLagStats(lag) {
+        lagStats.addDataPoint(lag);
+    }
+
+    var prevpos = new THREE.Vector3(0, 0, 0);
+    function updatePositionText(pos, vy) {
+        if (pos.equals(prevpos)) return;
+        prevpos = pos;
+
         var info = document.getElementById('info');
         if (!info) return;
 
         info.innerHTML = JSON.stringify({
-            x: round(p.x, 2),
-            y: round(p.y, 2),
-            z: round(p.z, 2),
+            x: round(pos.x, 2),
+            y: round(pos.y, 2),
+            z: round(pos.z, 2),
             v: round(vy, 2),
         });
     }
