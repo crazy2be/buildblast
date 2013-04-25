@@ -2,11 +2,15 @@
 	display: none;
 }
 #splash {
+	z-index: 2;
 	display: table;
 	text-align: center;
 	background: rgba(255, 255, 255, 0.5);
 }
-#splash #instructions {
+.error #splash {
+	color: #F00;
+}
+#splash .contents {
 	display: table-cell;
 	vertical-align: middle;
 	padding: 20%;
@@ -24,4 +28,20 @@
 
 #container.interactive #stats {
 	display: none;
+}
+
+#container.interactive #crosshair {
+	display: block;
+}
+#crosshair {
+	display: none;
+	position: absolute;
+	background-image: url(../img/crosshair.png);
+	background-repeat: no-repeat;
+	width: 36px;
+	height: 36px;
+	margin-left: -18px;
+	margin-top: -18px;
+	top: 50%;
+	left: 50%;
 }

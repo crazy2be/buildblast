@@ -43,6 +43,7 @@ window.onload = function () {
             world.render(renderer, scene);
             stats.update();
 
+            if (fatalErrorTriggered) return;
             requestAnimationFrame(animate);
         }
     }
@@ -56,9 +57,13 @@ window.onerror = function (msg, url, lineno) {
     });
 };
 
+var fatalErrorTriggered = false;
 function fatalError(err) {
-    var st = document.getElementById("fatal-error");
-    st.innerHTML = ["<tr><td>",
+    var container = document.getElementById('container');
+    container.classList.add('error');
+
+    var elm = splash.querySelector('.contents');
+    html = [
         "<h1>Fatal Error!</h1>",
         "<p>",
             err.filename || err.fileName,
@@ -70,7 +75,16 @@ function fatalError(err) {
             err.message,
         "</p>",
         "<p>Press F5 to attempt a rejoin</p>",
-        "</td></tr>"].join("\n");
+    ].join("\n");
+    elm.innerHTML = html;
+
+    exitPointerLock();
+    fatalErrorTriggered = true;
+    function exitPointerLock() {
+        (document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock).call(document)
+    }
 }
 
 var sin = Math.sin;

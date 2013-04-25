@@ -175,6 +175,9 @@ function Controls(elm) {
     function attemptPointerLock() {
         if (pointerLocked()) return;
 
+        // We had an error :(
+        if (elm.classList.contains('error')) return;
+
         // Firefox currently only allows us to access
         // pointer lock if the document is in full screen.
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
@@ -185,7 +188,6 @@ function Controls(elm) {
     }
 
     function pointerLockChange() {
-        var instructions = document.getElementById('instructions');
         if (pointerLocked()) {
             // Pointer was just locked, enable the mousemove listener
             elm.addEventListener('mousemove', mouseMove, false);
