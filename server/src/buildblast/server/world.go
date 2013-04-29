@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-// 	"fmt"
 	"time"
 	"sync"
 
@@ -17,7 +16,6 @@ type World struct {
 	chunkLock   sync.Mutex
 	clients     []*Client
 	players     []*Player
-	previousTime time.Time
 	find       chan FindClientRequest
 
 	Join       chan *Client
@@ -37,7 +35,6 @@ func NewWorld(seed float64) *World {
 	w.generator = mapgen.NewMazeArena(seed)
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
-	w.previousTime = time.Now()
 	w.find = make(chan FindClientRequest)
 
 	w.Join = make(chan *Client)
@@ -120,7 +117,7 @@ func (w *World) join(c *Client) {
 		c.Broadcast <- m
 	}
 
-	p := NewPlayer()
+	p := NewPlayer(w, c.name)
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
 	w.announce(c.name + " has joined the game!")
@@ -163,7 +160,7 @@ func (w *World) simulateStep() {
 		default: continue
 		}
 
-		playerStateMsg, debugRayMsg := p.simulateStep(w, controls)
+		playerStateMsg, debugRayMsg := p.simulateStep(controls)
 
 		if playerStateMsg != nil {
 			select {
