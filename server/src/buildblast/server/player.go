@@ -199,7 +199,7 @@ func (p *Player) Hurt(dmg int, name string) {
 	p.hp -= dmg
 	if p.hp <= 0 {
 		p.Respawn()
-		p.world.announce(p.name + " was killed by " + name)
+		p.world.announce(name + " killed " + p.name)
 	}
 }
 
