@@ -86,6 +86,7 @@ function Controls(elm) {
     var actions = {
         lat: -1/2 * Math.PI,
         lon: 1/2 * Math.PI,
+        // Actions are added here as keys are pressed
     };
 
     self.sample = function() {
@@ -174,6 +175,9 @@ function Controls(elm) {
     function attemptPointerLock() {
         if (pointerLocked()) return;
 
+        // We had an error :(
+        if (elm.classList.contains('error')) return;
+
         // Firefox currently only allows us to access
         // pointer lock if the document is in full screen.
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=737100
@@ -187,9 +191,11 @@ function Controls(elm) {
         if (pointerLocked()) {
             // Pointer was just locked, enable the mousemove listener
             elm.addEventListener('mousemove', mouseMove, false);
+            elm.classList.add('interactive');
         } else {
             // Pointer was just unlocked, disable the mousemove listener
             elm.removeEventListener('mousemove', mouseMove, false);
+            elm.classList.remove('interactive');
         }
     }
 
