@@ -1,9 +1,15 @@
 var PerfChart = CanvasPerfChart;
 
 function CanvasPerfChart(opts) {
+    var self = this;
+
     var defaultOpts = {
         title: '',
         maxValue: 200,
+        width: 80,
+        height: 48,
+        fontSize: 9,
+        padding: 3,
     };
     opts = opts || {};
     for (var opt in defaultOpts) {
@@ -11,24 +17,64 @@ function CanvasPerfChart(opts) {
         else opts[opt] = defaultOpts[opt];
     }
 
-    var width = 80;
-    var height = 48;
-
-    var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.cssText = [
-        'width: '+width+'px',
-        'height: '+height+'px',
-        'opacity: 0.9',
-    ].join(';');
-    var c = canvas.getContext('2d');
-
     var dataPoints = [];
-    for (var i = 0; i < 74; i++) {
+    var numDataPoints = opts.width - opts.padding*2;
+    for (var i = 0; i < numDataPoints; i++) {
         dataPoints[i] = 0;
     }
     var currentDataPoint = 0;
+
+    self.addDataPoint = function (ms) {
+        if (ms > opts.maxValue) {
+            drawBackground('red');
+        } else {
+            drawBackground('#020');
+        }
+        drawTitle(formatMS(ms) + opts.title);
+
+        dataPoints[currentDataPoint] = ms;
+        drawGraph();
+
+        currentDataPoint = (currentDataPoint + 1) % dataPoints.length;
+    }
+
+    var canvas = document.createElement('canvas');
+    canvas.width = opts.width;
+    canvas.height = opts.height;
+    self.elm = canvas;
+
+    var c = canvas.getContext('2d');
+    function drawBackground(color) {
+        c.fillStyle = color;
+        c.fillRect(0, 0, opts.width, opts.height);
+    }
+
+    function drawTitle(text) {
+        c.fillStyle = '#0f0';
+        c.font = opts.fontSize + 'px monospace';
+        c.textBaseline = 'top';
+        c.fillText(text, opts.padding, opts.padding);
+    }
+
+    var graphX = opts.padding + 0.5;
+    var graphY = opts.padding*2 + opts.fontSize + 0.5;
+    var graphHeight = opts.height - graphY - opts.padding;
+    var graphWidth = opts.width - graphX - opts.padding;
+    function drawGraph() {
+        c.fillStyle = '#131';
+        c.fillRect(graphX, graphY, graphWidth, graphHeight);
+
+        c.beginPath();
+        for (var i = 0; i < dataPoints.length; i++) {
+            var dataPoint = dataPoints[(i + currentDataPoint) % dataPoints.length];
+            var val = dataPoint/opts.maxValue;
+            var offset = clamp(1 - val, 0, 1)*graphHeight;
+            c.lineTo(i + graphX, offset + graphY);
+        }
+        c.lineWidth = 1;
+        c.strokeStyle = '#0f0';
+        c.stroke();
+    }
 
     function formatMS(ms) {
         var suffix = 'ms';
@@ -44,57 +90,6 @@ function CanvasPerfChart(opts) {
     function clamp(n, a, b) {
         return max(a, min(b, n));
     }
-
-    function addDataPoint(ms) {
-        if (ms > opts.maxValue) {
-            drawBackground('red');
-        } else {
-            drawBackground('#020');
-        }
-        drawTitle(formatMS(ms) + opts.title);
-
-        dataPoints[currentDataPoint] = ms;
-        drawGraph();
-
-        currentDataPoint++;
-        if (currentDataPoint >= dataPoints.length) {
-            currentDataPoint = 0;
-        }
-    }
-
-    function drawBackground(color) {
-        c.fillStyle = color;
-        c.fillRect(0, 0, width, height);
-    }
-
-    function drawTitle(text) {
-        c.fillStyle = '#0f0';
-        c.font = 'monospace';
-        c.textBaseline = 'top';
-        c.fillText(text, 3, 1);
-    }
-
-    function drawGraph() {
-        c.fillStyle = '#131';
-        c.fillRect(3, 13, width - 6, height - 16);
-        c.beginPath();
-
-        for (var i = 0; i < dataPoints.length; i++) {
-            var dataPoint = dataPoints[(i + currentDataPoint) % dataPoints.length];
-            var val = dataPoint/opts.maxValue;
-            var offset = clamp(1 - val, 0, 1)*30 + 13;
-            c.lineTo(i + 3, offset);
-        }
-
-        c.lineWidth = 1;
-        c.strokeStyle = '#0f0';
-        c.stroke();
-    }
-
-    return {
-        elm: canvas,
-        addDataPoint: addDataPoint,
-    };
 }
 
 function DOMPerfChart(opts) {
