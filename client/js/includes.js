@@ -19,7 +19,7 @@
 	'js/./conn.js',
 	'js/./box.js',
 	'js/./world.js',
-	'js/./perfChart.js',
+	'js/./perf/chart.js',
 	'js/./chunks/block.js',
 	'js/./chunks/manager.js',
 	'js/./chunks/noise.js',

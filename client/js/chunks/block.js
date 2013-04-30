@@ -1,31 +1,15 @@
 function Block(type) {
-    var self = this;
-    self.type = type;
-
-    self.getType = function () {
-        return self.type;
-    }
-
-    self.setType = function (newType) {
-        self.type = newType;
-    }
-
-    self.isType = function (type) {
-        return self.type == type;
-    }
-
-    self.mineable = function () {
-        return Block.isMineable(self.type);
-    }
-
-    self.empty = function () {
-        return Block.isEmpty(self.type);
-    }
-
-    self.solid = function () {
-        return Block.isSolid(self.type);
-    }
+    this.type = type;
 }
+Block.prototype.mineable = function () {
+    return Block.isMineable(this.type);
+};
+Block.prototype.empty = function () {
+    return Block.isEmpty(this.type);
+};
+Block.prototype.solid = function () {
+    return Block.isSolid(this.type);
+};
 
 Block.AIR   = 0x1;
 Block.DIRT  = 0x2;

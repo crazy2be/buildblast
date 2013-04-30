@@ -23,7 +23,8 @@ window.onload = function () {
         document.querySelector('#splash h1').innerHTML = 'Click to play!';
 
         var speed = new PerfChart({
-            'title': ' render',
+            title: ' render',
+            maxValue: 50,
         });
         speed.elm.style.position = 'absolute';
         speed.elm.style.top = '74px';
