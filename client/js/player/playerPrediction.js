@@ -58,7 +58,7 @@ function PlayerPrediction(world, conn, position) {
         var latest = userCommands[userCommands.length - 1];
         var lag = latest.Timestamp - confirmed.Timestamp;
         updateLagStats(lag);
-        updateHealthBar(latest.Hp);
+        updateHealthBar(confirmed.Hp);
         updatePositionText(pos, vy);
         return pos;
     }

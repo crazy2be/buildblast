@@ -86,6 +86,7 @@ func setupPrompt() {
 func promptLoop(quit chan bool, state *liner.State) {
 	for {
 		cmd, err := state.Prompt(" >>> ")
+		state.AppendHistory(cmd)
 		if err != nil {
 			fmt.Println()
 			log.Println("ERROR:", err)
@@ -95,6 +96,13 @@ func promptLoop(quit chan bool, state *liner.State) {
 		if cmd == "exit" {
 			quit <- true
 			return
+		}
+		// Yeah... only for debugging health.
+		if cmd == "hurt" {
+			globalWorld.players[0].Hurt(10, "SERVER")
+		}
+		if cmd == "kill" {
+			globalWorld.players[0].Hurt(100, "SERVER")
 		}
 	}
 }
