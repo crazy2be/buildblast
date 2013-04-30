@@ -69,19 +69,23 @@ function CanvasPerfChart(opts) {
 
     function drawTitle(text) {
         c.fillStyle = '#0f0';
+        c.font = 'monospace';
         c.textBaseline = 'top';
-        c.fillText(text, 0, 0);
+        c.fillText(text, 3, 1);
     }
 
     function drawGraph() {
+        c.fillStyle = '#131';
+        c.fillRect(3, 13, width - 6, height - 16);
         c.beginPath();
-        c.moveTo(0, 10);
+
         for (var i = 0; i < dataPoints.length; i++) {
             var dataPoint = dataPoints[(i + currentDataPoint) % dataPoints.length];
             var val = dataPoint/opts.maxValue;
-            var offset = clamp(1 - val, 0, 1)*30 + 10;
-            c.lineTo(i, offset);
+            var offset = clamp(1 - val, 0, 1)*30 + 13;
+            c.lineTo(i + 3, offset);
         }
+
         c.lineWidth = 1;
         c.strokeStyle = '#0f0';
         c.stroke();
