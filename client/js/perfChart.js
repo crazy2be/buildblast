@@ -64,16 +64,36 @@ function CanvasPerfChart(opts) {
         c.fillStyle = '#131';
         c.fillRect(graphX, graphY, graphWidth, graphHeight);
 
+        drawTrendLine();
+        drawExtremeBars();
+    }
+
+    function drawTrendLine() {
         c.beginPath();
         for (var i = 0; i < dataPoints.length; i++) {
-            var dataPoint = dataPoints[(i + currentDataPoint) % dataPoints.length];
-            var val = dataPoint/opts.maxValue;
-            var offset = clamp(1 - val, 0, 1)*graphHeight;
+            var offset = clamp(1 - valAt(i), 0, 1)*graphHeight;
             c.lineTo(i + graphX, offset + graphY);
         }
         c.lineWidth = 1;
         c.strokeStyle = '#0f0';
         c.stroke();
+    }
+
+    function drawExtremeBars() {
+        for (var i = 0; i < dataPoints.length; i++) {
+            if (valAt(i) < 1.0) continue;
+
+            c.beginPath();
+            c.strokeStyle = 'red';
+            c.moveTo(graphX + i, graphY);
+            c.lineTo(graphX + i, graphY + graphHeight);
+            c.stroke();
+        }
+    }
+
+    function valAt(i) {
+        var dataPoint = dataPoints[(i + currentDataPoint) % dataPoints.length];
+        return dataPoint/opts.maxValue;
     }
 
     function formatMS(ms) {
