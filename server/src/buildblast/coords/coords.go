@@ -2,6 +2,8 @@ package coords
 
 import (
 	"math"
+	"encoding/binary"
+	"hash/fnv"
 )
 
 type Vec3 struct {
@@ -61,6 +63,22 @@ func (wc World) Offset() Offset {
 		Y: mod(floor(wc.Y), CHUNK_HEIGHT),
 		Z: mod(floor(wc.Z), CHUNK_DEPTH),
 	}
+}
+
+func (wc World) Hash() uint32 {
+	hash := fnv.New32a()
+	temp := make([]byte, 8)
+
+	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.X))
+	hash.Write(temp)
+
+	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.Y))
+	hash.Write(temp)
+
+	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.Z))
+	hash.Write(temp)
+
+	return hash.Sum32()
 }
 
 type Chunk struct {

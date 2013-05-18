@@ -6,6 +6,7 @@ import (
 
 type ChunkSource interface {
 	Chunk(cc coords.Chunk) Chunk
+	Spawn() coords.World
 }
 
 type BlockSource interface {
