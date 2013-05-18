@@ -7,13 +7,16 @@ import (
 	"buildblast/coords"
 )
 type MazeArena struct {
-	rand *rand.Rand
-	seed float64
+	seed           float64
+	spawnPointKeys []uint32
+	spawnPoints    map[uint32]coords.World
 }
 
 func NewMazeArena(seed float64) *MazeArena {
 	fa := new(MazeArena)
 	fa.seed = seed
+	fa.spawnPointKeys = make([]uint32, 0)
+	fa.spawnPoints = make(map[uint32]coords.World)
 	return fa
 }
 
@@ -25,7 +28,22 @@ func (fa *MazeArena) Block(wc coords.World) Block {
 	}
 
 	val := PerlinNoise(wc.X / 16, wc.Z / 16, fa.seed)
-	if wc.Y < 20 && val - math.Floor(val) < 0.05 {
+	isWall := val - math.Floor(val) < 0.05
+	isNextToBoundary := wc.X >= 31 || wc.X < -31 || wc.Z >= 127 || wc.Z < -127
+	if wc.Y == 21 && isWall && !isNextToBoundary {
+                possibleSpawn := coords.World{
+                        X: wc.X,
+                        Y: 21,
+                        Z: wc.Z,
+                }
+                hash := possibleSpawn.Hash()
+                _, contained := fa.spawnPoints[hash]
+                if !contained {
+                        fa.spawnPointKeys = append(fa.spawnPointKeys, hash)
+                        fa.spawnPoints[hash] = possibleSpawn
+                }
+	}
+	if wc.Y < 20 && isWall {
 		return BLOCK_STONE
 	}
 
@@ -34,4 +52,18 @@ func (fa *MazeArena) Block(wc coords.World) Block {
 
 func (fa *MazeArena) Chunk(cc coords.Chunk) Chunk {
 	return GenerateChunk(fa, cc)
+}
+
+func (fa *MazeArena) Spawn() coords.World {
+	numSpawns := len(fa.spawnPointKeys)
+	if numSpawns > 0 {
+		// Get a random key value
+		key := fa.spawnPointKeys[rand.Intn(numSpawns)]
+		return fa.spawnPoints[key]
+	}
+	return coords.World {
+		X: 0,
+		Y: 21,
+		Z: 0,
+	}
 }

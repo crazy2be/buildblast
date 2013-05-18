@@ -35,11 +35,6 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 	-PLAYER_DIST_CENTER_EYE,
 	0,
 };
-var PLAYER_SPAWN = coords.World{
-	X: 0,
-	Y: 27,
-	Z: 0,
-}
 
 // Gameplay state defaults
 var PLAYER_MAX_HP = 100;
@@ -60,7 +55,7 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		pos: PLAYER_SPAWN,
+		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
@@ -204,6 +199,6 @@ func (p *Player) Hurt(dmg int, name string) {
 }
 
 func (p *Player) Respawn() {
-	p.pos = PLAYER_SPAWN
+	p.pos = p.world.generator.Spawn()
 	p.hp = PLAYER_MAX_HP
 }
