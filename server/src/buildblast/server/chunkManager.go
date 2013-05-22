@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"sync"
+
+	"buildblast/coords"
 )
 
 type ChunkStatus struct {
@@ -11,17 +13,17 @@ type ChunkStatus struct {
 }
 
 type ChunkManager struct {
-	chunks map[ChunkCoords]*ChunkStatus
+	chunks map[coords.Chunk]*ChunkStatus
 	mutex sync.Mutex
 }
 
 func newChunkManager() *ChunkManager {
 	cm := new(ChunkManager)
-	cm.chunks = make(map[ChunkCoords]*ChunkStatus, 10)
+	cm.chunks = make(map[coords.Chunk]*ChunkStatus, 10)
 	return cm
 }
 
-func (cm *ChunkManager) display(cc ChunkCoords, priority int) {
+func (cm *ChunkManager) display(cc coords.Chunk, priority int) {
 	cm.mutex.Lock()
 	status := cm.chunks[cc]
 	cm.mutex.Unlock()
@@ -33,7 +35,7 @@ func (cm *ChunkManager) display(cc ChunkCoords, priority int) {
 	cm.queue(cc, priority)
 }
 
-func (cm *ChunkManager) queue(cc ChunkCoords, priority int) {
+func (cm *ChunkManager) queue(cc coords.Chunk, priority int) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -49,7 +51,7 @@ func (cm *ChunkManager) queue(cc ChunkCoords, priority int) {
 	status.priority = priority
 }
 
-func (cm *ChunkManager) top() (cc ChunkCoords, valid bool) {
+func (cm *ChunkManager) top() (cc coords.Chunk, valid bool) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 

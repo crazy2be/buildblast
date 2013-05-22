@@ -29,8 +29,8 @@ function ChunkManager(scene, player) {
         geometryWorker.postMessage({
             'kind': 'block-change',
             'payload': {
-                'wc': {x: wx, y: wy, z: wz},
-                'type': newType,
+                'Pos': {X: wx, Y: wy, Z: wz},
+                'Type': newType,
             }
         });
     }
@@ -45,6 +45,8 @@ function ChunkManager(scene, player) {
             processHideChunk(payload);
         } else if (e.data.kind === 'chunk-quality-change') {
             processQualityChange(payload);
+        } else if (e.data.kind === 'log') {
+            console.log(e.data.payload);
         }
     }
 
