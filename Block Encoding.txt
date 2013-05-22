@@ -1,0 +1,9 @@
+Bit Classifications
+Order: [31]...[0]
+
+Properties: [31]->[28] (0xA0000000)
+    [31] = MINEABLE
+
+SubTypes:   [3]->[0] (0x0000000A)
+    TRANSPARENT = 1;
+    SOLID       = 2;

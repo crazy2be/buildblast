@@ -6,3 +6,7 @@ buildshoot-server.exe
 .kateconfig
 .project
 .settings
+bin
+pkg
+github.com
+*.blend[0-9]*

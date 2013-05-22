@@ -1,0 +1,30 @@
+#chat {
+	padding: 8px;
+}
+#chat .messages {
+	padding: 4px 0px;
+}
+#chat .message-wrapper {
+	text-align: left;
+}
+#chat .message {
+	display: inline-block;
+	padding: 4px;
+	opacity: 0;
+	background-color: rgba(255, 255, 255, 0.5);
+}
+#chat.active .message {
+	opacity: 1;
+	color: black;
+}
+#chat .input {
+	width: 100%;
+	opacity: 0;
+	padding: 4px;
+	border: rgba(255, 255, 255, 1) solid 2px;
+	background: rgba(255, 255, 255, 0.5);
+}
+#chat .input:focus {
+	outline: none;
+	opacity: 1;
+}

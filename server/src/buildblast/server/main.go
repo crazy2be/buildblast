@@ -2,13 +2,17 @@ package main
 
 import (
 	"os"
+	"os/signal"
+	"fmt"
 	"log"
 	"time"
 	"strings"
 	"net/http"
 	"runtime"
 	"runtime/pprof"
+
 	"code.google.com/p/go.net/websocket"
+	"github.com/sbinet/liner"
 )
 
 var globalWorld = NewWorld(float64(time.Now().Unix()))
@@ -46,16 +50,66 @@ func doProfile() {
 	pprof.StartCPUProfile(f)
 
 	go func () {
-		for i := 1; i < 5; i++ {
+		cycles := 4
+		for i := 0; i < cycles; i++ {
+			log.Print((cycles - i) * 30, " seconds left")
 			<-time.After(30*time.Second)
-			log.Print(i * 30, " seconds past")
 		}
 		pprof.StopCPUProfile()
+		log.Print("Done! Exiting...")
 		os.Exit(1)
 	}()
 }
 
+func setupPrompt() {
+	quit := make(chan bool)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	state := liner.NewLiner()
+	go promptLoop(quit, state)
+
+	go func() {
+		<-c
+		fmt.Println()
+		quit <- true
+	}()
+
+	go func() {
+		<-quit
+		state.Close()
+		os.Exit(0)
+	}()
+}
+
+func promptLoop(quit chan bool, state *liner.State) {
+	for {
+		cmd, err := state.Prompt(" >>> ")
+		state.AppendHistory(cmd)
+		if err != nil {
+			fmt.Println()
+			log.Println("ERROR:", err)
+			quit <- true
+			return
+		}
+		if cmd == "exit" {
+			quit <- true
+			return
+		}
+		// Yeah... only for debugging health.
+		if cmd == "hurt" {
+			globalWorld.players[0].Hurt(10, "SERVER")
+		}
+		if cmd == "kill" {
+			globalWorld.players[0].Hurt(100, "SERVER")
+		}
+	}
+}
+
 func main() {
+	setupPrompt()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalWorld.Run()
 

@@ -1,15 +1,13 @@
 #!/bin/bash -e
 
-cd server/src/main
 if go version; then
+	export GOPATH=`pwd`/server
     echo "Compiling server..."
-    go build -o buildshoot-server *.go
+    go get buildblast/server
 
-    mv buildshoot-server ../../../client
-    cd ../../../client
-
+    cd client
     echo "Starting server..."
-    ./buildshoot-server
+    ../server/bin/server
 
     exit 0
 else

@@ -4,145 +4,51 @@
         <title>BuildShoot</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-        <style>
-            body {
-                font-family: Monospace;
-                font-size: 13px;
-                text-align: center;
-
-                margin: 0px;
-                overflow: hidden;
-                background: #bfd1e5;
-            }
-
-            #container {
-                position: absolute;
-                top: 0px;
-                left: 0px;
-                right: 0px;
-                bottom: 0px;
-                background: #bfd1e5;
-            }
-            #container canvas {
-                position: absolute;
-                top: 0px;
-            }
-
-            #info {
-                position: absolute;
-                top: 0px;
-                width: 100%;
-                padding: 5px;
-                z-index: 1;
-            }
-
-            #weapon-inventory,
-            #block-inventory {
-                position: absolute;
-                bottom: 0px;
-                padding: 10px;
-                margin: 0px;
-                z-index: 1;
-            }
-            #weapon-inventory {
-                left: 0px;
-            }
-            #block-inventory {
-                right: 0px;
-            }
-            #weapon-inventory li,
-            #block-inventory li {
-                display: inline;
-                padding: 4px;
-                border: 2px solid transparent;
-                text-shadow: #FFF 0px 0px 1px;
-            }
-            #weapon-inventory li.selected,
-            #block-inventory li.selected {
-                font-weight: bold;
-                -webkit-animation: item-selected 1s forwards;
-            }
-
-            @-webkit-keyframes item-selected {
-                from {
-                    background: rgba(255, 255, 255, 0.5);
-                    border-color: rgba(255, 255, 255, 1);
-                }
-                to {
-                    background: rgba(255, 255, 255, 0.2);
-                    border-color: rgba(255, 255, 255, 0.4);
-                }
-            }
-
-            #connection-status {
-                pointer-events: none;
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                top: 0px;
-                left: 0px;
-                text-align: center;
-                color: red;
-                z-index: 2;
-            }
-            #connection-status td {
-                vertical-align: middle;
-            }
-
-            a {
-                color: #a06851;
-            }
-
-            #oldie {
-                position: relative;
-                z-index: 2;
-            }
-
-            div#xHair {
-                position: absolute;
-                background-image: url(img/crosshair.png);
-                background-repeat: no-repeat;
-                width: 36px;
-                height: 36px;
-                margin-left: -18px;
-                margin-top: -18px;
-                top: 50%;
-                left: 50%;
-                z-index: 2;
-            }
-        </style>
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/inventory.css" />
+        <link rel="stylesheet" href="css/chat.css" />
+        <link rel="stylesheet" href="css/health.css" />
+        <link rel="stylesheet" href="css/splash.css" />
     </head>
     <body>
         <div id="container">
-            <p class="loader">
-                <br /><br /><br /><br /><br />
-                Loading...
-            </p>
-
-            <div id="xHair"></div>
-            <div id="info"></div>
-            <table id="connection-status"></table>
-            <ol id="block-inventory"></ol>
-            <ol id="weapon-inventory"></ol>
+            <div id="opengl"></div>
+            <div id="splash">
+                <div class="contents">
+                    <h1>Loading...</h1>
+                    <br />
+                    <p>Move with WASD, [enter] to chat, change active inventory slot with Q/E, activate with left/right click (try both!)</p>
+                    <br />
+                    <p>Press F11 to go fullscreen for maximum performance.</p>
+                </div>
+            </div>
+            <div id="hud">
+                <div id="info"></div>
+                <div id="health">
+                    <img src="/img/health.png" alt="Health" height="32" width="32">
+                    <div id="health-bar">
+                        <div id="health-value"></div>
+                    </div>
+                </div>
+                <div id="crosshair"></div>
+                <div class="bottom">
+                    <div id="chat">
+                        <div class="messages"></div>
+                        <input type="text" class="input"/>
+                    </div>
+                    <table id="inventory">
+                        <tr>
+                            <td class="build"></td>
+                            <td class="blast"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <script src="lib/three.min.js"></script>
-        <script src="lib/stats.min.js"></script>
-        <script src="lib/jquery.min.js"></script>
-        <script src="lib/eventBus.js"></script>
+        <script src="js/includes.js"></script>
 
-        <script src="js/controls.js"></script>
-        <script src="js/featureTester.js"></script>
-        <script src="js/chunks/include.js"></script>
-        <script src="js/entities/include.js"></script>
-        <script src="js/conn.js"></script>
-        <script src="js/inventory.js"></script>
-        <script src="js/world.js"></script>
-        <script src="js/box.js"></script>
-        <script src="js/models.js"></script>
-        <script src="js/entities/player.js"></script>
-        <script src="js/entities/block.js"></script>
-        <script src="js/entities/entity.js"></script>
-        <script src="js/main.js"></script>
+        <script src="lib/three.min.js"></script>
+        <script src="lib/jquery.min.js"></script>
     </body>
 </html>

@@ -4,12 +4,15 @@ import (
 	"log"
 	"time"
 	"sync"
+
+	"buildblast/mapgen"
+	"buildblast/coords"
 )
 
 type World struct {
 	seed        float64
-	chunks      map[ChunkCoords]Chunk
-	generator   ChunkGenerator
+	chunks      map[coords.Chunk]mapgen.Chunk
+	generator   mapgen.ChunkSource
 	chunkLock   sync.Mutex
 	clients     []*Client
 	players     []*Player
@@ -18,7 +21,6 @@ type World struct {
 	Join       chan *Client
 	Leave      chan *Client
 	Broadcast  chan Message
-	StateUpdate chan *PlayerState
 }
 
 type FindClientRequest struct {
@@ -29,8 +31,8 @@ type FindClientRequest struct {
 func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed;
-	w.chunks = make(map[ChunkCoords]Chunk)
-	w.generator = NewMazeArenaGenerator(seed)
+	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
+	w.generator = mapgen.NewMazeArena(seed)
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
 	w.find = make(chan FindClientRequest)
@@ -38,12 +40,11 @@ func NewWorld(seed float64) *World {
 	w.Join = make(chan *Client)
 	w.Leave = make(chan *Client)
 	w.Broadcast = make(chan Message, 10)
-	w.StateUpdate = make(chan *PlayerState, 10000000)
 
 	return w
 }
 
-func (w *World) RequestChunk(cc ChunkCoords) Chunk {
+func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	w.chunkLock.Lock()
 	defer w.chunkLock.Unlock()
 
@@ -56,7 +57,20 @@ func (w *World) RequestChunk(cc ChunkCoords) Chunk {
 	return chunk
 }
 
-func (w *World) ChangeBlock(wc WorldCoords, newBlock Block) {
+func (w *World) Block(wc coords.World) mapgen.Block {
+	w.chunkLock.Lock()
+	defer w.chunkLock.Unlock()
+
+	cc := wc.Chunk()
+	oc := wc.Offset()
+	chunk := w.chunks[cc]
+	if chunk == nil {
+		return mapgen.BLOCK_NIL
+	}
+	return chunk.Block(oc)
+}
+
+func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 	chunk := w.RequestChunk(wc.Chunk())
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
@@ -69,6 +83,14 @@ func (w *World) FindClient(name string) *Client {
 	w.find <- req
 
 	return <-req.resp
+}
+
+func (w *World) announce(message string) {
+	log.Println("[ANNOUNCE]", message)
+	w.broadcast(&MsgChat{
+		DisplayName: "SERVER",
+		Message: message,
+	})
 }
 
 func (w *World) broadcast(m Message) {
@@ -95,22 +117,23 @@ func (w *World) join(c *Client) {
 		c.Broadcast <- m
 	}
 
-	p := NewPlayer(c.name, WorldCoords{0.0, 0.0, 0.0})
+	p := NewPlayer(w, c.name)
 	w.players = append(w.players, p)
 	w.clients = append(w.clients, c)
-	log.Println("New player connected! Name: ", p.Name)
+	w.announce(c.name + " has joined the game!")
 }
 
 func (w *World) leave(c *Client) {
 	i := w.findClient(c.name)
 
+	// Remove the client and player from our lists.
 	w.clients[i] = w.clients[len(w.clients)-1]
 	w.clients = w.clients[0:len(w.clients)-1]
 
 	w.players[i] = w.players[len(w.players)-1]
 	w.players = w.players[0:len(w.players)-1]
 
-	log.Println("Client disconnected...", c.name)
+	w.announce(c.name + " has left the game :(")
 
 	m := &MsgEntityRemove{
 		ID: c.name,
@@ -127,12 +150,41 @@ func (w *World) findClient(name string) int {
 	return -1
 }
 
-func (w *World) simulateStep(now time.Time) {
-// 	println(now)
+func (w *World) simulateStep() {
+	for i, p := range w.players {
+		client := w.clients[i]
+
+		var controls *ControlState
+		select {
+		case controls = <-client.ControlState:
+		default: continue
+		}
+
+		playerStateMsg, debugRayMsg := p.simulateStep(controls)
+
+		if playerStateMsg != nil {
+			select {
+			case client.StateUpdates <- playerStateMsg:
+			default:
+			}
+		}
+		if debugRayMsg != nil {
+			select {
+			case client.Broadcast <- debugRayMsg:
+			default:
+			}
+		}
+
+		m := &MsgEntityPosition{
+			Pos: p.pos,
+			ID: client.name,
+		}
+		w.broadcast(m)
+	}
 }
 
 func (w *World) Run() {
-	updateTicker := time.Tick(time.Second / 20)
+	updateTicker := time.Tick(time.Second / 60)
 	for {
 		select {
 		case p := <-w.Join:
@@ -144,8 +196,8 @@ func (w *World) Run() {
 		case req := <-w.find:
 			i := w.findClient(req.name)
 			req.resp <- w.clients[i]
-		case now := <- updateTicker:
-			w.simulateStep(now)
+		case <-updateTicker:
+			w.simulateStep()
 		}
 	}
 }

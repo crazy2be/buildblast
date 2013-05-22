@@ -14,17 +14,22 @@ window.onload = function () {
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
+        world.resize();
 
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
 
-        container.querySelector('.loader').innerHTML = "";
-        container.appendChild(renderer.domElement);
+        container.querySelector('#opengl').appendChild(renderer.domElement);
+        document.querySelector('#splash h1').innerHTML = 'Click to play!';
 
-        var stats = new Stats();
-        stats.domElement.style.position = 'absolute';
-        stats.domElement.style.top = '0px';
-        container.appendChild(stats.domElement);
+        var speed = new PerfChart({
+            title: ' render',
+            maxValue: 50,
+        });
+        speed.elm.style.position = 'absolute';
+        speed.elm.style.top = '74px';
+        speed.elm.style.right = '0px';
+        container.appendChild(speed.elm);
 
         window.addEventListener('resize', onWindowResize, false);
 
@@ -36,12 +41,13 @@ window.onload = function () {
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-
             var dt = clock.getDelta();
             world.update(dt);
             world.render(renderer, scene);
-            stats.update();
+            speed.addDataPoint(dt*1000);
+
+            if (fatalErrorTriggered) return;
+            requestAnimationFrame(animate);
         }
     }
 };
@@ -54,9 +60,13 @@ window.onerror = function (msg, url, lineno) {
     });
 };
 
+var fatalErrorTriggered = false;
 function fatalError(err) {
-    var st = document.getElementById("connection-status");
-    st.innerHTML = ["<tr><td>",
+    var container = document.getElementById('container');
+    container.classList.add('error');
+
+    var elm = splash.querySelector('.contents');
+    html = [
         "<h1>Fatal Error!</h1>",
         "<p>",
             err.filename || err.fileName,
@@ -68,7 +78,16 @@ function fatalError(err) {
             err.message,
         "</p>",
         "<p>Press F5 to attempt a rejoin</p>",
-        "</td></tr>"].join("\n");
+    ].join("\n");
+    elm.innerHTML = html;
+
+    exitPointerLock();
+    fatalErrorTriggered = true;
+    function exitPointerLock() {
+        (document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock).call(document)
+    }
 }
 
 var sin = Math.sin;

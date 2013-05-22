@@ -89,7 +89,7 @@ function ChunkGeometry(cc, blocks, manager) {
             position: {
                 itemSize: 3,
                 array: vertsa,
-                numItems: verts.length * 3,
+                numItems: verts.length,
             },
             index: {
                 itemSize: 1,
@@ -115,12 +115,7 @@ function ChunkGeometry(cc, blocks, manager) {
         };
     }
 
-    function t(bl) {
-        // Transparent
-        return bl === 0x1;
-    }
-
-    function b(ox, oy, oz) {
+    function blockTypeAt(ox, oy, oz) {
         if (ox < 0) {
             return nxc ? nxc.block(cw - 1, oy, oz) : null;
         } else if (ox >= cw) {
@@ -138,21 +133,54 @@ function ChunkGeometry(cc, blocks, manager) {
         }
     }
 
+    function mostCommonBlock(ox, oy, oz, r) {
+        var count = {};
+        for (var x = ox; x < ox + r; x++) {
+            for (var y = oy; y < oy + r; y++) {
+                for (var z = oz; z < oz + r; z++) {
+                    var tempBlock = blockTypeAt(x, y, z);
+                    if (!(tempBlock in count)) {
+                        count[tempBlock] = 1;
+                    } else {
+                        count[tempBlock]++;
+                    }
+                }
+            }
+        }
+        var maxBlock = -1;
+        var maxValue = -1;
+        for (var key in count) {
+            if (count[key] > maxValue && !Block.isEmpty(parseInt(key))) {
+                maxBlock = key;
+                maxValue = count[key];
+            }
+        }
+        return parseInt(maxBlock);
+    }
+
     function addBlockGeometry(verts, index, color, ox, oy, oz, quality) {
         var r = 1 / quality;
         var noise = [];
-        if (transparent(ox, oy, oz)) return;
+        if (empty(ox, oy, oz)) return;
 
-        var px = transparent(ox + r, oy, oz);
-        var nx = transparent(ox - r, oy, oz);
-        var py = transparent(ox, oy + r, oz);
-        var ny = transparent(ox, oy - r, oz);
-        var pz = transparent(ox, oy, oz + r);
-        var nz = transparent(ox, oy, oz - r);
+        var px = empty(ox + r, oy, oz);
+        var nx = empty(ox - r, oy, oz);
+        var py = empty(ox, oy + r, oz);
+        var ny = empty(ox, oy - r, oz);
+        var pz = empty(ox, oy, oz + r);
+        var nz = empty(ox, oy, oz - r);
 
         var wx = ox + cx*cw;
         var wy = oy + cy*ch;
         var wz = oz + cz*cd;
+
+        var blockType;
+        if (r === 1) {
+            blockType = blockTypeAt(ox, oy, oz);
+        } else {
+            blockType = mostCommonBlock(ox, oy, oz, r);
+        }
+        if (blockType < 0) return;
 
         if (px) {
             v(wx + r, wy    , wz    );
@@ -160,7 +188,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz + r);
             v(wx + r, wy    , wz + r);
             v(wx + r, wy + r/2, wz + r/2);
-            f(0);
+            f(0, blockType);
         }
         if (nx) {
             v(wx, wy    , wz + r);
@@ -168,7 +196,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx, wy + r, wz    );
             v(wx, wy    , wz    );
             v(wx, wy + r/2, wz + r/2);
-            f(1);
+            f(1, blockType);
         }
         if (py) {
             v(wx    , wy + r, wz + r);
@@ -176,7 +204,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz    );
             v(wx    , wy + r, wz    );
             v(wx + r/2, wy + r, wz + r/2);
-            f(2);
+            f(2, blockType);
         }
         if (ny) {
             v(wx    , wy, wz    );
@@ -184,7 +212,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy, wz + r);
             v(wx    , wy, wz + r);
             v(wx + r/2, wy, wz + r/2);
-            f(3);
+            f(3, blockType);
         }
         if (pz) {
             v(wx    , wy    , wz + r);
@@ -192,7 +220,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy + r, wz + r);
             v(wx    , wy + r, wz + r);
             v(wx + r/2, wy + r/2, wz + r);
-            f(4);
+            f(4, blockType);
         }
         if (nz) {
             v(wx    , wy + r, wz);
@@ -200,7 +228,7 @@ function ChunkGeometry(cc, blocks, manager) {
             v(wx + r, wy    , wz);
             v(wx    , wy    , wz);
             v(wx + r/2, wy + r/2, wz);
-            f(5);
+            f(5, blockType);
         }
         return;
         function mod(a, b) {
@@ -218,14 +246,10 @@ function ChunkGeometry(cc, blocks, manager) {
             function n(q) {
                 return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
             }
-            var add = 0.1;
             var val = n(8) + n(32);
             if (abs(r - 4) > 0.001) val += n(4);
             if (abs(r - 2) > 0.001) val += n(2);
-            if (inCenter(x, y, z)) {
-                add = 0.1;
-            }
-            return clamp(val/2 + 0.4, 0, 0.8) + add;
+            return clamp(val/2 + 0.5, 0.0, 1.0);
         }
 
         function v(x, y, z) {
@@ -233,7 +257,7 @@ function ChunkGeometry(cc, blocks, manager) {
             noise.push(noiseFunc(x, y, z));
         }
 
-        function f(mat, normal) {
+        function f(face, blockType) {
             var l = verts.length / 3;
             // Each face is made up of two triangles
             index.push(l-5, l-4, l-1);
@@ -241,29 +265,25 @@ function ChunkGeometry(cc, blocks, manager) {
             index.push(l-3, l-2, l-1);
             index.push(l-2, l-5, l-1);
 
-            // Dirt color from http://www.colourlovers.com/color/784800/dirt
-            var c = [120/255, 72/255, 0];
-            if (mat === 2) {
-                c = [0, 1, 0];
-            }
+            var c, c2;
+            var colours = Block.getColours(blockType, face);
+            c = colours.light;
+            c2 = colours.dark;
 
-            var r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
-            r = noise.shift();
-            color.push(c[0]*r, c[1]*r, c[2]*r);
+            for (var i = 0; i < 5; i++) {
+                var n = noise.shift();
+                var r = c.r*n + c2.r*(1 - n);
+                var g = c.g*n + c2.g*(1 - n);
+                var b = c.b*n + c2.b*(1 - n);
+                color.push(r/255, g/255, b/255);
+            }
         }
 
-        function anyTransparent(ox, oy, oz, w, h, d) {
+        function anyEmpty(ox, oy, oz, w, h, d) {
             for (var x = 0; x < w; x++) {
                 for (var y = 0; y < h; y++) {
                     for (var z = 0; z < d; z++) {
-                        if (t(b(ox + x, oy + y, oz + z))) {
+                        if (Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return true;
                         }
                     }
@@ -272,11 +292,11 @@ function ChunkGeometry(cc, blocks, manager) {
             return false;
         }
 
-        function allTransparent(ox, oy, oz, w, h, d) {
+        function allEmpty(ox, oy, oz, w, h, d) {
             for (var x = 0; x < r; x++) {
                 for (var y = 0; y < r; y++) {
                     for (var z = 0; z < r; z++) {
-                        if (!t(b(ox + x, oy + y, oz + z))) {
+                        if (!Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
                             return false;
                         }
                     }
@@ -285,19 +305,19 @@ function ChunkGeometry(cc, blocks, manager) {
             return true;
         }
 
-        function transparent(ox, oy, oz) {
+        function empty(ox, oy, oz) {
             if (r === 1) {
-                return t(b(ox, oy, oz));
+                return Block.isEmpty(blockTypeAt(ox, oy, oz));
             }
 
             if (ox < 0 || ox >= cw) {
-                return anyTransparent(ox, oy, oz, 1, r, r);
+                return anyEmpty(ox, oy, oz, 1, r, r);
             } else if (oy < 0 || oy >= ch) {
-                return anyTransparent(ox, oy, oz, r, 1, r);
+                return anyEmpty(ox, oy, oz, r, 1, r);
             } else if (oz < 0 || oz >= cd) {
-                return anyTransparent(ox, oy, oz, r, r, 1);
+                return anyEmpty(ox, oy, oz, r, r, 1);
             } else {
-                return allTransparent(ox, oy, oz, r, r, r);
+                return allEmpty(ox, oy, oz, r, r, r);
             }
         }
     }

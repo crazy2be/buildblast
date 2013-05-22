@@ -9,10 +9,15 @@ function World(scene, container) {
         scene.remove(mesh);
     }
 
-    var playerName = "player-" + Math.random();
+    var playerName = localStorage.playerName;
+    while (!playerName) {
+        playerName = prompt("Please enter your name.","Unknown");
+        localStorage.playerName = playerName;
+    }
     var conn = new Conn(getWSURI("main/" + playerName));
     var controls = new Controls(container);
     var player = new Player(playerName, self, conn, controls);
+    var chat = new Chat(controls, conn, container);
 
     var chunkManager = new ChunkManager(scene, player);
     var entityManager = new EntityManager(scene, conn);
@@ -21,26 +26,35 @@ function World(scene, container) {
     scene.add(ambientLight);
 
     conn.on('block', processBlock);
+    conn.on('debug-ray', processRay);
 
     function processBlock(payload) {
-        var wx = payload.x;
-        var wy = payload.y;
-        var wz = payload.z;
-        var type = payload.type;
+        var wx = payload.Pos.X;
+        var wy = payload.Pos.Y;
+        var wz = payload.Pos.Z;
+        var type = payload.Type;
         applyBlockChange(wx, wy, wz, type);
+    }
+
+    function processRay(payload) {
+        var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
+        self.addSmallCube(pos);
     }
 
     self.update = function (dt) {
         player.update(dt);
         chunkManager.update(dt);
+        chat.update(dt);
     }
 
     self.render = player.render;
     self.resize = player.resize;
 
+    var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
+    var smallCubeMat = new THREE.MeshNormalMaterial();
     self.addSmallCube = function (position) {
         if (!position) throw "Position required!";
-        var cube = new THREE.Mesh( new THREE.CubeGeometry(0.1, 0.1, 0.1), new THREE.MeshNormalMaterial() );
+        var cube = new THREE.Mesh( smallCube, smallCubeMat );
         cube.position = position;
         scene.add(cube);
     }
@@ -67,7 +81,7 @@ function World(scene, container) {
             return false;
         }
         var block = chunk.block(oc);
-        if (block.isType(Block.AIR)) {
+        if (block.empty()) {
             // Try and find ground below
             while (true) {
                 oc.y--;
@@ -80,11 +94,11 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.isType(Block.DIRT)) {
+                if (block && block.solid()) {
                     return oc.y + cc.y * CHUNK_HEIGHT + 1;
                 }
             }
-        } else if (block.isType(Block.DIRT)) {
+        } else if (block.solid()) {
             // Try and find air above
             while (true) {
                 oc.y++;
@@ -97,29 +111,29 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.isType(Block.AIR)) {
+                if (block && block.empty()) {
                     return oc.y + cc.y * CHUNK_HEIGHT;
                 }
             }
         } else {
-            throw "findClosestGround only knows how to deal with ground and air blocks. Got " + block.getType();
+            throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
     }
 
+    var projector = new THREE.Projector();
     function findIntersection(camera, cb, precision, maxDist) {
         var precision = precision || 0.01;
         var maxDist = maxDist || 100;
-        var look = new THREE.Vector3(0, 0, 0);
-        var projector = new THREE.Projector();
+        var look = new THREE.Vector3(0, 0, 1);
+        // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
         projector.unprojectVector(look, camera);
 
-        look.sub(camera.position).setLength(precision);
+        var pos = camera.position;
+        look.sub(pos).setLength(precision);
 
-        var point = camera.position.clone();
-        var dist = 0;
-        while (dist < maxDist) {
+        var point = pos.clone();
+        for (var dist = 0; dist < maxDist; dist += precision) {
             point.add(look);
-            dist = camera.position.distanceTo(point);
             var collision = cb(point.x, point.y, point.z);
             if (collision) {
                 return {
@@ -191,37 +205,37 @@ function World(scene, container) {
     }
 
     self.removeLookedAtBlock = function (camera) {
-        function dirt(x, y, z) {
+        function mineable(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.DIRT);
+            if (block) return block.mineable();
             else return false;
         }
         function removeBlock(wx, wy, wz) {
             changeBlock(wx, wy, wz, Block.AIR);
         }
-        doLookedAtBlockAction(camera, dirt, removeBlock);
+        doLookedAtBlockAction(camera, mineable, removeBlock);
     }
 
-    self.addLookedAtBlock = function (camera) {
-        function air(x, y, z) {
+    self.addLookedAtBlock = function (camera, blockType) {
+        function empty(x, y, z) {
             var block = self.blockAt(x, y, z);
-            if (block) return block.isType(Block.AIR);
+            if (block) return block.empty();
             else return false;
         }
         function addBlock(wx, wy, wz) {
-            changeBlock(wx, wy, wz, Block.DIRT);
+            changeBlock(wx, wy, wz, blockType);
         }
-        doLookedAtBlockAction(camera, air, addBlock);
+        doLookedAtBlockAction(camera, empty, addBlock);
     }
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
-            pos: {
-                x: wx,
-                y: wy,
-                z: wz,
+            Pos: {
+                X: wx,
+                Y: wy,
+                Z: wz,
             },
-            type: newType,
+            Type: newType,
         });
         applyBlockChange(wx, wy, wz, newType);
     }
