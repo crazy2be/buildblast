@@ -150,6 +150,10 @@ func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRa
 	if !controls.ActivateBlaster {
 		return nil
 	}
+	// They were holding it down last frame
+	if p.controls.ActivateBlaster {
+		return nil
+	}
 
 	// Compile a list of player bounding boxes, based on this shooters time
 	var players []*physics.Box

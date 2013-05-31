@@ -3,19 +3,30 @@ function BuildInventory(world, camera) {
     {
         name: 'shovel',
         model: Models.shovel(),
-        action: shovelAction,
+        action: throttle(shovelAction),
     },
     {
         name: 'block',
         model: Models.block(),
-        action: blockAction,
+        action: throttle(blockAction),
     },
     {
         name: 'stone',
         model: Models.stone(),
-        action: stoneAction,
+        action: throttle(stoneAction),
     }
     ];
+
+    function throttle(func) {
+        t = Date.now();
+        return function () {
+            t2 = Date.now();
+            if (t2 - t > 200) {
+                func();
+                t = t2;
+            }
+        }
+    }
 
     function shovelAction() {
         world.removeLookedAtBlock(camera);
