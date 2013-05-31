@@ -150,6 +150,10 @@ func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRa
 	if !controls.ActivateBlaster {
 		return nil
 	}
+	// They were holding it down last frame
+	if p.controls.ActivateBlaster {
+		return nil
+	}
 
 	// Compile a list of player bounding boxes, based on this shooters time
 	var players []*physics.Box
@@ -201,4 +205,5 @@ func (p *Player) Hurt(dmg int, name string) {
 func (p *Player) Respawn() {
 	p.pos = p.world.generator.Spawn()
 	p.hp = PLAYER_MAX_HP
+	p.history.Clear()
 }

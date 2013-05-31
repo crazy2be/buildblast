@@ -22,10 +22,29 @@ func NewPlayerHistory() *PlayerHistory {
 }
 
 func (ph *PlayerHistory) Add(t float64, pos coords.World) {
+	ph.offset--
+	if ph.offset < 0 {
+		ph.offset = len(ph.buf) - 1
+	}
 	ph.buf[ph.offset] = PlayerHistoryEntry{pos, t}
-	ph.offset++
-	if ph.offset >= len(ph.buf) {
-		ph.offset = 0
+}
+
+func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
+	l := len(ph.buf)
+	// Go has the same problem as JavaScript...
+	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
+	return ph.buf[(((ph.offset + i) % l) + l) % l]
+}
+
+func (ph *PlayerHistory) set(i int, val PlayerHistoryEntry) {
+	l := len(ph.buf)
+	ph.buf[(((ph.offset + i) % l) + l) % l] = val
+}
+
+func (ph *PlayerHistory) Clear() {
+	l := len(ph.buf)
+	for i := 0; i < l; i++ {
+		ph.set(i, PlayerHistoryEntry{})
 	}
 }
 
@@ -38,21 +57,21 @@ func (ph *PlayerHistory) Add(t float64, pos coords.World) {
 func (ph *PlayerHistory) PositionAt(t float64) coords.World {
 	l := len(ph.buf)
 
-	newest := ph.buf[((ph.offset - 1) + l) % l]
+	newest := ph.at(0)
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
 		return newest.pos
 	}
 
-	oldest := ph.buf[(ph.offset + l) % l]
+	oldest := ph.at(-1)
 	if oldest.t >= t {
 		return oldest.pos
 	}
 
-	var older PlayerHistoryEntry
-	var newer PlayerHistoryEntry
+	older := newest
+	newer := newest
 	for i := 1; i <= l; i++ {
-		older = ph.buf[((ph.offset - i) + l) % l]
+		older = ph.at(i)
 		if older.t <= t {
 			break
 		}
