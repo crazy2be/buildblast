@@ -201,4 +201,5 @@ func (p *Player) Hurt(dmg int, name string) {
 func (p *Player) Respawn() {
 	p.pos = p.world.generator.Spawn()
 	p.hp = PLAYER_MAX_HP
+	p.history.Clear()
 }
