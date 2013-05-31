@@ -105,6 +105,20 @@ func (w *World) broadcast(m Message) {
 }
 
 func (w *World) join(c *Client) {
+	for _, otherClient := range w.clients {
+		if otherClient.name == c.name {
+			m := &MsgChat{
+				DisplayName: "SERVER",
+				Message: "Player with name " + c.name + " already playing on this server.",
+			}
+			select {
+			case c.Broadcast <- m:
+			default:
+			}
+			return
+		}
+	}
+
 	m := &MsgEntityCreate{
 		ID: c.name,
 	}
