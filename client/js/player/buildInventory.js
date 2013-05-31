@@ -18,9 +18,9 @@ function BuildInventory(world, camera) {
     ];
 
     function throttle(func) {
-        t = Date.now();
+        var t = Date.now();
         return function () {
-            t2 = Date.now();
+            var t2 = Date.now();
             if (t2 - t > 200) {
                 func();
                 t = t2;
