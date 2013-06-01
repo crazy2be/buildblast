@@ -47,6 +47,7 @@ function Player(name, world, conn, controls) {
 
         var p = prediction.update(c);
         camera.position.set(p.x, p.y, p.z);
+        controls.update(dt);
 
         doLook(camera, camera.position, c);
         buildInventory.update(p, c);

@@ -16,7 +16,12 @@ window.onload = function () {
         var world = new World(scene, container);
         world.resize();
 
-        var renderer = new THREE.WebGLRenderer();
+        var renderParams = {};
+        if ('createTouch' in document) {
+            renderParams.precision = 'mediump';
+        }
+
+        var renderer = new THREE.WebGLRenderer(renderParams);
         renderer.setSize(window.innerWidth, window.innerHeight);
 
         container.querySelector('#opengl').appendChild(renderer.domElement);
@@ -92,6 +97,7 @@ function fatalError(err) {
 
 var sin = Math.sin;
 var cos = Math.cos;
+var atan2 = Math.atan2;
 var abs = Math.abs;
 var min = Math.min;
 var max = Math.max;

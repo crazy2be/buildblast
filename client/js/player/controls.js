@@ -253,9 +253,7 @@ function Controls(elm) {
 
     var $canvas = $("#touchLayer");
     var pen = $canvas[0].getContext('2d');
-    var halfWidth = $canvas.width() / 2;
-    var touchStartTime;
-    alert($canvas.width());
+    var halfWidth = 0;
 
     // Variables for tracking finger locations
     var leftTouchID = -1,
@@ -272,14 +270,18 @@ function Controls(elm) {
         elm.addEventListener('touchmove', onTouchMove, false);
         elm.addEventListener('touchend', onTouchEnd, false);
 
+        elm.classList.add('interactive');
+
         window.onorientationchange = function() {
-            $canvas.width(window.innerWidth);
-            $canvas.height(window.innerHeight);
-            var halfWidth = $canvas.width() / 2;
+            $canvas.attr("width", window.innerWidth + "px");
+            $canvas.attr("height", window.innerHeight + "px");
+            halfWidth = $canvas.width() / 2;
         };
+        window.onorientationchange();
     }
 
     function onTouchStart(e) {
+        e.preventDefault();
         touchStartTime = Date.now();
         for (var i = 0; i < e.changedTouches.length; i++) {
             var touch = e.changedTouches[i];
@@ -317,9 +319,6 @@ function Controls(elm) {
     }
 
     function onTouchEnd(e) {
-        if (Date.now() - touchStartTime < 250) {
-            // TODO
-        }
         touches = e.touches;
         for (var i = 0; i < e.changedTouches.length; i++) {
             var touch = e.changedTouches[i];
@@ -332,6 +331,60 @@ function Controls(elm) {
             }
         }
     }
+
+    self.update = function(dt) {
+        function clamp(n, a, b) {
+            return max(a, min(b, n));
+        }
+
+        var maxRange = 50;
+        var lookSpeedX = 0.05 * max(rightVector[0], maxRange) / maxRange;
+        var lookSpeedY = 0.05 * max(rightVector[1], maxRange) / maxRange;
+
+        var lon = 0;
+        var lat = 0;
+
+        if (abs(rightVector[0]) > 10) {
+            if (rightVector[0] < 0) {
+                lon = max(rightVector[0], -maxRange);
+            } else {
+                lon = min(rightVector[0], maxRange);
+            }
+        }
+
+        if (abs(rightVector[1]) > 10) {
+            if (rightVector[1] < 0) {
+                lat = max(rightVector[1], -maxRange);
+            } else {
+                lat = min(rightVector[1], maxRange);
+            }
+        }
+
+        actions.lon += lon * dt * lookSpeedX;
+        actions.lon %= 2 * Math.PI;
+        actions.lat -= lat * dt * lookSpeedY;
+        actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
+
+        // Movement
+        if (sqrt(pow(leftVector[0], 2) + pow(leftVector[1], 2)) > 10) {
+            var angle = atan2(leftVector[1], leftVector[0]) * 180 / Math.PI;
+            angle = (angle + 360) % 360;
+            var W = 360 - 22.5 >= angle && angle >= 180 + 22.5;
+            var A = 270 - 22.5 >= angle && angle >= 90 + 22.5;
+            var S = 180 - 22.5 >= angle && angle >= 22.5;
+            var D = 90 - 22.5 >= angle || angle >= 270 + 22.5;
+
+            if (W) actionStart(Keys.W); else actionEnd(Keys.W);
+            if (A) actionStart(Keys.A); else actionEnd(Keys.A);
+            if (S) actionStart(Keys.S); else actionEnd(Keys.S);
+            if (D) actionStart(Keys.D); else actionEnd(Keys.D);
+        } else {
+            actionEnd(Keys.W);
+            actionEnd(Keys.A);
+            actionEnd(Keys.S);
+            actionEnd(Keys.D);
+        }
+    };
 
     self.render = function() {
         if(!touchable) {
@@ -353,23 +406,21 @@ function Controls(elm) {
                     touchPos = rightTouchPos;
                 }
                 pen.beginPath();
-                pen.strokeStyle = "cyan";
+                pen.strokeStyle = "#000080";
                 pen.lineWidth = 3;
-                pen.arc(startPos[0], startPos[1], 20, 0, Math.PI * 2, true);
-                pen.stroke();
-                pen.beginPath();
-                pen.strokeStyle = "cyan";
-                pen.lineWidth = 1;
-                pen.arc(startPos[0], startPos[1], 10, 0, Math.PI * 2, true);
-                pen.stroke();
-                pen.beginPath();
-                pen.strokeStyle = "cyan";
-                pen.arc(touchPos[0], touchPos[1], 20, 0,Math.PI*2, true);
+                pen.arc(startPos[0], startPos[1], 30, 0, Math.PI * 2, true);
                 pen.stroke();
 
                 pen.beginPath();
-                pen.fillStyle = "white";
-                pen.fillText("touch id : "+touch.identifier+" x:"+touch.clientX+" y:"+touch.clientY, touch.clientX+30, touch.clientY-30);
+                pen.strokeStyle = "#000080";
+                pen.lineWidth = 1;
+                pen.arc(startPos[0], startPos[1], 20, 0, Math.PI * 2, true);
+                pen.stroke();
+
+                pen.beginPath();
+                pen.strokeStyle = "#000080";
+                pen.arc(touchPos[0], touchPos[1], 25, 0, Math.PI*2, true);
+                pen.stroke();
             }
         }
     }

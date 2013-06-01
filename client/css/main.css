@@ -32,7 +32,6 @@ a {
 	overflow: hidden;
 }
 #container,
-#container #touchLayer,
 #container #hud,
 #container #splash,
 #container #opengl {
@@ -46,6 +45,14 @@ a {
 }
 #hud {
 	z-index: 1;
+}
+
+#touchLayer {
+	pointer-events: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	z-index: 100;
 }
 
 #oldie {
