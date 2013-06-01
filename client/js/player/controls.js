@@ -161,16 +161,41 @@ function Controls(elm) {
         actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
     }
 
-    onPointerLock(pointerLockChange);
+    // is this running in a touch capable environment?
+    var touchable = 'createTouch' in document;
+
+    // array of touch vectors
+    var touches = [];
+
+    var $canvas = $("#touchLayer");
+    var pen = $canvas[0].getContext('2d');
+    var halfWidth = 0;
 
     elm.tabIndex = "-1";
     elm.addEventListener('contextmenu', function (event) {
         event.preventDefault();
     }, false);
-    elm.addEventListener('mousedown', mouseDown, false);
-    elm.addEventListener('mouseup', mouseUp, false);
-    elm.addEventListener('keydown', keyDown, false);
-    elm.addEventListener('keyup', keyUp, false);
+
+    if (touchable) {
+        elm.addEventListener('touchstart', onTouchStart, false);
+        elm.addEventListener('touchmove', onTouchMove, false);
+        elm.addEventListener('touchend', onTouchEnd, false);
+
+        elm.classList.add('interactive');
+
+        window.onorientationchange = function() {
+            $canvas.attr("width", window.innerWidth + "px");
+            $canvas.attr("height", window.innerHeight + "px");
+            halfWidth = $canvas.width() / 2;
+        };
+        window.onorientationchange();
+    } else {
+        onPointerLock(pointerLockChange);
+        elm.addEventListener('mousedown', mouseDown, false);
+        elm.addEventListener('mouseup', mouseUp, false);
+        elm.addEventListener('keydown', keyDown, false);
+        elm.addEventListener('keyup', keyUp, false);
+    }
 
     function attemptPointerLock() {
         if (pointerLocked()) return;
@@ -246,15 +271,6 @@ function Controls(elm) {
 
     /** Touch control interface */
 
-    // is this running in a touch capable environment?
-    var touchable = 'createTouch' in document;
-    // array of touch vectors
-    var touches = [];
-
-    var $canvas = $("#touchLayer");
-    var pen = $canvas[0].getContext('2d');
-    var halfWidth = 0;
-
     // Variables for tracking finger locations
     var leftTouchID = -1,
         leftTouchPos = [0, 0],
@@ -264,21 +280,6 @@ function Controls(elm) {
         rightTouchPos = [0, 0],
         rightTouchStartPos = [0, 0],
         rightVector = [0, 0];
-
-    if (touchable) {
-        elm.addEventListener('touchstart', onTouchStart, false);
-        elm.addEventListener('touchmove', onTouchMove, false);
-        elm.addEventListener('touchend', onTouchEnd, false);
-
-        elm.classList.add('interactive');
-
-        window.onorientationchange = function() {
-            $canvas.attr("width", window.innerWidth + "px");
-            $canvas.attr("height", window.innerHeight + "px");
-            halfWidth = $canvas.width() / 2;
-        };
-        window.onorientationchange();
-    }
 
     function onTouchStart(e) {
         e.preventDefault();
@@ -423,5 +424,5 @@ function Controls(elm) {
                 pen.stroke();
             }
         }
-    }
+    };
 };
