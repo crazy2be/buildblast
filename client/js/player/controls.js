@@ -243,4 +243,134 @@ function Controls(elm) {
         }
         return newO;
     }
+
+    /** Touch control interface */
+
+    // is this running in a touch capable environment?
+    var touchable = 'createTouch' in document;
+    // array of touch vectors
+    var touches = [];
+
+    var $canvas = $("#touchLayer");
+    var pen = $canvas[0].getContext('2d');
+    var halfWidth = $canvas.width() / 2;
+    var touchStartTime;
+    alert($canvas.width());
+
+    // Variables for tracking finger locations
+    var leftTouchID = -1,
+        leftTouchPos = [0, 0],
+        leftTouchStartPos = [0, 0],
+        leftVector = [0, 0],
+        rightTouchID = -1,
+        rightTouchPos = [0, 0],
+        rightTouchStartPos = [0, 0],
+        rightVector = [0, 0];
+
+    if (touchable) {
+        elm.addEventListener('touchstart', onTouchStart, false);
+        elm.addEventListener('touchmove', onTouchMove, false);
+        elm.addEventListener('touchend', onTouchEnd, false);
+
+        window.onorientationchange = function() {
+            $canvas.width(window.innerWidth);
+            $canvas.height(window.innerHeight);
+            var halfWidth = $canvas.width() / 2;
+        };
+    }
+
+    function onTouchStart(e) {
+        touchStartTime = Date.now();
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            var touch = e.changedTouches[i];
+            if ((leftTouchID < 0) && (touch.pageX < halfWidth)) {
+                leftTouchID = touch.identifier;
+                leftTouchStartPos = [touch.pageX, touch.pageY];
+                leftTouchPos = [touch.pageX, touch.pageY];
+                leftVector = [0, 0];
+            } else if ((rightTouchID < 0) && (touch.pageX >= halfWidth)) {
+                rightTouchID = touch.identifier;
+                rightTouchStartPos = [touch.pageX, touch.pageY];
+                rightTouchPos = [touch.pageX, touch.pageY];
+                rightVector = [0, 0];
+            }
+        }
+        touches = e.touches;
+    }
+
+    function onTouchMove(e) {
+       // Prevent the browser from doing its default thing (scroll, zoom)
+       e.preventDefault();
+       for (var i = 0; i < e.changedTouches.length; i++) {
+           var touch = e.changedTouches[i];
+           if (leftTouchID == touch.identifier) {
+               leftTouchPos = [touch.pageX, touch.pageY];
+               leftVector = [touch.pageX - leftTouchStartPos[0],
+                             touch.pageY - leftTouchStartPos[1]];
+           } else if (rightTouchID == touch.identifier) {
+               rightTouchPos = [touch.pageX, touch.pageY];
+               rightVector = [touch.pageX - rightTouchStartPos[0],
+                             touch.pageY - rightTouchStartPos[1]];
+           }
+       }
+       touches = e.touches;
+    }
+
+    function onTouchEnd(e) {
+        if (Date.now() - touchStartTime < 250) {
+            // TODO
+        }
+        touches = e.touches;
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            var touch = e.changedTouches[i];
+            if (leftTouchID == touch.identifier) {
+                leftTouchID = -1;
+                leftVector = [0, 0];
+            } else if (rightTouchID == touch.identifier) {
+                rightTouchID = -1;
+                rightVector = [0, 0];
+            }
+        }
+    }
+
+    self.render = function() {
+        if(!touchable) {
+            return;
+        }
+        pen.clearRect(0, 0, $canvas.width(), $canvas.height());
+
+        for (var i = 0; i < touches.length; i++) {
+            var touch = touches[i];
+
+            if (touch.identifier == leftTouchID || touch.identifier == rightTouchID) {
+                var startPos;
+                var touchPos;
+                if (touch.identifier == leftTouchID) {
+                    startPos = leftTouchStartPos;
+                    touchPos = leftTouchPos;
+                } else {
+                    startPos = rightTouchStartPos;
+                    touchPos = rightTouchPos;
+                }
+                pen.beginPath();
+                pen.strokeStyle = "cyan";
+                pen.lineWidth = 3;
+                pen.arc(startPos[0], startPos[1], 20, 0, Math.PI * 2, true);
+                pen.stroke();
+                pen.beginPath();
+                pen.strokeStyle = "cyan";
+                pen.lineWidth = 1;
+                pen.arc(startPos[0], startPos[1], 10, 0, Math.PI * 2, true);
+                pen.stroke();
+                pen.beginPath();
+                pen.strokeStyle = "cyan";
+                pen.arc(touchPos[0], touchPos[1], 20, 0,Math.PI*2, true);
+                pen.stroke();
+
+                pen.beginPath();
+                pen.fillStyle = "white";
+                pen.fillText("touch id : "+touch.identifier+" x:"+touch.clientX+" y:"+touch.clientY, touch.clientX+30, touch.clientY-30);
+            }
+        }
+    }
 };

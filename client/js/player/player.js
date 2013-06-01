@@ -39,6 +39,7 @@ function Player(name, world, conn, controls) {
 
     self.render = function (renderer, scene) {
         renderer.render(scene, camera);
+        controls.render();
     };
 
     self.update = function (dt) {
