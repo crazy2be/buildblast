@@ -46,28 +46,32 @@ func NewWorld(seed float64) *World {
 
 func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	w.chunkLock.Lock()
-	defer w.chunkLock.Unlock()
-
 	chunk := w.chunks[cc]
+	w.chunkLock.Unlock()
+
 	if chunk == nil {
 		chunk = w.generator.Chunk(cc)
+
+		w.chunkLock.Lock()
 		w.chunks[cc] = chunk
+		w.chunkLock.Unlock()
 	}
 
 	return chunk
 }
 
 func (w *World) Block(wc coords.World) mapgen.Block {
-	w.chunkLock.Lock()
-	defer w.chunkLock.Unlock()
-
 	cc := wc.Chunk()
-	oc := wc.Offset()
+
+	w.chunkLock.Lock()
 	chunk := w.chunks[cc]
+	w.chunkLock.Unlock()
+
 	if chunk == nil {
 		return mapgen.BLOCK_NIL
 	}
-	return chunk.Block(oc)
+
+	return chunk.Block(wc.Offset())
 }
 
 func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
