@@ -95,40 +95,35 @@ func (w *World) announce(message string) {
 
 func (w *World) broadcast(m Message) {
 	for _, c := range w.clients {
-		select {
-		case c.Broadcast <- m:
-		default:
-			log.Println("Cannot send broadcast message", m, "to player", c.name)
-			// TODO: Kick player if not responding?
-		}
+		c.Send(m)
+	}
+}
+
+func (w *World) broadcastLossy(m Message) {
+	for _, c := range w.clients {
+		c.SendLossy(m)
 	}
 }
 
 func (w *World) join(c *Client) {
 	for _, otherClient := range w.clients {
 		if otherClient.name == c.name {
-			m := &MsgChat{
+			c.Send(&MsgChat{
 				DisplayName: "SERVER",
 				Message: "Player with name " + c.name + " already playing on this server.",
-			}
-			select {
-			case c.Broadcast <- m:
-			default:
-			}
+			})
 			return
 		}
 	}
 
-	m := &MsgEntityCreate{
+	w.broadcast(&MsgEntityCreate{
 		ID: c.name,
-	}
-	w.broadcast(m)
+	})
 
 	for _, otherClient := range w.clients {
-		m := &MsgEntityCreate{
+		c.Send(&MsgEntityCreate{
 			ID: otherClient.name,
-		}
-		c.Broadcast <- m
+		})
 	}
 
 	p := NewPlayer(w, c.name)
@@ -177,23 +172,17 @@ func (w *World) simulateStep() {
 		playerStateMsg, debugRayMsg := p.simulateStep(controls)
 
 		if playerStateMsg != nil {
-			select {
-			case client.StateUpdates <- playerStateMsg:
-			default:
-			}
+			client.Send(playerStateMsg)
 		}
 		if debugRayMsg != nil {
-			select {
-			case client.Broadcast <- debugRayMsg:
-			default:
-			}
+			client.Send(debugRayMsg)
 		}
 
 		m := &MsgEntityPosition{
 			Pos: p.pos,
 			ID: client.name,
 		}
-		w.broadcast(m)
+		w.broadcastLossy(m)
 	}
 }
 
