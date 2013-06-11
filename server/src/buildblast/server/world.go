@@ -206,20 +206,25 @@ func (w *World) simulateStep() {
 func (w *World) Run() {
 	updateTicker := time.Tick(time.Second / 60)
 	for {
-		select {
-		case p := <-w.Join:
-			w.join(p)
-		case p := <-w.Leave:
-			w.leave(p)
-		case m := <-w.Broadcast:
-			w.broadcast(m)
-		case req := <-w.find:
-			i := w.findClient(req.name)
-			req.resp <- w.clients[i]
-		case <-updateTicker:
-			w.simulateStep()
-		}
+		<-updateTicker
+		w.Tick()
 	}
+}
+
+func (w *World) Tick() {
+	select {
+	case p := <-w.Join:
+		w.join(p)
+	case p := <-w.Leave:
+		w.leave(p)
+	case m := <-w.Broadcast:
+		w.broadcast(m)
+	case req := <-w.find:
+		i := w.findClient(req.name)
+		req.resp <- w.clients[i]
+	default:
+	}
+	w.simulateStep()
 }
 
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
