@@ -98,12 +98,12 @@ func promptLoop(quit chan bool, state *liner.State) {
 			return
 		}
 		// Yeah... only for debugging health.
-		if cmd == "hurt" {
-			globalWorld.players[0].Hurt(10, "SERVER")
-		}
-		if cmd == "kill" {
-			globalWorld.players[0].Hurt(100, "SERVER")
-		}
+// 		if cmd == "hurt" {
+// 			globalWorld.players[0].Hurt(10, "SERVER")
+// 		}
+// 		if cmd == "kill" {
+// 			globalWorld.players[0].Hurt(100, "SERVER")
+// 		}
 	}
 }
 

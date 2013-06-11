@@ -5,17 +5,26 @@ import (
 	"time"
 	"sync"
 
+	"buildblast/physics"
 	"buildblast/mapgen"
 	"buildblast/coords"
 )
 
+type Entity interface {
+	Tick(w *World)
+	Damage(amount int, what string)
+	BoxAt(t float64) *physics.Box
+}
+
 type World struct {
 	seed        float64
 	chunks      map[coords.Chunk]mapgen.Chunk
-	generator   mapgen.ChunkSource
 	chunkLock   sync.Mutex
+	generator   mapgen.ChunkSource
+
 	clients     []*Client
 	players     []*Player
+	entities []Entity
 	find       chan FindClientRequest
 
 	Join       chan *Client
@@ -33,8 +42,10 @@ func NewWorld(seed float64) *World {
 	w.seed = seed;
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
 	w.generator = mapgen.NewMazeArena(seed)
+
 	w.clients = make([]*Client, 0)
 	w.players = make([]*Player, 0)
+	w.entities = make([]Entity, 0)
 	w.find = make(chan FindClientRequest)
 
 	w.Join = make(chan *Client)
@@ -148,10 +159,9 @@ func (w *World) leave(c *Client) {
 
 	w.announce(c.name + " has left the game :(")
 
-	m := &MsgEntityRemove{
+	w.broadcast(&MsgEntityRemove{
 		ID: c.name,
-	}
-	w.broadcast(m)
+	})
 }
 
 func (w *World) findClient(name string) int {
@@ -164,6 +174,9 @@ func (w *World) findClient(name string) int {
 }
 
 func (w *World) simulateStep() {
+	for _, e := range w.entities {
+		e.Tick(w)
+	}
 	for i, p := range w.players {
 		client := w.clients[i]
 
@@ -207,4 +220,21 @@ func (w *World) Run() {
 			w.simulateStep()
 		}
 	}
+}
+
+func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
+	boxes := make([]*physics.Box, len(w.entities))
+	for i, other := range w.entities {
+		if other == entity {
+			boxes[i] = nil
+		} else {
+			boxes[i] = other.BoxAt(t)
+		}
+	}
+
+	hitPos, hitIndex := ray.FindAnyIntersect(w, boxes)
+	if hitIndex != -1 {
+		return hitPos, w.entities[hitIndex]
+	}
+	return hitPos, nil
 }
