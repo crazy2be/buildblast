@@ -46,28 +46,32 @@ func NewWorld(seed float64) *World {
 
 func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	w.chunkLock.Lock()
-	defer w.chunkLock.Unlock()
-
 	chunk := w.chunks[cc]
+	w.chunkLock.Unlock()
+
 	if chunk == nil {
 		chunk = w.generator.Chunk(cc)
+
+		w.chunkLock.Lock()
 		w.chunks[cc] = chunk
+		w.chunkLock.Unlock()
 	}
 
 	return chunk
 }
 
 func (w *World) Block(wc coords.World) mapgen.Block {
-	w.chunkLock.Lock()
-	defer w.chunkLock.Unlock()
-
 	cc := wc.Chunk()
-	oc := wc.Offset()
+
+	w.chunkLock.Lock()
 	chunk := w.chunks[cc]
+	w.chunkLock.Unlock()
+
 	if chunk == nil {
 		return mapgen.BLOCK_NIL
 	}
-	return chunk.Block(oc)
+
+	return chunk.Block(wc.Offset())
 }
 
 func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
@@ -95,26 +99,35 @@ func (w *World) announce(message string) {
 
 func (w *World) broadcast(m Message) {
 	for _, c := range w.clients {
-		select {
-		case c.Broadcast <- m:
-		default:
-			log.Println("Cannot send broadcast message", m, "to player", c.name)
-			// TODO: Kick player if not responding?
-		}
+		c.Send(m)
+	}
+}
+
+func (w *World) broadcastLossy(m Message) {
+	for _, c := range w.clients {
+		c.SendLossy(m)
 	}
 }
 
 func (w *World) join(c *Client) {
-	m := &MsgEntityCreate{
-		ID: c.name,
+	for _, otherClient := range w.clients {
+		if otherClient.name == c.name {
+			c.Send(&MsgChat{
+				DisplayName: "SERVER",
+				Message: "Player with name " + c.name + " already playing on this server.",
+			})
+			return
+		}
 	}
-	w.broadcast(m)
+
+	w.broadcast(&MsgEntityCreate{
+		ID: c.name,
+	})
 
 	for _, otherClient := range w.clients {
-		m := &MsgEntityCreate{
+		c.Send(&MsgEntityCreate{
 			ID: otherClient.name,
-		}
-		c.Broadcast <- m
+		})
 	}
 
 	p := NewPlayer(w, c.name)
@@ -163,23 +176,17 @@ func (w *World) simulateStep() {
 		playerStateMsg, debugRayMsg := p.simulateStep(controls)
 
 		if playerStateMsg != nil {
-			select {
-			case client.StateUpdates <- playerStateMsg:
-			default:
-			}
+			client.Send(playerStateMsg)
 		}
 		if debugRayMsg != nil {
-			select {
-			case client.Broadcast <- debugRayMsg:
-			default:
-			}
+			client.Send(debugRayMsg)
 		}
 
 		m := &MsgEntityPosition{
 			Pos: p.pos,
 			ID: client.name,
 		}
-		w.broadcast(m)
+		w.broadcastLossy(m)
 	}
 }
 
