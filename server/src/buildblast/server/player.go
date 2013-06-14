@@ -40,6 +40,9 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100;
 
 type Player struct {
+	incoming chan *ControlState
+	outgoing chan *MsgPlayerState
+
 	pos       coords.World
 	look      coords.Vec3
 	vy        float64
@@ -55,6 +58,8 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
+		incoming: make(chan *ControlState, 10),
+		outgoing: make(chan *MsgPlayerState, 10),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
@@ -64,8 +69,24 @@ func NewPlayer(world *World, name string) *Player {
 	}
 }
 
+func (p *Player) Pos() coords.World {
+	return p.pos
+}
+
+func (p *Player) ID() string {
+	return "player-" + p.name
+}
+
 func (p *Player) Tick(w *World) {
-	log.Println("Player.Tick not implemented!")
+	var controls *ControlState
+	select {
+		case controls = <-p.incoming:
+		default: return
+	}
+
+	playerStateMsg, _ := p.simulateStep(controls)
+
+	p.outgoing <- playerStateMsg
 }
 
 func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {

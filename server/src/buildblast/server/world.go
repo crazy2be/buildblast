@@ -14,6 +14,8 @@ type Entity interface {
 	Tick(w *World)
 	Damage(amount int, what string)
 	BoxAt(t float64) *physics.Box
+	Pos() coords.World
+	ID() string
 }
 
 type World struct {
@@ -173,10 +175,21 @@ func (w *World) findClient(name string) int {
 	return -1
 }
 
-func (w *World) simulateStep() {
+func (w *World) AddEntity(e Entity) {
+	w.entities = append(w.entities, e)
+}
+
+func (w *World) simulateStep(g *Game) {
 	for _, e := range w.entities {
 		e.Tick(w)
+		g.BroadcastLossy(&MsgEntityPosition{
+			Pos: e.Pos(),
+			ID: e.ID(),
+		})
 	}
+	return
+
+
 	for i, p := range w.players {
 		client := w.clients[i]
 
@@ -207,11 +220,11 @@ func (w *World) Run() {
 	updateTicker := time.Tick(time.Second / 60)
 	for {
 		<-updateTicker
-		w.Tick()
+		w.Tick(globalGame)
 	}
 }
 
-func (w *World) Tick() {
+func (w *World) Tick(g *Game) {
 	select {
 	case p := <-w.Join:
 		w.join(p)
@@ -221,10 +234,14 @@ func (w *World) Tick() {
 		w.broadcast(m)
 	case req := <-w.find:
 		i := w.findClient(req.name)
-		req.resp <- w.clients[i]
+		if i == -1 {
+			log.Println("[WARNING] Could not find requested client", req.name)
+		} else {
+			req.resp <- w.clients[i]
+		}
 	default:
 	}
-	w.simulateStep()
+	w.simulateStep(g)
 }
 
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {

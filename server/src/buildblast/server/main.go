@@ -16,6 +16,7 @@ import (
 )
 
 var globalWorld = NewWorld(float64(time.Now().Unix()))
+var globalGame = NewGame(globalWorld)
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
@@ -33,12 +34,13 @@ func getClientName(config *websocket.Config) string {
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 	c := NewClient(globalWorld, name)
+	globalGame.Connect(c)
 	c.Run(NewConn(ws))
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	c := globalWorld.FindClient(name)
+	c := globalGame.findClientByName(name)
 	c.RunChunks(NewConn(ws))
 }
 
@@ -111,7 +113,7 @@ func main() {
 	setupPrompt()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	go globalWorld.Run()
+	go globalGame.Run()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))

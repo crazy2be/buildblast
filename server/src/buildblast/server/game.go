@@ -10,10 +10,11 @@ type Game struct {
 	world *World
 }
 
-func NewGame() *Game {
+func NewGame(w *World) *Game {
 	g := new(Game)
 	g.clients = make([]*Client, 0)
-	g.world = NewWorld(0)
+// 	g.world = NewWorld(0)
+	g.world = w
 	return g
 }
 
@@ -50,6 +51,15 @@ func (g *Game) BroadcastLossy(m Message) {
 	}
 }
 
+func (g *Game) findClientByName(name string) *Client {
+	for _, c := range g.clients {
+		if c.name == name {
+			return c
+		}
+	}
+	return nil
+}
+
 func (g *Game) findClient(c *Client) int {
 	for i, other := range g.clients {
 		if other == c {
@@ -68,8 +78,8 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
-// 	for _, c := range g.clients {
-// 		c.Tick(g)
-// 	}
+	for _, c := range g.clients {
+		c.Tick(g)
+	}
 	g.world.Tick(g)
 }
