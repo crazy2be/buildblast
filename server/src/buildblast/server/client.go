@@ -14,13 +14,14 @@ type Client struct {
 
 	name string
 
-	// Channel of messages queued by the world to be
-	// sent out to this client.
-	Broadcast chan Message
-	StateUpdates chan *MsgPlayerState
-	// Channel of player state updates, to be consumed by
-	// the world when simulating.
+	// Generic messages to be sent to client
+	sendQueue chan Message
+	sendLossyQueue chan Message
+
+	// Server-side simulation of players.
 	ControlState chan *ControlState
+
+	// Send the client the right chunks.
 	cm *ChunkManager
 }
 
@@ -29,8 +30,9 @@ func NewClient(world *World, name string) *Client {
 	c.world = world
 	c.name = name
 
-	c.Broadcast = make(chan Message, 10)
-	c.StateUpdates = make(chan *MsgPlayerState, 10)
+	c.sendQueue = make(chan Message, 20)
+	c.sendLossyQueue = make(chan Message, 5)
+
 	c.ControlState = make(chan *ControlState, 10)
 	c.cm = newChunkManager()
 
@@ -43,14 +45,12 @@ func (c *Client) Run(conn *Conn) {
 
 	for {
 		select {
-		case m := <-c.Broadcast:
-			if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
-				continue
-			}
+		case m := <-c.sendQueue:
 			c.conn.Send(m)
-		case m := <- c.StateUpdates:
+
+		case m := <-c.sendLossyQueue:
 			c.conn.Send(m)
-			c.queueNearbyChunks(m.Pos)
+
 		default:
 			m := c.conn.Recv()
 			if m != nil {
@@ -60,6 +60,27 @@ func (c *Client) Run(conn *Conn) {
 				return
 			}
 		}
+	}
+}
+
+func (c *Client) Send(m Message) {
+	select {
+	case c.sendQueue <- m:
+		if mep, ok := m.(*MsgPlayerState); ok {
+			c.queueNearbyChunks(mep.Pos)
+		}
+	default:
+		log.Println("[WARN] Unable to send message", m, "to player", c.name)
+	}
+}
+
+func (c *Client) SendLossy(m Message) {
+	if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
+		return
+	}
+	select {
+	case c.sendLossyQueue <- m:
+	default:
 	}
 }
 
