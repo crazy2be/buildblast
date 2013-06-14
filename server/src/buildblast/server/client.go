@@ -18,11 +18,16 @@ type Client struct {
 	sendQueue chan Message
 	sendLossyQueue chan Message
 
+	// Generic messages recieved from client
+	recvQueue chan Message
+
 	// Server-side simulation of players.
 	ControlState chan *ControlState
 
 	// Send the client the right chunks.
 	cm *ChunkManager
+
+	player *Player
 }
 
 func NewClient(world *World, name string) *Client {
@@ -33,32 +38,59 @@ func NewClient(world *World, name string) *Client {
 	c.sendQueue = make(chan Message, 20)
 	c.sendLossyQueue = make(chan Message, 5)
 
+	c.recvQueue = make(chan Message, 10)
+
 	c.ControlState = make(chan *ControlState, 10)
 	c.cm = newChunkManager()
+
+	c.player = NewPlayer(world, name)
+	world.AddEntity(c.player)
 
 	return c
 }
 
 func (c *Client) Run(conn *Conn) {
 	c.conn = conn
-	c.world.Join <- c
+// 	c.world.Join <- c
 
+	go c.RunSend(conn)
+	c.RunRecv(conn)
+}
+
+func (c *Client) RunSend(conn *Conn) {
 	for {
 		select {
 		case m := <-c.sendQueue:
 			c.conn.Send(m)
-
 		case m := <-c.sendLossyQueue:
 			c.conn.Send(m)
+		}
+	}
+}
 
+func (c *Client) RunRecv(conn *Conn) {
+	for {
+		m := c.conn.Recv()
+		if m == nil {
+			c.world.Leave <- c
+			return
+		}
+		c.recvQueue <- m
+	}
+}
+
+func (c *Client) Tick(g *Game) {
+	for {
+		select {
+		case m := <-c.recvQueue:
+			c.handleMessage(g, m)
 		default:
-			m := c.conn.Recv()
-			if m != nil {
-				c.handleMessage(m)
-			} else {
-				c.world.Leave <- c
-				return
-			}
+			return
+		}
+		select {
+		case m := <-c.player.outgoing:
+			c.Send(m)
+		default:
 		}
 	}
 }
@@ -104,14 +136,14 @@ func (c *Client) RunChunks(conn *Conn) {
 	}
 }
 
-func (c *Client) handleMessage(m Message) {
+func (c *Client) handleMessage(g *Game, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			c.handleBlock(m.(*MsgBlock))
 		case *MsgControlsState:
 			c.handleControlsState(m.(*MsgControlsState))
 		case *MsgChat:
-			c.handleChat(m.(*MsgChat))
+			c.handleChat(g, m.(*MsgChat))
 		case *MsgNtpSync:
 			c.handleNtpSync(m.(*MsgNtpSync))
 		default:
@@ -169,16 +201,16 @@ func (c *Client) queueNearbyChunks(wc coords.World) {
 
 func (c *Client) handleControlsState(m *MsgControlsState) {
 	m.Controls.Timestamp = m.Timestamp
-	c.ControlState <- &m.Controls
+	c.player.incoming <- &m.Controls
 }
 
-func (c *Client) handleChat(m *MsgChat) {
+func (c *Client) handleChat(g *Game, m *MsgChat) {
 	m.DisplayName = c.name
 	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
-	c.world.Broadcast <- m
+	g.Broadcast(m)
 }
 
 func (c *Client) handleNtpSync(m *MsgNtpSync) {
 	m.ServerTime = float64(time.Now().UnixNano()) / 1e6
-	c.conn.Send(m)
+	c.Send(m)
 }
