@@ -20,21 +20,28 @@ func NewGame(w *World) *Game {
 
 func (g *Game) Connect(c *Client) {
 	g.clients = append(g.clients, c)
+	g.Announce(c.name + " has joined the game!")
 }
 
 func (g *Game) Disconnect(c *Client) {
 	i := g.findClient(c)
 	if i == -1 {
 		log.Println("[WARN] Attempt to disconnect client who is not connected.")
+		return
 	}
 	g.clients[i] = g.clients[len(g.clients) - 1]
 	g.clients = g.clients[:len(g.clients) - 1]
+	g.Announce(c.name + " has left the game :(")
 }
 
 func (g *Game) Announce(message string) {
-	log.Println("[ANNOUNCE]", message)
+	g.Chat("SERVER", message)
+}
+
+func (g *Game) Chat(user string, message string) {
+	log.Println("[CHAT]", user + ":", message)
 	g.Broadcast(&MsgChat{
-		DisplayName: "SERVER",
+		DisplayName: user,
 		Message: message,
 	})
 }
@@ -80,6 +87,11 @@ func (g *Game) Run() {
 func (g *Game) Tick() {
 	for _, c := range g.clients {
 		c.Tick(g)
+		select {
+		case <-c.Errors:
+			g.Disconnect(c)
+		default:
+		}
 	}
 	g.world.Tick(g)
 }

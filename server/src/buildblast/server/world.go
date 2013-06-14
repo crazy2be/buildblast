@@ -187,33 +187,6 @@ func (w *World) simulateStep(g *Game) {
 			ID: e.ID(),
 		})
 	}
-	return
-
-
-	for i, p := range w.players {
-		client := w.clients[i]
-
-		var controls *ControlState
-		select {
-		case controls = <-client.ControlState:
-		default: continue
-		}
-
-		playerStateMsg, debugRayMsg := p.simulateStep(controls)
-
-		if playerStateMsg != nil {
-			client.Send(playerStateMsg)
-		}
-		if debugRayMsg != nil {
-			client.Send(debugRayMsg)
-		}
-
-		m := &MsgEntityPosition{
-			Pos: p.pos,
-			ID: client.name,
-		}
-		w.broadcastLossy(m)
-	}
 }
 
 func (w *World) Run() {
