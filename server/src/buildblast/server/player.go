@@ -40,6 +40,9 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100;
 
 type Player struct {
+	incoming chan *ControlState
+	outgoing chan *MsgPlayerState
+
 	pos       coords.World
 	look      coords.Vec3
 	vy        float64
@@ -55,6 +58,8 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
+		incoming: make(chan *ControlState, 10),
+		outgoing: make(chan *MsgPlayerState, 10),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
@@ -62,6 +67,26 @@ func NewPlayer(world *World, name string) *Player {
 		world: world,
 		name: name,
 	}
+}
+
+func (p *Player) Pos() coords.World {
+	return p.pos
+}
+
+func (p *Player) ID() string {
+	return "player-" + p.name
+}
+
+func (p *Player) Tick(w *World) {
+	var controls *ControlState
+	select {
+		case controls = <-p.incoming:
+		default: return
+	}
+
+	playerStateMsg, _ := p.simulateStep(controls)
+
+	p.outgoing <- playerStateMsg
 }
 
 func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
@@ -155,28 +180,18 @@ func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRa
 		return nil
 	}
 
-	// Compile a list of player bounding boxes, based on this shooters time
-	var players []*physics.Box
-	for _, v := range p.world.players {
-		if v == p {
-			players = append(players, nil)
-			continue
-		}
-		players = append(players, v.BoxAt(controls.Timestamp))
-	}
-
 	ray := physics.NewRay(p.pos, p.look)
-	target, index := ray.FindAnyIntersect(p.world, players)
-	if index >= 0 {
-		p.world.players[index].Hurt(10, p.name)
+	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
+	if hitEntity != nil {
+		hitEntity.Damage(10, p.name)
 	}
 
-	if target == nil {
+	if hitPos == nil {
 		return nil
 	}
 
 	return &MsgDebugRay{
-		Pos: *target,
+		Pos: *hitPos,
 	}
 }
 
@@ -194,11 +209,11 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
-func (p *Player) Hurt(dmg int, name string) {
+func (p *Player) Damage(dmg int, name string) {
 	p.hp -= dmg
 	if p.hp <= 0 {
 		p.Respawn()
-		p.world.announce(name + " killed " + p.name)
+// 		p.world.announce(name + " killed " + p.name)
 	}
 }
 
