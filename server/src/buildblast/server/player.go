@@ -54,6 +54,7 @@ type Player struct {
 
 	// Gameplay state
 	hp        int
+	inventory []Item
 }
 
 func NewPlayer(world *World, name string) *Player {

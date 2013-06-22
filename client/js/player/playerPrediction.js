@@ -48,7 +48,8 @@ function PlayerPrediction(world, conn, position) {
             var c = uc.Controls;
             var dt = (uc.Timestamp - t) / 1000;
             if (dt > 1.0) {
-                console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
+                // TODO: Log levels, because this is so fucking annoying.
+                //console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
                 dt = 1.0;
             }
             t = uc.Timestamp;
