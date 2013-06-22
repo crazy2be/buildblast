@@ -38,7 +38,7 @@ func NewClient(conn *Conn, name string) *Client {
 
 	c.recvQueue = make(chan Message, 100)
 
-	c.cm = newChunkManager()
+	c.cm = NewChunkManager()
 
 	return c
 }
@@ -83,7 +83,7 @@ func (c *Client) Send(m Message) {
 	select {
 	case c.sendQueue <- m:
 		if mep, ok := m.(*MsgPlayerState); ok {
-			c.queueNearbyChunks(mep.Pos)
+			c.cm.QueueChunksNearby(mep.Pos)
 		}
 	default:
 		log.Println("[WARN] Unable to send message", m, "to player", c.name)
@@ -102,7 +102,7 @@ func (c *Client) SendLossy(m Message) {
 
 func (c *Client) RunChunks(conn *Conn, world *World) {
 	for {
-		cc, valid := c.cm.top()
+		cc, valid := c.cm.Top()
 		if !valid {
 			<-time.After(time.Second / 10)
 			continue
@@ -153,47 +153,5 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
-	}
-}
-
-func (c *Client) queueNearbyChunks(wc coords.World) {
-	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
-		return coords.Chunk{
-			X: cc.X + x,
-			Y: cc.Y + y,
-			Z: cc.Z + z,
-		}
-	}
-
-	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
-		abs := func (n int) int {
-			if n < 0 {
-				return -n
-			}
-			return n
-		}
-		dist := func (x, y, z int) int {
-			return abs(x) + abs(y) + abs(z)
-		}
-		cb(cc, 0)
-		for x := -xdist; x <= xdist; x++ {
-			for y := -ydist; y <= ydist; y++ {
-				for z := -zdist; z <= zdist; z++ {
-					cb(occ(cc, x, y, z), dist(x, y, z))
-				}
-			}
-		}
-	}
-
-	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		c.cm.display(newCC, -dist)
-	});
-
-	oc := wc.Offset()
-	if oc.Y <= 4 {
-		c.cm.display(occ(cc, 0, -1, 0), 1)
-	} else if oc.Y >= 28 {
-		c.cm.display(occ(cc, 0, 1, 0), 1)
 	}
 }
