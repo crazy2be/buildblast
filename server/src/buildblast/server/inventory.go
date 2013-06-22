@@ -23,5 +23,5 @@ var ITEM_PROPERTIES []uint32 = []uint32 {
 }
 
 func (i Item) Stackable() bool {
-	return ITEM_PROPERTIES[i] & STACKABLE == 1
+	return ITEM_PROPERTIES[i] & STACKABLE > 0
 }

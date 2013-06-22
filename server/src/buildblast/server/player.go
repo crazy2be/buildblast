@@ -59,8 +59,8 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		incoming: make(chan *ControlState, 10),
-		outgoing: make(chan *MsgPlayerState, 10),
+		incoming: make(chan *ControlState, 100),
+		outgoing: make(chan *MsgPlayerState, 100),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),

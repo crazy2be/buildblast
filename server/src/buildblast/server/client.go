@@ -33,10 +33,10 @@ func NewClient(conn *Conn, name string) *Client {
 	c.conn = conn
 	c.name = name
 
-	c.sendQueue = make(chan Message, 20)
+	c.sendQueue = make(chan Message, 200)
 	c.sendLossyQueue = make(chan Message, 5)
 
-	c.recvQueue = make(chan Message, 10)
+	c.recvQueue = make(chan Message, 100)
 
 	c.cm = newChunkManager()
 
@@ -138,7 +138,6 @@ func (c *Client) Tick(g *Game, p *Player) {
 }
 
 func (c *Client) handleMessage(g *Game, p *Player, m Message) {
-	log.Println("start")
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
@@ -146,17 +145,14 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 			g.Broadcast(m)
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
-			log.Println("5")
 			m.Controls.Timestamp = m.Timestamp
 			p.incoming <- &m.Controls
-			log.Println("6")
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
-	log.Println("end")
 }
 
 func (c *Client) queueNearbyChunks(wc coords.World) {
