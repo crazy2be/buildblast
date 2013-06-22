@@ -30,7 +30,7 @@ var BLOCK_PROPERTIES []uint32 = []uint32 {
 }
 
 func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b] & BLOCK_SOLID == 1;
+	return BLOCK_PROPERTIES[b] & BLOCK_SOLID > 0;
 }
 
 type Chunk [][][]Block

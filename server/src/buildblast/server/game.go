@@ -13,6 +13,7 @@ type User struct {
 type Game struct {
 	users          []*User
 	pendingClients chan *Client
+	leavingUsers   chan *User
 	world          *World
 }
 
@@ -20,6 +21,7 @@ func NewGame(w *World) *Game {
 	g := new(Game)
 	g.users = make([]*User, 0)
 	g.pendingClients = make(chan *Client, 10)
+	g.leavingUsers = make(chan *User, 10)
 // 	g.world = NewWorld(0)
 	g.world = w
 	return g
@@ -49,14 +51,26 @@ func (g *Game) handlePendingClients() {
 }
 
 func (g *Game) Disconnect(u *User) {
-	i := g.findUser(u)
-	if i == -1 {
-		log.Println("[WARN] Attempt to disconnect user who is not connected.")
-		return
+	g.leavingUsers <- u
+}
+
+func (g *Game) handleLeavingUsers() {
+	for {
+		select {
+		case u := <-g.leavingUsers:
+			i := g.findUser(u)
+			if i == -1 {
+				log.Println("[WARN] Attempt to disconnect user who is not connected.")
+				return
+			}
+			g.users[i] = g.users[len(g.users) - 1]
+			g.users = g.users[:len(g.users) - 1]
+
+			g.Announce(u.client.name + " has left the game :(")
+		default:
+			return
+		}
 	}
-	g.users[i] = g.users[len(g.users) - 1]
-	g.users = g.users[:len(g.users) - 1]
-	g.Announce(u.client.name + " has left the game :(")
 }
 
 func (g *Game) Announce(message string) {
@@ -110,6 +124,7 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
+	g.handleLeavingUsers()
 	g.handlePendingClients()
 	for _, u := range g.users {
 		u.client.Tick(g, u.player)

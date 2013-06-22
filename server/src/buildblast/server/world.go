@@ -77,6 +77,15 @@ func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
 }
 
+func (w *World) RemoveEntity(e Entity) {
+	for i, entity := range w.entities {
+		if entity == e {
+			w.entities[i] = w.entities[len(w.entities) - 1]
+			w.entities = w.entities[:len(w.entities) - 1]
+		}
+	}
+}
+
 func (w *World) Tick(g *Game) {
 	for _, e := range w.entities {
 		e.Tick(w)
