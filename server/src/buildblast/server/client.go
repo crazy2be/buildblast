@@ -75,6 +75,7 @@ func (c *Client) RunSend() {
 func (c *Client) RunRecv() {
 	for {
 		m, err := c.conn.Recv()
+		log.Println("Recv!")
 		if err != nil {
 			c.Errors <- err
 			return

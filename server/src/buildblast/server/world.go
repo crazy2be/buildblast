@@ -22,7 +22,7 @@ type World struct {
 	chunkLock   sync.Mutex
 	generator   mapgen.ChunkSource
 
-	entities []Entity
+	entities    []Entity
 }
 
 func NewWorld(seed float64) *World {

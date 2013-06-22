@@ -29,6 +29,9 @@ function Clock(conn) {
         var newOffset = ((t1 - t0) + (t2 - t3))/2;
         console.log("Syncronized time with server. We were off by ", offset - newOffset, "ms.");
         offset = newOffset;
+
+        // Re-sync in 5 seconds
+        setTimeout(startSync, 5000);
     }
 
     function now() {
@@ -36,5 +39,4 @@ function Clock(conn) {
     }
 
     startSync();
-    setInterval(startSync, 5000); // 5 seconds
 }
