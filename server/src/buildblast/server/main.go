@@ -34,9 +34,9 @@ func getClientName(config *websocket.Config) string {
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 	conn := NewConn(ws)
-	c := NewClient(conn, name)
+	c := NewClient(globalWorld, name)
 	globalGame.Connect(c)
-	c.Run()
+	c.Run(conn)
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {

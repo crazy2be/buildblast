@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 	"time"
 	"reflect"
 
@@ -11,7 +12,7 @@ import (
 type Client struct {
 	Errors chan error
 
-	conn *Conn
+	world *World
 
 	name string
 
@@ -26,11 +27,11 @@ type Client struct {
 	cm *ChunkManager
 }
 
-func NewClient(conn *Conn, name string) *Client {
+func NewClient(world *World, name string) *Client {
 	c := new(Client)
 	c.Errors = make(chan error, 10)
 
-	c.conn = conn
+	c.world = world
 	c.name = name
 
 	c.sendQueue = make(chan Message, 200)
@@ -43,12 +44,12 @@ func NewClient(conn *Conn, name string) *Client {
 	return c
 }
 
-func (c *Client) Run() {
-	go c.RunSend()
-	c.RunRecv()
+func (c *Client) Run(conn *Conn) {
+	go c.RunSend(conn)
+	c.RunRecv(conn)
 }
 
-func (c *Client) RunSend() {
+func (c *Client) RunSend(conn *Conn) {
 	for {
 		var m Message
 		select {
@@ -56,16 +57,16 @@ func (c *Client) RunSend() {
 		case m = <-c.sendLossyQueue:
 		}
 
-		err := c.conn.Send(m)
+		err := conn.Send(m)
 		if err != nil {
 			c.Errors <- err
 		}
 	}
 }
 
-func (c *Client) RunRecv() {
+func (c *Client) RunRecv(conn *Conn) {
 	for {
-		m, err := c.conn.Recv()
+		m, err := conn.Recv()
 		if err != nil {
 			c.Errors <- err
 			return
@@ -79,6 +80,9 @@ func (c *Client) RunRecv() {
 	}
 }
 
+// Send will queue a message to be sent to a client. If there is
+// an error transmitting the message, an error will be sent back
+// on the Errors channel.
 func (c *Client) Send(m Message) {
 	select {
 	case c.sendQueue <- m:
@@ -86,10 +90,13 @@ func (c *Client) Send(m Message) {
 			c.cm.QueueChunksNearby(mep.Pos)
 		}
 	default:
-		log.Println("[WARN] Unable to send message", m, "to player", c.name)
+		c.Errors <- fmt.Errorf("unable to send message %v to player %s", m, c.name)
 	}
 }
 
+// SendLossy will try to queue a message to be sent to a client,
+// but if it cannot, it will simply do nothing. The message's failure
+// to send will not result in an error.
 func (c *Client) SendLossy(m Message) {
 	if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
 		return
