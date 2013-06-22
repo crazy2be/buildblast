@@ -6,21 +6,22 @@ import (
 )
 
 type Game struct {
-	clients []*Client
-	world *World
+	clients        []*Client
+	pendingClients chan *Client
+	world          *World
 }
 
 func NewGame(w *World) *Game {
 	g := new(Game)
 	g.clients = make([]*Client, 0)
+	g.pendingClients = make(chan *Client, 10)
 // 	g.world = NewWorld(0)
 	g.world = w
 	return g
 }
 
 func (g *Game) Connect(c *Client) {
-	g.clients = append(g.clients, c)
-	g.Announce(c.name + " has joined the game!")
+	g.pendingClients <- c
 }
 
 func (g *Game) Disconnect(c *Client) {
@@ -85,6 +86,15 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
+	for {
+		select {
+		case c := <-g.pendingClients:
+			g.clients = append(g.clients, c)
+			g.Announce(c.name + " has joined the game!")
+		default:
+			break;
+		}
+	}
 	for _, c := range g.clients {
 		c.Tick(g)
 		select {
