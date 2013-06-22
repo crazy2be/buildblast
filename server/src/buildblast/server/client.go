@@ -11,7 +11,6 @@ import (
 type Client struct {
 	Errors chan error
 
-	world *World
 	conn *Conn
 
 	name string
@@ -25,17 +24,12 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
-
-	// Be careful! Player is owned by the world,
-	// and runs in a different thread.
-	player *Player
 }
 
-func NewClient(world *World, conn *Conn, name string) *Client {
+func NewClient(conn *Conn, name string) *Client {
 	c := new(Client)
 	c.Errors = make(chan error, 10)
 
-	c.world = world
 	c.conn = conn
 	c.name = name
 
@@ -45,9 +39,6 @@ func NewClient(world *World, conn *Conn, name string) *Client {
 	c.recvQueue = make(chan Message, 10)
 
 	c.cm = newChunkManager()
-
-	c.player = NewPlayer(world, name)
-	world.AddEntity(c.player)
 
 	return c
 }
@@ -75,7 +66,6 @@ func (c *Client) RunSend() {
 func (c *Client) RunRecv() {
 	for {
 		m, err := c.conn.Recv()
-		log.Println("Recv!")
 		if err != nil {
 			c.Errors <- err
 			return
@@ -110,7 +100,7 @@ func (c *Client) SendLossy(m Message) {
 	}
 }
 
-func (c *Client) RunChunks(conn *Conn) {
+func (c *Client) RunChunks(conn *Conn, world *World) {
 	for {
 		cc, valid := c.cm.top()
 		if !valid {
@@ -118,7 +108,7 @@ func (c *Client) RunChunks(conn *Conn) {
 			continue
 		}
 
-		chunk := c.world.RequestChunk(cc)
+		chunk := world.RequestChunk(cc)
 
 		m := &MsgChunk{
 			CCPos: cc,
@@ -130,39 +120,43 @@ func (c *Client) RunChunks(conn *Conn) {
 	}
 }
 
-func (c *Client) Tick(g *Game) {
+func (c *Client) Tick(g *Game, p *Player) {
 	for {
 		select {
 		case m := <-c.recvQueue:
-			c.handleMessage(g, m)
+			c.handleMessage(g, p, m)
 		default:
 			return
 		}
 
 		select {
-		case m := <-c.player.outgoing:
+		case m := <-p.outgoing:
 			c.Send(m)
 		default:
 		}
 	}
 }
 
-func (c *Client) handleMessage(g *Game, m Message) {
+func (c *Client) handleMessage(g *Game, p *Player, m Message) {
+	log.Println("start")
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
-			c.world.ChangeBlock(m.Pos, m.Type)
+			g.world.ChangeBlock(m.Pos, m.Type)
 			g.Broadcast(m)
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
+			log.Println("5")
 			m.Controls.Timestamp = m.Timestamp
-			c.player.incoming <- &m.Controls
+			p.incoming <- &m.Controls
+			log.Println("6")
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
 	}
+	log.Println("end")
 }
 
 func (c *Client) queueNearbyChunks(wc coords.World) {

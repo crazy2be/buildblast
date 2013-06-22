@@ -5,15 +5,20 @@ import (
 	"time"
 )
 
+type User struct {
+	client *Client
+	player *Player
+}
+
 type Game struct {
-	clients        []*Client
+	users          []*User
 	pendingClients chan *Client
 	world          *World
 }
 
 func NewGame(w *World) *Game {
 	g := new(Game)
-	g.clients = make([]*Client, 0)
+	g.users = make([]*User, 0)
 	g.pendingClients = make(chan *Client, 10)
 // 	g.world = NewWorld(0)
 	g.world = w
@@ -30,7 +35,12 @@ func (g *Game) handlePendingClients() {
 	for {
 		select {
 		case c := <-g.pendingClients:
-			g.clients = append(g.clients, c)
+			p := NewPlayer(g.world, c.name)
+			user := new(User)
+			user.client = c
+			user.player = p
+			g.users = append(g.users, user)
+			g.world.AddEntity(p)
 			g.Announce(c.name + " has joined the game!")
 		default:
 			return
@@ -38,15 +48,15 @@ func (g *Game) handlePendingClients() {
 	}
 }
 
-func (g *Game) Disconnect(c *Client) {
-	i := g.findClient(c)
+func (g *Game) Disconnect(u *User) {
+	i := g.findUser(u)
 	if i == -1 {
-		log.Println("[WARN] Attempt to disconnect client who is not connected.")
+		log.Println("[WARN] Attempt to disconnect user who is not connected.")
 		return
 	}
-	g.clients[i] = g.clients[len(g.clients) - 1]
-	g.clients = g.clients[:len(g.clients) - 1]
-	g.Announce(c.name + " has left the game :(")
+	g.users[i] = g.users[len(g.users) - 1]
+	g.users = g.users[:len(g.users) - 1]
+	g.Announce(u.client.name + " has left the game :(")
 }
 
 func (g *Game) Announce(message string) {
@@ -62,29 +72,29 @@ func (g *Game) Chat(user string, message string) {
 }
 
 func (g *Game) Broadcast(m Message) {
-	for _, c := range g.clients {
-		c.Send(m)
+	for _, u := range g.users {
+		u.client.Send(m)
 	}
 }
 
 func (g *Game) BroadcastLossy(m Message) {
-	for _, c := range g.clients {
-		c.SendLossy(m)
+	for _, u := range g.users {
+		u.client.SendLossy(m)
 	}
 }
 
-func (g *Game) findClientByName(name string) *Client {
-	for _, c := range g.clients {
-		if c.name == name {
-			return c
+func (g *Game) findUserByName(name string) *User {
+	for _, u := range g.users {
+		if u.client.name == name {
+			return u
 		}
 	}
 	return nil
 }
 
-func (g *Game) findClient(c *Client) int {
-	for i, other := range g.clients {
-		if other == c {
+func (g *Game) findUser(u *User) int {
+	for i, other := range g.users {
+		if other == u {
 			 return i
 		}
 	}
@@ -101,11 +111,11 @@ func (g *Game) Run() {
 
 func (g *Game) Tick() {
 	g.handlePendingClients()
-	for _, c := range g.clients {
-		c.Tick(g)
+	for _, u := range g.users {
+		u.client.Tick(g, u.player)
 		select {
-		case <-c.Errors:
-			g.Disconnect(c)
+		case <-u.client.Errors:
+			g.Disconnect(u)
 		default:
 		}
 	}
