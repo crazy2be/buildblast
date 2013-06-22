@@ -66,6 +66,7 @@ func (g *Game) handleLeavingUsers() {
 			g.users[i] = g.users[len(g.users) - 1]
 			g.users = g.users[:len(g.users) - 1]
 
+			g.world.RemoveEntity(u.player)
 			g.Announce(u.client.name + " has left the game :(")
 		default:
 			return
