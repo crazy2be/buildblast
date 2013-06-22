@@ -20,8 +20,22 @@ func NewGame(w *World) *Game {
 	return g
 }
 
+// Thread safe
 func (g *Game) Connect(c *Client) {
 	g.pendingClients <- c
+}
+
+// Not thread safe (This better be called on the Games main thread)
+func (g *Game) handlePendingClients() {
+	for {
+		select {
+		case c := <-g.pendingClients:
+			g.clients = append(g.clients, c)
+			g.Announce(c.name + " has joined the game!")
+		default:
+			return
+		}
+	}
 }
 
 func (g *Game) Disconnect(c *Client) {
@@ -86,15 +100,7 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
-	for {
-		select {
-		case c := <-g.pendingClients:
-			g.clients = append(g.clients, c)
-			g.Announce(c.name + " has joined the game!")
-		default:
-			break;
-		}
-	}
+	g.handlePendingClients()
 	for _, c := range g.clients {
 		c.Tick(g)
 		select {
