@@ -18,7 +18,7 @@ func NewConn(ws *websocket.Conn) *Conn {
 	return c
 }
 
-func (c *Conn) Send(m Message) {
+func (c *Conn) Send(m Message) error {
 	var err error
 
 	cm := new(ClientMessage)
@@ -27,33 +27,35 @@ func (c *Conn) Send(m Message) {
 	cm.Payload, err = json.Marshal(m)
 	if err != nil {
 		log.Println("Marshalling websocket message:", err)
-		return
+		return err
 	}
 
 	err = websocket.JSON.Send(c.ws, cm)
 	if err != nil {
 		log.Println("Sending websocket message:", err)
-		return
+		return err
 	}
+	return nil
 }
 
-func (c *Conn) Recv() Message {
+func (c *Conn) Recv() (Message, error) {
 	cm := new(ClientMessage)
 	err := websocket.JSON.Receive(c.ws, cm)
 	if err != nil {
 		if err != io.EOF {
 			log.Println("Reading websocket message:", err)
 		}
-		return nil
+		return nil, err
 	}
 
 	m := kindToType(cm.Kind)
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
 		log.Println("Unmarshalling websocket message:", err)
+		return nil, err
 	}
 
-	return m
+	return m, nil
 }
 
 func kindToType(kind MessageKind) Message {
