@@ -28,6 +28,7 @@ function Clock(conn) {
         // well enough for now (at least on LAN).
         var newOffset = ((t1 - t0) + (t2 - t3))/2;
         console.log("Syncronized time with server. We were off by ", offset - newOffset, "ms.");
+        console.log("Round trip connection based ping is", t3 - t0, "ms");
         offset = newOffset;
 
         // Re-sync in 5 seconds
