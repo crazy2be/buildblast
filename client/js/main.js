@@ -11,11 +11,11 @@ window.onload = function () {
     Models.init(startGame);
 
     function startGame() {
-        Item.init();
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
         world.resize();
+        Item.init();
 
         var renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
