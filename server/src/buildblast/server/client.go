@@ -71,7 +71,7 @@ func (c *Client) RunRecv() {
 			return
 		}
 		if mntp, ok := m.(*MsgNtpSync); ok {
-			mntp.ServerTime = float64(time.Now().UnixNano()) / 1e6
+			mntp.ServerTime = float64(time.Now().UnixNano() / 1e6)
 			c.Send(mntp)
 			continue
 		}
@@ -121,18 +121,26 @@ func (c *Client) RunChunks(conn *Conn, world *World) {
 }
 
 func (c *Client) Tick(g *Game, p *Player) {
+	a := false
+	b := false
 	for {
 		select {
 		case m := <-c.recvQueue:
+			a = false
 			c.handleMessage(g, p, m)
 		default:
-			return
+			a = true;
 		}
 
 		select {
 		case m := <-p.outgoing:
+			b = false
 			c.Send(m)
 		default:
+			b = true
+		}
+		if a && b {
+			return
 		}
 	}
 }

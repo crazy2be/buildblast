@@ -80,14 +80,17 @@ func (p *Player) ID() string {
 
 func (p *Player) Tick(w *World) {
 	var controls *ControlState
-	select {
-		case controls = <-p.incoming:
-		default: return
+
+	for {
+		select {
+			case controls = <-p.incoming:
+			default: return
+		}
+
+		playerStateMsg, _ := p.simulateStep(controls)
+
+		p.outgoing <- playerStateMsg
 	}
-
-	playerStateMsg, _ := p.simulateStep(controls)
-
-	p.outgoing <- playerStateMsg
 }
 
 func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {

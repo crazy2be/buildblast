@@ -8,7 +8,6 @@ function PlayerPrediction(world, conn, position) {
         return applyRemainingClientPredictions();
     }
 
-    var timeOffset = Date.now();
     function sendControlsToNetwork(c) {
         var userCommand = {
             Controls: c,
@@ -24,6 +23,7 @@ function PlayerPrediction(world, conn, position) {
         VelocityY: 0.0,
         Hp: 100,
     };
+
     var userCommands = [];
     conn.on('player-state', function (payload) {
         var cmd = userCommands.shift();
