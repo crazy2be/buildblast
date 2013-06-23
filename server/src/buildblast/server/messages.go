@@ -20,7 +20,7 @@ const (
 	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
-	MST_INVENTORY_STATE = MessageKind("inventory-state")
+	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 )
 
 type MsgEntityCreate struct {

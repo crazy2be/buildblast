@@ -78,7 +78,7 @@ func kindToType(kind MessageKind) Message {
 			return &MsgDebugRay{}
 		case MSG_NTP_SYNC:
 			return &MsgNtpSync{}
-		case MST_INVENTORY_STATE:
+		case MSG_INVENTORY_STATE:
 			return &MsgInventoryState{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
@@ -107,7 +107,7 @@ func typeToKind(m Message) MessageKind {
 		case *MsgNtpSync:
 			return MSG_NTP_SYNC
 		case *MsgInventoryState:
-			return MST_INVENTORY_STATE
+			return MSG_INVENTORY_STATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
