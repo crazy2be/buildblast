@@ -14,6 +14,7 @@ const (
 
 	// Properties
 	STACKABLE = 0x1 << 0
+	SHOOTABLE = 0x1 << 1
 	
 )
 
@@ -22,11 +23,15 @@ var ITEM_PROPERTIES []uint32 = []uint32 {
 	/** DIRT   */ STACKABLE,
 	/** STONE  */ STACKABLE,
 	/** SHOVEL */ 0,
-	/** GUN    */ 0,
+	/** GUN    */ SHOOTABLE,
 }
 
 func (i Item) Stackable() bool {
 	return ITEM_PROPERTIES[i] & STACKABLE > 0
+}
+
+func (i Item) Shootable() bool {
+	return ITEM_PROPERTIES[i] & SHOOTABLE > 0
 }
 
 func ItemsToString(items []Item) string {

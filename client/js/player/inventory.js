@@ -1,4 +1,4 @@
-function Inventory(world, camera, initLeft, initRight) {
+function Inventory(world, camera, conn, initLeft, initRight) {
     var self = this;
     var slots = [];
     var initialized = false;
@@ -84,6 +84,11 @@ function Inventory(world, camera, initLeft, initRight) {
                 world.addToScene(model);
             }
         }
+
+        conn.queue('inventory-state', {
+            ItemLeft: leftSlot,
+            ItemRight: rightSlot,
+        });
 
         var html = generateHTML();
         elm.innerHTML = html;

@@ -14,11 +14,12 @@ type ControlState struct {
 	Right           bool
 	Back            bool
 	Jump            bool
-	ActivateBlaster bool
+	ActivateLeft    bool
+	ActivateRight   bool
 	Lat             float64
 	Lon             float64
 
-	Timestamp float64 // In ms
+	Timestamp       float64 // In ms
 }
 
 var PLAYER_EYE_HEIGHT = 1.6;
@@ -43,6 +44,7 @@ type Player struct {
 	incoming chan *ControlState
 	outgoing chan *MsgPlayerState
 	outInv   chan *MsgInventoryState
+	inInv    chan *MsgInventoryState
 
 	pos       coords.World
 	look      coords.Vec3
@@ -56,6 +58,8 @@ type Player struct {
 	// Gameplay state
 	hp        int
 	inventory []Item
+	itemLeft  int
+	itemRight int
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -68,6 +72,7 @@ func NewPlayer(world *World, name string) *Player {
 		incoming: make(chan *ControlState, 100),
 		outgoing: make(chan *MsgPlayerState, 100),
 		outInv: make(chan *MsgInventoryState, 100),
+		inInv: make(chan *MsgInventoryState, 10),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
@@ -87,18 +92,17 @@ func (p *Player) ID() string {
 }
 
 func (p *Player) Tick(w *World) {
-	var controls *ControlState
-
 	for {
 		select {
-			case controls = <-p.incoming:
+			case controls := <-p.incoming:
+				playerStateMsg, playerInventoryMsg, _ := p.simulateStep(controls)
+				p.outgoing <- playerStateMsg
+				p.outInv <- playerInventoryMsg
+			case inv := <-p.inInv:
+				p.itemLeft = inv.ItemLeft
+				p.itemRight = inv.ItemRight
 			default: return
 		}
-
-		playerStateMsg, playerInventoryMsg, _ := p.simulateStep(controls)
-
-		p.outgoing <- playerStateMsg
-		p.outInv <- playerInventoryMsg
 	}
 }
 
@@ -187,11 +191,16 @@ func (p *Player) updateLook(controls *ControlState) {
 }
 
 func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRay {
-	if !controls.ActivateBlaster {
+	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
+	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	if !shootingLeft && !shootingRight {
 		return nil
 	}
+
 	// They were holding it down last frame
-	if p.controls.ActivateBlaster {
+	shootingLeftLast := p.controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
+	shootingRightLast := p.controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}
 
