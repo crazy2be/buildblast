@@ -43,11 +43,18 @@ func (g *Game) handlePendingClients() {
 			user.player = p
 			g.users = append(g.users, user)
 
+			g.world.AddEntity(p)
+
 			g.Broadcast(&MsgEntityCreate{
 				ID: p.ID(),
 			})
 
-			g.world.AddEntity(p)
+			for _, id := range g.world.GetEntitieIDs() {
+				c.Send(&MsgEntityCreate{
+					ID: id,
+				})
+			}
+
 			g.Announce(c.name + " has joined the game!")
 		default:
 			return

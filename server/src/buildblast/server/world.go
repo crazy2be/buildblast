@@ -86,6 +86,14 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 }
 
+func (w *World) GetEntitieIDs() []string {
+	result := make([]string, len(w.entities))
+	for i, entitie := range w.entities {
+		result[i] = entitie.ID()
+	}
+	return result
+}
+
 func (w *World) Tick(g *Game) {
 	for _, e := range w.entities {
 		e.Tick(w)
