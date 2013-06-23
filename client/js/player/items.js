@@ -47,7 +47,7 @@ Item.hasPropertie = function (item, prop) {
 Item.init = function() {
     Item.DATA = [
         {
-            name: '&#09;&#09;', // Tab characters
+            name: '',
             model: null,
             action: null,
         },{

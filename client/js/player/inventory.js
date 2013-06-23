@@ -46,15 +46,15 @@ function Inventory(world, camera, initLeft, initRight) {
         var second = max(leftSlot, rightSlot);
         var isLeft = first == leftSlot;
         for (var i = 0; i < first; i++) {
-            html += "<li>" + slots[i].name() + "</li>";
+            html += "<div>" + slots[i].name() + "</div>";
         }
-        html += "<li class='selected" + (isLeft?"Left":"Right") + "'>" + slots[first].name() + "</li>";
+        html += "<div class='selected" + (isLeft?"Left":"Right") + "'>" + slots[first].name() + "</div>";
         for (var i = first+1; i < second; i++) {
-            html += "<li>" + slots[i].name() + "</li>";
+            html += "<div>" + slots[i].name() + "</div>";
         }
-        html += "<li class='selected" + (isLeft?"Right":"Left") + "'>" + slots[second].name() + "</li>";
+        html += "<div class='selected" + (isLeft?"Right":"Left") + "'>" + slots[second].name() + "</div>";
         for (var i = second+1; i < slots.length; i++) {
-            html += "<li>" + slots[i].name() + "</li>";
+            html += "<div>" + slots[i].name() + "</div>";
         }
         return html;
     }
