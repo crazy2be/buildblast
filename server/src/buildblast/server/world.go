@@ -18,12 +18,15 @@ type Entity interface {
 }
 
 type World struct {
-	seed        float64
-	chunks      map[coords.Chunk]mapgen.Chunk
-	chunkLock   sync.Mutex
-	generator   mapgen.ChunkSource
+	seed         float64
+	chunks       map[coords.Chunk]mapgen.Chunk
+	chunkLock    sync.Mutex
+	generator    mapgen.ChunkSource
 
-	entities    []Entity
+	entities     []Entity
+
+	EntityCreate chan string
+	EntityRemove chan string
 }
 
 func NewWorld(seed float64) *World {
@@ -33,6 +36,9 @@ func NewWorld(seed float64) *World {
 	w.generator = mapgen.NewMazeArena(seed)
 
 	w.entities = make([]Entity, 0)
+
+	w.EntityCreate = make(chan string, 10)
+	w.EntityRemove = make(chan string, 10)
 
 	return w
 }
@@ -75,6 +81,7 @@ func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
+	w.EntityCreate <- e.ID()
 }
 
 func (w *World) RemoveEntity(e Entity) {
@@ -82,6 +89,7 @@ func (w *World) RemoveEntity(e Entity) {
 		if entity == e {
 			w.entities[i] = w.entities[len(w.entities) - 1]
 			w.entities = w.entities[:len(w.entities) - 1]
+			w.EntityRemove <- e.ID()
 		}
 	}
 }
