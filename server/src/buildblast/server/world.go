@@ -50,7 +50,6 @@ func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 
 	if chunk == nil {
 		chunk = w.generator.Chunk(cc)
-		log.Println("Generated chunk at ", cc)
 
 		w.chunkLock.Lock()
 		w.chunks[cc] = chunk
