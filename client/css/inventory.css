@@ -1,18 +1,22 @@
 #inventory {
 	width: 100%;
 	padding: 2px 6px 10px 6px;
-	test-align: center;
+	text-align: center;
 }
-#inventory li {
-	display: inline;
+#inventory div {
+	min-width: 50px;
+	min-height: 28px;
+	vertical-align: bottom;
+	display: inline-block;
 	padding: 4px;
-	border: 2px solid transparent;
+	background: rgba(255, 255, 255, 0.1);
+	border: 2px solid rgba(255, 255, 255, 0.2);
 	font-weight: bold;
 }
-#inventory li.selectedLeft {
+#inventory div.selectedLeft {
 	-webkit-animation: item-changed-left 1s forwards;
 }
-#inventory li.selectedRight {
+#inventory div.selectedRight {
 	-webkit-animation: item-changed-right 1s forwards;
 }
 
@@ -22,8 +26,8 @@
 		border-color: rgba(100, 255, 100, 1);
 	}
 	to {
-		background: rgba(100, 255, 100, 0.05);
-		border-color: rgba(100, 255, 100, 0.1);
+		background: rgba(100, 255, 100, 0.1);
+		border-color: rgba(100, 255, 100, 0.2);
 	}
 }
 
@@ -33,7 +37,7 @@
 		border-color: rgba(100, 100, 255, 1);
 	}
 	to {
-		background: rgba(100, 100, 255, 0.05);
-		border-color: rgba(100, 100, 255, 0.1);
+		background: rgba(100, 100, 255, 0.1);
+		border-color: rgba(100, 100, 255, 0.2);
 	}
 }
