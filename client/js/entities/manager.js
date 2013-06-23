@@ -1,10 +1,11 @@
-function EntityManager(scene, conn) {
+function EntityManager(scene, conn, player) {
     var self = this;
 
     var entities = {};
 
     conn.on('entity-create', function (payload) {
         var id = payload.ID;
+        if (id == player.id()) return;
         if (entities[id]) {
             console.warn("Got entity-create message for entity which already exists!", id);
             return;
@@ -16,6 +17,7 @@ function EntityManager(scene, conn) {
 
     conn.on('entity-position', function (payload) {
         var id = payload.ID;
+        if (id == player.id()) return;
         var entity = entities[id];
         if (!entity) {
             console.warn("Got entity-position message for entity which does not exist!", id);
@@ -35,6 +37,7 @@ function EntityManager(scene, conn) {
 
     conn.on('entity-remove', function (payload) {
         var id = payload.ID;
+        if (id == player.id()) return;
         var entity = entities[id];
         if (!entity) {
             console.warn("Got entity-remove message for entity which does not exist: ", id);
