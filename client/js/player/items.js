@@ -43,7 +43,6 @@ Item.hasPropertie = function (item, prop) {
     return (Item.PROPERTIES[block] & prop) > 0;
 };
 
-
 Item.init = function() {
     Item.DATA = [
         {
