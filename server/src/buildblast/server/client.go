@@ -147,6 +147,9 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 			p.incoming <- &m.Controls
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
+		case *MsgInventoryState:
+			m := m.(*MsgInventoryState)
+			p.inInv <- m
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
