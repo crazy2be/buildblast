@@ -78,7 +78,7 @@ type MsgNtpSync struct {
 }
 
 type MsgInventoryState struct {
-	Items []Item
+	Items string
 }
 
 type ClientMessage struct {

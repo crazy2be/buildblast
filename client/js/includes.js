@@ -28,6 +28,7 @@
 	'js/./chunks/common.js',
 	'js/./entities/manager.js',
 	'js/./entities/entity.js',
+	'js/./player/items.js',
 	'js/./player/inventory.js',
 	'js/./player/controls.js',
 	'js/./player/clock.js',

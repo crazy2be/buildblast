@@ -43,31 +43,34 @@ Item.hasPropertie = function (item, prop) {
     return (Item.PROPERTIES[block] & prop) > 0;
 };
 
-Item.DATA = [
-    {
-        name: '&#09;&#09;', // Tab characters
-        model: null,
-        action: null,
-    },{
-        name: 'dirt',
-        model: Models.block(),
-        action: throttle(blockAction, Block.DIRT),
-    },{
-        name: 'stone',
-        model: Models.stone(),
-        action: throttle(blockAction, Block.STONE),
-    },{
-        name: 'shovel',
-        model: Models.shovel(),
-        action: throttle(shovelAction),
-    },{
-        name: 'pistol',
-        model: Models.pistol(),
-        action: pistolAction,
-    }
-];
 
-Item.throttle = function(func, param) {
+Item.init = function() {
+    Item.DATA = [
+        {
+            name: '&#09;&#09;', // Tab characters
+            model: null,
+            action: null,
+        },{
+            name: 'dirt',
+            model: Models.block(),
+            action: Item.throttle(Item.blockAction, Block.DIRT),
+        },{
+            name: 'stone',
+            model: Models.stone(),
+            action: Item.throttle(Item.blockAction, Block.STONE),
+        },{
+            name: 'shovel',
+            model: Models.shovel(),
+            action: Item.throttle(Item.shovelAction),
+        },{
+            name: 'pistol',
+            model: Models.pistol(),
+            action: Item.pistolAction,
+        }
+    ];
+};
+
+Item.throttle = function (func, param) {
     var t = Date.now();
     return function (world, camera) {
         var t2 = Date.now();
@@ -78,11 +81,19 @@ Item.throttle = function(func, param) {
     };
 };
 
-Item.shovelAction(world, camera) {
+Item.pistolAction = function (world, camera) {
+    var intersect = world.findPlayerIntersection(camera);
+    if (intersect) {
+        console.log("Hit!!", intersect, intersect.item);
+    } else {
+        console.log("miss!!");
+    }
+};
+
+Item.shovelAction = function (world, camera) {
     world.removeLookedAtBlock(camera);
 };
 
-Item.blockAction(world, camera, block) {
+Item.blockAction = function (world, camera, block) {
     world.addLookedAtBlock(camera, block);
 };
-    //return new Inventory(world, camera, slots);

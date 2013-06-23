@@ -127,7 +127,7 @@ func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgInve
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
 	}, &MsgInventoryState{
-		Items: p.inventory,
+		Items: ItemsToString(p.inventory),
 	}, msgDebugRay
 }
 

@@ -29,16 +29,12 @@ func (i Item) Stackable() bool {
 	return ITEM_PROPERTIES[i] & STACKABLE > 0
 }
 
-//func Flatten(items []Item) string {
-//	iw = INV_WIDTH
-//	ih = INV_HEIGHT
-//	data := make([]byte, iw * ih)
-//	for x := 0; x < iw; x++ {
-//		for y := 0; y < ih; y++ {
-//			// 32: Space charater. Control charaters
-//			// are not allowed in JSON strings.
-//			data[x*iw*ch + y*cw + z] = byte(c[x][y][z]) + 32
-//		}
-//	}
-//	return string(data)
-//}
+func ItemsToString(items []Item) string {
+	data := make([]byte, len(items))
+	for i := 0; i < len(data); i++ {
+		// 32: Space charater. Control charaters
+		// are not allowed in JSON strings.
+		data[i] = byte(items[i] + 32)
+	}
+	return string(data)
+}

@@ -1,11 +1,30 @@
-function Inventory(world, camera, slots, left, right) {
+function Inventory(world, camera, initLeft, initRight) {
     var self = this;
-    var initialized = slots.length > 0;
+    var slots = [];
+    var initialized = false;
 
     var elm = document.querySelector('#inventory');
 
-    self.leftSlot = -1;
-    self.rightSlot = -1;
+    self.setSlots = function(inv) {
+        var changed = false;
+        for (var i = 0; i < slots.length; i++) {
+            if (slots[i].type != inv[i].type) {
+                changed = true;
+                break;
+            }
+        }
+        if (!changed && initialized) return;
+        initialized = true;
+        slots = inv;
+        selectSlot(leftSlot, rightSlot);
+    };
+
+    var leftSlot = initLeft;
+    var rightSlot = initRight;
+
+    self.getLeft = function () { return leftSlot; };
+    self.getRight = function () { return rightSlot; };
+
     var aspectRatio = 1.0;
 
     self.resize = function () {
@@ -13,11 +32,11 @@ function Inventory(world, camera, slots, left, right) {
     };
 
     function activateSlot(slot) {
-        var action = slots[slot].action;
+        var action = slots[slot].action();
         if (action) {
             action(world, camera);
         } else {
-            throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
+            console.log("Attempted to use an empty item slot.");
         }
     }
 
@@ -27,40 +46,39 @@ function Inventory(world, camera, slots, left, right) {
         var second = max(leftSlot, rightSlot);
         var isLeft = first == leftSlot;
         for (var i = 0; i < first; i++) {
-            html += "<li>" + slots[i].name + "</li>";
+            html += "<li>" + slots[i].name() + "</li>";
         }
-        html += "<li class='selected" + isLeft?"Left":"Right" + "'>" + slots[first].name + "</li>";
+        html += "<li class='selected" + (isLeft?"Left":"Right") + "'>" + slots[first].name() + "</li>";
         for (var i = first+1; i < second; i++) {
-            html += "<li>" + slots[i].name + "</li>";
+            html += "<li>" + slots[i].name() + "</li>";
         }
-        html += "<li class='selected" + isLeft?"Right":"Left" + "'>" + slots[second].name + "</li>";
+        html += "<li class='selected" + (isLeft?"Right":"Left") + "'>" + slots[second].name() + "</li>";
         for (var i = second+1; i < slots.length; i++) {
-            html += "<li>" + slots[i].name + "</li>";
+            html += "<li>" + slots[i].name() + "</li>";
         }
         return html;
     }
 
     function selectSlot(left, right) {
         if (!initialized) return;
-        if (left < slots.length) {
+        if (left < slots.length && left >= 0) {
             if (leftSlot > -1) {
-                world.removeFromScene(slots[leftSlot].model);
+                world.removeFromScene(slots[leftSlot].model());
             }
             leftSlot = left;
-
-            var model = slots[left].model;
+            var model = slots[left].model();
             if (model !== null) {
                 model.scale.set(1/16, 1/16, 1/16);
                 world.addToScene(model);
             }
         }
-        if (right < slots.length) {
+        if (right < slots.length && right >= 0) {
             if (rightSlot > -1) {
-                world.removeFromScene(slots[rightSlot].model);
+                world.removeFromScene(slots[rightSlot].model());
             }
             rightSlot = right;
 
-            var model = slots[right].model;
+            var model = slots[right].model();
             if (model !== null) {
                 model.scale.set(1/16, 1/16, 1/16);
                 world.addToScene(model);
@@ -114,13 +132,13 @@ function Inventory(world, camera, slots, left, right) {
         p.add(mov);
     }
 
-    var offsetx = Math.random();
-    var offsetz = Math.random();
-    function addJitter(item) {
-        offsetx += Math.random() / 30;
-        offsetz += Math.random() / 30;
-        item.position.x += Math.sin(offsetx) / 400;
-        item.position.z += Math.sin(offsetz) / 400;
+    var leftoffset = [Math.random(), Math.random()];
+    var rightoffset = [Math.random(), Math.random()];
+    function addJitter(item, values) {
+        values[0] += Math.random() / 30;
+        values[1] += Math.random() / 30;
+        item.position.x += Math.sin(values[0]) / 400;
+        item.position.z += Math.sin(values[1]) / 400;
     }
 
     var nextLeftWasDown = false;
@@ -131,38 +149,46 @@ function Inventory(world, camera, slots, left, right) {
         var c = controlState;
 
         // Left item
-        var itemLeft = slots[leftSlot].model;
-        pointItem(itemLeft, c);
-        positionItem(itemLeft, p, c);
-        postitionPerspective(itemLeft, -1);
-        addJitter(itemLeft);
+        var itemLeft = slots[leftSlot].model();
+        if (itemLeft !== null) {
+            pointItem(itemLeft, c);
+            positionItem(itemLeft, p, c);
+            postitionPerspective(itemLeft, 1);
+            addJitter(itemLeft, leftoffset);
+        }
 
         // Right item
-        var itemRight = slots[rightSlot].model;
-        pointItem(itemRight, c);
-        positionItem(itemRight, p, c);
-        postitionPerspective(itemRight, -1);
-        addJitter(itemRight);
-
-        if (!nextLeftWasDown && c[nextLeft]) {
-            var offset = (leftSlot + 1) % slots.length == rightSlot ? 2 : 1;
-            leftSlot((leftSlot + offset) % slots.length);
+        var itemRight = slots[rightSlot].model();
+        if (itemRight != null) {
+            pointItem(itemRight, c);
+            positionItem(itemRight, p, c);
+            postitionPerspective(itemRight, -1);
+            addJitter(itemRight, rightoffset);
         }
-        nextLeftWasDown = c[nextLeft];
 
-        if (!nextRightWasDown && c[nextRight]) {
-            var offset = (rightSlot + 1) % slots.length == leftSlot ? 2 : 1;
-            rightSlot((rightSlot + offset) % slots.length);
+        if (!nextLeftWasDown && c["nextLeft"]) {
+            var newSlot = (leftSlot + 1) % slots.length;
+            if (newSlot == rightSlot) {
+                newSlot = (newSlot + 1) % slots.length;
+            }
+            selectSlot(newSlot, -1);
         }
-        nextRightWasDown = c[nextRight];
+        nextLeftWasDown = c["nextLeft"];
 
-        if (c[activateLeft]) {
+        if (!nextRightWasDown && c["nextRight"]) {
+            var newSlot = (rightSlot + 1) % slots.length;
+            if (newSlot == leftSlot) {
+                newSlot = (newSlot + 1) % slots.length;
+            }
+            selectSlot(-1, newSlot);
+        }
+        nextRightWasDown = c["nextRight"];
+
+        if (c["activateLeft"]) {
             activateSlot(leftSlot);
         }
-        if (c[activateRight]) {
+        if (c["activateRight"]) {
             activateSlot(rightSlot);
         }
     };
-
-    selectSlot(left, right);
 }
