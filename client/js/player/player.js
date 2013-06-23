@@ -37,6 +37,10 @@ function Player(name, world, conn, controls) {
         return name;
     }
 
+    self.id = function() {
+        return "player-" + name;
+    }
+
     self.render = function (renderer, scene) {
         renderer.render(scene, camera);
     };

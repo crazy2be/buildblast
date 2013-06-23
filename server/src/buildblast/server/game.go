@@ -42,6 +42,11 @@ func (g *Game) handlePendingClients() {
 			user.client = c
 			user.player = p
 			g.users = append(g.users, user)
+
+			g.Broadcast(&MsgEntityCreate{
+				ID: p.ID(),
+			})
+
 			g.world.AddEntity(p)
 			g.Announce(c.name + " has joined the game!")
 		default:
@@ -65,6 +70,10 @@ func (g *Game) handleLeavingUsers() {
 			}
 			g.users[i] = g.users[len(g.users) - 1]
 			g.users = g.users[:len(g.users) - 1]
+
+			g.Broadcast(&MsgEntityRemove{
+				ID: u.player.ID(),
+			})
 
 			g.world.RemoveEntity(u.player)
 			g.Announce(u.client.name + " has left the game :(")
