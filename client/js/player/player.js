@@ -18,15 +18,21 @@ function Player(name, world, conn, controls) {
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
-    var buildInventory = new BuildInventory(world, camera);
-    var blastInventory = new BlastInventory(world, camera);
+    var inventory = new Inventory(world, camera, [], -1, -1);
+    conn.on('inventory-state', function (payload) {
+//        var items = new Uint8Array(payload.Items.length);
+//        for (var i = 0; i < items.length; i++) {
+//            items[i] = payload.Items.charCodeAt(i) - 32;
+//        }
+        console.log(payload.Items);
+    });
+
     var prediction = new PlayerPrediction(world, conn, camera.position);
 
     self.resize = function () {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        buildInventory.resize();
-        blastInventory.resize();
+        inventory.resize();
     };
 
     self.pos = function () {
@@ -52,8 +58,7 @@ function Player(name, world, conn, controls) {
         camera.position.set(p.x, p.y, p.z);
 
         doLook(camera, camera.position, c);
-        buildInventory.update(p, c);
-        blastInventory.update(p, c);
+        inventory.update(p, c);
     };
 
     function doLook(camera, p, c) {

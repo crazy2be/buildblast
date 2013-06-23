@@ -62,7 +62,7 @@ Block.getColours = function (blockType, face) {
 }
 
 Block.isMineable = function (block) {
-    return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
+    return (Block.PROPERTIES[block] & Block.MINEABLE) > 0;
 }
 
 Block.isEmpty = function (block) {
@@ -74,5 +74,5 @@ Block.isSolid = function (block) {
 }
 
 Block.inSubtype = function (block, subtype) {
-    return (Block.PROPERTIES[block] & 0xF) === subtype;
+    return (Block.PROPERTIES[block] & subtype) > 0;
 }

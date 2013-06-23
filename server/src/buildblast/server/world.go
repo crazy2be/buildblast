@@ -86,10 +86,10 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 }
 
-func (w *World) GetEntitieIDs() []string {
+func (w *World) GetEntityIDs() []string {
 	result := make([]string, len(w.entities))
-	for i, entitie := range w.entities {
-		result[i] = entitie.ID()
+	for i, entity := range w.entities {
+		result[i] = entity.ID()
 	}
 	return result
 }
