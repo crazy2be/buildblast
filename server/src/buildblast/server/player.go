@@ -42,6 +42,7 @@ var PLAYER_MAX_HP = 100;
 type Player struct {
 	incoming chan *ControlState
 	outgoing chan *MsgPlayerState
+	outInv   chan *MsgInventoryState
 
 	pos       coords.World
 	look      coords.Vec3
@@ -58,13 +59,20 @@ type Player struct {
 }
 
 func NewPlayer(world *World, name string) *Player {
+	inv := make([]Item, INV_WIDTH * INV_HEIGHT)
+	inv[0] = ITEM_GUN
+	inv[1] = ITEM_SHOVEL
+	inv[2] = ITEM_DIRT
+	inv[3] = ITEM_STONE
 	return &Player{
 		incoming: make(chan *ControlState, 100),
 		outgoing: make(chan *MsgPlayerState, 100),
+		outInv: make(chan *MsgInventoryState, 100),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
+		inventory: inv,
 		world: world,
 		name: name,
 	}
@@ -87,13 +95,14 @@ func (p *Player) Tick(w *World) {
 			default: return
 		}
 
-		playerStateMsg, _ := p.simulateStep(controls)
+		playerStateMsg, playerInventoryMsg, _ := p.simulateStep(controls)
 
 		p.outgoing <- playerStateMsg
+		p.outInv <- playerInventoryMsg
 	}
 }
 
-func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
+func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgInventoryState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -117,6 +126,8 @@ func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebu
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
+	}, &MsgInventoryState{
+		Items: p.inventory,
 	}, msgDebugRay
 }
 

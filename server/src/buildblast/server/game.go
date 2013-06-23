@@ -49,7 +49,7 @@ func (g *Game) handlePendingClients() {
 				ID: p.ID(),
 			})
 
-			for _, id := range g.world.GetEntitieIDs() {
+			for _, id := range g.world.GetEntityIDs() {
 				c.Send(&MsgEntityCreate{
 					ID: id,
 				})

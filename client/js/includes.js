@@ -28,11 +28,9 @@
 	'js/./chunks/common.js',
 	'js/./entities/manager.js',
 	'js/./entities/entity.js',
-	'js/./player/blastInventory.js',
 	'js/./player/inventory.js',
 	'js/./player/controls.js',
 	'js/./player/clock.js',
 	'js/./player/playerPrediction.js',
-	'js/./player/buildInventory.js',
 	'js/./player/player.js',
 ]));
