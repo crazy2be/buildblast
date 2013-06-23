@@ -43,18 +43,9 @@ func (g *Game) handlePendingClients() {
 			user.player = p
 			g.users = append(g.users, user)
 
+			g.newClientInit(c)
+
 			g.world.AddEntity(p)
-
-			g.Broadcast(&MsgEntityCreate{
-				ID: p.ID(),
-			})
-
-			for _, id := range g.world.GetEntityIDs() {
-				c.Send(&MsgEntityCreate{
-					ID: id,
-				})
-			}
-
 			g.Announce(c.name + " has joined the game!")
 		default:
 			return
@@ -78,15 +69,36 @@ func (g *Game) handleLeavingUsers() {
 			g.users[i] = g.users[len(g.users) - 1]
 			g.users = g.users[:len(g.users) - 1]
 
-			g.Broadcast(&MsgEntityRemove{
-				ID: u.player.ID(),
-			})
-
 			g.world.RemoveEntity(u.player)
 			g.Announce(u.client.name + " has left the game :(")
 		default:
 			return
 		}
+	}
+}
+
+func (g *Game) handleEntityChanges() {
+	for {
+		select {
+		case id := <-g.world.EntityCreate:
+			g.Broadcast(&MsgEntityCreate{
+				ID: id,
+			})
+		case id := <-g.world.EntityRemove:
+			g.Broadcast(&MsgEntityRemove{
+				ID: id,
+			})
+		default:
+			return
+		}
+	}
+}
+
+func (g *Game) newClientInit(c *Client) {
+	for _, id := range g.world.GetEntityIDs() {
+		c.Send(&MsgEntityCreate{
+			ID: id,
+		})
 	}
 }
 
@@ -143,6 +155,7 @@ func (g *Game) Run() {
 func (g *Game) Tick() {
 	g.handleLeavingUsers()
 	g.handlePendingClients()
+	g.handleEntityChanges()
 	for _, u := range g.users {
 		u.client.Tick(g, u.player)
 		select {
