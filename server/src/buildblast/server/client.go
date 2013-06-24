@@ -121,21 +121,14 @@ func (c *Client) RunChunks(conn *Conn, world *World) {
 }
 
 func (c *Client) Tick(g *Game, p *Player) {
-	print("Start-")
 	for {
 		select {
 		case m := <-c.recvQueue:
-			print("<")
 			c.handleMessage(g, p, m)
-			print(">")
 		case m := <-p.outgoing:
-			print("(")
 			c.Send(m)
-			print(")")
 		case m := <-p.outInv:
-			print("[")
 			c.Send(m)
-			print("]")
 		default:
 			return
 		}
@@ -151,7 +144,9 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
+			print("<")
 			p.incoming <- &m.Controls
+			print(">\n")
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
 		case *MsgInventoryState:
