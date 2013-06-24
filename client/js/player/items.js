@@ -36,10 +36,10 @@ Item.PROPERTIES = [
 ];
 
 Item.isStackable = function (item) {
-    return Item.hasPropertie(item, Item.STACKABLE);
+    return Item.hasProperty(item, Item.STACKABLE);
 };
 
-Item.hasPropertie = function (item, prop) {
+Item.hasProperty = function (item, prop) {
     return (Item.PROPERTIES[block] & prop) > 0;
 };
 
