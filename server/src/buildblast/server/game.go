@@ -164,17 +164,26 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
+	print("Start-")
 	g.handleLeavingUsers()
+	print("0")
 	g.handlePendingClients()
+	print("1")
 	g.handleEntityChanges()
+	print("2")
 	g.handleChatEvents()
+	print("3")
 	for _, u := range g.users {
+		print("<")
 		u.client.Tick(g, u.player)
+		print(">")
 		select {
 		case <-u.client.Errors:
 			g.Disconnect(u)
 		default:
 		}
 	}
+	print("4")
 	g.world.Tick(g)
+	print("-End\n")
 }
