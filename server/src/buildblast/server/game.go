@@ -168,6 +168,7 @@ func (g *Game) Tick() {
 	g.handlePendingClients()
 	g.handleEntityChanges()
 	g.handleChatEvents()
+	g.world.Tick(g)
 	for _, u := range g.users {
 		u.client.Tick(g, u.player)
 		select {
@@ -176,5 +177,4 @@ func (g *Game) Tick() {
 		default:
 		}
 	}
-	g.world.Tick(g)
 }

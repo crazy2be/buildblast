@@ -72,7 +72,7 @@ func NewPlayer(world *World, name string) *Player {
 		incoming: make(chan *ControlState, 100),
 		outgoing: make(chan *MsgPlayerState, 100),
 		outInv: make(chan *MsgInventoryState, 100),
-		inInv: make(chan *MsgInventoryState, 10),
+		inInv: make(chan *MsgInventoryState, 100),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
