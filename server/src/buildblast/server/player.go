@@ -237,7 +237,7 @@ func (p *Player) Damage(dmg int, name string) {
 	p.hp -= dmg
 	if p.hp <= 0 {
 		p.Respawn()
-// 		p.world.announce(name + " killed " + p.name)
+ 		p.world.ChatEvents <- name + " killed " + p.name
 	}
 }
 

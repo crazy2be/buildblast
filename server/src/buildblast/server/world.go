@@ -25,8 +25,10 @@ type World struct {
 
 	entities     []Entity
 
+	// Output channels
 	EntityCreate chan string
 	EntityRemove chan string
+	ChatEvents   chan string
 }
 
 func NewWorld(seed float64) *World {
@@ -39,6 +41,7 @@ func NewWorld(seed float64) *World {
 
 	w.EntityCreate = make(chan string, 10)
 	w.EntityRemove = make(chan string, 10)
+	w.ChatEvents = make(chan string, 10)
 
 	return w
 }
