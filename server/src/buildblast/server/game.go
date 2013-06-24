@@ -94,6 +94,17 @@ func (g *Game) handleEntityChanges() {
 	}
 }
 
+func (g *Game) handleChatEvents() {
+	for {
+		select {
+		case text := <-g.world.ChatEvents:
+			g.Announce(text)
+		default:
+			return
+		}
+	}
+}
+
 func (g *Game) newClientInit(c *Client) {
 	for _, id := range g.world.GetEntityIDs() {
 		c.Send(&MsgEntityCreate{
@@ -156,6 +167,7 @@ func (g *Game) Tick() {
 	g.handleLeavingUsers()
 	g.handlePendingClients()
 	g.handleEntityChanges()
+	g.handleChatEvents()
 	for _, u := range g.users {
 		u.client.Tick(g, u.player)
 		select {
