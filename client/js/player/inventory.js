@@ -17,7 +17,7 @@ function Inventory(world, camera, conn, initLeft, initRight) {
         var anyChanged = false;
         for (var i = 0; i < items.length; i++) {
             invItems[i] = new Item(items[i]);
-            if (slots.length != items.length || slots[i].type != items[i]) {
+            if (slots.length !== items.length || slots[i].type !== items[i]) {
                 anyChanged = true;
             }
         }
@@ -53,11 +53,11 @@ function Inventory(world, camera, conn, initLeft, initRight) {
         for (var i = 0; i < first; i++) {
             html += "<div>" + slots[i].name() + "</div>";
         }
-        html += "<div class='selected" + (isLeft?"Left":"Right") + "'>" + slots[first].name() + "</div>";
+        html += "<div class='selected-" + (isLeft?"left":"right") + "'>" + slots[first].name() + "</div>";
         for (var i = first+1; i < second; i++) {
             html += "<div>" + slots[i].name() + "</div>";
         }
-        html += "<div class='selected" + (isLeft?"Right":"Left") + "'>" + slots[second].name() + "</div>";
+        html += "<div class='selected-" + (isLeft?"right":"left") + "'>" + slots[second].name() + "</div>";
         for (var i = second+1; i < slots.length; i++) {
             html += "<div>" + slots[i].name() + "</div>";
         }
@@ -66,9 +66,10 @@ function Inventory(world, camera, conn, initLeft, initRight) {
 
     function selectSlot(left, right) {
         if (!initialized) return;
+        if (left === -1 && right === -1) return;
 
-        leftSlot = updateModels(leftSlot, left);;
-        rightSlot = updateModels(rightSlot, right);;
+        leftSlot = updateModels(leftSlot, left);
+        rightSlot = updateModels(rightSlot, right);
 
         conn.queue('inventory-state', {
             ItemLeft: leftSlot,

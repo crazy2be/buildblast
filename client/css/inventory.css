@@ -13,14 +13,14 @@
 	border: 2px solid rgba(255, 255, 255, 0.2);
 	font-weight: bold;
 }
-#inventory div.selectedLeft {
-	-webkit-animation: itemChangedLeft 1s forwards;
+#inventory div.selected-left {
+	-webkit-animation: item-changed-left 1s forwards;
 }
-#inventory div.selectedRight {
-	-webkit-animation: itemChangedRight 1s forwards;
+#inventory div.selected-right {
+	-webkit-animation: item-changed-right 1s forwards;
 }
 
-@-webkit-keyframes itemChangedLeft {
+@-webkit-keyframes item-changed-left {
 	from {
 		background: rgba(100, 255, 100, 0.5);
 		border-color: rgba(100, 255, 100, 1);
@@ -31,7 +31,7 @@
 	}
 }
 
-@-webkit-keyframes itemChangedRight {
+@-webkit-keyframes item-changed-right {
 	from {
 		background: rgba(100, 100, 255, 0.5);
 		border-color: rgba(100, 100, 255, 1);
