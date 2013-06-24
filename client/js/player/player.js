@@ -19,18 +19,6 @@ function Player(name, world, conn, controls) {
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
     var inventory = new Inventory(world, camera, conn, 0, 1);
-    conn.on('inventory-state', function (payload) {
-        var items = new Uint8Array(payload.Items.length);
-        for (var i = 0; i < items.length; i++) {
-            items[i] = payload.Items.charCodeAt(i) - 32;
-        }
-        var invItems = [];
-        for (var i = 0; i < items.length; i++) {
-            invItems[i] = new Item(items[i]);
-        }
-        inventory.setSlots(invItems);
-    });
-
     var prediction = new PlayerPrediction(world, conn, camera.position);
 
     self.resize = function () {
