@@ -139,19 +139,26 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
+			print("<")
 			g.world.ChangeBlock(m.Pos, m.Type)
+			print("|")
 			g.Broadcast(m)
+			print(">\n")
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
-			print("<")
+			print("(")
 			p.incoming <- &m.Controls
-			print(">\n")
+			print(")\n")
 		case *MsgChat:
+			print("[")
 			g.Chat(c.name, m.(*MsgChat).Message)
+			print("]\n")
 		case *MsgInventoryState:
 			m := m.(*MsgInventoryState)
+			print("{")
 			p.inInv <- m
+			print("}\n")
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
