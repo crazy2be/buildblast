@@ -5,19 +5,27 @@ function Inventory(world, camera, conn, initLeft, initRight) {
 
     var elm = document.querySelector('#inventory');
 
-    self.setSlots = function(inv) {
-        var changed = false;
-        for (var i = 0; i < slots.length; i++) {
-            if (slots[i].type != inv[i].type) {
-                changed = true;
-                break;
+    conn.on('inventory-state', function (payload) {
+        // Decode from the string
+        var items = new Uint8Array(payload.Items.length);
+        for (var i = 0; i < items.length; i++) {
+            items[i] = payload.Items.charCodeAt(i) - 32;
+        }
+
+        // Create the item array, track if it changed
+        var invItems = [];
+        var anyChanged = false;
+        for (var i = 0; i < items.length; i++) {
+            invItems[i] = new Item(items[i]);
+            if (slots.length != items.length || slots[i].type != items[i]) {
+                anyChanged = true;
             }
         }
-        if (!changed && initialized) return;
+        if (!anyChanged && initialized) return;
         initialized = true;
-        slots = inv;
+        slots = invItems;
         selectSlot(leftSlot, rightSlot);
-    };
+    });
 
     var leftSlot = initLeft;
     var rightSlot = initRight;

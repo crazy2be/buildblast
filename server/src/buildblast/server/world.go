@@ -2,7 +2,6 @@ package main
 
 import (
 	"sync"
-	"log"
 
 	"buildblast/physics"
 	"buildblast/mapgen"
