@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"encoding/json"
 	"code.google.com/p/go.net/websocket"
+	"time"
 )
 
 type Conn struct {
@@ -24,7 +25,12 @@ func (c *Conn) Send(m Message) error {
 	cm := new(ClientMessage)
 	cm.Kind = typeToKind(m)
 
+	start := time.Now().UnixNano() / 1e6
 	cm.Payload, err = json.Marshal(m)
+	end := time.Now().UnixNano() / 1e6 - start
+	if end > 10 {
+		log.Println("That took", end, "ms to send")
+	}
 	if err != nil {
 		log.Println("Marshalling websocket message:", err)
 		return err
