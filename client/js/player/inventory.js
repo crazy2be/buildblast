@@ -1,4 +1,4 @@
-function Inventory(world, camera, conn, initLeft, initRight) {
+function Inventory(world, camera, conn) {
     var self = this;
     var slots = [];
 
@@ -28,8 +28,8 @@ function Inventory(world, camera, conn, initLeft, initRight) {
         return false;
     }
 
-    var leftSlot = initLeft;
-    var rightSlot = initRight;
+    var leftSlot = 0;
+    var rightSlot = 1;
 
     var aspectRatio = 1.0;
 
