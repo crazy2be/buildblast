@@ -18,7 +18,7 @@ function Player(name, world, conn, controls) {
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
-    var inventory = new Inventory(world, camera, conn, 0, 1);
+    var inventory = new Inventory(world, camera, conn);
     var prediction = new PlayerPrediction(world, conn, camera.position);
 
     self.resize = function () {
