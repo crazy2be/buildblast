@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"encoding/json"
 	"code.google.com/p/go.net/websocket"
+	"time"
 )
 
 type Conn struct {
@@ -24,7 +25,12 @@ func (c *Conn) Send(m Message) error {
 	cm := new(ClientMessage)
 	cm.Kind = typeToKind(m)
 
+	start := time.Now().UnixNano() / 1e6
 	cm.Payload, err = json.Marshal(m)
+	end := time.Now().UnixNano() / 1e6 - start
+	if end > 10 {
+		log.Println("That took", end, "ms to send")
+	}
 	if err != nil {
 		log.Println("Marshalling websocket message:", err)
 		return err
@@ -78,6 +84,8 @@ func kindToType(kind MessageKind) Message {
 			return &MsgDebugRay{}
 		case MSG_NTP_SYNC:
 			return &MsgNtpSync{}
+		case MSG_INVENTORY_STATE:
+			return &MsgInventoryState{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -104,6 +112,8 @@ func typeToKind(m Message) MessageKind {
 			return MSG_DEBUG_RAY
 		case *MsgNtpSync:
 			return MSG_NTP_SYNC
+		case *MsgInventoryState:
+			return MSG_INVENTORY_STATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
