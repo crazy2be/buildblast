@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type Item byte
 
 const (
@@ -39,7 +43,11 @@ func ItemsToString(items []Item) string {
 	for i := 0; i < len(data); i++ {
 		// 32: Space charater. Control charaters
 		// are not allowed in JSON strings.
-		data[i] = byte(items[i] + 32)
+		value := byte(items[i] + 32)
+		data[i] = value
+		if (value >= 127) {
+			panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
+		}
 	}
 	return string(data)
 }

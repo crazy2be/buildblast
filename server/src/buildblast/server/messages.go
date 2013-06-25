@@ -78,7 +78,7 @@ type MsgNtpSync struct {
 }
 
 type MsgInventoryState struct {
-	Items     string
+	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
 	ItemLeft  int
 	ItemRight int
 }
