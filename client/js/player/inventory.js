@@ -1,40 +1,99 @@
-function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activateAction) {
+function Inventory(world, camera, conn) {
     var self = this;
+    var slots = [];
 
-    var currentSlot = -1;
+    var elm = document.querySelector('#inventory');
 
-    function activateCurrentSlot() {
-        var action = slots[currentSlot].action;
+    conn.on('inventory-state', function (payload) {
+        // Decode from the string
+        var items = new Uint8Array(payload.Items.length);
+        for (var i = 0; i < items.length; i++) {
+            items[i] = payload.Items.charCodeAt(i) - 32;
+        }
+
+        // Create the item array, track if it changed
+        if (!anyChanged(items)) return;
+        if (slots.length > items.length) slots = [];
+        for (var i = 0; i < items.length; i++) {
+            slots[i] = new Item(items[i]);
+        }
+        selectSlot(leftSlot, rightSlot);
+    });
+
+    function anyChanged(items) {
+        if (slots.length !== items.length) return true;
+        for (var i = 0; i < items.length; i++) {
+            if (slots[i].type !== items[i]) return true;
+        }
+        return false;
+    }
+
+    var leftSlot = 0;
+    var rightSlot = 1;
+
+    var aspectRatio = 1.0;
+
+    self.resize = function () {
+        aspectRatio = window.innerWidth / window.innerHeight;
+    };
+
+    function activateSlot(slot) {
+        var action = slots[slot].action();
         if (action) {
-            action();
+            action(world, camera);
         } else {
-            throw "Not sure what to do with the currently selected item: '" + selectedItem + "'";
+            console.log("Attempted to use an empty item slot.");
         }
     }
 
-    function generateHTML(slots, selectedIndex) {
+    function generateHTML() {
         var html = "";
-        for (var i = 0; i < selectedIndex; i++) {
-            html += "<li>" + slots[i].name + "</li>";
+        var first = min(leftSlot, rightSlot);
+        var second = max(leftSlot, rightSlot);
+        var isLeft = first == leftSlot;
+        for (var i = 0; i < first; i++) {
+            html += "<div>" + slots[i].name() + "</div>";
         }
-        html += "<li class='selected'>" + slots[selectedIndex].name + "</li>";
-        for (var i = selectedIndex+1; i < slots.length; i++) {
-            html += "<li>" + slots[i].name + "</li>";
+        html += "<div class='selected-" + (isLeft?"left":"right") + "'>" + slots[first].name() + "</div>";
+        for (var i = first+1; i < second; i++) {
+            html += "<div>" + slots[i].name() + "</div>";
+        }
+        html += "<div class='selected-" + (isLeft?"right":"left") + "'>" + slots[second].name() + "</div>";
+        for (var i = second+1; i < slots.length; i++) {
+            html += "<div>" + slots[i].name() + "</div>";
         }
         return html;
     }
 
-    function selectSlot(n) {
-        if (slots.length <= n) return;
-        var html = generateHTML(slots, n);
+    function selectSlot(left, right) {
+        if (slots.length === 0) return;
+        if (left === -1 && right === -1) return;
+
+        leftSlot = updateModels(leftSlot, left);
+        rightSlot = updateModels(rightSlot, right);
+
+        conn.queue('inventory-state', {
+            ItemLeft: leftSlot,
+            ItemRight: rightSlot,
+        });
+
+        var html = generateHTML();
         elm.innerHTML = html;
-        if (currentSlot > -1) {
-            world.removeFromScene(slots[currentSlot].model);
+    }
+
+    function updateModels(curSlot, newSlot) {
+        if (newSlot < slots.length && newSlot >= 0) {
+            if (curSlot > -1) {
+                world.removeFromScene(slots[curSlot].model());
+            }
+            var model = slots[newSlot].model();
+            if (model !== null) {
+                model.scale.set(1/16, 1/16, 1/16);
+                world.addToScene(model);
+            }
+            return newSlot;
         }
-        var model = slots[n].model;
-        model.scale.set(1/16, 1/16, 1/16);
-        world.addToScene(model);
-        currentSlot = n;
+        return curSlot;
     }
 
     function pointItem(item, c) {
@@ -80,39 +139,59 @@ function Inventory(world, camera, slots, elm, leftwardOffset, nextAction, activa
         p.add(mov);
     }
 
-    var offsetx = Math.random();
-    var offsetz = Math.random();
-    function addJitter(item) {
-        offsetx += Math.random() / 30;
-        offsetz += Math.random() / 30;
-        item.position.x += Math.sin(offsetx) / 400;
-        item.position.z += Math.sin(offsetz) / 400;
+    var leftOffset = { x: Math.random(), z: Math.random() };
+    var rightOffset = { x: Math.random(), z: Math.random() };
+    function addJitter(item, values) {
+        values.x += Math.random() / 30;
+        values.z += Math.random() / 30;
+        item.position.x += Math.sin(values.x) / 400;
+        item.position.z += Math.sin(values.z) / 400;
     }
 
-    var nextWasDown = false;
+    var nextLeftWasDown = false;
+    var nextRightWasDown = false;
     self.update = function (playerPosition, controlState) {
+        if (slots.length === 0) return;
         var p = playerPosition;
         var c = controlState;
-        var item = slots[currentSlot].model;
-        pointItem(item, c);
-        positionItem(item, p, c);
-        postitionPerspective(item, leftwardOffset);
-        addJitter(item);
 
-        if (!nextWasDown && c[nextAction]) {
-            selectSlot((currentSlot + 1) % slots.length);
+        var leftResult = updateEquipped(1, leftSlot, rightSlot, leftOffset,
+                nextLeftWasDown, "nextLeft", "activateLeft");
+        var rightResult = updateEquipped(-1, rightSlot, leftSlot, rightOffset,
+                nextRightWasDown, "nextRight", "activateRight");
+
+        if (leftResult.updatedSlot !== -1 || rightResult.updatedSlot !== -1) {
+            selectSlot(leftResult.updatedSlot, rightResult.updatedSlot);
         }
-        nextWasDown = c[nextAction];
 
-        if (c[activateAction]) {
-            activateCurrentSlot();
-        }
-    }
+        nextLeftWasDown = leftResult.wasDown;
+        nextRightWasDown = rightResult.wasDown;
 
-    var aspectRatio = 1.0;
-    self.resize = function () {
-        aspectRatio = window.innerWidth / window.innerHeight;
-    }
+        function updateEquipped(pos, slot, oppositeSlot, offset, nextWasDown, nextTrigger, activateTrigger) {
+            var newSlot = -1;
+            var itemModel = slots[slot].model();
+            if (itemModel !== null) {
+                pointItem(itemModel, c);
+                positionItem(itemModel, p, c);
+                postitionPerspective(itemModel, pos);
+                addJitter(itemModel, offset);
+            }
 
-    selectSlot(0);
+            if (!nextWasDown && c[nextTrigger]) {
+                newSlot = (slot + 1) % slots.length;
+                if (newSlot == oppositeSlot) {
+                    newSlot = (newSlot + 1) % slots.length;
+                }
+            }
+
+            if (c[activateTrigger]) {
+                activateSlot(slot);
+            }
+
+            return {
+                updatedSlot: newSlot,
+                wasDown: c[nextTrigger],
+            };
+        };
+    };
 }

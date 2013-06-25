@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"log"
 
 	"buildblast/physics"
 	"buildblast/mapgen"
@@ -17,12 +18,17 @@ type Entity interface {
 }
 
 type World struct {
-	seed        float64
-	chunks      map[coords.Chunk]mapgen.Chunk
-	chunkLock   sync.Mutex
-	generator   mapgen.ChunkSource
+	seed         float64
+	chunks       map[coords.Chunk]mapgen.Chunk
+	chunkLock    sync.Mutex
+	generator    mapgen.ChunkSource
 
-	entities []Entity
+	entities     []Entity
+
+	// Output channels
+	EntityCreate chan string
+	EntityRemove chan string
+	ChatEvents   chan string
 }
 
 func NewWorld(seed float64) *World {
@@ -32,6 +38,10 @@ func NewWorld(seed float64) *World {
 	w.generator = mapgen.NewMazeArena(seed)
 
 	w.entities = make([]Entity, 0)
+
+	w.EntityCreate = make(chan string, 10)
+	w.EntityRemove = make(chan string, 10)
+	w.ChatEvents = make(chan string, 10)
 
 	return w
 }
@@ -43,6 +53,7 @@ func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 
 	if chunk == nil {
 		chunk = w.generator.Chunk(cc)
+		log.Println("Generated chunk at ", cc)
 
 		w.chunkLock.Lock()
 		w.chunks[cc] = chunk
@@ -73,6 +84,25 @@ func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
+	w.EntityCreate <- e.ID()
+}
+
+func (w *World) RemoveEntity(e Entity) {
+	for i, entity := range w.entities {
+		if entity == e {
+			w.entities[i] = w.entities[len(w.entities) - 1]
+			w.entities = w.entities[:len(w.entities) - 1]
+			w.EntityRemove <- e.ID()
+		}
+	}
+}
+
+func (w *World) GetEntityIDs() []string {
+	result := make([]string, len(w.entities))
+	for i, entity := range w.entities {
+		result[i] = entity.ID()
+	}
+	return result
 }
 
 func (w *World) Tick(g *Game) {
