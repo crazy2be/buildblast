@@ -13,6 +13,7 @@ function Inventory(world, camera, conn) {
 
         // Create the item array, track if it changed
         if (!anyChanged(items)) return;
+        if (slots.length > items.length) slots = [];
         for (var i = 0; i < items.length; i++) {
             slots[i] = new Item(items[i]);
         }
@@ -21,7 +22,6 @@ function Inventory(world, camera, conn) {
 
     function anyChanged(items) {
         if (slots.length !== items.length) return true;
-        if (slots.length > items.length) slots = [];
         for (var i = 0; i < items.length; i++) {
             if (slots[i].type !== items[i]) return true;
         }
