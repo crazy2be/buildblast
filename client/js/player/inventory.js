@@ -1,7 +1,6 @@
 function Inventory(world, camera, conn, initLeft, initRight) {
     var self = this;
     var slots = [];
-    var initialized = false;
 
     var elm = document.querySelector('#inventory');
 
@@ -13,19 +12,21 @@ function Inventory(world, camera, conn, initLeft, initRight) {
         }
 
         // Create the item array, track if it changed
-        var invItems = [];
-        var anyChanged = false;
+        if (!anyChanged(items)) return;
         for (var i = 0; i < items.length; i++) {
-            invItems[i] = new Item(items[i]);
-            if (slots.length !== items.length || slots[i].type !== items[i]) {
-                anyChanged = true;
-            }
+            slots[i] = new Item(items[i]);
         }
-        if (!anyChanged && initialized) return;
-        initialized = true;
-        slots = invItems;
         selectSlot(leftSlot, rightSlot);
     });
+
+    function anyChanged(items) {
+        if (slots.length !== items.length) return true;
+        if (slots.length > items.length) slots = [];
+        for (var i = 0; i < items.length; i++) {
+            if (slots[i].type !== items[i]) return true;
+        }
+        return false;
+    }
 
     var leftSlot = initLeft;
     var rightSlot = initRight;
@@ -65,7 +66,7 @@ function Inventory(world, camera, conn, initLeft, initRight) {
     }
 
     function selectSlot(left, right) {
-        if (!initialized) return;
+        if (slots.length === 0) return;
         if (left === -1 && right === -1) return;
 
         leftSlot = updateModels(leftSlot, left);
@@ -138,56 +139,59 @@ function Inventory(world, camera, conn, initLeft, initRight) {
         p.add(mov);
     }
 
-    var leftoffset = [Math.random(), Math.random()];
-    var rightoffset = [Math.random(), Math.random()];
+    var leftOffset = { x: Math.random(), z: Math.random() };
+    var rightOffset = { x: Math.random(), z: Math.random() };
     function addJitter(item, values) {
-        values[0] += Math.random() / 30;
-        values[1] += Math.random() / 30;
-        item.position.x += Math.sin(values[0]) / 400;
-        item.position.z += Math.sin(values[1]) / 400;
+        values.x += Math.random() / 30;
+        values.z += Math.random() / 30;
+        item.position.x += Math.sin(values.x) / 400;
+        item.position.z += Math.sin(values.z) / 400;
     }
 
     var nextLeftWasDown = false;
     var nextRightWasDown = false;
     self.update = function (playerPosition, controlState) {
-        if (!initialized) return;
+        if (slots.length === 0) return;
         var p = playerPosition;
         var c = controlState;
 
-        var leftResult = updateEquipped(p, c, 1, leftSlot, rightSlot, leftoffset,
+        var leftResult = updateEquipped(1, leftSlot, rightSlot, leftOffset,
                 nextLeftWasDown, "nextLeft", "activateLeft");
-        var rightResult = updateEquipped(p, c, -1, rightSlot, leftSlot, rightoffset,
+        var rightResult = updateEquipped(-1, rightSlot, leftSlot, rightOffset,
                 nextRightWasDown, "nextRight", "activateRight");
 
-        if (leftResult != -1 || rightResult != -1) {
-            selectSlot(leftResult[0], rightResult[0]);
+        if (leftResult.updatedSlot !== -1 || rightResult.updatedSlot !== -1) {
+            selectSlot(leftResult.updatedSlot, rightResult.updatedSlot);
         }
 
-        nextLeftWasDown = leftResult[1];
-        nextRightWasDown = rightResult[1];
-    };
+        nextLeftWasDown = leftResult.wasDown;
+        nextRightWasDown = rightResult.wasDown;
 
-    function updateEquipped(p, c, pos, slot, oppositeSlot, offset, nextWasDown, nextTrigger, activateTrigger) {
-        var newSlot = -1;
-        var itemModel = slots[slot].model();
-        if (itemModel !== null) {
-            pointItem(itemModel, c);
-            positionItem(itemModel, p, c);
-            postitionPerspective(itemModel, pos);
-            addJitter(itemModel, offset);
-        }
-
-        if (!nextWasDown && c[nextTrigger]) {
-            newSlot = (slot + 1) % slots.length;
-            if (newSlot == oppositeSlot) {
-                newSlot = (newSlot + 1) % slots.length;
+        function updateEquipped(pos, slot, oppositeSlot, offset, nextWasDown, nextTrigger, activateTrigger) {
+            var newSlot = -1;
+            var itemModel = slots[slot].model();
+            if (itemModel !== null) {
+                pointItem(itemModel, c);
+                positionItem(itemModel, p, c);
+                postitionPerspective(itemModel, pos);
+                addJitter(itemModel, offset);
             }
-        }
 
-        if (c[activateTrigger]) {
-            activateSlot(slot);
-        }
+            if (!nextWasDown && c[nextTrigger]) {
+                newSlot = (slot + 1) % slots.length;
+                if (newSlot == oppositeSlot) {
+                    newSlot = (newSlot + 1) % slots.length;
+                }
+            }
 
-        return [newSlot, c[nextTrigger]];
-    }
+            if (c[activateTrigger]) {
+                activateSlot(slot);
+            }
+
+            return {
+                updatedSlot: newSlot,
+                wasDown: c[nextTrigger],
+            };
+        };
+    };
 }
