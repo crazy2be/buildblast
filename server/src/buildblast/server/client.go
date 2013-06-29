@@ -17,6 +17,8 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
+
+	player *Player
 }
 
 func NewClient(world *World, name string) *Client {
@@ -31,39 +33,36 @@ func NewClient(world *World, name string) *Client {
 	return c
 }
 
-func (c *Client) RunChunks(conn *Conn, world *World) {
-	for {
-		cc, valid := c.cm.Top()
-		if !valid {
-			<-time.After(time.Second / 10)
-			continue
-		}
-
-		chunk := world.RequestChunk(cc)
-
-		m := &MsgChunk{
-			CCPos: cc,
-			Size: coords.CHUNK_SIZE,
-			Data: chunk.Flatten(),
-		}
-
-		conn.Send(m)
-	}
-}
-
-func (c *Client) Tick(g *Game, p *Player) {
+func (c *Client) Tick(g *Game, w *World) {
 	for {
 		select {
 		case m := <-c.recvQueue:
-			c.handleMessage(g, p, m)
-		case m := <-p.outgoing:
+			c.handleMessage(g, c.player, m)
+		case m := <-c.player.outgoing:
 			c.Send(m)
-		case m := <-p.outInv:
+		case m := <-c.player.outInv:
 			c.Send(m)
 		default:
 			return
 		}
 	}
+}
+
+func (c *Client) Connected(g *Game, w *World) {
+	p := NewPlayer(w, c.name)
+
+	for _, id := range w.GetEntityIDs() {
+		c.Send(&MsgEntityCreate{
+			ID: id,
+		})
+	}
+
+	w.AddEntity(p)
+	c.player = p
+}
+
+func (c *Client) Disconnected(g *Game, w *World) {
+	w.RemoveEntity(c.player)
 }
 
 func (c *Client) Send(m Message) {
@@ -92,5 +91,27 @@ func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return
+	}
+}
+
+// WARNING: This runs on a seperate thread from everything
+// else in client! It should be refactored, but for now, just be cautious.
+func (c *Client) RunChunks(conn *Conn, world *World) {
+	for {
+		cc, valid := c.cm.Top()
+		if !valid {
+			<-time.After(time.Second / 10)
+			continue
+		}
+
+		chunk := world.RequestChunk(cc)
+
+		m := &MsgChunk{
+			CCPos: cc,
+			Size: coords.CHUNK_SIZE,
+			Data: chunk.Flatten(),
+		}
+
+		conn.Send(m)
 	}
 }

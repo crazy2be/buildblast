@@ -5,46 +5,36 @@ import (
 	"time"
 )
 
-type User struct {
-	client *Client
-	player *Player
-}
-
 type Game struct {
-	users          []*User
-	pendingClients chan *Client
-	leavingUsers   chan *User
+	clients []*Client
+	connectingClients chan *Client
+	disconnectingClients   chan *Client
 	world          *World
 }
 
 func NewGame() *Game {
 	g := new(Game)
-	g.users = make([]*User, 0)
-	g.pendingClients = make(chan *Client, 10)
-	g.leavingUsers = make(chan *User, 10)
+
+	g.clients = make([]*Client, 0)
+	g.connectingClients = make(chan *Client, 10)
+	g.disconnectingClients = make(chan *Client, 10)
+
 	g.world = NewWorld(float64(time.Now().Unix()))
 	return g
 }
 
 // Thread safe
 func (g *Game) Connect(c *Client) {
-	g.pendingClients <- c
+	g.connectingClients <- c
 }
 
 // Not thread safe (This better be called on the Games main thread)
-func (g *Game) handlePendingClients() {
+func (g *Game) handleConnectingClients() {
 	for {
 		select {
-		case c := <-g.pendingClients:
-			p := NewPlayer(g.world, c.name)
-			user := new(User)
-			user.client = c
-			user.player = p
-			g.users = append(g.users, user)
-
-			g.newClientInit(c)
-
-			g.world.AddEntity(p)
+		case c := <-g.connectingClients:
+			g.clients = append(g.clients, c)
+			c.Connected(g, g.world)
 			g.Announce(c.name + " has joined the game!")
 		default:
 			return
@@ -52,28 +42,38 @@ func (g *Game) handlePendingClients() {
 	}
 }
 
-func (g *Game) Disconnect(u *User) {
-	g.leavingUsers <- u
+func (g *Game) Disconnect(c *Client) {
+	g.disconnectingClients <- c
 }
 
-func (g *Game) handleLeavingUsers() {
+func (g *Game) handleDisconnectingClients() {
 	for {
 		select {
-		case u := <-g.leavingUsers:
-			i := g.findUser(u)
+		case c := <-g.disconnectingClients:
+			i := g.findClient(c)
 			if i == -1 {
 				log.Println("[WARN] Attempt to disconnect user who is not connected.")
 				return
 			}
-			g.users[i] = g.users[len(g.users) - 1]
-			g.users = g.users[:len(g.users) - 1]
+			g.clients[i] = g.clients[len(g.clients) - 1]
+			g.clients = g.clients[:len(g.clients) - 1]
 
-			g.world.RemoveEntity(u.player)
-			g.Announce(u.client.name + " has left the game :(")
+			c.Disconnected(g, g.world)
+
+			g.Announce(c.name + " has left the game :(")
 		default:
 			return
 		}
 	}
+}
+
+func (g *Game) findClient(c *Client) int {
+	for i, other := range g.clients {
+		if other == c {
+			return i
+		}
+	}
+	return -1
 }
 
 func (g *Game) handleEntityChanges() {
@@ -104,14 +104,6 @@ func (g *Game) handleChatEvents() {
 	}
 }
 
-func (g *Game) newClientInit(c *Client) {
-	for _, id := range g.world.GetEntityIDs() {
-		c.Send(&MsgEntityCreate{
-			ID: id,
-		})
-	}
-}
-
 func (g *Game) Announce(message string) {
 	g.Chat("SERVER", message)
 }
@@ -125,33 +117,24 @@ func (g *Game) Chat(user string, message string) {
 }
 
 func (g *Game) Broadcast(m Message) {
-	for _, u := range g.users {
-		u.client.Send(m)
+	for _, c := range g.clients {
+		c.Send(m)
 	}
 }
 
 func (g *Game) BroadcastLossy(m Message) {
-	for _, u := range g.users {
-		u.client.SendLossy(m)
+	for _, c := range g.clients {
+		c.SendLossy(m)
 	}
 }
 
-func (g *Game) findUserByName(name string) *User {
-	for _, u := range g.users {
-		if u.client.name == name {
-			return u
+func (g *Game) findClientByName(name string) *Client {
+	for _, c := range g.clients {
+		if c.name == name {
+			return c
 		}
 	}
 	return nil
-}
-
-func (g *Game) findUser(u *User) int {
-	for i, other := range g.users {
-		if other == u {
-			 return i
-		}
-	}
-	return -1
 }
 
 func (g *Game) Run() {
@@ -163,16 +146,16 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
-	g.handleLeavingUsers()
-	g.handlePendingClients()
+	g.handleConnectingClients()
+	g.handleDisconnectingClients()
 	g.handleEntityChanges()
 	g.handleChatEvents()
 	g.world.Tick(g)
-	for _, u := range g.users {
-		u.client.Tick(g, u.player)
+	for _, c := range g.clients {
+		c.Tick(g, g.world)
 		select {
-		case <-u.client.Errors:
-			g.Disconnect(u)
+		case <-c.Errors:
+			g.Disconnect(c)
 		default:
 		}
 	}
