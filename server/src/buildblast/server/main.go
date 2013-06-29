@@ -44,8 +44,8 @@ func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
 	// TODO: findUserByName is not thread safe!
-	u := globalGame.findUserByName(name)
-	u.client.RunChunks(NewConn(ws), globalGame.world)
+	c := globalGame.findClientByName(name)
+	c.RunChunks(NewConn(ws), globalGame.world)
 }
 
 func doProfile() {
