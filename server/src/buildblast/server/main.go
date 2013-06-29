@@ -33,16 +33,20 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	conn := NewConn(ws)
-	c := NewClient(globalWorld, name)
+
+	c := NewClient(name)
 	globalGame.Connect(c)
+
+	conn := NewConn(ws)
 	c.Run(conn)
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	c := globalGame.findClientByName(name)
-	c.RunChunks(NewConn(ws))
+
+	// TODO: findUserByName is not thread safe!
+	u := globalGame.findUserByName(name)
+	u.client.RunChunks(NewConn(ws), globalWorld)
 }
 
 func doProfile() {

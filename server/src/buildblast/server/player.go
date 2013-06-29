@@ -14,11 +14,12 @@ type ControlState struct {
 	Right           bool
 	Back            bool
 	Jump            bool
-	ActivateBlaster bool
+	ActivateLeft    bool
+	ActivateRight   bool
 	Lat             float64
 	Lon             float64
 
-	Timestamp float64 // In ms
+	Timestamp       float64 // In ms
 }
 
 var PLAYER_EYE_HEIGHT = 1.6;
@@ -42,6 +43,8 @@ var PLAYER_MAX_HP = 100;
 type Player struct {
 	incoming chan *ControlState
 	outgoing chan *MsgPlayerState
+	outInv   chan *MsgInventoryState
+	inInv    chan *MsgInventoryState
 
 	pos       coords.World
 	look      coords.Vec3
@@ -54,16 +57,27 @@ type Player struct {
 
 	// Gameplay state
 	hp        int
+	inventory []Item
+	itemLeft  int
+	itemRight int
 }
 
 func NewPlayer(world *World, name string) *Player {
+	inv := make([]Item, INV_WIDTH * INV_HEIGHT)
+	inv[0] = ITEM_GUN
+	inv[1] = ITEM_SHOVEL
+	inv[2] = ITEM_DIRT
+	inv[3] = ITEM_STONE
 	return &Player{
-		incoming: make(chan *ControlState, 10),
-		outgoing: make(chan *MsgPlayerState, 10),
+		incoming: make(chan *ControlState, 100),
+		outgoing: make(chan *MsgPlayerState, 100),
+		outInv: make(chan *MsgInventoryState, 100),
+		inInv: make(chan *MsgInventoryState, 100),
 		pos: world.generator.Spawn(),
 		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
+		inventory: inv,
 		world: world,
 		name: name,
 	}
@@ -78,18 +92,21 @@ func (p *Player) ID() string {
 }
 
 func (p *Player) Tick(w *World) {
-	var controls *ControlState
-	select {
-		case controls = <-p.incoming:
-		default: return
+	for {
+		select {
+			case controls := <-p.incoming:
+				playerStateMsg, playerInventoryMsg, _ := p.simulateStep(controls)
+				p.outgoing <- playerStateMsg
+				p.outInv <- playerInventoryMsg
+			case inv := <-p.inInv:
+				p.itemLeft = inv.ItemLeft
+				p.itemRight = inv.ItemRight
+			default: return
+		}
 	}
-
-	playerStateMsg, _ := p.simulateStep(controls)
-
-	p.outgoing <- playerStateMsg
 }
 
-func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebugRay) {
+func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgInventoryState, *MsgDebugRay) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -113,6 +130,8 @@ func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgDebu
 		VelocityY: p.vy,
 		Timestamp: controls.Timestamp,
 		Hp: p.hp,
+	}, &MsgInventoryState{
+		Items: ItemsToString(p.inventory),
 	}, msgDebugRay
 }
 
@@ -172,11 +191,16 @@ func (p *Player) updateLook(controls *ControlState) {
 }
 
 func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRay {
-	if !controls.ActivateBlaster {
+	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
+	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	if !shootingLeft && !shootingRight {
 		return nil
 	}
+
 	// They were holding it down last frame
-	if p.controls.ActivateBlaster {
+	shootingLeftLast := p.controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
+	shootingRightLast := p.controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}
 
@@ -213,7 +237,7 @@ func (p *Player) Damage(dmg int, name string) {
 	p.hp -= dmg
 	if p.hp <= 0 {
 		p.Respawn()
-// 		p.world.announce(name + " killed " + p.name)
+ 		p.world.ChatEvents <- name + " killed " + p.name
 	}
 }
 

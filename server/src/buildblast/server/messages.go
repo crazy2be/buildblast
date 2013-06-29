@@ -20,6 +20,7 @@ const (
 	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
+	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 )
 
 type MsgEntityCreate struct {
@@ -74,6 +75,12 @@ type MsgDebugRay struct {
 
 type MsgNtpSync struct {
 	ServerTime float64
+}
+
+type MsgInventoryState struct {
+	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
+	ItemLeft  int
+	ItemRight int
 }
 
 type ClientMessage struct {

@@ -12,8 +12,6 @@ import (
 type Client struct {
 	Errors chan error
 
-	world *World
-
 	name string
 
 	// Generic messages to be sent to client
@@ -25,28 +23,20 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
-
-	// Be careful! Player is owned by the world,
-	// and runs in a different thread.
-	player *Player
 }
 
-func NewClient(world *World, name string) *Client {
+func NewClient(name string) *Client {
 	c := new(Client)
 	c.Errors = make(chan error, 10)
 
-	c.world = world
 	c.name = name
 
-	c.sendQueue = make(chan Message, 20)
+	c.sendQueue = make(chan Message, 200)
 	c.sendLossyQueue = make(chan Message, 5)
 
-	c.recvQueue = make(chan Message, 10)
+	c.recvQueue = make(chan Message, 100)
 
 	c.cm = NewChunkManager()
-
-	c.player = NewPlayer(world, name)
-	world.AddEntity(c.player)
 
 	return c
 }
@@ -79,7 +69,7 @@ func (c *Client) RunRecv(conn *Conn) {
 			return
 		}
 		if mntp, ok := m.(*MsgNtpSync); ok {
-			mntp.ServerTime = float64(time.Now().UnixNano()) / 1e6
+			mntp.ServerTime = float64(time.Now().UnixNano() / 1e6)
 			c.Send(mntp)
 			continue
 		}
@@ -114,7 +104,7 @@ func (c *Client) SendLossy(m Message) {
 	}
 }
 
-func (c *Client) RunChunks(conn *Conn) {
+func (c *Client) RunChunks(conn *Conn, world *World) {
 	for {
 		cc, valid := c.cm.Top()
 		if !valid {
@@ -122,7 +112,7 @@ func (c *Client) RunChunks(conn *Conn) {
 			continue
 		}
 
-		chunk := c.world.RequestChunk(cc)
+		chunk := world.RequestChunk(cc)
 
 		m := &MsgChunk{
 			CCPos: cc,
@@ -134,35 +124,36 @@ func (c *Client) RunChunks(conn *Conn) {
 	}
 }
 
-func (c *Client) Tick(g *Game) {
+func (c *Client) Tick(g *Game, p *Player) {
 	for {
 		select {
 		case m := <-c.recvQueue:
-			c.handleMessage(g, m)
-		default:
-			return
-		}
-
-		select {
-		case m := <-c.player.outgoing:
+			c.handleMessage(g, p, m)
+		case m := <-p.outgoing:
+			c.Send(m)
+		case m := <-p.outInv:
 			c.Send(m)
 		default:
+			return
 		}
 	}
 }
 
-func (c *Client) handleMessage(g *Game, m Message) {
+func (c *Client) handleMessage(g *Game, p *Player, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
-			c.world.ChangeBlock(m.Pos, m.Type)
+			g.world.ChangeBlock(m.Pos, m.Type)
 			g.Broadcast(m)
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
-			c.player.incoming <- &m.Controls
+			p.incoming <- &m.Controls
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
+		case *MsgInventoryState:
+			m := m.(*MsgInventoryState)
+			p.inInv <- m
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return

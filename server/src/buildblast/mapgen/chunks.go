@@ -1,6 +1,8 @@
 package mapgen
 
 import (
+	"fmt"
+
 	"buildblast/coords"
 )
 
@@ -18,8 +20,8 @@ const (
 	BLOCK_MINEABLE  = 0x80000000
 
 	// Subtypes
-	BLOCK_EMPTY = 0x1
-	BLOCK_SOLID = 0x2
+	BLOCK_EMPTY = 0x1 << 0
+	BLOCK_SOLID = 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32 {
@@ -30,7 +32,7 @@ var BLOCK_PROPERTIES []uint32 = []uint32 {
 }
 
 func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b] & 0xF == BLOCK_SOLID;
+	return BLOCK_PROPERTIES[b] & BLOCK_SOLID > 0;
 }
 
 type Chunk [][][]Block
@@ -65,7 +67,11 @@ func (c Chunk) Flatten() string {
 			for z := 0; z < cd; z++ {
 				// 32: Space charater. Control charaters
 				// are not allowed in JSON strings.
-				data[x*cw*ch + y*cw + z] = byte(c[x][y][z]) + 32
+				value := byte(c[x][y][z] + 32)
+				data[x*cw*ch + y*cw + z] = value
+				if (value >= 127) {
+					panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
+				}
 			}
 		}
 	}

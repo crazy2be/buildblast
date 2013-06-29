@@ -20,7 +20,7 @@ function World(scene, container) {
     var chat = new Chat(controls, conn, container);
 
     var chunkManager = new ChunkManager(scene, player);
-    var entityManager = new EntityManager(scene, conn);
+    var entityManager = new EntityManager(scene, conn, player);
 
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
