@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"time"
+
+	"buildblast/coords"
 )
 
 type Game struct {
@@ -28,6 +30,8 @@ func NewGame() *Game {
 	g.clientResponses = make(chan *Client, 10)
 
 	g.world = NewWorld(float64(time.Now().Unix()))
+	g.world.AddEntityListener(g)
+
 	return g
 }
 
@@ -78,34 +82,6 @@ func (g *Game) handleDisconnectingClients() {
 			c.Disconnected(g, g.world)
 
 			g.Announce(id + " has left the game :(")
-		default:
-			return
-		}
-	}
-}
-
-func (g *Game) handleEntityChanges() {
-	for {
-		select {
-		case id := <-g.world.EntityCreate:
-			g.Broadcast(&MsgEntityCreate{
-				ID: id,
-			})
-		case id := <-g.world.EntityRemove:
-			g.Broadcast(&MsgEntityRemove{
-				ID: id,
-			})
-		default:
-			return
-		}
-	}
-}
-
-func (g *Game) handleChatEvents() {
-	for {
-		select {
-		case text := <-g.world.ChatEvents:
-			g.Announce(text)
 		default:
 			return
 		}
@@ -166,10 +142,7 @@ func (g *Game) Tick() {
 
 	g.handleClientRequests()
 
-	g.handleEntityChanges()
-	g.handleChatEvents()
-
-	g.world.Tick(g)
+	g.world.Tick()
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
 		select {
@@ -178,4 +151,27 @@ func (g *Game) Tick() {
 		default:
 		}
 	}
+}
+
+func (g *Game) EntityCreated(id string) {
+	g.Broadcast(&MsgEntityCreate{
+		ID: id,
+	})
+}
+
+func (g *Game) EntityMoved(id string, pos coords.World) {
+	g.BroadcastLossy(&MsgEntityPosition{
+		ID: id,
+		Pos: pos,
+	})
+}
+
+func (g *Game) EntityDied(id string, killer string) {
+	g.Announce(killer + " killed " + id)
+}
+
+func (g *Game) EntityRemoved(id string) {
+	g.Broadcast(&MsgEntityRemove{
+		ID: id,
+	})
 }

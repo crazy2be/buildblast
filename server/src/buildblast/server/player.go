@@ -207,7 +207,7 @@ func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRa
 	ray := physics.NewRay(p.pos, p.look)
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
 	if hitEntity != nil {
-		hitEntity.Damage(10, p.name)
+		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
 
 	if hitPos == nil {
@@ -233,12 +233,12 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
-func (p *Player) Damage(dmg int, name string) {
-	p.hp -= dmg
-	if p.hp <= 0 {
-		p.Respawn()
- 		p.world.ChatEvents <- name + " killed " + p.name
-	}
+func (p *Player) Damage(amount int) {
+	p.hp -= amount
+}
+
+func (p *Player) Dead() bool {
+	return p.hp <= 0
 }
 
 func (p *Player) Respawn() {

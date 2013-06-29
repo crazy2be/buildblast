@@ -11,10 +11,19 @@ import (
 
 type Entity interface {
 	Tick(w *World)
-	Damage(amount int, what string)
+	Damage(amount int)
+	Dead() bool
+	Respawn()
 	BoxAt(t float64) *physics.Box
 	Pos() coords.World
 	ID() string
+}
+
+type EntityListener interface {
+	EntityCreated(id string)
+	EntityMoved(id string, pos coords.World)
+	EntityDied(id string, killer string)
+	EntityRemoved(id string)
 }
 
 type World struct {
@@ -24,11 +33,7 @@ type World struct {
 	generator    mapgen.ChunkSource
 
 	entities     []Entity
-
-	// Output channels
-	EntityCreate chan string
-	EntityRemove chan string
-	ChatEvents   chan string
+	entityListeners []EntityListener
 }
 
 func NewWorld(seed float64) *World {
@@ -38,11 +43,7 @@ func NewWorld(seed float64) *World {
 	w.generator = mapgen.NewMazeArena(seed)
 
 	w.entities = make([]Entity, 0)
-
-	w.EntityCreate = make(chan string, 10)
-	w.EntityRemove = make(chan string, 10)
-	w.ChatEvents = make(chan string, 10)
-
+	w.entityListeners = make([]EntityListener, 0)
 	return w
 }
 
@@ -82,9 +83,16 @@ func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
 	chunk.SetBlock(wc.Offset(), newBlock)
 }
 
+func (w *World) AddEntityListener(listener EntityListener) {
+	w.entityListeners = append(w.entityListeners, listener)
+}
+
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
-	w.EntityCreate <- e.ID()
+
+	for _, listener := range w.entityListeners {
+		listener.EntityCreated(e.ID())
+	}
 }
 
 func (w *World) RemoveEntity(e Entity) {
@@ -92,7 +100,20 @@ func (w *World) RemoveEntity(e Entity) {
 		if entity == e {
 			w.entities[i] = w.entities[len(w.entities) - 1]
 			w.entities = w.entities[:len(w.entities) - 1]
-			w.EntityRemove <- e.ID()
+
+			for _, listener := range w.entityListeners {
+				listener.EntityRemoved(e.ID())
+			}
+		}
+	}
+}
+
+func (w *World) DamageEntity(damager string, amount int, e Entity) {
+	e.Damage(amount)
+	if e.Dead() {
+		e.Respawn()
+		for _, listener := range w.entityListeners {
+			listener.EntityDied(e.ID(), damager)
 		}
 	}
 }
@@ -105,13 +126,13 @@ func (w *World) GetEntityIDs() []string {
 	return result
 }
 
-func (w *World) Tick(g *Game) {
+func (w *World) Tick() {
 	for _, e := range w.entities {
 		e.Tick(w)
-		g.BroadcastLossy(&MsgEntityPosition{
-			Pos: e.Pos(),
-			ID: e.ID(),
-		})
+
+		for _, listener := range w.entityListeners {
+			listener.EntityMoved(e.ID(), e.Pos())
+		}
 	}
 }
 
