@@ -6,18 +6,26 @@ import (
 )
 
 type Game struct {
-	clients []*Client
+	clients map[string]*Client
 	connectingClients chan *Client
 	disconnectingClients   chan *Client
+
+	clientRequests chan string
+	clientResponses chan *Client
+
 	world          *World
 }
 
 func NewGame() *Game {
 	g := new(Game)
 
-	g.clients = make([]*Client, 0)
+	g.clients = make(map[string]*Client, 0)
+
 	g.connectingClients = make(chan *Client, 10)
 	g.disconnectingClients = make(chan *Client, 10)
+
+	g.clientRequests = make(chan string, 10)
+	g.clientResponses = make(chan *Client, 10)
 
 	g.world = NewWorld(float64(time.Now().Unix()))
 	return g
@@ -33,9 +41,19 @@ func (g *Game) handleConnectingClients() {
 	for {
 		select {
 		case c := <-g.connectingClients:
-			g.clients = append(g.clients, c)
+			id := c.name
+			if g.clients[id] != nil {
+				log.Println("[WARN] Attempt to connect client with id", id, "who is already playing in this world!")
+				c.Send(&MsgChat{
+					DisplayName: "SERVER",
+					Message: "Player with name " + id + " already playing on this world!",
+				})
+				return
+			}
+
+			g.clients[id] = c
 			c.Connected(g, g.world)
-			g.Announce(c.name + " has joined the game!")
+			g.Announce(id + " has joined the game!")
 		default:
 			return
 		}
@@ -50,30 +68,20 @@ func (g *Game) handleDisconnectingClients() {
 	for {
 		select {
 		case c := <-g.disconnectingClients:
-			i := g.findClient(c)
-			if i == -1 {
+			id := c.name
+			if g.clients[id] == nil {
 				log.Println("[WARN] Attempt to disconnect user who is not connected.")
 				return
 			}
-			g.clients[i] = g.clients[len(g.clients) - 1]
-			g.clients = g.clients[:len(g.clients) - 1]
+			delete(g.clients, id)
 
 			c.Disconnected(g, g.world)
 
-			g.Announce(c.name + " has left the game :(")
+			g.Announce(id + " has left the game :(")
 		default:
 			return
 		}
 	}
-}
-
-func (g *Game) findClient(c *Client) int {
-	for i, other := range g.clients {
-		if other == c {
-			return i
-		}
-	}
-	return -1
 }
 
 func (g *Game) handleEntityChanges() {
@@ -128,13 +136,20 @@ func (g *Game) BroadcastLossy(m Message) {
 	}
 }
 
-func (g *Game) findClientByName(name string) *Client {
-	for _, c := range g.clients {
-		if c.name == name {
-			return c
+func (g *Game) clientWithID(id string) *Client {
+	g.clientRequests <- id
+	return <-g.clientResponses
+}
+
+func (g *Game) handleClientRequests() {
+	for {
+		select {
+		case id := <-g.clientRequests:
+			g.clientResponses <- g.clients[id]
+		default:
+			return
 		}
 	}
-	return nil
 }
 
 func (g *Game) Run() {
@@ -148,8 +163,12 @@ func (g *Game) Run() {
 func (g *Game) Tick() {
 	g.handleConnectingClients()
 	g.handleDisconnectingClients()
+
+	g.handleClientRequests()
+
 	g.handleEntityChanges()
 	g.handleChatEvents()
+
 	g.world.Tick(g)
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
