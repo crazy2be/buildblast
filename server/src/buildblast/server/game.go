@@ -17,13 +17,12 @@ type Game struct {
 	world          *World
 }
 
-func NewGame(w *World) *Game {
+func NewGame() *Game {
 	g := new(Game)
 	g.users = make([]*User, 0)
 	g.pendingClients = make(chan *Client, 10)
 	g.leavingUsers = make(chan *User, 10)
-// 	g.world = NewWorld(0)
-	g.world = w
+	g.world = NewWorld(float64(time.Now().Unix()))
 	return g
 }
 
