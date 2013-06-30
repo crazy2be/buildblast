@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ const (
 	// Properties
 	STACKABLE = 0x1 << 0
 	SHOOTABLE = 0x1 << 1
-	
+
 )
 
 var ITEM_PROPERTIES []uint32 = []uint32 {
