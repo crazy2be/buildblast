@@ -74,7 +74,7 @@ func (g *Game) Disconnect(c *Client, reason string) {
 
 	c.Disconnected(g, g.world)
 
-	g.Announce(id + " has left the game : " + reason)
+	g.Announce(id + " has left the game: " + reason)
 }
 
 func (g *Game) Announce(message string) {
