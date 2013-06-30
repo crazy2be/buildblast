@@ -11,7 +11,6 @@ import (
 type Game struct {
 	clients map[string]*Client
 	connectingClients chan *Client
-	disconnectingClients   chan *Client
 
 	clientRequests chan string
 	clientResponses chan *Client
@@ -25,7 +24,6 @@ func NewGame() *Game {
 	g.clients = make(map[string]*Client, 0)
 
 	g.connectingClients = make(chan *Client, 10)
-	g.disconnectingClients = make(chan *Client, 10)
 
 	g.clientRequests = make(chan string, 10)
 	g.clientResponses = make(chan *Client, 10)
@@ -65,28 +63,18 @@ func (g *Game) handleConnectingClients() {
 	}
 }
 
-func (g *Game) Disconnect(c *Client) {
-	g.disconnectingClients <- c
-}
-
-func (g *Game) handleDisconnectingClients() {
-	for {
-		select {
-		case c := <-g.disconnectingClients:
-			id := c.name
-			if g.clients[id] == nil {
-				log.Println("[WARN] Attempt to disconnect user who is not connected.")
-				return
-			}
-			delete(g.clients, id)
-
-			c.Disconnected(g, g.world)
-
-			g.Announce(id + " has left the game :(")
-		default:
-			return
-		}
+// Not thread safe
+func (g *Game) Disconnect(c *Client, reason string) {
+	id := c.name
+	if g.clients[id] == nil {
+		log.Println("[WARN] Attempt to disconnect user who is not connected.")
+		return
 	}
+	delete(g.clients, id)
+
+	c.Disconnected(g, g.world)
+
+	g.Announce(id + " has left the game : " + reason)
 }
 
 func (g *Game) Announce(message string) {
@@ -139,16 +127,14 @@ func (g *Game) Run() {
 
 func (g *Game) Tick() {
 	g.handleConnectingClients()
-	g.handleDisconnectingClients()
-
 	g.handleClientRequests()
 
 	g.world.Tick()
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
 		select {
-		case <-c.Errors:
-			g.Disconnect(c)
+		case e := <-c.Errors:
+			g.Disconnect(c, e.Error())
 		default:
 		}
 	}
