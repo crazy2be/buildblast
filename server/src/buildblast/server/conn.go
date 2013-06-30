@@ -51,17 +51,16 @@ func (c *Conn) Recv() (Message, error) {
 	cm := new(ClientMessage)
 	err := websocket.JSON.Receive(c.ws, cm)
 	if err != nil {
-		if err != io.EOF {
-			log.Println("Reading websocket message:", err)
+		if err == io.EOF {
+			return nil, err
 		}
-		return nil, err
+		return nil, fmt.Errorf("reading websocket message: %s", err)
 	}
 
 	m := kindToType(cm.Kind)
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
-		log.Println("Unmarshalling websocket message:", err)
-		return nil, err
+		return nil, fmt.Errorf("unmarshalling websocket message: %s", err)
 	}
 
 	return m, nil
