@@ -6,9 +6,8 @@ import (
 	"reflect"
 
 	"buildblast/coords"
+	"buildblast/game"
 )
-
-
 
 type Client struct {
 	*ClientConn
@@ -18,7 +17,7 @@ type Client struct {
 	// Send the client the right chunks.
 	cm *ChunkManager
 
-	player *Player
+	player *game.Player
 }
 
 func NewClient(name string) *Client {
@@ -32,7 +31,7 @@ func NewClient(name string) *Client {
 	return c
 }
 
-func (c *Client) Tick(g *Game, w *World) {
+func (c *Client) Tick(g *Game, w *game.World) {
 	for {
 		select {
 		case m := <-c.recvQueue:
@@ -43,7 +42,7 @@ func (c *Client) Tick(g *Game, w *World) {
 	}
 }
 
-func (c *Client) handleMessage(g *Game, w *World, m Message) {
+func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
@@ -67,7 +66,7 @@ func (c *Client) handleMessage(g *Game, w *World, m Message) {
 			})
 
 			c.Send(&MsgInventoryState{
-				Items: ItemsToString(inventory),
+				Items: game.ItemsToString(inventory),
 			})
 
 			if hitPos != nil {
@@ -81,7 +80,7 @@ func (c *Client) handleMessage(g *Game, w *World, m Message) {
 
 		case *MsgInventoryState:
 			m := m.(*MsgInventoryState)
-			c.player.SetActiveItems(Item(m.ItemLeft), Item(m.ItemRight))
+			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
 
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
@@ -89,8 +88,8 @@ func (c *Client) handleMessage(g *Game, w *World, m Message) {
 	}
 }
 
-func (c *Client) Connected(g *Game, w *World) {
-	p := NewPlayer(w, c.name)
+func (c *Client) Connected(g *Game, w *game.World) {
+	p := game.NewPlayer(w, c.name)
 
 	for _, id := range w.GetEntityIDs() {
 		c.Send(&MsgEntityCreate{
@@ -102,13 +101,13 @@ func (c *Client) Connected(g *Game, w *World) {
 	c.player = p
 }
 
-func (c *Client) Disconnected(g *Game, w *World) {
+func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 }
 
 // WARNING: This runs on a seperate thread from everything
 // else in client! It should be refactored, but for now, just be cautious.
-func (c *Client) RunChunks(conn *Conn, world *World) {
+func (c *Client) RunChunks(conn *Conn, world *game.World) {
 	for {
 		cc, valid := c.cm.Top()
 		if !valid {

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"buildblast/coords"
+	"buildblast/game"
 )
 
 type Game struct {
@@ -15,7 +16,7 @@ type Game struct {
 	clientRequests chan string
 	clientResponses chan *Client
 
-	world          *World
+	world          *game.World
 }
 
 func NewGame() *Game {
@@ -29,7 +30,7 @@ func NewGame() *Game {
 	g.clientRequests = make(chan string, 10)
 	g.clientResponses = make(chan *Client, 10)
 
-	g.world = NewWorld(float64(time.Now().Unix()))
+	g.world = game.NewWorld(float64(time.Now().Unix()))
 	g.world.AddEntityListener(g)
 
 	return g
