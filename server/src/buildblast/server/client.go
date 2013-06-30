@@ -38,6 +38,7 @@ func (c *Client) Tick(g *Game, w *World) {
 		case m := <-c.recvQueue:
 			c.handleMessage(g, c.player, m)
 		case m := <-c.player.outgoing:
+			c.cm.QueueChunksNearby(m.Pos)
 			c.Send(m)
 		case m := <-c.player.outInv:
 			c.Send(m)
@@ -62,14 +63,6 @@ func (c *Client) Connected(g *Game, w *World) {
 
 func (c *Client) Disconnected(g *Game, w *World) {
 	w.RemoveEntity(c.player)
-}
-
-func (c *Client) Send(m Message) {
-	// A bit of a hack...
-	if mep, ok := m.(*MsgPlayerState); ok {
-		c.cm.QueueChunksNearby(mep.Pos)
-	}
-	c.ClientConn.Send(m)
 }
 
 func (c *Client) handleMessage(g *Game, p *Player, m Message) {
