@@ -37,15 +37,43 @@ func (c *Client) Tick(g *Game, w *World) {
 	for {
 		select {
 		case m := <-c.recvQueue:
-			c.handleMessage(g, c.player, m)
-		case m := <-c.player.outgoing:
-			c.cm.QueueChunksNearby(m.Pos)
-			c.Send(m)
-		case m := <-c.player.outInv:
-			c.Send(m)
+			c.handleMessage(g, w, m)
 		default:
 			return
 		}
+	}
+}
+
+func (c *Client) handleMessage(g *Game, w *World, m Message) {
+	switch m.(type) {
+		case *MsgBlock:
+			m := m.(*MsgBlock)
+			w.ChangeBlock(m.Pos, m.Type)
+			// TODO: World should broadcast this automatically
+			g.Broadcast(m)
+
+		case *MsgControlsState:
+			m := m.(*MsgControlsState)
+			m.Controls.Timestamp = m.Timestamp
+
+			mps, mis, mdr := c.player.ClientTick(m.Controls)
+			c.cm.QueueChunksNearby(mps.Pos)
+			c.Send(mps)
+			c.Send(mis)
+			if mdr != nil {
+				g.Broadcast(mdr)
+			}
+
+		case *MsgChat:
+			g.Chat(c.name, m.(*MsgChat).Message)
+
+		case *MsgInventoryState:
+			m := m.(*MsgInventoryState)
+			c.player.SetActiveItems(Item(m.ItemLeft), Item(m.ItemRight))
+
+		default:
+			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
+			return
 	}
 }
 
@@ -64,27 +92,6 @@ func (c *Client) Connected(g *Game, w *World) {
 
 func (c *Client) Disconnected(g *Game, w *World) {
 	w.RemoveEntity(c.player)
-}
-
-func (c *Client) handleMessage(g *Game, p *Player, m Message) {
-	switch m.(type) {
-		case *MsgBlock:
-			m := m.(*MsgBlock)
-			g.world.ChangeBlock(m.Pos, m.Type)
-			g.Broadcast(m)
-		case *MsgControlsState:
-			m := m.(*MsgControlsState)
-			m.Controls.Timestamp = m.Timestamp
-			p.incoming <- &m.Controls
-		case *MsgChat:
-			g.Chat(c.name, m.(*MsgChat).Message)
-		case *MsgInventoryState:
-			m := m.(*MsgInventoryState)
-			p.inInv <- m
-		default:
-			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
-			return
-	}
 }
 
 // WARNING: This runs on a seperate thread from everything
