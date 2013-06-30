@@ -55,12 +55,25 @@ func (c *Client) handleMessage(g *Game, w *World, m Message) {
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
 
-			mps, mis, mdr := c.player.ClientTick(m.Controls)
-			c.cm.QueueChunksNearby(mps.Pos)
-			c.Send(mps)
-			c.Send(mis)
-			if mdr != nil {
-				g.Broadcast(mdr)
+			pos, vy, hp, inventory, hitPos := c.player.ClientTick(m.Controls)
+
+			c.cm.QueueChunksNearby(pos)
+
+			c.Send(&MsgPlayerState{
+				Pos: pos,
+				VelocityY: vy,
+				Timestamp: m.Timestamp,
+				Hp: hp,
+			})
+
+			c.Send(&MsgInventoryState{
+				Items: ItemsToString(inventory),
+			})
+
+			if hitPos != nil {
+				g.Broadcast(&MsgDebugRay{
+					Pos: *hitPos,
+				})
 			}
 
 		case *MsgChat:

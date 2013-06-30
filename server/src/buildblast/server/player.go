@@ -90,7 +90,7 @@ func (p *Player) SetActiveItems(left, right Item) {
 	p.itemRight = right
 }
 
-func (p *Player) ClientTick(controls ControlState) (*MsgPlayerState, *MsgInventoryState, *MsgDebugRay) {
+func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, []Item, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -103,20 +103,13 @@ func (p *Player) ClientTick(controls ControlState) (*MsgPlayerState, *MsgInvento
 
 	p.updateLook(controls)
 
-	msgDebugRay := p.simulateBlaster(dt, controls)
+	hitPos := p.simulateBlaster(dt, controls)
 	p.simulateMovement(dt, controls)
 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return &MsgPlayerState{
-		Pos: p.pos,
-		VelocityY: p.vy,
-		Timestamp: controls.Timestamp,
-		Hp: p.hp,
-	}, &MsgInventoryState{
-		Items: ItemsToString(p.inventory),
-	}, msgDebugRay
+	return p.pos, p.vy, p.hp, p.inventory, hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -174,7 +167,7 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(dt float64, controls ControlState) *MsgDebugRay {
+func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
 	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
 	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
 	if !shootingLeft && !shootingRight {
@@ -193,14 +186,7 @@ func (p *Player) simulateBlaster(dt float64, controls ControlState) *MsgDebugRay
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-
-	if hitPos == nil {
-		return nil
-	}
-
-	return &MsgDebugRay{
-		Pos: *hitPos,
-	}
+	return hitPos
 }
 
 func (p *Player) Box() *physics.Box {
