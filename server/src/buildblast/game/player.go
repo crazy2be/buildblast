@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"log"
@@ -22,10 +22,9 @@ type ControlState struct {
 	Timestamp       float64 // In ms
 }
 
-var PLAYER_EYE_HEIGHT = 1.6;
 var PLAYER_HEIGHT = 1.75;
+var PLAYER_EYE_HEIGHT = 1.6;
 var PLAYER_BODY_HEIGHT = 1.3;
-var PLAYER_DIST_CENTER_EYE = PLAYER_EYE_HEIGHT - PLAYER_BODY_HEIGHT/2;
 var PLAYER_HALF_EXTENTS = coords.Vec3{
 	0.2,
 	PLAYER_HEIGHT / 2,
@@ -33,7 +32,7 @@ var PLAYER_HALF_EXTENTS = coords.Vec3{
 };
 var PLAYER_CENTER_OFFSET = coords.Vec3{
 	0,
-	-PLAYER_DIST_CENTER_EYE,
+	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
 	0,
 };
 
@@ -41,25 +40,22 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100;
 
 type Player struct {
-	incoming chan *ControlState
-	outgoing chan *MsgPlayerState
-	outInv   chan *MsgInventoryState
-	inInv    chan *MsgInventoryState
-
 	pos       coords.World
 	look      coords.Vec3
 	vy        float64
 	box       physics.Box
-	controls  *ControlState
+	controls  ControlState
 	history   *PlayerHistory
 	world     *World
 	name      string
 
 	// Gameplay state
 	hp        int
+
+	// Inventory
 	inventory []Item
-	itemLeft  int
-	itemRight int
+	itemLeft  Item
+	itemRight Item
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -68,13 +64,9 @@ func NewPlayer(world *World, name string) *Player {
 	inv[1] = ITEM_SHOVEL
 	inv[2] = ITEM_DIRT
 	inv[3] = ITEM_STONE
+
 	return &Player{
-		incoming: make(chan *ControlState, 100),
-		outgoing: make(chan *MsgPlayerState, 100),
-		outInv: make(chan *MsgInventoryState, 100),
-		inInv: make(chan *MsgInventoryState, 100),
 		pos: world.generator.Spawn(),
-		controls: &ControlState{},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
 		inventory: inv,
@@ -91,22 +83,14 @@ func (p *Player) ID() string {
 	return "player-" + p.name
 }
 
-func (p *Player) Tick(w *World) {
-	for {
-		select {
-			case controls := <-p.incoming:
-				playerStateMsg, playerInventoryMsg, _ := p.simulateStep(controls)
-				p.outgoing <- playerStateMsg
-				p.outInv <- playerInventoryMsg
-			case inv := <-p.inInv:
-				p.itemLeft = inv.ItemLeft
-				p.itemRight = inv.ItemRight
-			default: return
-		}
-	}
+func (p *Player) Tick(w *World) {}
+
+func (p *Player) SetActiveItems(left, right Item) {
+	p.itemLeft = left
+	p.itemRight = right
 }
 
-func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgInventoryState, *MsgDebugRay) {
+func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, []Item, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -119,23 +103,16 @@ func (p *Player) simulateStep(controls *ControlState) (*MsgPlayerState, *MsgInve
 
 	p.updateLook(controls)
 
-	msgDebugRay := p.simulateBlaster(dt, controls)
+	hitPos := p.simulateBlaster(dt, controls)
 	p.simulateMovement(dt, controls)
 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return &MsgPlayerState{
-		Pos: p.pos,
-		VelocityY: p.vy,
-		Timestamp: controls.Timestamp,
-		Hp: p.hp,
-	}, &MsgInventoryState{
-		Items: ItemsToString(p.inventory),
-	}, msgDebugRay
+	return p.pos, p.vy, p.hp, p.inventory, hitPos
 }
 
-func (p *Player) simulateMovement(dt float64, controls *ControlState) {
+func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	p.vy += dt * -9.81
 
 	fw := 0.0
@@ -178,7 +155,7 @@ func (p *Player) simulateMovement(dt float64, controls *ControlState) {
 	p.pos.Z += move.Z
 }
 
-func (p *Player) updateLook(controls *ControlState) {
+func (p *Player) updateLook(controls ControlState) {
 	cos := math.Cos
 	sin := math.Sin
 
@@ -190,7 +167,7 @@ func (p *Player) updateLook(controls *ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRay {
+func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
 	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
 	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
 	if !shootingLeft && !shootingRight {
@@ -207,16 +184,9 @@ func (p *Player) simulateBlaster(dt float64, controls *ControlState) *MsgDebugRa
 	ray := physics.NewRay(p.pos, p.look)
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
 	if hitEntity != nil {
-		hitEntity.Damage(10, p.name)
+		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-
-	if hitPos == nil {
-		return nil
-	}
-
-	return &MsgDebugRay{
-		Pos: *hitPos,
-	}
+	return hitPos
 }
 
 func (p *Player) Box() *physics.Box {
@@ -233,12 +203,12 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
-func (p *Player) Damage(dmg int, name string) {
-	p.hp -= dmg
-	if p.hp <= 0 {
-		p.Respawn()
- 		p.world.ChatEvents <- name + " killed " + p.name
-	}
+func (p *Player) Damage(amount int) {
+	p.hp -= amount
+}
+
+func (p *Player) Dead() bool {
+	return p.hp <= 0
 }
 
 func (p *Player) Respawn() {
