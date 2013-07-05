@@ -47,6 +47,8 @@ func NewWorld(seed float64) *World {
 }
 
 func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
+	// chunkLock required because of issue #88.
+	// We should remove it.
 	w.chunkLock.Lock()
 	chunk := w.chunks[cc]
 	w.chunkLock.Unlock()
