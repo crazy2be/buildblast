@@ -110,12 +110,16 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 // else in client! It should be refactored, but for now, just be cautious.
 func (c *Client) RunChunks(conn *Conn, world *game.World) {
 	for {
+		// c.cm.Top() doesn't block, so we are effectively polling
+		// it every tenth of a second. Sketchy, I know.
 		cc, valid := c.cm.Top()
 		if !valid {
 			<-time.After(time.Second / 10)
 			continue
 		}
 
+		// This has lots of thread safety problems, we
+		// should probably fix it.
 		chunk := world.RequestChunk(cc)
 
 		m := &MsgChunk{
