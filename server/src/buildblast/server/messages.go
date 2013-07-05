@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	"buildblast/game"
 	"buildblast/coords"
 	"buildblast/mapgen"
 )
@@ -51,7 +52,7 @@ type MsgBlock struct {
 }
 
 type MsgControlsState struct {
-	Controls  ControlState
+	Controls  game.ControlState
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
 }
@@ -79,8 +80,8 @@ type MsgNtpSync struct {
 
 type MsgInventoryState struct {
 	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
-	ItemLeft  int
-	ItemRight int
+	ItemLeft  game.Item
+	ItemRight game.Item
 }
 
 type ClientMessage struct {

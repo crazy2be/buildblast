@@ -15,8 +15,7 @@ import (
 	"github.com/sbinet/liner"
 )
 
-var globalWorld = NewWorld(float64(time.Now().Unix()))
-var globalGame = NewGame(globalWorld)
+var globalGame = NewGame()
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "." + r.URL.Path)
@@ -33,16 +32,19 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	conn := NewConn(ws)
-	c := NewClient(conn, name)
+
+	c := NewClient(name)
 	globalGame.Connect(c)
-	c.Run()
+
+	conn := NewConn(ws)
+	c.Run(conn)
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	u := globalGame.findUserByName(name)
-	u.client.RunChunks(NewConn(ws), globalWorld)
+
+	c := globalGame.clientWithID(name)
+	c.RunChunks(NewConn(ws), globalGame.world)
 }
 
 func doProfile() {
@@ -100,13 +102,6 @@ func promptLoop(quit chan bool, state *liner.State) {
 			quit <- true
 			return
 		}
-		// Yeah... only for debugging health.
-// 		if cmd == "hurt" {
-// 			globalWorld.players[0].Hurt(10, "SERVER")
-// 		}
-// 		if cmd == "kill" {
-// 			globalWorld.players[0].Hurt(100, "SERVER")
-// 		}
 	}
 }
 
