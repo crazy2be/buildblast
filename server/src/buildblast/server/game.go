@@ -25,8 +25,8 @@ func NewGame() *Game {
 
 	g.connectingClients = make(chan *Client, 10)
 
-	g.clientRequests = make(chan string, 10)
-	g.clientResponses = make(chan *Client, 10)
+	g.clientRequests = make(chan string)
+	g.clientResponses = make(chan *Client)
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
 	g.world.AddEntityListener(g)
