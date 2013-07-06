@@ -18,11 +18,15 @@ Item.prototype.action = function () {
     return Item.DATA[this.type].action;
 };
 
-Item.NIL    = 0x0;
-Item.DIRT   = 0x1;
-Item.STONE  = 0x2;
-Item.SHOVEL = 0x3;
-Item.GUN    = 0x4;
+Item.prototype.icon = function () {
+    return Item.DATA[this.type].icon;
+};
+
+Item.NIL    = function () { return new Item(0x0); };
+Item.DIRT   = function () { return new Item(0x1); };
+Item.STONE  = function () { return new Item(0x2); };
+Item.SHOVEL = function () { return new Item(0x3); };
+Item.GUN    = function () { return new Item(0x4); };
 
 // Item properties
 Item.STACKABLE = 0x1;
@@ -49,22 +53,27 @@ Item.init = function() {
             name: '',
             model: null,
             action: null,
+            icon: '/img/item_icons/nil.png',
         },{
             name: 'dirt',
             model: Models.block(),
             action: Item.throttle(Item.blockAction, Block.DIRT),
+            icon: '/img/item_icons/dirt.png',
         },{
             name: 'stone',
             model: Models.stone(),
             action: Item.throttle(Item.blockAction, Block.STONE),
+            icon: '/img/item_icons/stone.png',
         },{
             name: 'shovel',
             model: Models.shovel(),
             action: Item.throttle(Item.shovelAction),
+            icon: '/img/item_icons/shovel.png',
         },{
             name: 'pistol',
             model: Models.pistol(),
             action: Item.pistolAction,
+            icon: '/img/item_icons/pistol.png',
         }
     ];
 };

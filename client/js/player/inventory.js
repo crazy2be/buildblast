@@ -1,8 +1,29 @@
 function Inventory(world, camera, conn) {
     var self = this;
+    var BAG_SIZE = 25;
     var slots = [];
 
-    var elm = document.querySelector('#inventory');
+    var leftIsPrimary = true;
+    var rightIsPrimary = true;
+
+    function getEquippedSlot(isLeft, isPrimary) {
+        index = BAG_SIZE;
+        if (!isLeft) index += 2;
+        if (!isPrimary) index += 1;
+        return index;
+    }
+
+    function leftItem() {
+        return slots[getEquippedSlot(true, leftIsPrimary)];
+    }
+
+    function rightItem() {
+        return slots[getEquippedSlot(false, rightIsPrimary)];
+    }
+
+    bagHtmlInit();
+    updateHtmlEquipChanged(true);
+    updateHtmlEquipChanged(false);
 
     conn.on('inventory-state', function (payload) {
         // Decode from the string
@@ -13,11 +34,14 @@ function Inventory(world, camera, conn) {
 
         // Create the item array, track if it changed
         if (!anyChanged(items)) return;
+        var oldLeft = slots.length > 0 ? leftItem() : Item.NIL();
+        var oldRight = slots.length > 0 ? rightItem() : Item.NIL();
         if (slots.length > items.length) slots = [];
         for (var i = 0; i < items.length; i++) {
             slots[i] = new Item(items[i]);
         }
-        selectSlot(leftSlot, rightSlot);
+        updateEquipped(oldLeft, oldRight);
+        updateHtmlItemIcons();
     });
 
     function anyChanged(items) {
@@ -28,72 +52,85 @@ function Inventory(world, camera, conn) {
         return false;
     }
 
-    var leftSlot = 0;
-    var rightSlot = 1;
-
     var aspectRatio = 1.0;
 
     self.resize = function () {
         aspectRatio = window.innerWidth / window.innerHeight;
     };
 
-    function activateSlot(slot) {
-        var action = slots[slot].action();
-        if (action) {
-            action(world, camera);
-        } else {
-            console.log("Attempted to use an empty item slot.");
-        }
-    }
-
-    function generateHTML() {
+    function bagHtmlInit() {
         var html = "";
-        var first = min(leftSlot, rightSlot);
-        var second = max(leftSlot, rightSlot);
-        var isLeft = first == leftSlot;
-        for (var i = 0; i < first; i++) {
-            html += "<div>" + slots[i].name() + "</div>";
+        var classList;
+        for (var y = 0; y < 5; y++) {
+            for (var x = 0; x < 5; x++) {
+                classList = "slot";
+                if (x !== 0) classList += " has-left-sibling";
+                if (y !== 0) classList += " has-top-sibling";
+                html += '<div id="bag' + (y*5 + x) + '" class="' + classList + '">'
+                    + '<img src="/img/item_icons/nil.png" height="64" width="64">'
+                    + '</div>';
+            }
         }
-        html += "<div class='selected-" + (isLeft?"left":"right") + "'>" + slots[first].name() + "</div>";
-        for (var i = first+1; i < second; i++) {
-            html += "<div>" + slots[i].name() + "</div>";
-        }
-        html += "<div class='selected-" + (isLeft?"right":"left") + "'>" + slots[second].name() + "</div>";
-        for (var i = second+1; i < slots.length; i++) {
-            html += "<div>" + slots[i].name() + "</div>";
-        }
-        return html;
+        $("#bag").html(html);
     }
 
-    function selectSlot(left, right) {
-        if (slots.length === 0) return;
-        if (left === -1 && right === -1) return;
+    function updateHtmlEquipChanged(isLeft) {
+        var side = isLeft ? "left" : "right";
+        var primaryId = "#" + side + "Primary";
+        var reserveId = "#" + side + "Reserve";
+        if ((isLeft && leftIsPrimary) || (!isLeft && rightIsPrimary)) {
+            $(primaryId).addClass("selected");
+            $(reserveId).removeClass("selected");
+        } else {
+            $(primaryId).removeClass("selected");
+            $(reserveId).addClass("selected");
+        }
+    }
 
-        leftSlot = updateModels(leftSlot, left);
-        rightSlot = updateModels(rightSlot, right);
+    function updateHtmlItemIcons() {
+        for (var y = 0; y < 5; y++) {
+            for (var x = 0; x < 5; x++) {
+                var index = y*5 + x;
+                $("#bag" + index).children("img").attr("src", slots[index].icon());
+            }
+        }
+        $("#leftPrimary").children("img").attr("src", slots[BAG_SIZE].icon());
+        $("#leftReserve").children("img").attr("src", slots[BAG_SIZE + 1].icon());
+        $("#rightPrimary").children("img").attr("src", slots[BAG_SIZE + 2].icon());
+        $("#rightReserve").children("img").attr("src", slots[BAG_SIZE + 3].icon());
+    }
+
+    function updateEquipped(oldLeft, oldRight) {
+        if (slots.length === 0) return;
+
+        var leftChanged = false;
+        var rightChanged = false;
+        if (oldLeft !== null) {
+            leftChanged = swapModels(oldLeft, leftItem());
+        }
+        if (oldRight !== null) {
+            rightChanged = swapModels(oldRight, rightItem());
+        }
+
+        if (!leftChanged && !rightChanged) return;
 
         conn.queue('inventory-state', {
-            ItemLeft: leftSlot,
-            ItemRight: rightSlot,
+            ItemLeft: getEquippedSlot(true, leftIsPrimary),
+            ItemRight: getEquippedSlot(false, rightIsPrimary),
         });
-
-        var html = generateHTML();
-        elm.innerHTML = html;
     }
 
-    function updateModels(curSlot, newSlot) {
-        if (newSlot < slots.length && newSlot >= 0) {
-            if (curSlot > -1) {
-                world.removeFromScene(slots[curSlot].model());
-            }
-            var model = slots[newSlot].model();
-            if (model !== null) {
-                model.scale.set(1/16, 1/16, 1/16);
-                world.addToScene(model);
-            }
-            return newSlot;
+    function swapModels(oldItem, newItem) {
+        if (oldItem.type === newItem.type) return false;
+        if (oldItem.model() !== null) {
+            world.removeFromScene(oldItem.model());
         }
-        return curSlot;
+        var model = newItem.model();
+        if (model !== null) {
+            model.scale.set(1/16, 1/16, 1/16);
+            world.addToScene(model);
+        }
+        return true;
     }
 
     function pointItem(item, c) {
@@ -148,28 +185,38 @@ function Inventory(world, camera, conn) {
         item.position.z += Math.sin(values.z) / 400;
     }
 
-    var nextLeftWasDown = false;
-    var nextRightWasDown = false;
+    var swapLeftWasDown = false;
+    var swapRightWasDown = false;
     self.update = function (playerPosition, controlState) {
         if (slots.length === 0) return;
         var p = playerPosition;
         var c = controlState;
 
-        var leftResult = updateEquipped(1, leftSlot, rightSlot, leftOffset,
-                nextLeftWasDown, "nextLeft", "activateLeft");
-        var rightResult = updateEquipped(-1, rightSlot, leftSlot, rightOffset,
-                nextRightWasDown, "nextRight", "activateRight");
+        var leftWasDown = updateSide(true);
+        var rightWasDown = updateSide(false);
 
-        if (leftResult.updatedSlot !== -1 || rightResult.updatedSlot !== -1) {
-            selectSlot(leftResult.updatedSlot, rightResult.updatedSlot);
+        swapLeftWasDown = leftWasDown;
+        swapRightWasDown = rightWasDown;
+
+        function activateItem(item) {
+            var action = item.action();
+            if (action) {
+                action(world, camera);
+            } else {
+                console.log("Attempted to use an empty item slot.");
+            }
         }
 
-        nextLeftWasDown = leftResult.wasDown;
-        nextRightWasDown = rightResult.wasDown;
+        function updateSide(isLeft) {
+            var pos = isLeft ? 1 : -1;
+            var offset = isLeft ? leftOffset : rightOffset;
+            var swapWasDown = isLeft ? swapLeftWasDown : swapRightWasDown;
+            var side = isLeft ? "Left" : "Right";
+            var swapTrigger = "swap" + side;
+            var activateTrigger = "activate" + side;
+            var item = isLeft ? leftItem() : rightItem();
+            var itemModel = item.model();
 
-        function updateEquipped(pos, slot, oppositeSlot, offset, nextWasDown, nextTrigger, activateTrigger) {
-            var newSlot = -1;
-            var itemModel = slots[slot].model();
             if (itemModel !== null) {
                 pointItem(itemModel, c);
                 positionItem(itemModel, p, c);
@@ -177,21 +224,20 @@ function Inventory(world, camera, conn) {
                 addJitter(itemModel, offset);
             }
 
-            if (!nextWasDown && c[nextTrigger]) {
-                newSlot = (slot + 1) % slots.length;
-                if (newSlot == oppositeSlot) {
-                    newSlot = (newSlot + 1) % slots.length;
-                }
+            var swapDown = c[swapTrigger];
+            if (!swapWasDown && swapDown) {
+                if (isLeft) leftIsPrimary = !leftIsPrimary;
+                else rightIsPrimary = !rightIsPrimary;
+                updateEquipped((isLeft ? item : null),
+                               (isLeft ? null : item));
+                updateHtmlEquipChanged(isLeft);
             }
 
             if (c[activateTrigger]) {
-                activateSlot(slot);
+                activateItem(item);
             }
 
-            return {
-                updatedSlot: newSlot,
-                wasDown: c[nextTrigger],
-            };
+            return swapDown;
         };
     };
 }

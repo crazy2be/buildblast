@@ -60,8 +60,8 @@ function Controls(elm) {
         right: [Keys.D],
         back: [Keys.S],
 
-        nextLeft: [Keys.Q],
-        nextRight: [Keys.E],
+        swapLeft: [Keys.Q],
+        swapRight: [Keys.E],
     };
 
     var ActionMappingsDvorak = {
@@ -70,8 +70,8 @@ function Controls(elm) {
         right: [Keys.E],
         back: [Keys.O],
 
-        nextLeft: [Keys.Semicolon],
-        nextRight: [Keys.Period],
+        swapLeft: [Keys.Semicolon],
+        swapRight: [Keys.Period],
     };
 
     var mapping;
