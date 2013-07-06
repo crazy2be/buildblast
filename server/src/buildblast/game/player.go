@@ -59,11 +59,20 @@ type Player struct {
 }
 
 func NewPlayer(world *World, name string) *Player {
-	inv := make([]Item, INV_WIDTH * INV_HEIGHT)
+	// 0 -> (w * h) - 1 are the bag slots, 2 more for left equip, and 2 more again for right.
+	// [0, w*h - 1] = bag slots
+	// [w*h]        = left equip
+	// [w*h + 1]    = left reserve
+	// [w*h + 2]    = right equip
+	// [w*h + 3]    = right reserve
+	inv := make([]Item, INV_WIDTH * INV_HEIGHT + 4)
 	inv[0] = ITEM_GUN
 	inv[1] = ITEM_SHOVEL
 	inv[2] = ITEM_DIRT
 	inv[3] = ITEM_STONE
+	inv[INV_WIDTH * INV_HEIGHT] = ITEM_GUN
+	inv[INV_WIDTH * INV_HEIGHT + 2] = ITEM_SHOVEL
+	inv[INV_WIDTH * INV_HEIGHT + 3] = ITEM_DIRT
 
 	return &Player{
 		pos: world.generator.Spawn(),

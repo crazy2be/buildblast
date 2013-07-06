@@ -8,7 +8,7 @@ type Item byte
 
 const (
 	INV_WIDTH   = 5
-	INV_HEIGHT  = 2
+	INV_HEIGHT  = 5
 
 	ITEM_NIL    = Item(0)
 	ITEM_DIRT   = Item(1)
