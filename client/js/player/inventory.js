@@ -177,7 +177,7 @@ function Inventory(world, camera, conn) {
 
         var amount = leftward * aspectRatio * 0.05;
 
-        // Mov left / right
+        // Move left / right
         var mov = new THREE.Vector3(amount, 0, 0);
         mov.applyMatrix3(r);
 
