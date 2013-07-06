@@ -20,8 +20,7 @@
 	border: 3px solid rgba(50, 50, 50, 1);
 }
 #inventory div.equip {
-	opacity: 0.4;
-	margin-bottom: 3px;
+	-webkit-animation: item-not-changed 1s forwards;
 }
 #inventory #bag div.has-left-sibling {
     margin-left: -3px;
@@ -36,7 +35,7 @@
 	float: right;
 }
 #inventory div.selected {
-	-webkit-animation: item-changed 1s forwards;
+	-webkit-animation: item-changed 1s forwards !important;
 }
 @-webkit-keyframes item-changed {
 	from {
@@ -46,5 +45,15 @@
 	to {
 		opacity: 1;
 		border-color: rgba(100, 100, 255, 1);
+	}
+}
+@-webkit-keyframes item-not-changed {
+	from {
+		opacity: 1;
+		border-color: rgba(100, 100, 255, 1);
+	}
+	to {
+		opacity: 0.4;
+		border-color: rgba(50, 50, 50, 1);
 	}
 }
