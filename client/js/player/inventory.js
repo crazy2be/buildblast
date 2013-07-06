@@ -21,6 +21,8 @@ function Inventory(world, camera, conn) {
         return slots[getEquippedSlot(false, rightIsPrimary)];
     }
 
+    var bagIsShowing = false;
+
     bagHtmlInit();
     updateHtmlEquipChanged(true);
     updateHtmlEquipChanged(false);
@@ -71,6 +73,7 @@ function Inventory(world, camera, conn) {
                     + '</div>';
             }
         }
+        updateBagVisibility();
         $("#bag").html(html);
     }
 
@@ -118,6 +121,11 @@ function Inventory(world, camera, conn) {
             ItemLeft: getEquippedSlot(true, leftIsPrimary),
             ItemRight: getEquippedSlot(false, rightIsPrimary),
         });
+    }
+
+    function updateBagVisibility() {
+        if (bagIsShowing) $("#bag").show();
+        else $("#bag").hide();
     }
 
     function swapModels(oldItem, newItem) {
@@ -187,6 +195,7 @@ function Inventory(world, camera, conn) {
 
     var swapLeftWasDown = false;
     var swapRightWasDown = false;
+    var toggleBagWasDown = false;
     self.update = function (playerPosition, controlState) {
         if (slots.length === 0) return;
         var p = playerPosition;
@@ -194,6 +203,14 @@ function Inventory(world, camera, conn) {
 
         var leftWasDown = updateSide(true);
         var rightWasDown = updateSide(false);
+
+        var toggleBagDown = c["toggleBag"];
+        if (!toggleBagWasDown && toggleBagDown) {
+            bagIsShowing = !bagIsShowing;
+            updateBagVisibility();
+            console.log(bagIsShowing);
+        }
+        toggleBagWasDown = toggleBagDown;
 
         swapLeftWasDown = leftWasDown;
         swapRightWasDown = rightWasDown;
