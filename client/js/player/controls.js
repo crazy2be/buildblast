@@ -10,6 +10,8 @@ function Controls(elm) {
         D: 68,
         Q: 81,
         E: 69,
+        C: 67,
+        J: 74,
 
         Left: 37,
         Up: 38,
@@ -18,6 +20,8 @@ function Controls(elm) {
 
         Space: 32,
         Enter: 13,
+
+        Tab: 9,
 
         One: 49,
         Two: 50,
@@ -49,6 +53,7 @@ function Controls(elm) {
         jump: [Keys.Space],
 
         chat: [Keys.Enter],
+        openScore: [Keys.Tab],
 
         activateLeft: [MouseButtons.Left],
         activateRight: [MouseButtons.Right],
@@ -60,6 +65,8 @@ function Controls(elm) {
         right: [Keys.D],
         back: [Keys.S],
 
+        toggleBag: [Keys.C],
+
         swapLeft: [Keys.Q],
         swapRight: [Keys.E],
     };
@@ -69,6 +76,8 @@ function Controls(elm) {
         left: [Keys.A],
         right: [Keys.E],
         back: [Keys.O],
+
+        toggleBag: [Keys.J],
 
         swapLeft: [Keys.Semicolon],
         swapRight: [Keys.Period],
@@ -105,22 +114,30 @@ function Controls(elm) {
 
     function actionStart(trigger) {
         var action = findAction(trigger);
-        if (!action) return;
+        if (!action) return false;
         actions[action] = true;
+        return true;
     }
 
     function actionEnd(trigger) {
         var action = findAction(trigger);
-        if (!action) return;
+        if (!action) return false;
         actions[action] = false;
+        return true;
     }
 
     function keyDown(event) {
-        actionStart(event.keyCode);
+        if (actionStart(event.keyCode)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     }
 
     function keyUp(event) {
-        actionEnd(event.keyCode);
+        if (actionEnd(event.keyCode)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     }
 
     function mouseDown(event) {
