@@ -104,23 +104,22 @@ function Inventory(world, camera, conn, controls) {
                     From: from,
                     To: to,
                 });
-                updateItemMoved(ui.draggable.children("img"), $(this).children("img"));
-                if (from === to) {
+                var $fromImg = ui.draggable;
+                var $toImg = $(this).children("img");
+                var fromSrc = $fromImg.attr("src");
+                var toSrc = $toImg.attr("src");
+                console.log(ui.draggable, fromSrc, toSrc);
+                if (from === to || fromSrc == toSrc) {
                     ui.draggable.css("visibility", "visible");
                 } else {
+                    $fromImg.attr("src", toSrc);
+                    $toImg.attr("src", fromSrc);
                     ui.draggable.load(function () {
                         ui.draggable.css("visibility", "visible");
                     });
                 }
             },
         });
-    }
-
-    function updateItemMoved(from, to) {
-          var fromSrc = from.attr("src");
-          var toSrc = to.attr("src");
-          from.attr("src", toSrc);
-          to.attr("src", fromSrc);
     }
 
     function updateHtmlEquipChanged(isLeft) {
