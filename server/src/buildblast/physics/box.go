@@ -74,7 +74,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 		amount.Z = 0
 	}
 
-	return amount;
+	return amount
 }
 
 func (b *Box) Contains(position coords.World) bool {

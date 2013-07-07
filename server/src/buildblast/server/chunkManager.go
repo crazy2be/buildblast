@@ -103,7 +103,7 @@ func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
 	cc := wc.Chunk()
 	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
 		cm.display(newCC, -dist)
-	});
+	})
 
 	oc := wc.Offset()
 	if oc.Y <= 4 {
