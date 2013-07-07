@@ -168,23 +168,18 @@ function Inventory(world, camera, conn, controls) {
     function updateEquipped(oldLeft, oldRight) {
         if (slots.length === 0) return;
 
-        var leftChanged = false;
-        var rightChanged = false;
-
         // Special case when switching left and right hands
-        if (oldLeft != null
-         && oldRight != null
-         && oldLeft.model === rightItem().model
-         && oldRight.model === leftItem().model) return;
+        var skipModels = oldLeft != null
+                      && oldRight != null
+                      && oldLeft.model === rightItem().model
+                      && oldRight.model === leftItem().model;
 
-        if (oldLeft !== null) {
-            leftChanged = swapModels(oldLeft, leftItem());
+        if (!skipModels && oldLeft !== null) {
+            swapModels(oldLeft, leftItem());
         }
-        if (oldRight !== null) {
-            rightChanged = swapModels(oldRight, rightItem());
+        if (!skipModels && oldRight !== null) {
+            swapModels(oldRight, rightItem());
         }
-
-        if (!leftChanged && !rightChanged) return;
 
         conn.queue('inventory-state', {
             ItemLeft: getEquippedSlot(true, leftIsPrimary),
