@@ -2,43 +2,54 @@ package coords
 
 import (
 	"math"
-	"encoding/binary"
-	"hash/fnv"
 )
 
+// Vec3 is a generic three-dimensional vector.
+// Generally, prefer using one of the more meaningful
+// vector types that conveys not only that the
+// variable is a 3d vector, but also what that 3d
+// vector represents, such as a look direction,
+// location in 3d space, etc.
 type Vec3 struct {
 	X float64
 	Y float64
 	Z float64
 }
 
-func (vec *Vec3) Dist(to *Vec3) float64 {
-	dx := vec.X - to.X
-	dy := vec.Y - to.Y
-	dz := vec.Z - to.Z
-	return math.Sqrt(dx*dx + dy*dy + dz*dz)
+type Direction struct {
+	X float64
+	Y float64
+	Z float64
 }
 
-func (vec *Vec3) Length() float64 {
-	x := vec.X; y := vec.Y; z := vec.Z
-	return math.Sqrt(x*x + y*y + z*z)
+func (d Direction) Length() float64 {
+	return math.Sqrt(d.X*d.X + d.Y*d.Y + d.Z*d.Z)
 }
 
-func (vec *Vec3) SetLength(n float64) {
-	mag := vec.Length()
-	r := n / mag
-	vec.X *= r
-	vec.Y *= r
-	vec.Z *= r
+func (d Direction) SetLength(newLen float64) Direction {
+	ratio := newLen / d.Length()
+	return Direction{
+		X: d.X * ratio,
+		Y: d.Y * ratio,
+		Z: d.Z * ratio,
+	}
 }
 
-func (vec *Vec3) Add(other *Vec3) {
-	vec.X += other.X
-	vec.Y += other.Y
-	vec.Z += other.Z
+// World represents a position in the 3d world.
+type World struct {
+	X float64
+	Y float64
+	Z float64
 }
 
-type World Vec3
+func (wc World) Move(d Direction, amount float64) World {
+	d = d.SetLength(amount)
+	return World{
+		X: wc.X + d.X,
+		Y: wc.Y + d.Y,
+		Z: wc.Z + d.Z,
+	}
+}
 
 func (wc World) Chunk() Chunk {
 	return wc.Block().Chunk()
@@ -57,22 +68,6 @@ func (wc World) Block() Block {
 		Y: floor(wc.Y),
 		Z: floor(wc.Z),
 	}
-}
-
-func (wc World) Hash() uint32 {
-	hash := fnv.New32a()
-	temp := make([]byte, 8)
-
-	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.X))
-	hash.Write(temp)
-
-	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.Y))
-	hash.Write(temp)
-
-	binary.BigEndian.PutUint64(temp, math.Float64bits(wc.Z))
-	hash.Write(temp)
-
-	return hash.Sum32()
 }
 
 type Block struct {

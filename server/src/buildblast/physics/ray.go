@@ -12,24 +12,21 @@ const (
 
 type Ray struct {
 	pos coords.World
-	dir coords.Vec3
+	dir coords.Direction
 }
 
 // direction must be normalized.
-func NewRay(pos coords.World, direction coords.Vec3) *Ray {
+func NewRay(pos coords.World, direction coords.Direction) *Ray {
 	ray := &Ray{
 		pos: pos,
 		dir: direction,
 	}
-	ray.dir.X *= RAY_PRECISION
-	ray.dir.Y *= RAY_PRECISION
-	ray.dir.Z *= RAY_PRECISION
 	return ray
 }
 
 func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coords.World, int) {
 	for dist := 0.0; dist < RAY_MAX_DIST; dist += RAY_PRECISION {
-		ray.advance()
+		ray.pos = ray.pos.Move(ray.dir, RAY_PRECISION)
 
 		for i, v := range boxes {
 			if v == nil {
@@ -46,11 +43,4 @@ func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coor
 		}
 	}
 	return nil, -1
-}
-
-
-func (ray *Ray) advance() {
-	ray.pos.X += ray.dir.X
-	ray.pos.Y += ray.dir.Y
-	ray.pos.Z += ray.dir.Z
 }
