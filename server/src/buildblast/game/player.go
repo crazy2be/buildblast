@@ -22,22 +22,22 @@ type ControlState struct {
 	Timestamp       float64 // In ms
 }
 
-var PLAYER_HEIGHT = 1.75;
-var PLAYER_EYE_HEIGHT = 1.6;
-var PLAYER_BODY_HEIGHT = 1.3;
+var PLAYER_HEIGHT = 1.75
+var PLAYER_EYE_HEIGHT = 1.6
+var PLAYER_BODY_HEIGHT = 1.3
 var PLAYER_HALF_EXTENTS = coords.Vec3{
 	0.2,
 	PLAYER_HEIGHT / 2,
 	0.2,
-};
+}
 var PLAYER_CENTER_OFFSET = coords.Vec3{
 	0,
 	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
 	0,
-};
+}
 
 // Gameplay state defaults
-var PLAYER_MAX_HP = 100;
+var PLAYER_MAX_HP = 100
 
 type Player struct {
 	pos       coords.World
@@ -101,8 +101,8 @@ func (p *Player) Inventory() []Item {
 func (p *Player) Tick(w *World) {}
 
 func (p *Player) SetActiveItems(left, right int) {
-	p.itemLeft = left;
-	p.itemRight = right;
+	p.itemLeft = left
+	p.itemRight = right
 }
 
 func (p *Player) MoveItems(from, to int) []Item {
@@ -113,7 +113,7 @@ func (p *Player) MoveItems(from, to int) []Item {
 }
 
 func (p *Player) AddItem(kind byte) {
-	firstOpenSpace := -1;
+	firstOpenSpace := -1
 	// Find the item
 	for i, item := range p.inventory {
 		if firstOpenSpace < 0 && item.kind == ITEM_NIL {
