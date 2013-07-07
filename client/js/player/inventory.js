@@ -110,20 +110,21 @@ function Inventory(world, camera, conn, controls) {
 
                 if (from === to || fromPosition === toPosition) {
                     ui.draggable.css("visibility", "visible");
-                } else {
-                    $(this).css("background-position", fromPosition + " 0");
-                    ui.draggable.css("background-position", toPosition + " 0");
-
-                    ui.draggable.waitForImages(function () {
-                        ui.draggable.css("visibility", "visible");
-                    });
-
-                    var $fromSpan = ui.draggable.children("span");
-                    var $toSpan = $(this).children("div").children("span");
-                    var fromText = $fromSpan.text();
-                    $fromSpan.text($toSpan.text());
-                    $toSpan.text(fromText);
+                    return;
                 }
+
+                $(this).css("background-position", fromPosition + " 0");
+                ui.draggable.css("background-position", toPosition + " 0");
+
+                ui.draggable.waitForImages(function () {
+                    ui.draggable.css("visibility", "visible");
+                });
+
+                var $fromSpan = ui.draggable.children("span");
+                var $toSpan = $(this).children("div").children("span");
+                var fromText = $fromSpan.text();
+                $fromSpan.text($toSpan.text());
+                $toSpan.text(fromText);
 
                 conn.queue('inventory-move', {
                     From: from,

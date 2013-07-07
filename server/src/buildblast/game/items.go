@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	"buildblast/mapgen"
 )
 
@@ -19,10 +17,6 @@ func NewItem(kind byte) Item {
 }
 
 const (
-	INV_WIDTH   = 5
-	INV_HEIGHT  = 5
-	MAX_STACK   = 50
-
 	ITEM_NIL    = byte(0)
 	ITEM_DIRT   = byte(1)
 	ITEM_STONE  = byte(2)
@@ -47,7 +41,7 @@ var ITEM_FROM_BLOCK []byte = []byte {
 	/** NIL    */ ITEM_NIL,
 	/** AIR    */ ITEM_NIL,
 	/** DIRT   */ ITEM_DIRT,
-	/** STRONG */ ITEM_STONE,
+	/** STONE  */ ITEM_STONE,
 }
 
 func (i Item) Stackable() bool {
@@ -60,23 +54,4 @@ func (i Item) Shootable() bool {
 
 func ItemFromBlock(block mapgen.Block) byte {
 	return ITEM_FROM_BLOCK[block]
-}
-
-func ItemsToString(items []Item) string {
-	data := make([]byte, len(items) * 2)
-	for i := 0; i < len(data); i += 2 {
-		data[i] = toStringByte(byte(items[i / 2].kind))
-		data[i + 1] = toStringByte(byte(items[i / 2].num))
-	}
-	return string(data)
-}
-
-func toStringByte(val byte) byte {
-	// 32: Space charater. Control charaters
-	// are not allowed in JSON strings.
-	value := val + 32
-	if (value >= 127) {
-		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
-	}
-	return value
 }
