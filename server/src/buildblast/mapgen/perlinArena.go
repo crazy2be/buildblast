@@ -16,13 +16,12 @@ func NewPerlinArena(seed float64) *PerlinArena {
 	return pa
 }
 
-
 func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	quality := 2.0
 	height := 0.0
 
 	for i := 0; i < 4; i++ {
-		height += PerlinNoise(x/quality, z/quality, pa.seed) * quality
+		height += perlinNoise(x/quality, z/quality, pa.seed) * quality
 		quality *= 4
 	}
 
