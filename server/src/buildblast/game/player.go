@@ -100,6 +100,11 @@ func (p *Player) Inventory() []Item {
 
 func (p *Player) Tick(w *World) {}
 
+func (p *Player) SetActiveItems(left, right int) {
+	p.itemLeft = left;
+	p.itemRight = right;
+}
+
 func (p *Player) MoveItems(from, to int) []Item {
 	temp := p.inventory[from]
 	p.inventory[from] = p.inventory[to]

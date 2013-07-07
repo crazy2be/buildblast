@@ -90,6 +90,10 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
 
+		case *MsgInventoryState:
+			m := m.(*MsgInventoryState)
+			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
+
 		case *MsgInventoryMove:
 			m := m.(*MsgInventoryMove)
 			inventory := c.player.MoveItems(m.From, m.To)
