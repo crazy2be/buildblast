@@ -78,9 +78,11 @@ func (w *World) Block(wc coords.World) mapgen.Block {
 	return chunk.Block(wc.Offset())
 }
 
-func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
+func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) mapgen.Block {
 	chunk := w.RequestChunk(wc.Chunk())
+	oldBlock := chunk.Block(wc.Offset())
 	chunk.SetBlock(wc.Offset(), newBlock)
+	return oldBlock
 }
 
 func (w *World) AddEntityListener(listener EntityListener) {

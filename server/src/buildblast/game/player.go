@@ -54,8 +54,8 @@ type Player struct {
 
 	// Inventory
 	inventory []Item
-	itemLeft  Item
-	itemRight Item
+	itemLeft  int
+	itemRight int
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -66,19 +66,21 @@ func NewPlayer(world *World, name string) *Player {
 	// [w*h + 2]    = right equip
 	// [w*h + 3]    = right reserve
 	inv := make([]Item, INV_WIDTH * INV_HEIGHT + 4)
-	inv[0] = ITEM_GUN
-	inv[1] = ITEM_SHOVEL
-	inv[2] = ITEM_DIRT
-	inv[3] = ITEM_STONE
-	inv[INV_WIDTH * INV_HEIGHT] = ITEM_GUN
-	inv[INV_WIDTH * INV_HEIGHT + 2] = ITEM_SHOVEL
-	inv[INV_WIDTH * INV_HEIGHT + 3] = ITEM_DIRT
+	inv[0] = NewItem(ITEM_GUN)
+	inv[1] = NewItem(ITEM_SHOVEL)
+	inv[2] = NewItem(ITEM_DIRT)
+	inv[3] = NewItem(ITEM_STONE)
+	inv[INV_WIDTH * INV_HEIGHT] = NewItem(ITEM_GUN)
+	inv[INV_WIDTH * INV_HEIGHT + 2] = NewItem(ITEM_SHOVEL)
+	inv[INV_WIDTH * INV_HEIGHT + 3] = NewItem(ITEM_DIRT)
 
 	return &Player{
 		pos: world.generator.Spawn(),
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
 		inventory: inv,
+		itemLeft: INV_WIDTH * INV_HEIGHT,
+		itemRight: INV_WIDTH * INV_HEIGHT + 2,
 		world: world,
 		name: name,
 	}
@@ -92,20 +94,52 @@ func (p *Player) ID() string {
 	return "player-" + p.name
 }
 
+func (p *Player) Inventory() []Item {
+	return p.inventory
+}
+
 func (p *Player) Tick(w *World) {}
 
-func (p *Player) SetActiveItems(left, right Item) {
-	p.itemLeft = left
-	p.itemRight = right
-}
-
-func (p *Player) MoveItems(from, to int) {
+func (p *Player) MoveItems(from, to int) []Item {
 	temp := p.inventory[from]
 	p.inventory[from] = p.inventory[to]
-	p.inventory[to] = temp;
+	p.inventory[to] = temp
+	return p.inventory
 }
 
-func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, []Item, *coords.World) {
+func (p *Player) AddItem(kind byte) {
+	firstOpenSpace := -1;
+	// Find the item
+	for i, item := range p.inventory {
+		if firstOpenSpace < 0 && item.kind == ITEM_NIL {
+			firstOpenSpace = i
+		}
+		if item.kind == kind && item.num < MAX_STACK {
+			p.inventory[i].num++
+			return
+		}
+	}
+	// TODO: Handle no space left
+	if firstOpenSpace >= 0 {
+		p.inventory[firstOpenSpace] = NewItem(kind)
+	}
+}
+
+func (p *Player) RemoveItem(kind byte) {
+	// Find the item
+	for i, item := range p.inventory {
+		if item.kind == kind {
+			if item.num == 1 {
+				p.inventory[i] = NewItem(ITEM_NIL)
+				return
+			}
+			p.inventory[i].num--
+			return
+		}
+	}
+}
+
+func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -124,7 +158,7 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.pos, p.vy, p.hp, p.inventory, hitPos
+	return p.pos, p.vy, p.hp, hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
