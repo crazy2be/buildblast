@@ -190,6 +190,11 @@ function Inventory(world, camera, conn, controls) {
         if (!skipModels && oldRight !== null) {
             swapModels(oldRight, rightItem());
         }
+
+        conn.queue('inventory-state', {
+            ItemLeft: getEquippedSlot(true, leftIsPrimary),
+            ItemRight: getEquippedSlot(false, rightIsPrimary),
+        });
     }
 
     function updateBagVisibility() {
