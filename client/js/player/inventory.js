@@ -105,9 +105,13 @@ function Inventory(world, camera, conn, controls) {
                     To: to,
                 });
                 updateItemMoved(ui.draggable.children("img"), $(this).children("img"));
-                ui.draggable.load(function () {
+                if (from === to) {
                     ui.draggable.css("visibility", "visible");
-                });
+                } else {
+                    ui.draggable.load(function () {
+                        ui.draggable.css("visibility", "visible");
+                    });
+                }
             },
         });
     }
