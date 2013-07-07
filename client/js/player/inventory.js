@@ -104,7 +104,7 @@ function Inventory(world, camera, conn, controls) {
                     From: from,
                     To: to,
                 });
-                updateItemMoved(from, to);
+                updateItemMoved(ui.draggable.children("img"), $(this).children("img"));
                 ui.draggable.load(function () {
                     ui.draggable.css("visibility", "visible");
                 });
@@ -113,32 +113,10 @@ function Inventory(world, camera, conn, controls) {
     }
 
     function updateItemMoved(from, to) {
-//        var leftSlot = getEquippedSlot(true, leftIsPrimary);
-//        var rightSlot = getEquippedSlot(false, rightIsPrimary);
-//
-//        // Check if we dragged to or from the left slot or right slot
-//        var oldLeft = null;
-//        var oldRight = null;
-//        if (from == leftSlot || to == leftSlot) {
-//            oldLeft = leftItem();
-//        }
-//        if (from == rightSlot || to == rightSlot) {
-//            oldRight = rightItem();
-//        }
-//
-//        // Swap the items
-//        var item = slots[from];
-//        slots[from] = slots[to];
-//        slots[to] = item;
-//
-        // Swap the images
-        var fromSrc = $("div[" + from + "]").children("img").attr("src");
-        var toSrc = $("div[" + to + "]").children("img").attr("src");
-        $("div[" + from + "]").children("img").attr("src", toSrc);
-        $("div[" + to + "]").children("img").attr("src", fromSrc);
-//
-//        // Update the models
-//        updateEquipped(oldLeft, oldRight);
+          var fromSrc = from.attr("src");
+          var toSrc = to.attr("src");
+          from.attr("src", toSrc);
+          to.attr("src", fromSrc);
     }
 
     function updateHtmlEquipChanged(isLeft) {
