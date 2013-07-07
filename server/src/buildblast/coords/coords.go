@@ -41,27 +41,21 @@ func (vec *Vec3) Add(other *Vec3) {
 type World Vec3
 
 func (wc World) Chunk() Chunk {
-	floor := func (n float64) int {
-		return int(math.Floor(n));
-	}
-	return Chunk{
-		X: floor(wc.X / float64(CHUNK_WIDTH)),
-		Y: floor(wc.Y / float64(CHUNK_HEIGHT)),
-		Z: floor(wc.Z / float64(CHUNK_DEPTH)),
-	}
+	return wc.Block().Chunk()
 }
 
 func (wc World) Offset() Offset {
+	return wc.Block().Offset()
+}
+
+func (wc World) Block() Block {
 	floor := func (n float64) int {
-		return int(math.Floor(n));
+		return int(math.Floor(n))
 	}
-	mod := func (a, b int) int {
-		return ((a % b) + b) % b
-	}
-	return Offset{
-		X: mod(floor(wc.X), CHUNK_WIDTH),
-		Y: mod(floor(wc.Y), CHUNK_HEIGHT),
-		Z: mod(floor(wc.Z), CHUNK_DEPTH),
+	return Block{
+		X: floor(wc.X),
+		Y: floor(wc.Y),
+		Z: floor(wc.Z),
 	}
 }
 
@@ -81,6 +75,31 @@ func (wc World) Hash() uint32 {
 	return hash.Sum32()
 }
 
+type Block struct {
+	X int
+	Y int
+	Z int
+}
+
+func (bc Block) Chunk() Chunk {
+	return Chunk{
+		X: bc.X / ChunkWidth,
+		Y: bc.Y / ChunkHeight,
+		Z: bc.Z / ChunkDepth,
+	}
+}
+
+func (bc Block) Offset() Offset {
+	mod := func (a, b int) int {
+		return ((a % b) + b) % b
+	}
+	return Offset{
+		X: mod(bc.X, ChunkWidth),
+		Y: mod(bc.Y, ChunkHeight),
+		Z: mod(bc.Z, ChunkDepth),
+	}
+}
+
 type Chunk struct {
 	X int
 	Y int
@@ -94,13 +113,13 @@ type Offset struct {
 }
 
 const (
-	CHUNK_WIDTH  = 32
-	CHUNK_DEPTH  = 32
-	CHUNK_HEIGHT = 32
+	ChunkWidth = 32
+	ChunkDepth = 32
+	ChunkHeight = 32
 )
 
-var CHUNK_SIZE Vec3 = Vec3{
-	X: CHUNK_WIDTH,
-	Y: CHUNK_HEIGHT,
-	Z: CHUNK_DEPTH,
+var ChunkSize Vec3 = Vec3{
+	X: ChunkWidth,
+	Y: ChunkHeight,
+	Z: ChunkDepth,
 }

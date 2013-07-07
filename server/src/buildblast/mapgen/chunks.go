@@ -58,20 +58,20 @@ func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 //     isn't particulilly fast at serializing large
 //     arrays of numbers.
 func (c Chunk) Flatten() string {
-	cw := coords.CHUNK_WIDTH
-	ch := coords.CHUNK_HEIGHT
-	cd := coords.CHUNK_DEPTH
+	cw := coords.ChunkWidth
+	ch := coords.ChunkHeight
+	cd := coords.ChunkDepth
 	data := make([]byte, cw*ch*cd)
-	for x := 0; x < cw; x++ {
-		for y := 0; y < ch; y++ {
-			for z := 0; z < cd; z++ {
+	for ox := 0; ox < cw; ox++ {
+		for oy := 0; oy < ch; oy++ {
+			for oz := 0; oz < cd; oz++ {
 				// 32: Space charater. Control charaters
 				// are not allowed in JSON strings.
-				value := byte(c[x][y][z] + 32)
-				data[x*cw*ch + y*cw + z] = value
-				if (value >= 127) {
+				value := byte(c[ox][oy][oz] + 32)
+				if (value >= 127 || value < 32) {
 					panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
 				}
+				data[ox*cw*ch + oy*cw + oz] = value
 			}
 		}
 	}

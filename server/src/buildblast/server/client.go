@@ -123,7 +123,7 @@ func (c *Client) RunChunks(conn *Conn, world *game.World) {
 
 		m := &MsgChunk{
 			CCPos: cc,
-			Size: coords.CHUNK_SIZE,
+			Size: coords.ChunkSize,
 			Data: chunk.Flatten(),
 		}
 

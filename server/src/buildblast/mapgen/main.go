@@ -14,9 +14,9 @@ type BlockSource interface {
 }
 
 func GenerateChunk(bg BlockSource, cc coords.Chunk) Chunk {
-	cw := coords.CHUNK_WIDTH
-	ch := coords.CHUNK_HEIGHT
-	cd := coords.CHUNK_DEPTH
+	cw := coords.ChunkWidth
+	ch := coords.ChunkHeight
+	cd := coords.ChunkDepth
 
 	blocks := make([][][]Block, cw)
 	for ox := 0; ox < cw; ox++ {
