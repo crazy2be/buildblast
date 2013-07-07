@@ -132,16 +132,31 @@ func (p *Player) AddItem(kind byte) {
 
 func (p *Player) RemoveItem(kind byte) {
 	// Find the item
+
+	// Check your hands first
+	if p.inventory[p.itemLeft].kind == kind {
+		p.lowerStack(p.itemLeft)
+		return
+	}
+	if p.inventory[p.itemRight].kind == kind {
+		p.lowerStack(p.itemRight)
+		return
+	}
+
 	for i, item := range p.inventory {
 		if item.kind == kind {
-			if item.num == 1 {
-				p.inventory[i] = NewItem(ITEM_NIL)
-				return
-			}
-			p.inventory[i].num--
+			p.lowerStack(i)
 			return
 		}
 	}
+}
+
+func (p *Player) lowerStack(i int) {
+	if p.inventory[i].num == 1 {
+		p.inventory[i] = NewItem(ITEM_NIL)
+		return
+	}
+	p.inventory[i].num--
 }
 
 func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
