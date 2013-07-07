@@ -82,10 +82,24 @@ type Block struct {
 }
 
 func (bc Block) Chunk() Chunk {
+	div := func (a, b int) int {
+		if (a < 0) {
+			// By default, integer division in go, like in C,
+			// "truncates towards zero". However, we want
+			// to floor the result of the division, "truncating
+			// towards negative infinity". Hence, we use this
+			// crazy snippit. See
+			// http://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
+			// http://stackoverflow.com/questions/921180/how-can-i-ensure-that-a-division-of-integers-is-always-rounded-up
+			// http://www.cs.nott.ac.uk/~rcb/G51MPC/slides/NumberLogic.pdf
+			return -((b - a - 1) / b)
+		}
+		return a / b
+	}
 	return Chunk{
-		X: bc.X / ChunkWidth,
-		Y: bc.Y / ChunkHeight,
-		Z: bc.Z / ChunkDepth,
+		X: div(bc.X, ChunkWidth),
+		Y: div(bc.Y, ChunkHeight),
+		Z: div(bc.Z, ChunkDepth),
 	}
 }
 
