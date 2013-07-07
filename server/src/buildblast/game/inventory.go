@@ -44,11 +44,11 @@ func (inv *Inventory) SetActiveItems(left, right int) {
 	inv.itemRight = right
 }
 
-func (inv *Inventory) GetLeftItem() Item {
+func (inv *Inventory) LeftItem() Item {
 	return inv.slots[inv.itemLeft]
 }
 
-func (inv *Inventory) GetRightItem() Item {
+func (inv *Inventory) RightItem() Item {
 	return inv.slots[inv.itemRight]
 }
 
@@ -118,11 +118,8 @@ func toStringByte(val byte) byte {
 	// 32: Space charater. Control charaters
 	// are not allowed in JSON strings.
 	value := val + 32
-	if value >= 127 {
+	if value >= 127 || val < 32 {
 		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
-	}
-	if val < 31 {
-		
 	}
 	return value
 }
