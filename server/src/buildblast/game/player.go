@@ -157,15 +157,15 @@ func (p *Player) updateLook(controls ControlState) {
 }
 
 func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
-	shootingLeft := controls.ActivateLeft && p.inventory.GetLeftItem().Shootable()
-	shootingRight := controls.ActivateRight && p.inventory.GetRightItem().Shootable()
+	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
+	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
 		return nil
 	}
 
 	// They were holding it down last frame
-	shootingLeftLast := p.controls.ActivateLeft && p.inventory.GetLeftItem().Shootable()
-	shootingRightLast := p.controls.ActivateRight && p.inventory.GetRightItem().Shootable()
+	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
+	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}
