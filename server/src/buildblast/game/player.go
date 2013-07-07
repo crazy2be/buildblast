@@ -99,6 +99,12 @@ func (p *Player) SetActiveItems(left, right Item) {
 	p.itemRight = right
 }
 
+func (p *Player) MoveItems(from, to int) {
+	temp := p.inventory[from]
+	p.inventory[from] = p.inventory[to]
+	p.inventory[to] = temp;
+}
+
 func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, []Item, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 

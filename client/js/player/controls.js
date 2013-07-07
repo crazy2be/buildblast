@@ -102,6 +102,18 @@ function Controls(elm) {
         return clone(actions);
     };
 
+    var isLocked = false;
+
+    self.lock = function() {
+        isLocked = true;
+        requestPointerLock();
+    };
+
+    self.unlock = function() {
+        isLocked = false;
+        requestPointerUnlock();
+    };
+
     function findAction(trigger) {
         for (var action in mapping) {
             var triggers = mapping[action];
@@ -141,6 +153,7 @@ function Controls(elm) {
     }
 
     function mouseDown(event) {
+        if (!isLocked) return;
         elm.focus();
         attemptPointerLock();
         if (!pointerLocked()) return;
@@ -151,6 +164,7 @@ function Controls(elm) {
     }
 
     function mouseUp(event) {
+        if (!isLocked) return;
         event.preventDefault();
         event.stopPropagation();
 
@@ -201,7 +215,7 @@ function Controls(elm) {
         if ('mozPointerLockElement' in document) {
             requestFullscreen();
         }
-        requestPointerLock();
+        self.lock();
     }
 
     function pointerLockChange() {
@@ -212,7 +226,9 @@ function Controls(elm) {
         } else {
             // Pointer was just unlocked, disable the mousemove listener
             elm.removeEventListener('mousemove', mouseMove, false);
-            elm.classList.remove('interactive');
+            if (isLocked) {
+                elm.classList.remove('interactive');
+            }
         }
     }
 
@@ -220,6 +236,12 @@ function Controls(elm) {
         (elm.requestPointerLock ||
         elm.mozRequestPointerLock ||
         elm.webkitRequestPointerLock).call(elm);
+    }
+
+    function requestPointerUnlock() {
+        (document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock).bind(document).call();
     }
 
     function requestFullscreen() {

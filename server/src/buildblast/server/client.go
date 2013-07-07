@@ -82,6 +82,10 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 			m := m.(*MsgInventoryState)
 			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
 
+		case *MsgInventoryMove:
+			m := m.(*MsgInventoryMove)
+			c.player.MoveItems(m.From, m.To)
+
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
 			return

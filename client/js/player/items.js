@@ -1,5 +1,6 @@
 function Item(type) {
     this.type = type;
+    this.model = Item.DATA[this.type].model();
 }
 
 Item.prototype.stackable = function () {
@@ -8,10 +9,6 @@ Item.prototype.stackable = function () {
 
 Item.prototype.name = function () {
     return Item.DATA[this.type].name;
-};
-
-Item.prototype.model = function () {
-    return Item.DATA[this.type].model;
 };
 
 Item.prototype.action = function () {
@@ -47,37 +44,6 @@ Item.hasProperty = function (item, prop) {
     return (Item.PROPERTIES[block] & prop) > 0;
 };
 
-Item.init = function() {
-    Item.DATA = [
-        {
-            name: '',
-            model: null,
-            action: null,
-            icon: '/img/item_icons/nil.png',
-        },{
-            name: 'dirt',
-            model: Models.block(),
-            action: Item.throttle(Item.blockAction, Block.DIRT),
-            icon: '/img/item_icons/dirt.png',
-        },{
-            name: 'stone',
-            model: Models.stone(),
-            action: Item.throttle(Item.blockAction, Block.STONE),
-            icon: '/img/item_icons/stone.png',
-        },{
-            name: 'shovel',
-            model: Models.shovel(),
-            action: Item.throttle(Item.shovelAction),
-            icon: '/img/item_icons/shovel.png',
-        },{
-            name: 'pistol',
-            model: Models.pistol(),
-            action: Item.pistolAction,
-            icon: '/img/item_icons/pistol.png',
-        }
-    ];
-};
-
 Item.throttle = function (func, param) {
     var t = Date.now();
     return function (world, camera) {
@@ -105,3 +71,32 @@ Item.shovelAction = function (world, camera) {
 Item.blockAction = function (world, camera, block) {
     world.addLookedAtBlock(camera, block);
 };
+
+Item.DATA = [
+    {
+        name: '',
+        model: function () { return null; },
+        action: null,
+        icon: '/img/item_icons/nil.png',
+    },{
+        name: 'dirt',
+        model: function () { return Models.block(); },
+        action: Item.throttle(Item.blockAction, Block.DIRT),
+        icon: '/img/item_icons/dirt.png',
+    },{
+        name: 'stone',
+        model: function () { return Models.stone(); },
+        action: Item.throttle(Item.blockAction, Block.STONE),
+        icon: '/img/item_icons/stone.png',
+    },{
+        name: 'shovel',
+        model: function () { return Models.shovel(); },
+        action: Item.throttle(Item.shovelAction),
+        icon: '/img/item_icons/shovel.png',
+    },{
+        name: 'pistol',
+        model: function () { return Models.pistol(); },
+        action: Item.pistolAction,
+        icon: '/img/item_icons/pistol.png',
+    }
+];
