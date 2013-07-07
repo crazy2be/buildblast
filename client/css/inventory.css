@@ -20,12 +20,20 @@
 	background: rgba(255, 255, 255, 0.4);
 	border: 3px solid rgba(50, 50, 50, 1);
 }
-#inventory span {
+span.stack {
 	position: absolute;
 	right: 0;
 	bottom: 0;
 	font-size: 130%;
 	font-weight: bold;
+}
+div.helper {
+	position: relative;
+	display: inline-block;
+	background-image: url('/img/items.png');
+	background-position: 0px 0;
+	width: 64px;
+	height: 64px;
 }
 #inventory div.equip {
 	margin-bottom: 10px;

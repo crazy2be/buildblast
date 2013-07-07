@@ -39,8 +39,8 @@ function Inventory(world, camera, conn, controls) {
         var oldLeft = slots.length > 0 ? leftItem() : Item.NIL();
         var oldRight = slots.length > 0 ? rightItem() : Item.NIL();
         if (slots.length > items.length) slots = [];
-        for (var i = 0; i < items.length; i++) {
-            slots[i] = new Item(items[i]);
+        for (var i = 0; i < items.length; i += 2) {
+            slots[i / 2] = new Item(items[i], items[i + 1]);
         }
         updateEquipped(oldLeft, oldRight);
         updateHtmlItemIcons();
@@ -69,8 +69,7 @@ function Inventory(world, camera, conn, controls) {
                 if (x !== 0) classList += " has-left-sibling";
                 if (y !== 0) classList += " has-top-sibling";
                 html += '<div id="bag' + (y*5 + x) + '" class="' + classList + '" index="' + (y*5 + x) + '">'
-                    + '<img src="/img/item_icons/nil.png" height="64" width="64">'
-                    + '</div>';
+                    + '<div class="helper"><span class="stack"></span></div></div>';
             }
         }
         updateBagVisibility();
@@ -83,7 +82,7 @@ function Inventory(world, camera, conn, controls) {
 
         $(".slot").each(function(i, obj) {
             var index = $(this).attr("index");
-            $(this).children("img").draggable({
+            $(this).children("div").draggable({
                 helper: "clone",
                 appendTo: "body",
                 containment: "body",
@@ -94,29 +93,41 @@ function Inventory(world, camera, conn, controls) {
                     $(this).css("visibility", "hidden");
                 },
                 revert: "invalid",
+                stop: function(event, ui) {
+                    if (event.reverted) {
+                        $(this).css("visibility", "visible");
+                    }
+                }
             });
         });
         $(".slot").droppable({
             drop: function(event, ui) {
                 var from = ui.draggable.attr("index");
                 var to = $(this).attr("index");
+
                 conn.queue('inventory-move', {
                     From: from,
                     To: to,
                 });
-                var $fromImg = ui.draggable;
-                var $toImg = $(this).children("img");
-                var fromSrc = $fromImg.attr("src");
-                var toSrc = $toImg.attr("src");
-                console.log(ui.draggable, fromSrc, toSrc);
-                if (from === to || fromSrc == toSrc) {
+
+                var fromPosition = ui.draggable.css("background-position").split(" ");
+                var toPosition = $(this).children("div").css("background-position").split(" ");
+
+                if (from === to || fromPosition === toPosition) {
                     ui.draggable.css("visibility", "visible");
                 } else {
-                    $fromImg.attr("src", toSrc);
-                    $toImg.attr("src", fromSrc);
-                    ui.draggable.load(function () {
+                    $(this).css("background-position", fromPosition + "px 0");
+                    ui.draggable.css("background-position", toPosition + "px 0");
+
+                    ui.draggable.waitForImages(function () {
                         ui.draggable.css("visibility", "visible");
                     });
+
+                    var $fromSpan = ui.draggable.children("span");
+                    var $toSpan = $(this).children("div").children("span");
+                    var fromText = $fromSpan.text();
+                    $fromSpan.text($toSpan.text());
+                    $toSpan.text(fromText);
                 }
             },
         });
@@ -139,13 +150,29 @@ function Inventory(world, camera, conn, controls) {
         for (var y = 0; y < 5; y++) {
             for (var x = 0; x < 5; x++) {
                 var index = y*5 + x;
-                $("#bag" + index).children("img").attr("src", slots[index].icon());
+                var item = slots[index];
+                $("#bag" + index + " > div").css("background-position", item.icon() * -64 + "px 0");
+                updateStackSize(item, $("#bag" + index));
             }
         }
-        $("#leftPrimary").children("img").attr("src", slots[BAG_SIZE].icon());
-        $("#leftReserve").children("img").attr("src", slots[BAG_SIZE + 1].icon());
-        $("#rightPrimary").children("img").attr("src", slots[BAG_SIZE + 2].icon());
-        $("#rightReserve").children("img").attr("src", slots[BAG_SIZE + 3].icon());
+
+        // TODO: Fix this shit.
+        $("#leftPrimary > div").css("background-position", slots[BAG_SIZE].icon() * -64 + "px 0");
+        $("#leftReserve > div").css("background-position", slots[BAG_SIZE + 1].icon() * -64 + "px 0");
+        $("#rightPrimary > div").css("background-position", slots[BAG_SIZE + 2].icon() * -64 + "px 0");
+        $("#rightReserve > div").css("background-position", slots[BAG_SIZE + 3].icon() * -64 + "px 0");
+        updateStackSize(slots[BAG_SIZE], $("#leftPrimary"));
+        updateStackSize(slots[BAG_SIZE + 1], $("#leftReserve"));
+        updateStackSize(slots[BAG_SIZE + 2], $("#rightPrimary"));
+        updateStackSize(slots[BAG_SIZE + 3], $("#rightReserve"));
+    }
+
+    function updateStackSize(item, $elm) {
+        if (item.stackable()) {
+            $elm.children("div").children("span").text(item.num);
+        } else {
+            $elm.children("div").children("span").text("");
+        }
     }
 
     function updateEquipped(oldLeft, oldRight) {
@@ -163,11 +190,6 @@ function Inventory(world, camera, conn, controls) {
         if (!skipModels && oldRight !== null) {
             swapModels(oldRight, rightItem());
         }
-
-        conn.queue('inventory-state', {
-            ItemLeft: getEquippedSlot(true, leftIsPrimary),
-            ItemRight: getEquippedSlot(false, rightIsPrimary),
-        });
     }
 
     function updateBagVisibility() {
@@ -309,3 +331,32 @@ function Inventory(world, camera, conn, controls) {
         };
     };
 }
+
+// jQuery UI hack
+$.ui.draggable.prototype._mouseStop = function(event) {
+    //If we are using droppables, inform the manager about the drop
+    var dropped = false;
+    if ($.ui.ddmanager && !this.options.dropBehaviour)
+        dropped = $.ui.ddmanager.drop(this, event);
+
+    //if a drop comes from outside (a sortable)
+    if(this.dropped) {
+        dropped = this.dropped;
+        this.dropped = false;
+    }
+
+    if((this.options.revert == "invalid" && !dropped) || (this.options.revert == "valid" && dropped) || this.options.revert === true || ($.isFunction(this.options.revert) && this.options.revert.call(this.element, dropped))) {
+        var self = this;
+        self._trigger("reverting", event);
+        $(this.helper).animate(this.originalPosition, parseInt(this.options.revertDuration, 10), function() {
+            event.reverted = true;
+            self._trigger("stop", event);
+            self._clear();
+        });
+    } else {
+        this._trigger("stop", event);
+        this._clear();
+    }
+
+    return false;
+};

@@ -7,6 +7,7 @@ import (
 
 	"buildblast/coords"
 	"buildblast/game"
+	"buildblast/mapgen"
 )
 
 type Client struct {
@@ -46,7 +47,21 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
-			w.ChangeBlock(m.Pos, m.Type)
+			oldBlock := w.ChangeBlock(m.Pos, m.Type)
+
+			// TODO: Validate this
+			if (m.Type == mapgen.BLOCK_AIR) {
+				// User is removing a block
+				c.player.AddItem(game.ItemFromBlock(oldBlock))
+			} else {
+				// User is placing a block
+				c.player.RemoveItem(game.ItemFromBlock(m.Type))
+			}
+
+			c.Send(&MsgInventoryState{
+				Items: game.ItemsToString(c.player.Inventory()),
+			})
+
 			// TODO: World should broadcast this automatically
 			g.Broadcast(m)
 
@@ -54,7 +69,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
 
-			pos, vy, hp, inventory, hitPos := c.player.ClientTick(m.Controls)
+			pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
 
 			c.cm.QueueChunksNearby(pos)
 
@@ -63,10 +78,6 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 				VelocityY: vy,
 				Timestamp: m.Timestamp,
 				Hp: hp,
-			})
-
-			c.Send(&MsgInventoryState{
-				Items: game.ItemsToString(inventory),
 			})
 
 			if hitPos != nil {
@@ -78,13 +89,13 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
 
-		case *MsgInventoryState:
-			m := m.(*MsgInventoryState)
-			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
-
 		case *MsgInventoryMove:
 			m := m.(*MsgInventoryMove)
-			c.player.MoveItems(m.From, m.To)
+			inventory := c.player.MoveItems(m.From, m.To)
+
+			c.Send(&MsgInventoryState{
+				Items: game.ItemsToString(inventory),
+			})
 
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
@@ -103,6 +114,9 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddEntity(p)
 	c.player = p
+	c.Send(&MsgInventoryState{
+		Items: game.ItemsToString(p.Inventory()),
+	})
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {

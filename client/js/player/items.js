@@ -1,5 +1,6 @@
-function Item(type) {
+function Item(type, num) {
     this.type = type;
+    this.num = num;
     this.model = Item.DATA[this.type].model();
 }
 
@@ -41,7 +42,7 @@ Item.isStackable = function (item) {
 };
 
 Item.hasProperty = function (item, prop) {
-    return (Item.PROPERTIES[block] & prop) > 0;
+    return (Item.PROPERTIES[item] & prop) > 0;
 };
 
 Item.throttle = function (func, param) {
@@ -77,26 +78,26 @@ Item.DATA = [
         name: '',
         model: function () { return null; },
         action: null,
-        icon: '/img/item_icons/nil.png',
+        icon: 0,
     },{
         name: 'dirt',
         model: function () { return Models.block(); },
         action: Item.throttle(Item.blockAction, Block.DIRT),
-        icon: '/img/item_icons/dirt.png',
+        icon: 1,
     },{
         name: 'stone',
         model: function () { return Models.stone(); },
         action: Item.throttle(Item.blockAction, Block.STONE),
-        icon: '/img/item_icons/stone.png',
+        icon: 2,
     },{
         name: 'shovel',
         model: function () { return Models.shovel(); },
         action: Item.throttle(Item.shovelAction),
-        icon: '/img/item_icons/shovel.png',
+        icon: 3,
     },{
         name: 'pistol',
         model: function () { return Models.pistol(); },
         action: Item.pistolAction,
-        icon: '/img/item_icons/pistol.png',
+        icon: 4,
     }
 ];
