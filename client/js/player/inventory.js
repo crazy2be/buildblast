@@ -105,19 +105,14 @@ function Inventory(world, camera, conn, controls) {
                 var from = ui.draggable.attr("index");
                 var to = $(this).attr("index");
 
-                conn.queue('inventory-move', {
-                    From: from,
-                    To: to,
-                });
-
-                var fromPosition = ui.draggable.css("background-position").split(" ");
-                var toPosition = $(this).children("div").css("background-position").split(" ");
+                var fromPosition = ui.draggable.css("background-position").split(" ")[0];
+                var toPosition = $(this).children("div").css("background-position").split(" ")[0];
 
                 if (from === to || fromPosition === toPosition) {
                     ui.draggable.css("visibility", "visible");
                 } else {
-                    $(this).css("background-position", fromPosition + "px 0");
-                    ui.draggable.css("background-position", toPosition + "px 0");
+                    $(this).css("background-position", fromPosition + " 0");
+                    ui.draggable.css("background-position", toPosition + " 0");
 
                     ui.draggable.waitForImages(function () {
                         ui.draggable.css("visibility", "visible");
@@ -129,6 +124,11 @@ function Inventory(world, camera, conn, controls) {
                     $fromSpan.text($toSpan.text());
                     $toSpan.text(fromText);
                 }
+
+                conn.queue('inventory-move', {
+                    From: from,
+                    To: to,
+                });
             },
         });
     }
