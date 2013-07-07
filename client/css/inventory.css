@@ -13,11 +13,19 @@
 	height: 338px;
 }
 #inventory div.slot {
+	position: relative;
 	display: inline-block;
 	width: 70px;
 	height: 70px;
 	background: rgba(255, 255, 255, 0.4);
 	border: 3px solid rgba(50, 50, 50, 1);
+}
+#inventory span {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	font-size: 130%;
+	font-weight: bold;
 }
 #inventory div.equip {
 	margin-bottom: 10px;
