@@ -80,7 +80,7 @@ function Inventory(world, camera, conn, controls) {
         $("#rightPrimary").attr("index", BAG_SIZE + 2);
         $("#rightReserve").attr("index", BAG_SIZE + 3);
 
-        $(".slot").each(function(i, obj) {
+        $(".slot").each(function() {
             var index = $(this).attr("index");
             $(this).children("div").draggable({
                 helper: "clone",
@@ -105,16 +105,16 @@ function Inventory(world, camera, conn, controls) {
                 var from = ui.draggable.attr("index");
                 var to = $(this).attr("index");
 
-                var fromPosition = ui.draggable.css("background-position").split(" ")[0];
-                var toPosition = $(this).children("div").css("background-position").split(" ")[0];
+                var fromPosition = ui.draggable.css("background-position");
+                var toPosition = $(this).children("div").css("background-position");
 
                 if (from === to || fromPosition === toPosition) {
                     ui.draggable.css("visibility", "visible");
                     return;
                 }
 
-                $(this).css("background-position", fromPosition + " 0");
-                ui.draggable.css("background-position", toPosition + " 0");
+                $(this).css("background-position", fromPosition);
+                ui.draggable.css("background-position", toPosition);
 
                 ui.draggable.waitForImages(function () {
                     ui.draggable.css("visibility", "visible");
@@ -284,12 +284,11 @@ function Inventory(world, camera, conn, controls) {
         var leftWasDown = updateSide(true);
         var rightWasDown = updateSide(false);
 
-        var toggleBagDown = c["toggleBag"];
-        if (!toggleBagWasDown && toggleBagDown) {
+        if (!toggleBagWasDown && c.toggleBag) {
             bagIsShowing = !bagIsShowing;
             updateBagVisibility();
         }
-        toggleBagWasDown = toggleBagDown;
+        toggleBagWasDown = c.toggleBag;
 
         swapLeftWasDown = leftWasDown;
         swapRightWasDown = rightWasDown;
