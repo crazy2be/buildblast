@@ -51,36 +51,15 @@ type Player struct {
 
 	// Gameplay state
 	hp        int
-
-	// Inventory
-	inventory []Item
-	itemLeft  int
-	itemRight int
+	inventory *Inventory
 }
 
 func NewPlayer(world *World, name string) *Player {
-	// 0 -> (w * h) - 1 are the bag slots, 2 more for left equip, and 2 more again for right.
-	// [0, w*h - 1] = bag slots
-	// [w*h]        = left equip
-	// [w*h + 1]    = left reserve
-	// [w*h + 2]    = right equip
-	// [w*h + 3]    = right reserve
-	inv := make([]Item, INV_WIDTH * INV_HEIGHT + 4)
-	inv[0] = NewItem(ITEM_GUN)
-	inv[1] = NewItem(ITEM_SHOVEL)
-	inv[2] = NewItem(ITEM_DIRT)
-	inv[3] = NewItem(ITEM_STONE)
-	inv[INV_WIDTH * INV_HEIGHT] = NewItem(ITEM_GUN)
-	inv[INV_WIDTH * INV_HEIGHT + 2] = NewItem(ITEM_SHOVEL)
-	inv[INV_WIDTH * INV_HEIGHT + 3] = NewItem(ITEM_DIRT)
-
 	return &Player{
 		pos: world.generator.Spawn(),
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
-		inventory: inv,
-		itemLeft: INV_WIDTH * INV_HEIGHT,
-		itemRight: INV_WIDTH * INV_HEIGHT + 2,
+		inventory: NewInventory(),
 		world: world,
 		name: name,
 	}
@@ -94,70 +73,11 @@ func (p *Player) ID() string {
 	return "player-" + p.name
 }
 
-func (p *Player) Inventory() []Item {
+func (p *Player) Inventory() *Inventory {
 	return p.inventory
 }
 
 func (p *Player) Tick(w *World) {}
-
-func (p *Player) SetActiveItems(left, right int) {
-	p.itemLeft = left
-	p.itemRight = right
-}
-
-func (p *Player) MoveItems(from, to int) []Item {
-	temp := p.inventory[from]
-	p.inventory[from] = p.inventory[to]
-	p.inventory[to] = temp
-	return p.inventory
-}
-
-func (p *Player) AddItem(kind byte) {
-	firstOpenSpace := -1
-	// Find the item
-	for i, item := range p.inventory {
-		if firstOpenSpace < 0 && item.kind == ITEM_NIL {
-			firstOpenSpace = i
-		}
-		if item.kind == kind && item.num < MAX_STACK {
-			p.inventory[i].num++
-			return
-		}
-	}
-	// TODO: Handle no space left
-	if firstOpenSpace >= 0 {
-		p.inventory[firstOpenSpace] = NewItem(kind)
-	}
-}
-
-func (p *Player) RemoveItem(kind byte) {
-	// Find the item
-
-	// Check your hands first
-	if p.inventory[p.itemLeft].kind == kind {
-		p.lowerStack(p.itemLeft)
-		return
-	}
-	if p.inventory[p.itemRight].kind == kind {
-		p.lowerStack(p.itemRight)
-		return
-	}
-
-	for i, item := range p.inventory {
-		if item.kind == kind {
-			p.lowerStack(i)
-			return
-		}
-	}
-}
-
-func (p *Player) lowerStack(i int) {
-	if p.inventory[i].num == 1 {
-		p.inventory[i] = NewItem(ITEM_NIL)
-		return
-	}
-	p.inventory[i].num--
-}
 
 func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -237,15 +157,15 @@ func (p *Player) updateLook(controls ControlState) {
 }
 
 func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
-	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
-	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	shootingLeft := controls.ActivateLeft && p.inventory.GetLeftItem().Shootable()
+	shootingRight := controls.ActivateRight && p.inventory.GetRightItem().Shootable()
 	if !shootingLeft && !shootingRight {
 		return nil
 	}
 
 	// They were holding it down last frame
-	shootingLeftLast := p.controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
-	shootingRightLast := p.controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	shootingLeftLast := p.controls.ActivateLeft && p.inventory.GetLeftItem().Shootable()
+	shootingRightLast := p.controls.ActivateRight && p.inventory.GetRightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}

@@ -53,14 +53,14 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 			// TODO: Validate this
 			if (m.Type == mapgen.BLOCK_AIR) {
 				// User is removing a block
-				c.player.AddItem(game.ItemFromBlock(oldBlock))
+				c.player.Inventory().AddItem(game.ItemFromBlock(oldBlock))
 			} else {
 				// User is placing a block
-				c.player.RemoveItem(game.ItemFromBlock(m.Type))
+				c.player.Inventory().RemoveItem(game.ItemFromBlock(m.Type))
 			}
 
 			c.Send(&MsgInventoryState{
-				Items: game.ItemsToString(c.player.Inventory()),
+				Items: c.player.Inventory().ItemsToString(),
 			})
 
 			// TODO: World should broadcast this automatically
@@ -92,14 +92,14 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 
 		case *MsgInventoryState:
 			m := m.(*MsgInventoryState)
-			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
+			c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
 
 		case *MsgInventoryMove:
 			m := m.(*MsgInventoryMove)
-			inventory := c.player.MoveItems(m.From, m.To)
+			c.player.Inventory().MoveItems(m.From, m.To)
 
 			c.Send(&MsgInventoryState{
-				Items: game.ItemsToString(inventory),
+				Items: c.player.Inventory().ItemsToString(),
 			})
 
 		default:
@@ -120,7 +120,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	w.AddEntity(p)
 	c.player = p
 	c.Send(&MsgInventoryState{
-		Items: game.ItemsToString(p.Inventory()),
+		Items: c.player.Inventory().ItemsToString(),
 	})
 }
 
