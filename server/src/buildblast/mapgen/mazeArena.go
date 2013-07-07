@@ -8,45 +8,33 @@ import (
 )
 type MazeArena struct {
 	seed           float64
-	spawnPointKeys []uint32
-	spawnPoints    map[uint32]coords.World
+	spawnPoints    []coords.World
 }
 
 func NewMazeArena(seed float64) *MazeArena {
 	fa := new(MazeArena)
 	fa.seed = seed
-	fa.spawnPointKeys = make([]uint32, 0)
-	fa.spawnPoints = make(map[uint32]coords.World)
+	fa.spawnPoints = make([]coords.World, 0)
 	return fa
 }
 
-func (fa *MazeArena) Block(wc coords.World) Block {
-	if (wc.X >= 32 || wc.X < -32 ||
-		wc.Z >= 128 || wc.Z < -128 ||
-		wc.Y < 16) {
+func (fa *MazeArena) Block(bc coords.Block) Block {
+	if (bc.X >= 32 || bc.X < -32 ||
+		bc.Z >= 128 || bc.Z < -128 ||
+		bc.Y < 16) {
 			return BLOCK_DIRT
 	}
 
-	val := PerlinNoise(wc.X / 16, wc.Z / 16, fa.seed)
+	val := PerlinNoise(float64(bc.X) / 16, float64(bc.Z) / 16, fa.seed)
 	isWall := val - math.Floor(val) < 0.05
-	isNextToBoundary := wc.X >= 31 || wc.X < -31 || wc.Z >= 127 || wc.Z < -127
-	if wc.Y == 21 && isWall && !isNextToBoundary {
-                possibleSpawn := coords.World{
-                        X: wc.X,
-                        Y: 21,
-                        Z: wc.Z,
-                }
-                hash := possibleSpawn.Hash()
-                _, contained := fa.spawnPoints[hash]
-                if !contained {
-                        fa.spawnPointKeys = append(fa.spawnPointKeys, hash)
-                        fa.spawnPoints[hash] = possibleSpawn
-                }
-	}
-	if wc.Y < 20 && isWall {
-		return BLOCK_STONE
+
+	if bc.Y == 21 && isWall {
+		fa.spawnPoints = append(fa.spawnPoints, bc.Center())
 	}
 
+	if bc.Y < 20 && isWall {
+		return BLOCK_STONE
+	}
 	return BLOCK_AIR
 }
 
@@ -55,15 +43,13 @@ func (fa *MazeArena) Chunk(cc coords.Chunk) Chunk {
 }
 
 func (fa *MazeArena) Spawn() coords.World {
-	numSpawns := len(fa.spawnPointKeys)
-	if numSpawns > 0 {
-		// Get a random key value
-		key := fa.spawnPointKeys[rand.Intn(numSpawns)]
-		return fa.spawnPoints[key]
+	numSpawns := len(fa.spawnPoints)
+	if numSpawns == 0 {
+		return coords.World {
+			X: 0,
+			Y: 21,
+			Z: 0,
+		}
 	}
-	return coords.World {
-		X: 0,
-		Y: 21,
-		Z: 0,
-	}
+	return fa.spawnPoints[rand.Intn(numSpawns)]
 }

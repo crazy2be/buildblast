@@ -10,7 +10,7 @@ type ChunkSource interface {
 }
 
 type BlockSource interface {
-	Block(wc coords.World) Block
+	Block(bc coords.Block) Block
 }
 
 func GenerateChunk(bg BlockSource, cc coords.Chunk) Chunk {
@@ -24,12 +24,12 @@ func GenerateChunk(bg BlockSource, cc coords.Chunk) Chunk {
 		for oy := 0; oy < ch; oy++ {
 			blocks[ox][oy] = make([]Block, cd)
 			for oz := 0; oz < cd; oz++ {
-				wc := coords.World{
-					X: float64(ox + cc.X*cw),
-					Y: float64(oy + cc.Y*ch),
-					Z: float64(oz + cc.Z*cd),
+				bc := coords.Block{
+					X: ox + cc.X*cw,
+					Y: oy + cc.Y*ch,
+					Z: oz + cc.Z*cd,
 				}
-				blocks[ox][oy][oz] = bg.Block(wc)
+				blocks[ox][oy][oz] = bg.Block(bc)
 			}
 		}
 	}

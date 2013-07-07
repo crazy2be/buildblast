@@ -37,8 +37,9 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	return height
 }
 
-func (pa *PerlinArena) Block(wc coords.World) Block {
-	if pa.heightAt(wc.X, wc.Z) > wc.Y {
+func (pa *PerlinArena) Block(bc coords.Block) Block {
+	height := int(pa.heightAt(float64(bc.X), float64(bc.Z)))
+	if height > bc.Y {
 		return BLOCK_DIRT
 	}
 

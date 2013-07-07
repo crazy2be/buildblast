@@ -64,8 +64,8 @@ func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
 	return chunk
 }
 
-func (w *World) Block(wc coords.World) mapgen.Block {
-	cc := wc.Chunk()
+func (w *World) Block(bc coords.Block) mapgen.Block {
+	cc := bc.Chunk()
 
 	w.chunkLock.Lock()
 	chunk := w.chunks[cc]
@@ -75,7 +75,7 @@ func (w *World) Block(wc coords.World) mapgen.Block {
 		return mapgen.BLOCK_NIL
 	}
 
-	return chunk.Block(wc.Offset())
+	return chunk.Block(bc.Offset())
 }
 
 func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {

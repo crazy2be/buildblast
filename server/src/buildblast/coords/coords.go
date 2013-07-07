@@ -114,6 +114,14 @@ func (bc Block) Offset() Offset {
 	}
 }
 
+func (bc Block) Center() World {
+	return World{
+		X: float64(bc.X) + 0.5,
+		Y: float64(bc.Y) + 0.5,
+		Z: float64(bc.Z) + 0.5,
+	}
+}
+
 type Chunk struct {
 	X int
 	Y int
