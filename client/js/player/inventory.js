@@ -1,4 +1,4 @@
-function Inventory(world, camera, conn) {
+function Inventory(world, camera, conn, controls) {
     var self = this;
     var BAG_SIZE = 25;
     var slots = [];
@@ -68,14 +68,76 @@ function Inventory(world, camera, conn) {
                 classList = "slot";
                 if (x !== 0) classList += " has-left-sibling";
                 if (y !== 0) classList += " has-top-sibling";
-                html += '<div id="bag' + (y*5 + x) + '" class="' + classList + '">'
+                html += '<div id="bag' + (y*5 + x) + '" class="' + classList + '" index="' + (y*5 + x) + '">'
                     + '<img src="/img/item_icons/nil.png" height="64" width="64">'
                     + '</div>';
             }
         }
         updateBagVisibility();
         $("#bag").html(html);
+
+        $("#leftPrimary").attr("index", BAG_SIZE);
+        $("#leftReserve").attr("index", BAG_SIZE + 1);
+        $("#rightPrimary").attr("index", BAG_SIZE + 2);
+        $("#rightReserve").attr("index", BAG_SIZE + 3);
+
+        $(".slot").each(function(i, obj) {
+            var index = $(this).attr("index");
+            $(this).children("img").draggable({
+                helper: "clone",
+                appendTo: "body",
+                containment: "body",
+                scroll: false,
+                start: function (event, ui) {
+                    ui.helper.attr("index", index);
+                    ui.helper.css("z-index", 200);
+                    $(this).css("visibility", "hidden");
+                },
+                stop: function () { $(this).css("visibility", "visible"); },
+                revert: "invalid",
+            });
+        });
+        $(".slot").droppable({
+            drop: function(event, ui) {
+                var from = ui.helper.attr("index");
+                var to = $(this).attr("index");
+                conn.queue('inventory-move', {
+                    From: from,
+                    To: to,
+                });
+            },
+        });
     }
+
+    /** Really clever function. Will use later when optimized */
+//    function updateItemMoved(from, to) {
+//        var leftSlot = getEquippedSlot(true, leftIsPrimary);
+//        var rightSlot = getEquippedSlot(false, rightIsPrimary);
+//
+//        // Check if we dragged to or from the left slot or right slot
+//        var oldLeft = null;
+//        var oldRight = null;
+//        if (from == leftSlot || to == leftSlot) {
+//            oldLeft = leftItem();
+//        }
+//        if (from == rightSlot || to == rightSlot) {
+//            oldRight = rightItem();
+//        }
+//
+//        // Swap the items
+//        var item = slots[from];
+//        slots[from] = slots[to];
+//        slots[to] = item;
+//
+//        // Swap the images
+//        var fromSrc = $("div[" + from + "]").children("img").attr("src");
+//        var toSrc = $("div[" + to + "]").children("img").attr("src");
+//        $("div[" + from + "]").children("img").attr("src", toSrc);
+//        $("div[" + to + "]").children("img").attr("src", fromSrc);
+//
+//        // Update the models
+//        updateEquipped(oldLeft, oldRight);
+//    }
 
     function updateHtmlEquipChanged(isLeft) {
         var side = isLeft ? "left" : "right";
@@ -108,6 +170,13 @@ function Inventory(world, camera, conn) {
 
         var leftChanged = false;
         var rightChanged = false;
+
+        // Special case when switching left and right hands
+        if (oldLeft != null
+         && oldRight != null
+         && oldLeft.model === rightItem().model
+         && oldRight.model === leftItem().model) return;
+
         if (oldLeft !== null) {
             leftChanged = swapModels(oldLeft, leftItem());
         }
@@ -124,21 +193,26 @@ function Inventory(world, camera, conn) {
     }
 
     function updateBagVisibility() {
-        if (bagIsShowing) $("#bag").show();
-        else $("#bag").hide();
+        var $elm = $("#bag");
+        if (bagIsShowing) {
+            $elm.show();
+            controls.unlock();
+        } else {
+            $elm.hide();
+            controls.lock();
+        }
     }
 
     function swapModels(oldItem, newItem) {
-        if (oldItem.type === newItem.type) return false;
-        if (oldItem.model() !== null) {
-            world.removeFromScene(oldItem.model());
+        if (oldItem.model !== null) {
+            world.removeFromScene(oldItem.model);
         }
-        var model = newItem.model();
+        var model = newItem.model;
         if (model !== null) {
             model.scale.set(1/16, 1/16, 1/16);
             world.addToScene(model);
         }
-        return true;
+        return oldItem.type === newItem.type;
     }
 
     function pointItem(item, c) {
@@ -208,7 +282,6 @@ function Inventory(world, camera, conn) {
         if (!toggleBagWasDown && toggleBagDown) {
             bagIsShowing = !bagIsShowing;
             updateBagVisibility();
-            console.log(bagIsShowing);
         }
         toggleBagWasDown = toggleBagDown;
 
@@ -232,7 +305,7 @@ function Inventory(world, camera, conn) {
             var swapTrigger = "swap" + side;
             var activateTrigger = "activate" + side;
             var item = isLeft ? leftItem() : rightItem();
-            var itemModel = item.model();
+            var itemModel = item.model;
 
             if (itemModel !== null) {
                 pointItem(itemModel, c);

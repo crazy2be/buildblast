@@ -11,7 +11,6 @@ window.onload = function () {
     Models.init(startGame);
 
     function startGame() {
-        Item.init();
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);

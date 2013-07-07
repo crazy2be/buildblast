@@ -1,12 +1,11 @@
 #inventory {
-	overflow: hidden;
 	width: 100%;
+	z-index: 100;
 	padding: 2px 6px 10px 6px;
 	text-align: center;
 }
 #inventory div.centered {
 	position: fixed;
-	z-index: 100;
 	top: 50%;
 	left: 50%;
 	margin: -169px 0 0 -169px;
@@ -17,9 +16,11 @@
 	display: inline-block;
 	width: 70px;
 	height: 70px;
+	background: rgba(255, 255, 255, 0.4);
 	border: 3px solid rgba(50, 50, 50, 1);
 }
 #inventory div.equip {
+	margin-bottom: 10px;
 	-webkit-animation: item-not-changed 1s forwards;
 }
 #inventory #bag div.has-left-sibling {
