@@ -89,28 +89,30 @@ function Inventory(world, camera, conn, controls) {
                 containment: "body",
                 scroll: false,
                 start: function (event, ui) {
-                    ui.helper.attr("index", index);
+                    $(this).attr("index", index);
                     ui.helper.css("z-index", 200);
                     $(this).css("visibility", "hidden");
                 },
-                stop: function () { $(this).css("visibility", "visible"); },
                 revert: "invalid",
             });
         });
         $(".slot").droppable({
             drop: function(event, ui) {
-                var from = ui.helper.attr("index");
+                var from = ui.draggable.attr("index");
                 var to = $(this).attr("index");
                 conn.queue('inventory-move', {
                     From: from,
                     To: to,
                 });
+                updateItemMoved(from, to);
+                ui.draggable.load(function () {
+                    ui.draggable.css("visibility", "visible");
+                });
             },
         });
     }
 
-    /** Really clever function. Will use later when optimized */
-//    function updateItemMoved(from, to) {
+    function updateItemMoved(from, to) {
 //        var leftSlot = getEquippedSlot(true, leftIsPrimary);
 //        var rightSlot = getEquippedSlot(false, rightIsPrimary);
 //
@@ -129,15 +131,15 @@ function Inventory(world, camera, conn, controls) {
 //        slots[from] = slots[to];
 //        slots[to] = item;
 //
-//        // Swap the images
-//        var fromSrc = $("div[" + from + "]").children("img").attr("src");
-//        var toSrc = $("div[" + to + "]").children("img").attr("src");
-//        $("div[" + from + "]").children("img").attr("src", toSrc);
-//        $("div[" + to + "]").children("img").attr("src", fromSrc);
+        // Swap the images
+        var fromSrc = $("div[" + from + "]").children("img").attr("src");
+        var toSrc = $("div[" + to + "]").children("img").attr("src");
+        $("div[" + from + "]").children("img").attr("src", toSrc);
+        $("div[" + to + "]").children("img").attr("src", fromSrc);
 //
 //        // Update the models
 //        updateEquipped(oldLeft, oldRight);
-//    }
+    }
 
     function updateHtmlEquipChanged(isLeft) {
         var side = isLeft ? "left" : "right";
