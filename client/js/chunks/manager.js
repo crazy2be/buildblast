@@ -69,6 +69,7 @@ function ChunkManager(scene, player) {
             geometry.attributes = pg[i].attributes;
             geometry.offsets = pg[i].offsets;
             geometries.push(geometry);
+            geometry.computeVertexNormals();
         }
 
         var cc = payload.ccpos;

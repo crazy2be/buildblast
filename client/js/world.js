@@ -146,9 +146,9 @@ function World(scene, container) {
     };
 
     var projector = new THREE.Projector();
-    function findIntersection(camera, cb, precision, maxDist) {
-        var precision = precision || 0.01;
-        var maxDist = maxDist || 100;
+    function findIntersection(camera, cb, prec, maxD) {
+        var precision = prec || 0.01;
+        var maxDist = maxD || 100;
         var look = new THREE.Vector3(0, 0, 1);
         // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
         projector.unprojectVector(look, camera);
