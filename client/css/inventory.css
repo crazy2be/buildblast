@@ -51,8 +51,8 @@ div.helper {
 #inventory div.right {
 	float: right;
 }
-#inventory div.selected {
-	-webkit-animation: item-selected 1s forwards !important;
+#inventory div.equip.selected {
+	-webkit-animation: item-selected 1s forwards;
 }
 @-webkit-keyframes item-selected {
 	from {
