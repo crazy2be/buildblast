@@ -14,11 +14,11 @@ function Inventory(world, camera, conn, controls) {
     }
 
     function leftItem() {
-        return slots[getEquippedSlot(true, leftIsPrimary)];
+        return slots.length > 0 ? slots[getEquippedSlot(true, leftIsPrimary)] : Item.NIL();
     }
 
     function rightItem() {
-        return slots[getEquippedSlot(false, rightIsPrimary)];
+        return slots.length > 0 ? slots[getEquippedSlot(false, rightIsPrimary)] : Item.NIL();
     }
 
     var bagIsShowing = false;
@@ -36,8 +36,8 @@ function Inventory(world, camera, conn, controls) {
 
         // Create the item array, track if it changed
         if (!anyChanged(items)) return;
-        var oldLeft = slots.length > 0 ? leftItem() : Item.NIL();
-        var oldRight = slots.length > 0 ? rightItem() : Item.NIL();
+        var oldLeft = leftItem();
+        var oldRight = rightItem();
         if (slots.length > items.length) slots = [];
         for (var i = 0; i < items.length; i += 2) {
             slots[i / 2] = new Item(items[i], items[i + 1]);
@@ -116,9 +116,7 @@ function Inventory(world, camera, conn, controls) {
                 $(this).children("div").css("background-position", fromPosition);
                 ui.draggable.css("background-position", toPosition);
 
-                ui.draggable.waitForImages(function () {
-                    ui.draggable.css("visibility", "visible");
-                });
+                ui.draggable.css("visibility", "visible");
 
                 var $fromSpan = ui.draggable.children("span");
                 var $toSpan = $(this).children("div").children("span");
@@ -179,16 +177,11 @@ function Inventory(world, camera, conn, controls) {
     function updateEquipped(oldLeft, oldRight) {
         if (slots.length === 0) return;
 
-        // Special case when switching left and right hands
-        var skipModels = oldLeft != null
-                      && oldRight != null
-                      && oldLeft.model === rightItem().model
-                      && oldRight.model === leftItem().model;
-
-        if (!skipModels && oldLeft !== null) {
+        if (oldLeft !== null) {
             swapModels(oldLeft, leftItem());
         }
-        if (!skipModels && oldRight !== null) {
+
+        if (oldRight !== null) {
             swapModels(oldRight, rightItem());
         }
 
