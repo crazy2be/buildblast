@@ -16,7 +16,7 @@ console.log = function (message) {
         kind: 'log',
         payload: message
     });
-}
+};
 
 function sendChunk() {
     var chunk = manager.top();
@@ -182,11 +182,11 @@ function ChunkManager() {
 
     self.get = function (cc) {
         return chunkList[ccStr(cc)];
-    }
+    };
 
     self.set = function (cc, item) {
         chunkList[ccStr(cc)] = item;
-    }
+    };
 
     self.top = function () {
         var highest = -1000;
@@ -201,17 +201,17 @@ function ChunkManager() {
             }
         }
         return chunkList[key];
-    }
+    };
 
     self.each = function (cb) {
         for (var k in chunkList) {
-            cb(chunkList[k])
+            cb(chunkList[k]);
         }
-    }
+    };
 
     self.chunkAt = function (cx, cy, cz) {
         return self.get({x: cx, y: cy, z: cz});
-    }
+    };
 
     self.refreshNeighbouring = function (cc) {
         var cx = cc.x;
@@ -227,5 +227,5 @@ function ChunkManager() {
         r(cx, cy - 1, cz);
         r(cx, cy, cz + 1);
         r(cx, cy, cz - 1);
-    }
+    };
 }

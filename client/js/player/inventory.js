@@ -246,7 +246,7 @@ function Inventory(world, camera, conn, controls) {
     function postitionPerspective(item, leftward) {
         var p = item.position;
         var r = new THREE.Matrix4();
-        r.setRotationFromEuler(item.rotation, item.eulerOrder);
+        r.makeRotationFromEuler(item.rotation, item.eulerOrder);
 
         var amount = leftward * aspectRatio * 0.05;
 

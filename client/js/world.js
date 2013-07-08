@@ -3,11 +3,11 @@ function World(scene, container) {
 
     self.addToScene = function (mesh) {
         scene.add(mesh);
-    }
+    };
 
     self.removeFromScene = function (mesh) {
         scene.remove(mesh);
-    }
+    };
 
     var playerName = localStorage.playerName;
     while (!playerName) {
@@ -22,8 +22,32 @@ function World(scene, container) {
     var chunkManager = new ChunkManager(scene, player);
     var entityManager = new EntityManager(scene, conn, player);
 
-    var ambientLight = new THREE.AmbientLight(0xffffff);
+    var ambientLight = new THREE.AmbientLight(0x111111);
     scene.add(ambientLight);
+
+    var l1 = new THREE.PointLight(0xFF0000, 10, 100);
+    l1.position.set(30, 30, 120);
+    scene.add(l1);
+
+    var l2 = new THREE.PointLight(0x00FF00, 10, 100);
+    l2.position.set(30, 30, 0);
+    scene.add(l2);
+
+    var l3 = new THREE.PointLight(0x0000FF, 10, 100);
+    l3.position.set(30, 30, -120);
+    scene.add(l3);
+
+    var l4 = new THREE.PointLight(0x0000FF, 10, 100);
+    l4.position.set(-30, 30, 120);
+    scene.add(l4);
+
+    var l5 = new THREE.PointLight(0xFF0000, 10, 100);
+    l5.position.set(-30, 30, 0);
+    scene.add(l5);
+
+    var l6 = new THREE.PointLight(0x00FF00, 10, 100);
+    l6.position.set(-30, 30, -120);
+    scene.add(l6);
 
     conn.on('block', processBlock);
     conn.on('debug-ray', processRay);
@@ -45,19 +69,20 @@ function World(scene, container) {
         player.update(dt);
         chunkManager.update(dt);
         chat.update(dt);
-    }
+    };
 
     self.render = player.render;
     self.resize = player.resize;
 
     var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
-    var smallCubeMat = new THREE.MeshNormalMaterial();
-    self.addSmallCube = function (position) {
-        if (!position) throw "Position required!";
+    var smallCubeMat = new THREE.MeshLambertMaterial({
+        color: 0xffffff, shading: THREE.FlatShading, });
+    self.addSmallCube = function (pos) {
+        if (!pos) throw "Position required!";
         var cube = new THREE.Mesh( smallCube, smallCubeMat );
-        cube.position = position;
+        cube.position = pos;
         scene.add(cube);
-    }
+    };
 
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -69,7 +94,7 @@ function World(scene, container) {
         var block = chunk.block(oc);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
-    }
+    };
 
     self.findClosestGround = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -118,7 +143,7 @@ function World(scene, container) {
         } else {
             throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
-    }
+    };
 
     var projector = new THREE.Projector();
     function findIntersection(camera, cb, precision, maxDist) {
@@ -150,7 +175,7 @@ function World(scene, container) {
             return entityManager.entityAt(wx, wy, wz);
         }
         return findIntersection(camera, entityAt, 0.1);
-    }
+    };
 
     self.findBlockIntersection = function (camera) {
         function blockAt(wx, wy, wz) {
@@ -158,7 +183,7 @@ function World(scene, container) {
             return block && block.mineable();
         }
         return findIntersection(camera, blockAt);
-    }
+    };
 
     function doLookedAtBlockAction(camera, cmp, cb) {
         var intersect = self.findBlockIntersection(camera);
@@ -214,7 +239,7 @@ function World(scene, container) {
             changeBlock(wx, wy, wz, Block.AIR);
         }
         doLookedAtBlockAction(camera, mineable, removeBlock);
-    }
+    };
 
     self.addLookedAtBlock = function (camera, blockType) {
         function empty(x, y, z) {
@@ -226,7 +251,7 @@ function World(scene, container) {
             changeBlock(wx, wy, wz, blockType);
         }
         doLookedAtBlockAction(camera, empty, addBlock);
-    }
+    };
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {

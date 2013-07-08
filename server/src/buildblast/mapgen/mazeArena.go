@@ -31,17 +31,17 @@ func (fa *MazeArena) Block(wc coords.World) Block {
 	isWall := val - math.Floor(val) < 0.05
 	isNextToBoundary := wc.X >= 31 || wc.X < -31 || wc.Z >= 127 || wc.Z < -127
 	if wc.Y == 21 && isWall && !isNextToBoundary {
-                possibleSpawn := coords.World{
-                        X: wc.X,
-                        Y: 21,
-                        Z: wc.Z,
-                }
-                hash := possibleSpawn.Hash()
-                _, contained := fa.spawnPoints[hash]
-                if !contained {
-                        fa.spawnPointKeys = append(fa.spawnPointKeys, hash)
-                        fa.spawnPoints[hash] = possibleSpawn
-                }
+		possibleSpawn := coords.World{
+			X: wc.X,
+			Y: 21,
+			Z: wc.Z,
+		}
+		hash := possibleSpawn.Hash()
+		_, contained := fa.spawnPoints[hash]
+		if !contained {
+			fa.spawnPointKeys = append(fa.spawnPointKeys, hash)
+			fa.spawnPoints[hash] = possibleSpawn
+		}
 	}
 	if wc.Y < 20 && isWall {
 		return BLOCK_STONE

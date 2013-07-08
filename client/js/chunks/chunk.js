@@ -1,29 +1,28 @@
-var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
-    vertexColors: THREE.VertexColors,
-});
-
 function Chunk(blocks, geometries, scene, quality) {
     var self = this;
     var cq = CHUNK_QUALITIES;
     var meshes = {};
     for (var i = 0; i < CHUNK_QUALITIES.length; i++) {
-        var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
+        var mesh = new THREE.Mesh(geometries[i], new THREE.MeshLambertMaterial({
+            color: 0xffffff, shading: THREE.FlatShading,
+            vertexColors: THREE.VertexColors,
+        }));
         meshes[cq[i]] = mesh;
     }
 
     self.remove = function () {
         scene.remove(meshes[quality]);
-    }
+    };
 
     self.add = function () {
         scene.add(meshes[quality]);
-    }
+    };
 
     self.setQuality = function (newQuality) {
         self.remove();
         quality = newQuality;
         self.add();
-    }
+    };
 
     self.block = function (oc) {
         if (validChunkOffset(oc.x, oc.y, oc.z)) {
@@ -39,5 +38,5 @@ function Chunk(blocks, geometries, scene, quality) {
         } else {
             throw "block coords out of bounds: " + oc;
         }
-    }
+    };
 }

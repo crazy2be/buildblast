@@ -16,8 +16,9 @@ window.onload = function () {
         var world = new World(scene, container);
         world.resize();
 
-        var renderer = new THREE.WebGLRenderer();
+        var renderer = new THREE.WebGLRenderer( { maxLights: 10 });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
 
         container.querySelector('#opengl').appendChild(renderer.domElement);
         document.querySelector('#splash h1').innerHTML = 'Click to play!';
@@ -86,7 +87,7 @@ function fatalError(err) {
     function exitPointerLock() {
         (document.exitPointerLock ||
         document.mozExitPointerLock ||
-        document.webkitExitPointerLock).call(document)
+        document.webkitExitPointerLock).call(document);
     }
 }
 

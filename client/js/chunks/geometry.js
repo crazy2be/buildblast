@@ -35,7 +35,7 @@ function ChunkGeometry(cc, blocks, manager) {
             geometries: geometries,
             transferables: transferables,
         };
-    }
+    };
 
     self.block = function block(ox, oy, oz) {
         if (validChunkOffset(ox, oy, oz)) {
