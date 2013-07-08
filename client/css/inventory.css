@@ -35,10 +35,6 @@ div.helper {
 	width: 64px;
 	height: 64px;
 }
-#inventory div.equip {
-	margin-bottom: 10px;
-	-webkit-animation: item-deselected 1s forwards;
-}
 #inventory #bag div.has-left-sibling {
     margin-left: -3px;
 }
@@ -50,6 +46,10 @@ div.helper {
 }
 #inventory div.right {
 	float: right;
+}
+#inventory div.equip {
+	margin-bottom: 10px;
+	-webkit-animation: item-deselected 1s forwards;
 }
 #inventory div.equip.selected {
 	-webkit-animation: item-selected 1s forwards;
