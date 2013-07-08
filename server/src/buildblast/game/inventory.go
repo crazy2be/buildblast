@@ -118,7 +118,7 @@ func toStringByte(val byte) byte {
 	// 32: Space charater. Control charaters
 	// are not allowed in JSON strings.
 	value := val + 32
-	if value >= 127 || val < 32 {
+	if value >= 127 || value < 32 {
 		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
 	}
 	return value
