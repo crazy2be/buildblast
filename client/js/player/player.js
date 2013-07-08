@@ -25,7 +25,7 @@ function Player(name, world, conn, controls) {
     flashLight.shadowMapWidth = 1024;
     flashLight.shadowMapHeight = 1024;
 
-    flashLight.intensity = 0.8;
+    flashLight.intensity = 0.0;
     flashLight.distance = 25;
     flashLight.exponent = 20;
     flashLight.shadowCameraNear = 0.1;
@@ -33,6 +33,13 @@ function Player(name, world, conn, controls) {
     flashLight.shadowCameraFov = 10;
     camera.add(flashLight.target);
     flashLight.target.position.set(0, 0, -1);
+
+    var lightIsOn = false;
+
+    self.toggleLight = function () {
+        lightIsOn = !lightIsOn;
+        flashLight.intensity = lightIsOn ? 0.8 : 0.0;
+    };
 
     var inventory = new Inventory(world, camera, conn, controls);
     var prediction = new PlayerPrediction(world, conn, camera.position);

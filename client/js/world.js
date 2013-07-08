@@ -84,6 +84,10 @@ function World(scene, container) {
         scene.add(cube);
     };
 
+    self.toggleLight = function () {
+        player.toggleLight();
+    };
+
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
         var oc = cords.o;

@@ -22,11 +22,11 @@ const (
 	ITEM_STONE  = byte(2)
 	ITEM_SHOVEL = byte(3)
 	ITEM_GUN    = byte(4)
+	ITEM_LIGHT  = byte(5)
 
 	// Properties
 	STACKABLE = 0x1 << 0
 	SHOOTABLE = 0x1 << 1
-
 )
 
 var ITEM_PROPERTIES []uint32 = []uint32 {
@@ -35,6 +35,7 @@ var ITEM_PROPERTIES []uint32 = []uint32 {
 	/** STONE  */ STACKABLE,
 	/** SHOVEL */ 0,
 	/** GUN    */ SHOOTABLE,
+	/** LIGHT  */ 0,
 }
 
 var ITEM_FROM_BLOCK []byte = []byte {

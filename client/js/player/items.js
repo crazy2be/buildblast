@@ -25,6 +25,7 @@ Item.DIRT   = function () { return new Item(0x1); };
 Item.STONE  = function () { return new Item(0x2); };
 Item.SHOVEL = function () { return new Item(0x3); };
 Item.GUN    = function () { return new Item(0x4); };
+Item.LIGHT  = function () { return new Item(0x5); };
 
 // Item properties
 Item.STACKABLE = 0x1;
@@ -35,6 +36,7 @@ Item.PROPERTIES = [
     /** STONE  */ Item.STACKABLE,
     /** SHOVEL */ 0,
     /** GUN    */ 0,
+    /** LIGHT  */ 0,
 ];
 
 Item.isStackable = function (item) {
@@ -54,6 +56,10 @@ Item.throttle = function (func, param) {
             t = t2;
         }
     };
+};
+
+Item.lightAction = function (world, camera) {
+    world.toggleLight();
 };
 
 Item.pistolAction = function (world, camera) {
@@ -99,5 +105,10 @@ Item.DATA = [
         model: function () { return Models.pistol(); },
         action: Item.pistolAction,
         icon: 4,
-    }
+    },{
+        name: 'light',
+        model: null,
+        action: Item.lightAction,
+        icon: 5,
+    },
 ];
