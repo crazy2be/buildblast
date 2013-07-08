@@ -22,6 +22,7 @@ const (
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
+	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
 )
 
 type MsgEntityCreate struct {
@@ -80,8 +81,13 @@ type MsgNtpSync struct {
 
 type MsgInventoryState struct {
 	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
-	ItemLeft  game.Item
-	ItemRight game.Item
+	ItemLeft  int
+	ItemRight int
+}
+
+type MsgInventoryMove struct {
+	From int
+	To   int
 }
 
 type ClientMessage struct {

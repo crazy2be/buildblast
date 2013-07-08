@@ -1,5 +1,7 @@
-function Item(type) {
+function Item(type, num) {
     this.type = type;
+    this.num = num;
+    this.model = Item.DATA[this.type].model();
 }
 
 Item.prototype.stackable = function () {
@@ -10,19 +12,19 @@ Item.prototype.name = function () {
     return Item.DATA[this.type].name;
 };
 
-Item.prototype.model = function () {
-    return Item.DATA[this.type].model;
-};
-
 Item.prototype.action = function () {
     return Item.DATA[this.type].action;
 };
 
-Item.NIL    = 0x0;
-Item.DIRT   = 0x1;
-Item.STONE  = 0x2;
-Item.SHOVEL = 0x3;
-Item.GUN    = 0x4;
+Item.prototype.icon = function () {
+    return Item.DATA[this.type].icon;
+};
+
+Item.NIL    = function () { return new Item(0x0); };
+Item.DIRT   = function () { return new Item(0x1); };
+Item.STONE  = function () { return new Item(0x2); };
+Item.SHOVEL = function () { return new Item(0x3); };
+Item.GUN    = function () { return new Item(0x4); };
 
 // Item properties
 Item.STACKABLE = 0x1;
@@ -40,33 +42,7 @@ Item.isStackable = function (item) {
 };
 
 Item.hasProperty = function (item, prop) {
-    return (Item.PROPERTIES[block] & prop) > 0;
-};
-
-Item.init = function() {
-    Item.DATA = [
-        {
-            name: '',
-            model: null,
-            action: null,
-        },{
-            name: 'dirt',
-            model: Models.block(),
-            action: Item.throttle(Item.blockAction, Block.DIRT),
-        },{
-            name: 'stone',
-            model: Models.stone(),
-            action: Item.throttle(Item.blockAction, Block.STONE),
-        },{
-            name: 'shovel',
-            model: Models.shovel(),
-            action: Item.throttle(Item.shovelAction),
-        },{
-            name: 'pistol',
-            model: Models.pistol(),
-            action: Item.pistolAction,
-        }
-    ];
+    return (Item.PROPERTIES[item] & prop) > 0;
 };
 
 Item.throttle = function (func, param) {
@@ -96,3 +72,32 @@ Item.shovelAction = function (world, camera) {
 Item.blockAction = function (world, camera, block) {
     world.addLookedAtBlock(camera, block);
 };
+
+Item.DATA = [
+    {
+        name: '',
+        model: function () { return null; },
+        action: null,
+        icon: 0,
+    },{
+        name: 'dirt',
+        model: function () { return Models.block(); },
+        action: Item.throttle(Item.blockAction, Block.DIRT),
+        icon: 1,
+    },{
+        name: 'stone',
+        model: function () { return Models.stone(); },
+        action: Item.throttle(Item.blockAction, Block.STONE),
+        icon: 2,
+    },{
+        name: 'shovel',
+        model: function () { return Models.shovel(); },
+        action: Item.throttle(Item.shovelAction),
+        icon: 3,
+    },{
+        name: 'pistol',
+        model: function () { return Models.pistol(); },
+        action: Item.pistolAction,
+        icon: 4,
+    }
+];

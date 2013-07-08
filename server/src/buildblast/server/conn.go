@@ -60,6 +60,7 @@ func (c *Conn) Recv() (Message, error) {
 	m := kindToType(cm.Kind)
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
+		log.Println(cm.Payload)
 		return nil, fmt.Errorf("unmarshalling websocket message: %s", err)
 	}
 
@@ -88,6 +89,8 @@ func kindToType(kind MessageKind) Message {
 			return &MsgNtpSync{}
 		case MSG_INVENTORY_STATE:
 			return &MsgInventoryState{}
+		case MSG_INVENTORY_MOVE:
+			return &MsgInventoryMove{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -116,6 +119,8 @@ func typeToKind(m Message) MessageKind {
 			return MSG_NTP_SYNC
 		case *MsgInventoryState:
 			return MSG_INVENTORY_STATE
+		case *MsgInventoryMove:
+			return MSG_INVENTORY_MOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
