@@ -86,8 +86,8 @@ type MsgInventoryState struct {
 }
 
 type MsgInventoryMove struct {
-	From int `json:",string"`
-	To   int `json:",string"`
+	From int
+	To   int
 }
 
 type ClientMessage struct {
