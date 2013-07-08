@@ -37,7 +37,7 @@ div.helper {
 }
 #inventory div.equip {
 	margin-bottom: 10px;
-	-webkit-animation: item-not-changed 1s forwards;
+	-webkit-animation: item-deselected 1s forwards;
 }
 #inventory #bag div.has-left-sibling {
     margin-left: -3px;
@@ -52,9 +52,9 @@ div.helper {
 	float: right;
 }
 #inventory div.selected {
-	-webkit-animation: item-changed 1s forwards !important;
+	-webkit-animation: item-selected 1s forwards !important;
 }
-@-webkit-keyframes item-changed {
+@-webkit-keyframes item-selected {
 	from {
 		opacity: 0.4;
 		border-color: rgba(50, 50, 50, 1);
@@ -64,7 +64,7 @@ div.helper {
 		border-color: rgba(100, 100, 255, 1);
 	}
 }
-@-webkit-keyframes item-not-changed {
+@-webkit-keyframes item-deselected {
 	from {
 		opacity: 1;
 		border-color: rgba(100, 100, 255, 1);
