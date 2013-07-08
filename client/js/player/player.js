@@ -16,6 +16,23 @@ function Player(name, world, conn, controls) {
     var self = this;
 
     var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
+    var flashLight = new THREE.SpotLight(0xFFFFFF);
+    world.addToScene(camera);
+    world.addToScene(flashLight);
+    flashLight.position = camera.position;
+    flashLight.castShadow = true;
+
+    flashLight.shadowMapWidth = 1024;
+    flashLight.shadowMapHeight = 1024;
+
+    flashLight.intensity = 0.8;
+    flashLight.distance = 25;
+    flashLight.exponent = 20;
+    flashLight.shadowCameraNear = 0.1;
+    flashLight.shadowCameraFar = 50;
+    flashLight.shadowCameraFov = 10;
+    camera.add(flashLight.target);
+    flashLight.target.position.set(0, 0, -1);
 
     var inventory = new Inventory(world, camera, conn, controls);
     var prediction = new PlayerPrediction(world, conn, camera.position);
@@ -28,15 +45,15 @@ function Player(name, world, conn, controls) {
 
     self.pos = function () {
         return camera.position.clone();
-    }
+    };
 
     self.name = function () {
         return name;
-    }
+    };
 
     self.id = function() {
         return "player-" + name;
-    }
+    };
 
     self.render = function (renderer, scene) {
         renderer.render(scene, camera);

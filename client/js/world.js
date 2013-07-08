@@ -22,32 +22,32 @@ function World(scene, container) {
     var chunkManager = new ChunkManager(scene, player);
     var entityManager = new EntityManager(scene, conn, player);
 
-    var ambientLight = new THREE.AmbientLight(0x111111);
+    var ambientLight = new THREE.AmbientLight(0x000000);
     scene.add(ambientLight);
 
-    var l1 = new THREE.PointLight(0xFF0000, 10, 100);
-    l1.position.set(30, 30, 120);
-    scene.add(l1);
-
-    var l2 = new THREE.PointLight(0x00FF00, 10, 100);
-    l2.position.set(30, 30, 0);
-    scene.add(l2);
-
-    var l3 = new THREE.PointLight(0x0000FF, 10, 100);
-    l3.position.set(30, 30, -120);
-    scene.add(l3);
-
-    var l4 = new THREE.PointLight(0x0000FF, 10, 100);
-    l4.position.set(-30, 30, 120);
-    scene.add(l4);
-
-    var l5 = new THREE.PointLight(0xFF0000, 10, 100);
-    l5.position.set(-30, 30, 0);
-    scene.add(l5);
-
-    var l6 = new THREE.PointLight(0x00FF00, 10, 100);
-    l6.position.set(-30, 30, -120);
-    scene.add(l6);
+//    var l1 = new THREE.PointLight(0xFF0000, 10, 100);
+//    l1.position.set(30, 30, 120);
+//    scene.add(l1);
+//
+//    var l2 = new THREE.PointLight(0x00FF00, 10, 100);
+//    l2.position.set(30, 30, 0);
+//    scene.add(l2);
+//
+//    var l3 = new THREE.PointLight(0x0000FF, 10, 100);
+//    l3.position.set(30, 30, -120);
+//    scene.add(l3);
+//
+//    var l4 = new THREE.PointLight(0x0000FF, 10, 100);
+//    l4.position.set(-30, 30, 120);
+//    scene.add(l4);
+//
+//    var l5 = new THREE.PointLight(0xFF0000, 10, 100);
+//    l5.position.set(-30, 30, 0);
+//    scene.add(l5);
+//
+//    var l6 = new THREE.PointLight(0x00FF00, 10, 100);
+//    l6.position.set(-30, 30, -120);
+//    scene.add(l6);
 
     conn.on('block', processBlock);
     conn.on('debug-ray', processRay);

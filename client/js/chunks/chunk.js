@@ -7,6 +7,8 @@ function Chunk(blocks, geometries, scene, quality) {
             color: 0xffffff, shading: THREE.FlatShading,
             vertexColors: THREE.VertexColors,
         }));
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         meshes[cq[i]] = mesh;
     }
 
