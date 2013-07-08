@@ -113,7 +113,7 @@ function Inventory(world, camera, conn, controls) {
                     return;
                 }
 
-                $(this).css("background-position", fromPosition);
+                $(this).children("div").css("background-position", fromPosition);
                 ui.draggable.css("background-position", toPosition);
 
                 ui.draggable.waitForImages(function () {
@@ -127,8 +127,8 @@ function Inventory(world, camera, conn, controls) {
                 $toSpan.text(fromText);
 
                 conn.queue('inventory-move', {
-                    From: from,
-                    To: to,
+                    From: parseInt(from),
+                    To: parseInt(to),
                 });
             },
         });
@@ -338,6 +338,7 @@ function Inventory(world, camera, conn, controls) {
 }
 
 // jQuery UI hack
+// http://stackoverflow.com/questions/1853230/jquery-ui-draggable-event-status-on-revert
 $.ui.draggable.prototype._mouseStop = function(event) {
     //If we are using droppables, inform the manager about the drop
     var dropped = false;
