@@ -58,6 +58,7 @@ parent.onmessage = function (e) {
 function initConn(payload) {
     var conn = new Conn(payload.uri);
     conn.on('chunk', processChunk);
+    conn.on('block', processBlockChange);
 }
 
 var manager = new ChunkManager();
