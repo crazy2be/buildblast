@@ -10,6 +10,8 @@ function Controls(elm) {
         D: 68,
         Q: 81,
         E: 69,
+        C: 67,
+        J: 74,
 
         Left: 37,
         Up: 38,
@@ -18,6 +20,8 @@ function Controls(elm) {
 
         Space: 32,
         Enter: 13,
+
+        Tab: 9,
 
         One: 49,
         Two: 50,
@@ -49,6 +53,7 @@ function Controls(elm) {
         jump: [Keys.Space],
 
         chat: [Keys.Enter],
+        openScore: [Keys.Tab],
 
         activateLeft: [MouseButtons.Left],
         activateRight: [MouseButtons.Right],
@@ -60,8 +65,10 @@ function Controls(elm) {
         right: [Keys.D],
         back: [Keys.S],
 
-        nextLeft: [Keys.Q],
-        nextRight: [Keys.E],
+        toggleBag: [Keys.C],
+
+        swapLeft: [Keys.Q],
+        swapRight: [Keys.E],
     };
 
     var ActionMappingsDvorak = {
@@ -70,8 +77,10 @@ function Controls(elm) {
         right: [Keys.E],
         back: [Keys.O],
 
-        nextLeft: [Keys.Semicolon],
-        nextRight: [Keys.Period],
+        toggleBag: [Keys.J],
+
+        swapLeft: [Keys.Semicolon],
+        swapRight: [Keys.Period],
     };
 
     var mapping;
@@ -93,6 +102,18 @@ function Controls(elm) {
         return clone(actions);
     };
 
+    var isLocked = false;
+
+    self.lock = function() {
+        isLocked = true;
+        requestPointerLock();
+    };
+
+    self.unlock = function() {
+        isLocked = false;
+        requestPointerUnlock();
+    };
+
     function findAction(trigger) {
         for (var action in mapping) {
             var triggers = mapping[action];
@@ -105,25 +126,34 @@ function Controls(elm) {
 
     function actionStart(trigger) {
         var action = findAction(trigger);
-        if (!action) return;
+        if (!action) return false;
         actions[action] = true;
+        return true;
     }
 
     function actionEnd(trigger) {
         var action = findAction(trigger);
-        if (!action) return;
+        if (!action) return false;
         actions[action] = false;
+        return true;
     }
 
     function keyDown(event) {
-        actionStart(event.keyCode);
+        if (actionStart(event.keyCode)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     }
 
     function keyUp(event) {
-        actionEnd(event.keyCode);
+        if (actionEnd(event.keyCode)) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     }
 
     function mouseDown(event) {
+        if (!isLocked) return;
         elm.focus();
         attemptPointerLock();
         if (!pointerLocked()) return;
@@ -134,6 +164,7 @@ function Controls(elm) {
     }
 
     function mouseUp(event) {
+        if (!isLocked) return;
         event.preventDefault();
         event.stopPropagation();
 
@@ -184,7 +215,7 @@ function Controls(elm) {
         if ('mozPointerLockElement' in document) {
             requestFullscreen();
         }
-        requestPointerLock();
+        self.lock();
     }
 
     function pointerLockChange() {
@@ -195,7 +226,9 @@ function Controls(elm) {
         } else {
             // Pointer was just unlocked, disable the mousemove listener
             elm.removeEventListener('mousemove', mouseMove, false);
-            elm.classList.remove('interactive');
+            if (isLocked) {
+                elm.classList.remove('interactive');
+            }
         }
     }
 
@@ -203,6 +236,12 @@ function Controls(elm) {
         (elm.requestPointerLock ||
         elm.mozRequestPointerLock ||
         elm.webkitRequestPointerLock).call(elm);
+    }
+
+    function requestPointerUnlock() {
+        (document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock).bind(document).call();
     }
 
     function requestFullscreen() {

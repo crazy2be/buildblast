@@ -22,22 +22,22 @@ type ControlState struct {
 	Timestamp       float64 // In ms
 }
 
-var PLAYER_HEIGHT = 1.75;
-var PLAYER_EYE_HEIGHT = 1.6;
-var PLAYER_BODY_HEIGHT = 1.3;
+var PLAYER_HEIGHT = 1.75
+var PLAYER_EYE_HEIGHT = 1.6
+var PLAYER_BODY_HEIGHT = 1.3
 var PLAYER_HALF_EXTENTS = coords.Vec3{
 	0.2,
 	PLAYER_HEIGHT / 2,
 	0.2,
-};
+}
 var PLAYER_CENTER_OFFSET = coords.Vec3{
 	0,
 	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
 	0,
-};
+}
 
 // Gameplay state defaults
-var PLAYER_MAX_HP = 100;
+var PLAYER_MAX_HP = 100
 
 type Player struct {
 	pos       coords.World
@@ -51,25 +51,15 @@ type Player struct {
 
 	// Gameplay state
 	hp        int
-
-	// Inventory
-	inventory []Item
-	itemLeft  Item
-	itemRight Item
+	inventory *Inventory
 }
 
 func NewPlayer(world *World, name string) *Player {
-	inv := make([]Item, INV_WIDTH * INV_HEIGHT)
-	inv[0] = ITEM_GUN
-	inv[1] = ITEM_SHOVEL
-	inv[2] = ITEM_DIRT
-	inv[3] = ITEM_STONE
-
 	return &Player{
 		pos: world.generator.Spawn(),
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
-		inventory: inv,
+		inventory: NewInventory(),
 		world: world,
 		name: name,
 	}
@@ -83,14 +73,13 @@ func (p *Player) ID() string {
 	return "player-" + p.name
 }
 
-func (p *Player) Tick(w *World) {}
-
-func (p *Player) SetActiveItems(left, right Item) {
-	p.itemLeft = left
-	p.itemRight = right
+func (p *Player) Inventory() *Inventory {
+	return p.inventory
 }
 
-func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, []Item, *coords.World) {
+func (p *Player) Tick(w *World) {}
+
+func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
@@ -109,7 +98,7 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.pos, p.vy, p.hp, p.inventory, hitPos
+	return p.pos, p.vy, p.hp, hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -168,15 +157,15 @@ func (p *Player) updateLook(controls ControlState) {
 }
 
 func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
-	shootingLeft := controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
-	shootingRight := controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
+	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
 		return nil
 	}
 
 	// They were holding it down last frame
-	shootingLeftLast := p.controls.ActivateLeft && p.inventory[p.itemLeft].Shootable()
-	shootingRightLast := p.controls.ActivateRight && p.inventory[p.itemRight].Shootable()
+	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
+	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}

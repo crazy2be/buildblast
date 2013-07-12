@@ -54,7 +54,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	switch m.(type) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
-			w.ChangeBlock(m.Pos, m.Type)
+			c.handleBlock(g, w, m)
 
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
@@ -66,7 +66,15 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 
 		case *MsgInventoryState:
 			m := m.(*MsgInventoryState)
-			c.player.SetActiveItems(m.ItemLeft, m.ItemRight)
+			c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
+
+		case *MsgInventoryMove:
+			m := m.(*MsgInventoryMove)
+			c.player.Inventory().MoveItems(m.From, m.To)
+
+			c.Send(&MsgInventoryState{
+				Items: c.player.Inventory().ItemsToString(),
+			})
 
 		default:
 			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
@@ -74,8 +82,34 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	}
 }
 
+func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
+	// Eventually we should simulate block placement/removal entirely
+	// on the server side, but for now, this works fairly well.
+	inv := c.player.Inventory()
+	curBlock := w.Block(m.Pos)
+
+	if curBlock == mapgen.BLOCK_AIR {
+		// Placing a block
+		item := game.ItemFromBlock(m.Type)
+		if inv.RemoveItem(item) {
+			w.ChangeBlock(m.Pos, m.Type)
+		} else {
+			c.sendBlockChanged(m.Pos, curBlock)
+		}
+	} else {
+		// Removing a block
+		item := game.ItemFromBlock(curBlock)
+		inv.AddItem(item)
+		w.ChangeBlock(m.Pos, m.Type)
+	}
+
+	c.Send(&MsgInventoryState{
+		Items: c.player.Inventory().ItemsToString(),
+	})
+}
+
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	pos, vy, hp, inventory, hitPos := c.player.ClientTick(m.Controls)
+	pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
 
 	c.cm.QueueChunksNearby(pos)
 
@@ -86,15 +120,11 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 		Hp: hp,
 	})
 
-	c.Send(&MsgInventoryState{
-		Items: game.ItemsToString(inventory),
-	})
-
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
 			Pos: *hitPos,
 		})
-}
+	}
 }
 
 func (c *Client) Connected(g *Game, w *game.World) {
@@ -109,6 +139,9 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	w.AddEntity(p)
 	w.AddBlockListener(c)
 	c.player = p
+	c.Send(&MsgInventoryState{
+		Items: c.player.Inventory().ItemsToString(),
+	})
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
@@ -117,9 +150,13 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
+	c.sendBlockChanged(bc, new)
+}
+
+func (c *Client) sendBlockChanged(bc coords.Block, typ mapgen.Block) {
 	m := &MsgBlock{
 		Pos: bc,
-		Type: new,
+		Type: typ,
 	}
 	select {
 	case c.blockSendQueue <- m:

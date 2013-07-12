@@ -43,7 +43,7 @@ type World struct {
 
 func NewWorld(seed float64) *World {
 	w := new(World)
-	w.seed = seed;
+	w.seed = seed
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
 	w.generator = mapgen.NewMazeArena(seed)
 
