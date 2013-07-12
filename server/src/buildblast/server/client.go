@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+	"fmt"
 	"time"
 	"reflect"
 
-	"buildblast/coords"
 	"buildblast/game"
+	"buildblast/coords"
+	"buildblast/mapgen"
 )
 
 type Client struct {
@@ -16,6 +18,9 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
+
+	chunkSendQueue chan *MsgChunk
+	blockSendQueue chan *MsgBlock
 
 	player *game.Player
 }
@@ -27,6 +32,9 @@ func NewClient(name string) *Client {
 	c.name = name
 
 	c.cm = NewChunkManager()
+
+	c.chunkSendQueue = make(chan *MsgChunk, 10)
+	c.blockSendQueue = make(chan *MsgBlock, 10)
 
 	return c
 }
@@ -47,33 +55,11 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		case *MsgBlock:
 			m := m.(*MsgBlock)
 			w.ChangeBlock(m.Pos, m.Type)
-			// TODO: World should broadcast this automatically
-			g.Broadcast(m)
 
 		case *MsgControlsState:
 			m := m.(*MsgControlsState)
 			m.Controls.Timestamp = m.Timestamp
-
-			pos, vy, hp, inventory, hitPos := c.player.ClientTick(m.Controls)
-
-			c.cm.QueueChunksNearby(pos)
-
-			c.Send(&MsgPlayerState{
-				Pos: pos,
-				VelocityY: vy,
-				Timestamp: m.Timestamp,
-				Hp: hp,
-			})
-
-			c.Send(&MsgInventoryState{
-				Items: game.ItemsToString(inventory),
-			})
-
-			if hitPos != nil {
-				g.Broadcast(&MsgDebugRay{
-					Pos: *hitPos,
-				})
-			}
+			c.handleControlState(g, w, m)
 
 		case *MsgChat:
 			g.Chat(c.name, m.(*MsgChat).Message)
@@ -88,6 +74,29 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	}
 }
 
+func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
+	pos, vy, hp, inventory, hitPos := c.player.ClientTick(m.Controls)
+
+	c.cm.QueueChunksNearby(pos)
+
+	c.Send(&MsgPlayerState{
+		Pos: pos,
+		VelocityY: vy,
+		Timestamp: m.Timestamp,
+		Hp: hp,
+	})
+
+	c.Send(&MsgInventoryState{
+		Items: game.ItemsToString(inventory),
+	})
+
+	if hitPos != nil {
+		g.Broadcast(&MsgDebugRay{
+			Pos: *hitPos,
+		})
+}
+}
+
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
@@ -98,17 +107,36 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	}
 
 	w.AddEntity(p)
+	w.AddBlockListener(c)
 	c.player = p
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
+	w.RemoveBlockListener(c)
+}
+
+func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
+	m := &MsgBlock{
+		Pos: bc,
+		Type: new,
+	}
+	select {
+	case c.blockSendQueue <- m:
+	default:
+		c.Errors <- fmt.Errorf("WARN: Unable to send block update to player %s", c.name)
+	}
 }
 
 // WARNING: This runs on a seperate thread from everything
 // else in client! It should be refactored, but for now, just be cautious.
 func (c *Client) RunChunks(conn *Conn, world *game.World) {
 	for {
+		select {
+		case m := <-c.blockSendQueue:
+			conn.Send(m)
+		default:
+		}
 		// c.cm.Top() doesn't block, so we are effectively polling
 		// it every tenth of a second. Sketchy, I know.
 		cc, valid := c.cm.Top()

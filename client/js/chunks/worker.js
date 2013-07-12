@@ -10,13 +10,19 @@ importScripts(
     '../conn.js'
 );
 
-var console = {};
-console.log = function (message) {
-    parent.postMessage({
-        kind: 'log',
-        payload: message
-    });
-}
+console = {};
+['log', 'warn', 'error'].forEach(function (type) {
+    console[type] = function () {
+        var args = [].slice.call(arguments);
+        parent.postMessage({
+            kind: 'log',
+            payload: {
+                type: type,
+                message: args,
+            },
+        });
+    };
+});
 
 function sendChunk() {
     var chunk = manager.top();

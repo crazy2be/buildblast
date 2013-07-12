@@ -1,11 +1,12 @@
 package game
 
 import (
+	"log"
 	"sync"
 
+	"buildblast/coords"
 	"buildblast/physics"
 	"buildblast/mapgen"
-	"buildblast/coords"
 )
 
 type Entity interface {
@@ -25,6 +26,10 @@ type EntityListener interface {
 	EntityRemoved(id string)
 }
 
+type BlockListener interface {
+	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
+}
+
 type World struct {
 	seed         float64
 	chunks       map[coords.Chunk]mapgen.Chunk
@@ -33,6 +38,7 @@ type World struct {
 
 	entities     []Entity
 	entityListeners []EntityListener
+	blockListeners []BlockListener
 }
 
 func NewWorld(seed float64) *World {
@@ -78,9 +84,31 @@ func (w *World) Block(bc coords.Block) mapgen.Block {
 	return chunk.Block(bc.Offset())
 }
 
-func (w *World) ChangeBlock(wc coords.World, newBlock mapgen.Block) {
-	chunk := w.RequestChunk(wc.Chunk())
-	chunk.SetBlock(wc.Offset(), newBlock)
+func (w *World) AddBlockListener(listener BlockListener) {
+	w.blockListeners = append(w.blockListeners, listener)
+}
+
+func (w *World) RemoveBlockListener(listener BlockListener) {
+	for i, other := range w.blockListeners {
+		if other == listener {
+			w.blockListeners[i] = w.blockListeners[len(w.blockListeners) - 1]
+			w.blockListeners = w.blockListeners[:len(w.blockListeners) - 1]
+			return
+		}
+	}
+	log.Println("WARN: Attempt to remove block listener which does not exist.")
+}
+
+func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
+	chunk := w.RequestChunk(bc.Chunk())
+
+	oc := bc.Offset()
+	block := chunk.Block(oc)
+	chunk.SetBlock(oc, newBlock)
+
+	for _, listener := range w.blockListeners {
+		listener.BlockChanged(bc, block, newBlock)
+	}
 }
 
 func (w *World) AddEntityListener(listener EntityListener) {

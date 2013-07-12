@@ -40,7 +40,7 @@ func (fa *MazeArena) Block(bc coords.Block) Block {
 }
 
 func (fa *MazeArena) Chunk(cc coords.Chunk) Chunk {
-	return GenerateChunk(fa, cc)
+	return generateChunk(fa, cc)
 }
 
 func (fa *MazeArena) Spawn() coords.World {

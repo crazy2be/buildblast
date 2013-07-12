@@ -36,17 +36,19 @@ function ChunkManager(scene, player) {
     }
 
     geometryWorker.onmessage = function (e) {
+        var kind = e.data.kind;
         var payload = e.data.payload;
-        if (e.data.kind === 'chunk') {
+        if (kind === 'chunk') {
             processChunk(payload);
-        } else if (e.data.kind === 'show-chunk') {
+        } else if (kind === 'show-chunk') {
             processShowChunk(payload);
-        } else if (e.data.kind === 'hide-chunk') {
+        } else if (kind === 'hide-chunk') {
             processHideChunk(payload);
-        } else if (e.data.kind === 'chunk-quality-change') {
+        } else if (kind === 'chunk-quality-change') {
             processQualityChange(payload);
-        } else if (e.data.kind === 'log') {
-            console.log(e.data.payload);
+        } else if (kind === 'log') {
+            var args = ["Geometry worker:"].concat(payload.message);
+            console[payload.type || 'log'].apply(console, args);
         }
     }
 

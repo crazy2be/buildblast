@@ -160,7 +160,7 @@ function World(scene, container) {
         return findIntersection(camera, blockAt);
     }
 
-    function doLookedAtBlockAction(camera, cmp, cb) {
+    function doLookedAtBlockAction(camera, cmp, action) {
         var intersect = self.findBlockIntersection(camera);
         if (!intersect) {
             console.log("You aren't looking at anything!");
@@ -175,6 +175,13 @@ function World(scene, container) {
 
         function abs(n) {
             return Math.abs(n);
+        }
+
+        function cb(x, y, z) {
+            x = Math.floor(x);
+            y = Math.floor(y);
+            z = Math.floor(z);
+            action(x, y, z);
         }
 
         var x = p.x;
