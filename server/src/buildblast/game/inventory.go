@@ -86,6 +86,9 @@ func (inv *Inventory) AddItem(kind byte) {
 // true if the removal was sucessful, false if the
 // item does not exist in the inventory.
 func (inv *Inventory) RemoveItem(kind byte) bool {
+	if kind == ITEM_NIL {
+		return false
+	}
 	for i := len(inv.slots) - 1; i >= 0; i-- {
 		item := inv.slots[i]
 		if item.kind == kind {
@@ -97,11 +100,12 @@ func (inv *Inventory) RemoveItem(kind byte) bool {
 }
 
 func (inv *Inventory) lowerStack(i int) {
-	if inv.slots[i].num == 1 {
-		inv.slots[i] = NewItem(ITEM_NIL)
+	if inv.slots[i].num > 1 {
+		inv.slots[i].num--
 		return
 	}
-	inv.slots[i].num--
+	inv.slots[i].num = 0
+	inv.slots[i].kind = ITEM_NIL
 }
 
 func (inv *Inventory) ItemsToString() string {
