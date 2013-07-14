@@ -18,6 +18,7 @@ type ChunkManager struct {
 type ChunkStatus struct {
 	queued bool
 	priority int
+	data *MsgChunk
 }
 
 func NewChunkManager() *ChunkManager {

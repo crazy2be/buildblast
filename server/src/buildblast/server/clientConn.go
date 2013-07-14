@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// ClientConn is a generic, non-blocking, lossy over lag
+// wrapper around a Conn. It has queues for both sending
+// and receiving messages, and will never block when you
+// attempt to send a message, preferring instead to let you
+// continue, and issue an error which you can deal with
+// at your leisure.
 type ClientConn struct {
 	name string
 
@@ -30,6 +36,9 @@ func NewClientConn(name string) *ClientConn {
 	return c
 }
 
+// Start the client connection as a wrapper for the given
+// connection. This is the only API function that blocks.
+// Do not call this twice, strange things will happen.
 func (c *ClientConn) Run(conn *Conn) {
 	go c.runSend(conn)
 	c.runRecv(conn)

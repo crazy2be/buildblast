@@ -44,7 +44,7 @@ func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
 	c := globalGame.clientWithID(name)
-	c.RunChunks(NewConn(ws), globalGame.world)
+	c.RunChunks(NewConn(ws))
 }
 
 func doProfile() {

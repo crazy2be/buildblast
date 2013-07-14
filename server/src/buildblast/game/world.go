@@ -60,6 +60,7 @@ func NewWorld(seed float64) *World {
 	return w
 }
 
+
 func (w *World) Tick() {
 	select {
 	case generationResult := <-w.chunkGenerator.Generated:
@@ -88,6 +89,7 @@ func (w *World) Tick() {
 	}
 }
 
+
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
 	return w.chunks[cc]
 }
@@ -95,6 +97,18 @@ func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
 func (w *World) AddChunkListener(listener ChunkListener) {
 	w.chunkListeners = append(w.chunkListeners, listener)
 }
+
+func (w *World) RemoveChunkListener(listener ChunkListener) {
+	for i, other := range w.chunkListeners {
+		if other == listener {
+			w.chunkListeners[i] = w.chunkListeners[len(w.chunkListeners) - 1]
+			w.chunkListeners = w.chunkListeners[:len(w.chunkListeners) - 1]
+			return
+		}
+	}
+	log.Println("WARN: Attempt to remove chunk listener which does not exist.")
+}
+
 
 func (w *World) Block(bc coords.Block) mapgen.Block {
 	chunk := w.chunks[bc.Chunk()]
