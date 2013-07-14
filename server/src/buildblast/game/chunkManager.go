@@ -9,11 +9,15 @@ import (
 	"buildblast/mapgen"
 )
 
+const (
+	ChunkMaxDist = 100
+)
+
 type ChunkGenerator struct {
 	// Chunks are sent to this channel as they are generated
 	Generated chan ChunkGenerationResult
 
-	chunks map[coords.Chunk]*ChunkStatus
+	chunks map[coords.Chunk]ChunkStatus
 	mutex sync.Mutex
 	generator mapgen.Generator
 }
@@ -25,57 +29,27 @@ type ChunkGenerationResult struct {
 }
 
 type ChunkStatus struct {
-	queued bool
+	generated bool
 	priority int
 }
 
 func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 	cm := new(ChunkGenerator)
-	cm.chunks = make(map[coords.Chunk]*ChunkStatus, 10)
+	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
 	cm.Generated = make(chan ChunkGenerationResult, 10)
 	cm.generator = generator
 	return cm
 }
 
-func (cm *ChunkGenerator) display(cc coords.Chunk, priority int) {
-	status := cm.chunks[cc]
-
-	if status != nil {
-		return
-	}
-
-	cm.queue(cc, priority)
-}
-
+// cm.Lock() MUST BE HELD by the caller, or else calling
+// this function is unsafe.
 func (cm *ChunkGenerator) queue(cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
-	if status != nil {
-		log.Println("Got request for chunk at", cc, "to be queued, even though it has already been queued.")
+	if status.generated {
 		return
 	}
-
-	status = new(ChunkStatus)
+	status.priority += priority
 	cm.chunks[cc] = status
-	status.queued = true
-	status.priority = priority
-}
-
-func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
-	cm.mutex.Lock()
-	defer cm.mutex.Unlock()
-
-	highest := -1000
-	for key, val := range cm.chunks {
-		if val.priority > highest && val.queued {
-			highest = val.priority
-			cc = key
-		}
-	}
-	if highest != -1000 {
-		cm.chunks[cc].queued = false
-		return cc, true
-	}
-	return cc, false
 }
 
 func (cm *ChunkGenerator) QueueChunksNearby(wc coords.World) {
@@ -113,20 +87,39 @@ func (cm *ChunkGenerator) QueueChunksNearby(wc coords.World) {
 
 	cc := wc.Chunk()
 	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		cm.display(newCC, -dist)
+		cm.queue(newCC, ChunkMaxDist - dist)
 	})
 
 	oc := wc.Offset()
 	if oc.Y <= 4 {
-		cm.display(occ(cc, 0, -1, 0), 1)
+		cm.queue(occ(cc, 0, -1, 0), 1)
 	} else if oc.Y >= 28 {
-		cm.display(occ(cc, 0, 1, 0), 1)
+		cm.queue(occ(cc, 0, 1, 0), 1)
 	}
+}
+
+func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
+	cm.mutex.Lock()
+	defer cm.mutex.Unlock()
+
+	highest := -1
+	for key, val := range cm.chunks {
+		if val.priority > highest && !val.generated {
+			highest = val.priority
+			cc = key
+		}
+	}
+	if highest != -1 {
+		return cc, true
+	}
+	return cc, false
+
 }
 
 func (cm *ChunkGenerator) Run() {
 	for {
 		<-time.After(time.Second / 10)
+
 		cc, valid := cm.Top()
 		if !valid {
 			continue
@@ -138,5 +131,11 @@ func (cm *ChunkGenerator) Run() {
 			chunk: chunk,
 			spawns: spawns,
 		}
+
+		cm.mutex.Lock()
+		status := cm.chunks[cc]
+		status.generated = true
+		cm.chunks[cc] = status
+		cm.mutex.Unlock()
 	}
 }

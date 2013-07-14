@@ -62,6 +62,20 @@ func NewWorld(seed float64) *World {
 
 
 func (w *World) Tick() {
+	w.generationTick()
+	for _, e := range w.entities {
+		e.Tick(w)
+		id := e.ID()
+		pos := e.Pos()
+		w.chunkGenerator.QueueChunksNearby(pos)
+
+		for _, listener := range w.entityListeners {
+			listener.EntityMoved(id, pos)
+		}
+	}
+}
+
+func (w *World) generationTick() {
 	select {
 	case generationResult := <-w.chunkGenerator.Generated:
 		cc := generationResult.cc
@@ -75,17 +89,6 @@ func (w *World) Tick() {
 			listener.ChunkGenerated(cc, chunk)
 		}
 	default:
-	}
-
-	for _, e := range w.entities {
-		e.Tick(w)
-		id := e.ID()
-		pos := e.Pos()
-		w.chunkGenerator.QueueChunksNearby(pos)
-
-		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos)
-		}
 	}
 }
 

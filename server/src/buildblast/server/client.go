@@ -174,7 +174,7 @@ func (c *Client) ChunkGenerated(cc coords.Chunk, chunk mapgen.Chunk) {
 	select {
 	case c.chunkSendQueue <- m:
 	default:
-		log.Println("WARNING: Could not send chunk", cc, "to player!")
+		log.Println("WARNING: Could not send chunk", cc, "to player", c.name)
 	}
 }
 
@@ -187,7 +187,6 @@ func (c *Client) RunChunks(conn *Conn) {
 			conn.Send(m)
 		case m := <-c.chunkSendQueue:
 			conn.Send(m)
-		default:
 		}
 	}
 }
