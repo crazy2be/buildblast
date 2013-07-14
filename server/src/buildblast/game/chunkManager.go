@@ -9,13 +9,12 @@ import (
 	"buildblast/mapgen"
 )
 
+type ChunkGenerator struct {
+	// Chunks are sent to this channel as they are generated
+	Generated chan ChunkGenerationResult
 
-// Manages the chunks loaded, displayed, etc for a
-// single client.
-type ChunkManager struct {
 	chunks map[coords.Chunk]*ChunkStatus
 	mutex sync.Mutex
-	generated chan ChunkGenerationResult
 	generator mapgen.Generator
 }
 
@@ -30,15 +29,15 @@ type ChunkStatus struct {
 	priority int
 }
 
-func NewChunkManager(generator mapgen.Generator) *ChunkManager {
-	cm := new(ChunkManager)
+func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
+	cm := new(ChunkGenerator)
 	cm.chunks = make(map[coords.Chunk]*ChunkStatus, 10)
-	cm.generated = make(chan ChunkGenerationResult, 10)
+	cm.Generated = make(chan ChunkGenerationResult, 10)
 	cm.generator = generator
 	return cm
 }
 
-func (cm *ChunkManager) display(cc coords.Chunk, priority int) {
+func (cm *ChunkGenerator) display(cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
 
 	if status != nil {
@@ -48,7 +47,7 @@ func (cm *ChunkManager) display(cc coords.Chunk, priority int) {
 	cm.queue(cc, priority)
 }
 
-func (cm *ChunkManager) queue(cc coords.Chunk, priority int) {
+func (cm *ChunkGenerator) queue(cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
 	if status != nil {
 		log.Println("Got request for chunk at", cc, "to be queued, even though it has already been queued.")
@@ -61,7 +60,7 @@ func (cm *ChunkManager) queue(cc coords.Chunk, priority int) {
 	status.priority = priority
 }
 
-func (cm *ChunkManager) Top() (cc coords.Chunk, valid bool) {
+func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -79,7 +78,7 @@ func (cm *ChunkManager) Top() (cc coords.Chunk, valid bool) {
 	return cc, false
 }
 
-func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
+func (cm *ChunkGenerator) QueueChunksNearby(wc coords.World) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -125,7 +124,7 @@ func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
 	}
 }
 
-func (cm *ChunkManager) Run() {
+func (cm *ChunkGenerator) Run() {
 	for {
 		<-time.After(time.Second / 10)
 		cc, valid := cm.Top()
@@ -134,7 +133,7 @@ func (cm *ChunkManager) Run() {
 		}
 
 		chunk, spawns := cm.generator.Chunk(cc)
-		cm.generated <- ChunkGenerationResult{
+		cm.Generated <- ChunkGenerationResult{
 			cc: cc,
 			chunk: chunk,
 			spawns: spawns,
