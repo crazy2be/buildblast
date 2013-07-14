@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"fmt"
-	"time"
 	"reflect"
 
 	"buildblast/game"
@@ -138,6 +137,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddEntity(p)
 	w.AddBlockListener(c)
+	w.AddChunkListener(c)
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
@@ -165,6 +165,19 @@ func (c *Client) sendBlockChanged(bc coords.Block, typ mapgen.Block) {
 	}
 }
 
+func (c *Client) ChunkGenerated(cc coords.Chunk, chunk mapgen.Chunk) {
+	m := &MsgChunk{
+		CCPos: cc,
+		Size: coords.ChunkSize,
+		Data: chunk.Flatten(),
+	}
+	select {
+	case c.chunkSendQueue <- m:
+	default:
+		log.Println("WARNING: Could not send chunk", cc, "to player!")
+	}
+}
+
 // WARNING: This runs on a seperate thread from everything
 // else in client! It should be refactored, but for now, just be cautious.
 func (c *Client) RunChunks(conn *Conn, world *game.World) {
@@ -172,26 +185,9 @@ func (c *Client) RunChunks(conn *Conn, world *game.World) {
 		select {
 		case m := <-c.blockSendQueue:
 			conn.Send(m)
+		case m := <-c.chunkSendQueue:
+			conn.Send(m)
 		default:
 		}
-		// c.cm.Top() doesn't block, so we are effectively polling
-		// it every tenth of a second. Sketchy, I know.
-		cc, valid := c.cm.Top()
-		if !valid {
-			<-time.After(time.Second / 10)
-			continue
-		}
-
-		// This has lots of thread safety problems, we
-		// should probably fix it.
-		chunk := world.RequestChunk(cc)
-
-		m := &MsgChunk{
-			CCPos: cc,
-			Size: coords.ChunkSize,
-			Data: chunk.Flatten(),
-		}
-
-		conn.Send(m)
 	}
 }

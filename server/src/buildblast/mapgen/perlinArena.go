@@ -45,6 +45,6 @@ func (pa *PerlinArena) Block(bc coords.Block) Block {
 	return BLOCK_AIR
 }
 
-func (pa *PerlinArena) Chunk(cc coords.Chunk) Chunk {
-	return generateChunk(pa, cc)
-}
+// func (pa *PerlinArena) Chunk(cc coords.Chunk) Chunk {
+// 	return generateChunk(pa, cc)
+// }

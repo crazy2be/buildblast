@@ -2,7 +2,6 @@ package game
 
 import (
 	"log"
-	"sync"
 
 	"buildblast/coords"
 	"buildblast/physics"
@@ -30,57 +29,68 @@ type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
 
+type ChunkListener interface {
+	ChunkGenerated(cc coords.Chunk, chunk mapgen.Chunk)
+}
+
 type World struct {
 	seed         float64
 	chunks       map[coords.Chunk]mapgen.Chunk
-	chunkLock    sync.Mutex
-	generator    mapgen.ChunkSource
+	spawns      []coords.World
+	chunkManager *ChunkManager
 
 	entities     []Entity
 	entityListeners []EntityListener
 	blockListeners []BlockListener
+	chunkListeners []ChunkListener
 }
 
 func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
-	w.generator = mapgen.NewMazeArena(seed)
+	w.spawns = make([]coords.World, 0)
+
+	generator := mapgen.NewMazeArena(seed)
+	w.chunkManager = NewChunkManager(generator)
+	go w.chunkManager.Run()
 
 	w.entities = make([]Entity, 0)
 	w.entityListeners = make([]EntityListener, 0)
 	return w
 }
 
-func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
-	// chunkLock required because of issue #88.
-	// We should remove it.
-	w.chunkLock.Lock()
-	chunk := w.chunks[cc]
-	w.chunkLock.Unlock()
+func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
+	return w.chunks[cc]
+}
 
-	if chunk == nil {
-		chunk = w.generator.Chunk(cc)
+// func (w *World) RequestChunk(cc coords.Chunk) mapgen.Chunk {
+// 	// chunkLock required because of issue #88.
+// 	// We should remove it.
+// 	w.chunkLock.Lock()
+// 	chunk := w.chunks[cc]
+// 	w.chunkLock.Unlock()
+//
+// 	if chunk == nil {
+// 		chunk = w.generator.Chunk(cc)
+//
+// 		w.chunkLock.Lock()
+// 		w.chunks[cc] = chunk
+// 		w.chunkLock.Unlock()
+// 	}
+//
+// 	return chunk
+// }
 
-		w.chunkLock.Lock()
-		w.chunks[cc] = chunk
-		w.chunkLock.Unlock()
-	}
-
-	return chunk
+func (w *World) AddChunkListener(listener ChunkListener) {
+	w.chunkListeners = append(w.chunkListeners, listener)
 }
 
 func (w *World) Block(bc coords.Block) mapgen.Block {
-	cc := bc.Chunk()
-
-	w.chunkLock.Lock()
-	chunk := w.chunks[cc]
-	w.chunkLock.Unlock()
-
+	chunk := w.chunks[bc.Chunk()]
 	if chunk == nil {
 		return mapgen.BLOCK_NIL
 	}
-
 	return chunk.Block(bc.Offset())
 }
 
@@ -100,7 +110,7 @@ func (w *World) RemoveBlockListener(listener BlockListener) {
 }
 
 func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
-	chunk := w.RequestChunk(bc.Chunk())
+	chunk := w.Chunk(bc.Chunk())
 
 	oc := bc.Offset()
 	block := chunk.Block(oc)
@@ -155,11 +165,24 @@ func (w *World) GetEntityIDs() []string {
 }
 
 func (w *World) Tick() {
+	select {
+	case generationResult := <-w.chunkManager.generated:
+		w.spawns = append(w.spawns, generationResult.spawns...)
+		w.chunks[generationResult.cc] = generationResult.chunk
+
+		for _, listener := range w.chunkListeners {
+			listener.ChunkGenerated(generationResult.cc, generationResult.chunk)
+		}
+	default:
+	}
 	for _, e := range w.entities {
 		e.Tick(w)
+		id := e.ID()
+		pos := e.Pos()
+		w.chunkManager.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(e.ID(), e.Pos())
+			listener.EntityMoved(id, pos)
 		}
 	}
 }

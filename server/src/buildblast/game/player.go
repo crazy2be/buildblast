@@ -56,7 +56,7 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		pos: world.generator.Spawn(),
+		pos: coords.World{0, 0, 0},
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
 		inventory: NewInventory(),
@@ -201,7 +201,7 @@ func (p *Player) Dead() bool {
 }
 
 func (p *Player) Respawn() {
-	p.pos = p.world.generator.Spawn()
+	p.pos = coords.World{0, 0, 0}
 	p.hp = PLAYER_MAX_HP
 	p.history.Clear()
 }

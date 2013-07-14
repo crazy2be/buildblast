@@ -8,11 +8,12 @@ import (
 
 type Chunk [][][]Block
 
-func generateChunk(bg BlockSource, cc coords.Chunk) Chunk {
+func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
 	cw := coords.ChunkWidth
 	ch := coords.ChunkHeight
 	cd := coords.ChunkDepth
 
+	spawns := make([]coords.World, 0)
 	blocks := make([][][]Block, cw)
 	for ox := 0; ox < cw; ox++ {
 		blocks[ox] = make([][]Block, ch)
@@ -24,11 +25,15 @@ func generateChunk(bg BlockSource, cc coords.Chunk) Chunk {
 					Y: oy + cc.Y*ch,
 					Z: oz + cc.Z*cd,
 				}
-				blocks[ox][oy][oz] = bg.Block(bc)
+				block, isSpawn := bg.Block(bc)
+				blocks[ox][oy][oz] = block
+				if isSpawn {
+					spawns = append(spawns, bc.Center())
+				}
 			}
 		}
 	}
-	return blocks
+	return blocks, spawns
 }
 
 func (c Chunk) Block(oc coords.Offset) Block {
