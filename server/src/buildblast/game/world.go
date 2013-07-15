@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"math/rand"
 
 	"buildblast/coords"
 	"buildblast/physics"
@@ -12,7 +13,7 @@ type Entity interface {
 	Tick(w *World)
 	Damage(amount int)
 	Dead() bool
-	Respawn()
+	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
 	Pos() coords.World
 	ID() string
@@ -83,6 +84,18 @@ func (w *World) generationTick() {
 	}
 }
 
+func (w *World) findSpawn() coords.World {
+	l := len(w.spawns)
+	if l <= 0 {
+		return coords.World{
+			X: 0,
+			Y: 21,
+			Z: 0,
+		}
+	}
+	return w.spawns[rand.Intn(l)]
+}
+
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
 	return w.chunks[cc]
@@ -127,6 +140,7 @@ func (w *World) RemoveBlockListener(listener BlockListener) {
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
+	e.Respawn(w.findSpawn())
 
 	for _, listener := range w.entityListeners {
 		listener.EntityCreated(e.ID())
@@ -149,7 +163,7 @@ func (w *World) RemoveEntity(e Entity) {
 func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	e.Damage(amount)
 	if e.Dead() {
-		e.Respawn()
+		e.Respawn(w.findSpawn())
 		for _, listener := range w.entityListeners {
 			listener.EntityDied(e.ID(), damager)
 		}
