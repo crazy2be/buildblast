@@ -1,74 +1,71 @@
 package main
 
 import (
-	"log"
 	"sync"
 
 	"buildblast/coords"
+	"buildblast/game"
 )
 
 
 // Manages the chunks loaded, displayed, etc for a
 // single client.
 type ChunkManager struct {
-	chunks map[coords.Chunk]*ChunkStatus
+	chunks map[coords.Chunk]ChunkStatus
 	mutex sync.Mutex
 }
 
 type ChunkStatus struct {
-	queued bool
+	sent bool
 	priority int
 	data *MsgChunk
 }
 
 func NewChunkManager() *ChunkManager {
 	cm := new(ChunkManager)
-	cm.chunks = make(map[coords.Chunk]*ChunkStatus, 10)
+	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
 	return cm
 }
 
-func (cm *ChunkManager) display(cc coords.Chunk, priority int) {
+func (cm *ChunkManager) queue(w *game.World, cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
-
-	if status != nil {
-		return
-	}
-
-	cm.queue(cc, priority)
-}
-
-func (cm *ChunkManager) queue(cc coords.Chunk, priority int) {
-	status := cm.chunks[cc]
-	if status != nil {
-		log.Println("Got request for chunk at", cc, "to be queued, even though it has already been queued.")
-		return
-	}
-
-	status = new(ChunkStatus)
-	cm.chunks[cc] = status
-	status.queued = true
 	status.priority = priority
+	if status.data == nil && status.sent == false {
+		chunk := w.Chunk(cc)
+		if chunk != nil {
+			status.data = &MsgChunk{
+				CCPos: cc,
+				Size: coords.ChunkSize,
+				Data: chunk.Flatten(),
+			}
+		}
+	}
+	cm.chunks[cc] = status
 }
 
-func (cm *ChunkManager) Top() (cc coords.Chunk, valid bool) {
+func (cm *ChunkManager) Top() (data *MsgChunk) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	highest := -1000
-	for key, val := range cm.chunks {
-		if val.priority > highest && val.queued {
-			highest = val.priority
-			cc = key
+	highest := -10000
+	var highestCC coords.Chunk
+	for cc, status := range cm.chunks {
+		if status.priority > highest &&
+			!status.sent && status.data != nil {
+			highest = status.priority
+			highestCC = cc
 		}
 	}
-	if highest != -1000 {
-		cm.chunks[cc].queued = false
-		return cc, true
+	if highest > -10000 {
+		status := cm.chunks[highestCC]
+		status.sent = true
+		cm.chunks[highestCC] = status
+		return status.data
 	}
-	return cc, false
+	return nil
 }
 
-func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
+func (cm *ChunkManager) QueueChunksNearby(w* game.World, wc coords.World) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -103,13 +100,13 @@ func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
 
 	cc := wc.Chunk()
 	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		cm.display(newCC, -dist)
+		cm.queue(w, newCC, -dist)
 	})
 
 	oc := wc.Offset()
 	if oc.Y <= 4 {
-		cm.display(occ(cc, 0, -1, 0), 1)
+		cm.queue(w, occ(cc, 0, -1, 0), 1)
 	} else if oc.Y >= 28 {
-		cm.display(occ(cc, 0, 1, 0), 1)
+		cm.queue(w, occ(cc, 0, 1, 0), 1)
 	}
 }

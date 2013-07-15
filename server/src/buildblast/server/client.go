@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"fmt"
+	"time"
 	"reflect"
 
 	"buildblast/game"
@@ -17,8 +17,6 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
-
-	chunkSendQueue chan *MsgChunk
 	blockSendQueue chan *MsgBlock
 
 	player *game.Player
@@ -31,8 +29,6 @@ func NewClient(name string) *Client {
 	c.name = name
 
 	c.cm = NewChunkManager()
-
-	c.chunkSendQueue = make(chan *MsgChunk, 10)
 	c.blockSendQueue = make(chan *MsgBlock, 10)
 
 	return c
@@ -109,7 +105,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
 	pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(pos)
+	c.cm.QueueChunksNearby(w, pos)
 
 	c.Send(&MsgPlayerState{
 		Pos: pos,
@@ -136,7 +132,6 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddEntity(p)
 	w.AddBlockListener(c)
-	w.AddChunkListener(c)
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
@@ -146,7 +141,6 @@ func (c *Client) Connected(g *Game, w *game.World) {
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
-	w.RemoveChunkListener(c)
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
@@ -165,19 +159,6 @@ func (c *Client) sendBlockChanged(bc coords.Block, typ mapgen.Block) {
 	}
 }
 
-func (c *Client) ChunkGenerated(cc coords.Chunk, chunk mapgen.Chunk) {
-	m := &MsgChunk{
-		CCPos: cc,
-		Size: coords.ChunkSize,
-		Data: chunk.Flatten(),
-	}
-	select {
-	case c.chunkSendQueue <- m:
-	default:
-		log.Println("WARNING: Could not send chunk", cc, "to player", c.name)
-	}
-}
-
 // WARNING: This runs on a seperate thread from everything
 // else in client!
 func (c *Client) RunChunks(conn *Conn) {
@@ -185,8 +166,12 @@ func (c *Client) RunChunks(conn *Conn) {
 		select {
 		case m := <-c.blockSendQueue:
 			conn.Send(m)
-		case m := <-c.chunkSendQueue:
-			conn.Send(m)
+		default:
+			m := c.cm.Top()
+			if m != nil {
+				conn.Send(m)
+			}
+			<-time.After(time.Second / 100)
 		}
 	}
 }
