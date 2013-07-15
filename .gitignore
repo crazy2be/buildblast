@@ -10,4 +10,5 @@ bin
 pkg
 github.com
 code.google.com
+*.exe
 *.blend[0-9]*
