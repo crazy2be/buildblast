@@ -2,6 +2,7 @@
 
 if go version; then
     export GOPATH="`pwd`/server"
+    export GOBIN=""
     echo "Compiling server..."
     go get buildblast/server
 
