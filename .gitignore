@@ -9,4 +9,5 @@ buildshoot-server.exe
 bin
 pkg
 github.com
+code.google.com
 *.blend[0-9]*
