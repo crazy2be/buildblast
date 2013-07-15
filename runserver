@@ -5,10 +5,10 @@ if go version; then
     echo "Compiling server..."
 
     go get buildblast/server
-    go build -o client/server.exe buildblast/server
+    go build -o client/bin/server buildblast/server
     
     echo "Starting server..."
-    client/server.exe
+    client/bin/server
 
     exit 0
 else
