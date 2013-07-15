@@ -5,10 +5,11 @@ if go version; then
     export GOBIN=""
     echo "Compiling server..."
 
-    go install buildblast/server
+    cd client
+    go get buildblast/server
     
     echo "Starting server..."
-    server/bin/server
+    ../server/bin/server
 
     exit 0
 else
