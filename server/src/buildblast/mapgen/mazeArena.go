@@ -2,20 +2,17 @@ package mapgen
 
 import (
 	"math"
-	"math/rand"
 
 	"buildblast/coords"
 )
 
 type MazeArena struct {
 	seed           float64
-	spawnPoints    []coords.World
 }
 
 func NewMazeArena(seed float64) *MazeArena {
 	fa := new(MazeArena)
 	fa.seed = seed
-	fa.spawnPoints = make([]coords.World, 0)
 	return fa
 }
 
@@ -41,16 +38,4 @@ func (fa *MazeArena) Block(bc coords.Block) (Block, bool) {
 
 func (fa *MazeArena) Chunk(cc coords.Chunk) (Chunk, []coords.World) {
 	return generateChunk(fa, cc)
-}
-
-func (fa *MazeArena) Spawn() coords.World {
-	numSpawns := len(fa.spawnPoints)
-	if numSpawns == 0 {
-		return coords.World {
-			X: 0,
-			Y: 21,
-			Z: 0,
-		}
-	}
-	return fa.spawnPoints[rand.Intn(numSpawns)]
 }

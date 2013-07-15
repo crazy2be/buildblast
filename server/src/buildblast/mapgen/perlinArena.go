@@ -36,15 +36,17 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	return height
 }
 
-func (pa *PerlinArena) Block(bc coords.Block) Block {
+func (pa *PerlinArena) Block(bc coords.Block) (Block, bool) {
 	height := int(pa.heightAt(float64(bc.X), float64(bc.Z)))
 	if height > bc.Y {
-		return BLOCK_DIRT
+		return BLOCK_DIRT, false
 	}
-
-	return BLOCK_AIR
+	if height == bc.Y {
+		return BLOCK_AIR, true
+	}
+	return BLOCK_AIR, false
 }
 
-// func (pa *PerlinArena) Chunk(cc coords.Chunk) Chunk {
-// 	return generateChunk(pa, cc)
-// }
+func (pa *PerlinArena) Chunk(cc coords.Chunk) (Chunk, []coords.World) {
+	return generateChunk(pa, cc)
+}
