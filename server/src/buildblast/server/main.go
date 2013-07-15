@@ -110,7 +110,7 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
-	go doProfile()
+// 	go doProfile()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
