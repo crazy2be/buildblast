@@ -47,7 +47,7 @@ func (cm *ChunkManager) Top() (data *MsgChunk) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	highest := -10000
+	highest := -1
 	var highestCC coords.Chunk
 	for cc, status := range cm.chunks {
 		if status.priority > highest &&
@@ -56,7 +56,7 @@ func (cm *ChunkManager) Top() (data *MsgChunk) {
 			highestCC = cc
 		}
 	}
-	if highest > -10000 {
+	if highest > -1 {
 		status := cm.chunks[highestCC]
 		status.sent = true
 		cm.chunks[highestCC] = status
@@ -69,44 +69,9 @@ func (cm *ChunkManager) QueueChunksNearby(w* game.World, wc coords.World) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
-		return coords.Chunk{
-			X: cc.X + x,
-			Y: cc.Y + y,
-			Z: cc.Z + z,
-		}
+	queue := func (cc coords.Chunk, priority int) {
+		cm.queue(w, cc, priority)
 	}
 
-	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
-		abs := func (n int) int {
-			if n < 0 {
-				return -n
-			}
-			return n
-		}
-		dist := func (x, y, z int) int {
-			return abs(x) + abs(y) + abs(z)
-		}
-
-		cb(cc, 0)
-		for x := -xdist; x <= xdist; x++ {
-			for y := -ydist; y <= ydist; y++ {
-				for z := -zdist; z <= zdist; z++ {
-					cb(occ(cc, x, y, z), dist(x, y, z))
-				}
-			}
-		}
-	}
-
-	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		cm.queue(w, newCC, -dist)
-	})
-
-	oc := wc.Offset()
-	if oc.Y <= 4 {
-		cm.queue(w, occ(cc, 0, -1, 0), 1)
-	} else if oc.Y >= 28 {
-		cm.queue(w, occ(cc, 0, 1, 0), 1)
-	}
+	game.EachChunkNearby(wc, queue)
 }
