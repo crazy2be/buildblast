@@ -2,13 +2,13 @@
 
 if go version; then
     export GOPATH="`pwd`/server"
+    export GOBIN=""
     echo "Compiling server..."
 
-    go get buildblast/server
-    go build -o client/bin/server buildblast/server
+    go install buildblast/server
     
     echo "Starting server..."
-    client/bin/server
+    server/bin/server
 
     exit 0
 else
@@ -16,4 +16,3 @@ else
     echo "Get it from http://www.golang.org"
     exit 1
 fi
-
