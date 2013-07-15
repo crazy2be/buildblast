@@ -7,7 +7,6 @@ if go version; then
     go get buildblast/server
 
     cd client
-    
     echo "Starting server..."
     ../server/bin/server
 
