@@ -29,10 +29,6 @@ type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
 
-type ChunkListener interface {
-	ChunkGenerated(cc coords.Chunk, chunk mapgen.Chunk)
-}
-
 type World struct {
 	seed         float64
 	chunks       map[coords.Chunk]mapgen.Chunk
@@ -42,7 +38,6 @@ type World struct {
 	entities     []Entity
 	entityListeners []EntityListener
 	blockListeners []BlockListener
-	chunkListeners []ChunkListener
 }
 
 func NewWorld(seed float64) *World {
@@ -84,10 +79,6 @@ func (w *World) generationTick() {
 
 		w.spawns = append(w.spawns, spawns...)
 		w.chunks[cc] = chunk
-
-		for _, listener := range w.chunkListeners {
-			listener.ChunkGenerated(cc, chunk)
-		}
 	default:
 	}
 }
@@ -95,21 +86,6 @@ func (w *World) generationTick() {
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
 	return w.chunks[cc]
-}
-
-func (w *World) AddChunkListener(listener ChunkListener) {
-	w.chunkListeners = append(w.chunkListeners, listener)
-}
-
-func (w *World) RemoveChunkListener(listener ChunkListener) {
-	for i, other := range w.chunkListeners {
-		if other == listener {
-			w.chunkListeners[i] = w.chunkListeners[len(w.chunkListeners) - 1]
-			w.chunkListeners = w.chunkListeners[:len(w.chunkListeners) - 1]
-			return
-		}
-	}
-	log.Println("WARN: Attempt to remove chunk listener which does not exist.")
 }
 
 
