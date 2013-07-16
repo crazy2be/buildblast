@@ -71,6 +71,8 @@ Item.shovelAction = function (world, camera) {
     }
 
     var bc = world.getLookedAtBlock(camera, true);
+    if(!bc) return;
+
     var block = world.blockAt(bc.x, bc.y, bc.z);
 
     //Likely means the chunk has not been loaded.
@@ -80,15 +82,17 @@ Item.shovelAction = function (world, camera) {
     world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 };
 
-Item.placeAction = function (world, camera, block) {
+Item.placeAction = function (world, camera, blockType) {
     var bc = world.getLookedAtBlock(camera, false);
+    if(!bc) return;
+
     var block = world.blockAt(bc.x, bc.y, bc.z);
 
     //Likely means the chunk has not been loaded.
     if(!block) return;
     if(!block.empty()) return;
 
-    world.changeBlock(bc.x, bc.y, bc.z, block);
+    world.changeBlock(bc.x, bc.y, bc.z, blockType);
 };
 
 Item.DATA = [
