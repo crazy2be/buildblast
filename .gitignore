@@ -6,6 +6,7 @@ buildshoot-server.exe
 .kateconfig
 .project
 .settings
+localSettings.js
 bin
 pkg
 github.com

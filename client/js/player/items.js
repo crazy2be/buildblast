@@ -66,11 +66,29 @@ Item.pistolAction = function (world, camera) {
 };
 
 Item.shovelAction = function (world, camera) {
-    world.removeLookedAtBlock(camera);
+    if(settings.destroyMapOnMine) {
+        
+    }
+
+    var bc = world.getLookedAtBlock(camera, true);
+    var block = world.blockAt(bc.x, bc.y, bc.z);
+
+    //Likely means the chunk has not been loaded.
+    if(!block) return;
+    if(!block.mineable()) return;
+
+    world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 };
 
-Item.blockAction = function (world, camera, block) {
-    world.addLookedAtBlock(camera, block);
+Item.placeAction = function (world, camera, block) {
+    var bc = world.getLookedAtBlock(camera, false);
+    var block = world.blockAt(bc.x, bc.y, bc.z);
+
+    //Likely means the chunk has not been loaded.
+    if(!block) return;
+    if(!block.empty()) return;
+
+    world.changeBlock(bc.x, bc.y, bc.z, block);
 };
 
 Item.DATA = [
@@ -82,12 +100,12 @@ Item.DATA = [
     },{
         name: 'dirt',
         model: function () { return Models.block(); },
-        action: Item.throttle(Item.blockAction, Block.DIRT),
+        action: Item.throttle(Item.placeAction, Block.DIRT),
         icon: 1,
     },{
         name: 'stone',
         model: function () { return Models.stone(); },
-        action: Item.throttle(Item.blockAction, Block.STONE),
+        action: Item.throttle(Item.placeAction, Block.STONE),
         icon: 2,
     },{
         name: 'shovel',

@@ -59,6 +59,8 @@ function ChunkGeometry(cc, blocks, manager) {
 
         updateNeighbours();
 
+        //Pick blocks in increments based on the quality (like sampling), later code will look through the
+        //area and decide what type the block should really be.
         for (var ox = 0; ox < cw * quality; ox++) {
             for (var oy = 0; oy < ch * quality; oy++) {
                 for (var oz = 0; oz < cd * quality; oz++) {
@@ -163,6 +165,8 @@ function ChunkGeometry(cc, blocks, manager) {
         var noise = [];
         if (empty(ox, oy, oz)) return;
 
+        //py = positive y, as in above the cube.
+        //We only draw faces when there is no cube blocking it.
         var px = empty(ox + r, oy, oz);
         var nx = empty(ox - r, oy, oz);
         var py = empty(ox, oy + r, oz);
