@@ -121,20 +121,17 @@ function World(scene, container) {
     }
 
     var projector = new THREE.Projector();
-    function findIntersection(camera, cb, precision, maxDist) {
+    function findIntersection(camera, criteriaFnc, precision, maxDist) {
         var precision = precision || 0.01;
         var maxDist = maxDist || 100;
-        var look = new THREE.Vector3(0, 0, 1);
-        // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
-        projector.unprojectVector(look, camera);
 
-        var pos = camera.position;
-        look.sub(pos).setLength(precision);
+        var look = getLookedAtDirection(camera);
+        look.setLength(precision);
 
-        var point = pos.clone();
+        var point = camera.position.clone();
         for (var dist = 0; dist < maxDist; dist += precision) {
             point.add(look);
-            var collision = cb(point.x, point.y, point.z);
+            var collision = criteriaFnc(point.x, point.y, point.z);
             if (collision) {
                 return {
                     point: point,
@@ -152,83 +149,45 @@ function World(scene, container) {
         return findIntersection(camera, entityAt, 0.1);
     }
 
-    self.findBlockIntersection = function (camera) {
+    function findSolidBlockIntersection(camera) {
         function blockAt(wx, wy, wz) {
             var block = self.blockAt(wx, wy, wz);
-            return block && block.mineable();
+            return block && block.solid();
         }
         return findIntersection(camera, blockAt);
     }
 
-    function doLookedAtBlockAction(camera, cmp, cb) {
-        var intersect = self.findBlockIntersection(camera);
+    function getLookedAtDirection(camera) {
+        var look = new THREE.Vector3(0, 0, 1);
+        // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
+        projector.unprojectVector(look, camera);
+        return look.sub(camera.position);
+    }
+
+    //wantSolidBlock is true or false, and describes whether a solid block is requested,
+    //  or the block right before the solid block (so for example and air block right before the solid block).
+    //return a THREE.Vector3 which is the position of the block.
+    self.getLookedAtBlock = function(camera, wantSolidBlock) {
+        var intersect = findSolidBlockIntersection(camera);
         if (!intersect) {
             console.log("You aren't looking at anything!");
             return;
         }
         var p = intersect.point;
 
-        function onFace(n) {
-            if (abs(n % 1) < 0.01 || abs(n % 1 - 1) < 0.01 || abs(n % 1 + 1) < 0.01) return true;
-            else return false;
+        //We get a small vector in the direction of the camera so we can find
+        //the block right before the solid block.
+        var camDirection = getLookedAtDirection(camera).setLength(0.05);
+
+        if(!wantSolidBlock) {
+            //Go back a bit, so we are outside the block
+            p.sub(camDirection);
         }
 
-        function abs(n) {
-            return Math.abs(n);
-        }
-
-        var x = p.x;
-        var y = p.y;
-        var z = p.z;
-
-        if (onFace(x)) {
-            if (cmp(x + 0.5, y, z)) {
-                cb(x + 0.5, y, z);
-            } else {
-                cb(x - 0.5, y, z);
-            }
-        } else if (onFace(y)) {
-            if (cmp(x, y + 0.5, z)) {
-                cb(x, y + 0.5, z);
-            } else {
-                cb(x, y - 0.5, z);
-            }
-        } else if (onFace(z)) {
-            if (cmp(x, y, z + 0.5)) {
-                cb(x, y, z + 0.5);
-            } else {
-                cb(x, y, z - 0.5);
-            }
-        } else {
-            console.log("Could not find looked at block!");
-        }
+        return p;
     }
 
-    self.removeLookedAtBlock = function (camera) {
-        function mineable(x, y, z) {
-            var block = self.blockAt(x, y, z);
-            if (block) return block.mineable();
-            else return false;
-        }
-        function removeBlock(wx, wy, wz) {
-            changeBlock(wx, wy, wz, Block.AIR);
-        }
-        doLookedAtBlockAction(camera, mineable, removeBlock);
-    }
-
-    self.addLookedAtBlock = function (camera, blockType) {
-        function empty(x, y, z) {
-            var block = self.blockAt(x, y, z);
-            if (block) return block.empty();
-            else return false;
-        }
-        function addBlock(wx, wy, wz) {
-            changeBlock(wx, wy, wz, blockType);
-        }
-        doLookedAtBlockAction(camera, empty, addBlock);
-    }
-
-    function changeBlock(wx, wy, wz, newType) {
+    self.changeBlock = function(wx, wy, wz, newType) {
         conn.queue('block', {
             Pos: {
                 X: wx,

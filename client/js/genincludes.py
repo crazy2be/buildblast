@@ -28,7 +28,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
 			continue
 		if re.match(r'^includes.js$', filename):
 			continue
-		path = os.path.join('js/', dirpath, filename)
+		path = os.path.join('js/', dirpath, filename).replace('\\', '/')
 		includes.write("\t'{0}',\n".format(path))
 
 includes.write("""]));

@@ -74,6 +74,8 @@ function processChunk(payload) {
     var data = payload.Data;
 
     //Blocks are Block Types (see block.js)
+    //ChunkGeometry.block and .setBlock know how to transform 3D vertices
+    //into indices in this array.
     var blocks = new Uint8Array(data.length);
     for (var i = 0; i < blocks.length; i++) {
         // 32 - Space character. Control characters
