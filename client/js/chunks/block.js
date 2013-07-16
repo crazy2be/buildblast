@@ -11,6 +11,7 @@ Block.prototype.solid = function () {
     return Block.isSolid(this.type);
 };
 
+//Block Types
 Block.AIR   = 0x1;
 Block.DIRT  = 0x2;
 Block.STONE = 0x3;

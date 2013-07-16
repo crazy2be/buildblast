@@ -64,9 +64,13 @@ function ChunkManager(scene, player) {
     function processChunk(payload) {
         var pg = payload.geometries;
         var geometries = [];
+        //Geometry for each quality (as in, far away, medium, close, etc... we
+        //'pixelate' cubes that are far away).
         for (var i = 0; i < pg.length; i++) {
             var geometry = new THREE.BufferGeometry();
             geometry.attributes = pg[i].attributes;
+            //Why is this needed? Doesn't seem to provide any more benefit than
+            //just adding multiple geometries. If you know why, tell Quentin.
             geometry.offsets = pg[i].offsets;
             geometries.push(geometry);
         }
