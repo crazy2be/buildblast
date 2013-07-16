@@ -147,10 +147,10 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) sendBlockChanged(bc coords.Block, typ mapgen.Block) {
+func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
 	m := &MsgBlock{
 		Pos: bc,
-		Type: typ,
+		Type: b,
 	}
 	select {
 	case c.blockSendQueue <- m:
@@ -165,10 +165,17 @@ func (c *Client) RunChunks(conn *Conn) {
 	for {
 		select {
 		case m := <-c.blockSendQueue:
-			conn.Send(m)
+			if !c.cm.ApplyBlockChange(m.Pos, m.Type) {
+				conn.Send(m)
+			}
 		default:
-			m := c.cm.Top()
-			if m != nil {
+			cc, chunk := c.cm.Top()
+			if chunk != nil {
+				m := &MsgChunk{
+					CCPos: cc,
+					Size: coords.ChunkSize,
+					Data: chunk.Flatten(),
+				}
 				conn.Send(m)
 			}
 			<-time.After(time.Second / 100)

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"log"
 	"sync"
 
-	"buildblast/coords"
 	"buildblast/game"
+	"buildblast/coords"
+	"buildblast/mapgen"
 )
 
 
@@ -18,7 +20,7 @@ type ChunkManager struct {
 type ChunkStatus struct {
 	sent bool
 	priority int
-	data *MsgChunk
+	data mapgen.Chunk
 }
 
 func NewChunkManager() *ChunkManager {
@@ -30,20 +32,13 @@ func NewChunkManager() *ChunkManager {
 func (cm *ChunkManager) queue(w *game.World, cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
 	status.priority = priority
-	if status.data == nil && status.sent == false {
-		chunk := w.Chunk(cc)
-		if chunk != nil {
-			status.data = &MsgChunk{
-				CCPos: cc,
-				Size: coords.ChunkSize,
-				Data: chunk.Flatten(),
-			}
-		}
+	if status.sent == false && status.data == nil {
+		status.data = w.Chunk(cc)
 	}
 	cm.chunks[cc] = status
 }
 
-func (cm *ChunkManager) Top() (data *MsgChunk) {
+func (cm *ChunkManager) Top() (cc coords.Chunk, data mapgen.Chunk) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
@@ -58,11 +53,36 @@ func (cm *ChunkManager) Top() (data *MsgChunk) {
 	}
 	if highest > -1 {
 		status := cm.chunks[highestCC]
+		data := status.data
 		status.sent = true
+		status.data = nil
 		cm.chunks[highestCC] = status
-		return status.data
+		return highestCC, data
 	}
-	return nil
+	return coords.Chunk{}, nil
+}
+
+// Applies the given block change to the currently queued chunks
+// Returns true if the change was applied (the block has not yet been
+// sent), false if it should be sent to the client instead (they already
+// have the chunk).
+// This is needed to avoid sending stale chunks to the client.
+func (cm *ChunkManager) ApplyBlockChange(bc coords.Block, b mapgen.Block) bool {
+	cm.mutex.Lock()
+	defer cm.mutex.Unlock()
+
+	cc := bc.Chunk()
+	status := cm.chunks[cc]
+	if status.sent {
+		return false
+	}
+	if status.data == nil {
+		log.Println("WARN: Recieved block change for chunk that is not loaded (this probably shouldn't happen?)")
+		return false
+	}
+	oc := bc.Offset()
+	status.data.SetBlock(oc, b)
+	return true
 }
 
 func (cm *ChunkManager) QueueChunksNearby(w* game.World, wc coords.World) {

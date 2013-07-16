@@ -76,3 +76,21 @@ func (c Chunk) Flatten() string {
 	}
 	return string(data)
 }
+
+func (c Chunk) Clone() Chunk {
+	cw := coords.ChunkWidth
+	ch := coords.ChunkHeight
+	cd := coords.ChunkDepth
+
+	blocks := make([][][]Block, cw)
+	for ox := 0; ox < cw; ox++ {
+		blocks[ox] = make([][]Block, ch)
+		for oy := 0; oy < ch; oy++ {
+			blocks[ox][oy] = make([]Block, cd)
+			for oz := 0; oz < cd; oz++ {
+				blocks[ox][oy][oz] = c[ox][oy][oz]
+			}
+		}
+	}
+	return blocks
+}
