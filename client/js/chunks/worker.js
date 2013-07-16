@@ -35,6 +35,7 @@ function sendChunk() {
     chunk.changed = false;
 }
 
+//This means we only update added and removed chunks 1000 / this rate per second.
 setInterval(sendChunk, 50);
 
 parent.onmessage = function (e) {
@@ -72,6 +73,7 @@ function processChunk(payload) {
     };
     var data = payload.Data;
 
+    //Blocks are Block Types (see block.js)
     var blocks = new Uint8Array(data.length);
     for (var i = 0; i < blocks.length; i++) {
         // 32 - Space character. Control characters
@@ -116,11 +118,14 @@ function processBlockChange(payload) {
     var changedChunks = [];
     changedChunks.push(cc);
 
+    //Takes block coords
     function invalidate(x, y, z) {
         coords = worldToChunk(x, y, z);
         changedChunks.push(coords.c);
     }
 
+    //Invalidate the chunks of a bunch of blocks.
+    //If they don't exist we ignore them later.
     invalidate(x + 1, y, z);
     invalidate(x - 1, y, z);
     invalidate(x, y + 1, z);
