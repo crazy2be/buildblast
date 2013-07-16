@@ -72,7 +72,13 @@ func (cm *ChunkManager) ApplyBlockChange(bc coords.Block, b mapgen.Block) bool {
 	defer cm.mutex.Unlock()
 
 	cc := bc.Chunk()
-	status := cm.chunks[cc]
+	status, exists := cm.chunks[cc]
+	if !exists {
+		// We don't techincally apply the block change to ourselves if the
+		// chunk does not exist in our list, but we don't want it to be sent
+		// to the client, so we return false regardless.
+		return false
+	}
 	if status.sent {
 		return false
 	}

@@ -104,12 +104,7 @@ function processBlockChange(payload) {
 
     var chunk = manager.get(cc);
     if (!chunk) {
-        // Eventually this should be a throw, as the server
-        // will filter block events to only cover chunks
-        // we have loaded. However, for now, we get block
-        // events for *all* chunks, not just loaded ones.
-        // Thus, we have to ignore them here.
-        return;
+        throw "Server Error: Got block change for chunk which is not loaded.";
     }
 
     var block = chunk.block(oc.x, oc.y, oc.z);
