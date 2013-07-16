@@ -28,6 +28,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
 			continue
 		if re.match(r'^includes.js$', filename):
 			continue
+        //We need to replace \ with / because windows is dumb
 		path = os.path.join('js/', dirpath, filename).replace('\\', '/')
 		includes.write("\t'{0}',\n".format(path))
 
