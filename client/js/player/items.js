@@ -67,7 +67,8 @@ Item.pistolAction = function (world, camera) {
 
 Item.shovelAction = function (world, camera) {
     if(settings.destroyMapOnMine) {
-        
+        Item.destroyMapAction(world, camera);
+        return;
     }
 
     var bc = world.getLookedAtBlock(camera, true);
@@ -81,6 +82,28 @@ Item.shovelAction = function (world, camera) {
 
     world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 };
+
+Item.destroyMapAction = function (world, camera) {
+    var bc = world.getLookedAtBlock(camera, true);
+    if(!bc) return;
+
+    var radius = new THREE.Vector3(5, 5, 5);
+    var percent = 1;
+
+    LOOP.For3D(bc.sub(radius), radius.add(radius), sometimesMineBlock);
+
+    function sometimesMineBlock(bc) {
+        if(Math.random() >= percent) return;
+
+        var block = world.blockAt(bc.x, bc.y, bc.z);
+
+        //Likely means the chunk has not been loaded.
+        if(!block) return;
+        if(!block.mineable()) return;
+
+        world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
+    }
+}
 
 Item.placeAction = function (world, camera, blockType) {
     var bc = world.getLookedAtBlock(camera, false);
