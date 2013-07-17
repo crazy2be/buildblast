@@ -1,10 +1,11 @@
 var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
-    vertexColors: THREE.VertexColors,
+    vertexColors: true,
 });
 
 function Chunk(blocks, geometries, scene, quality) {
     var self = this;
     var cq = CHUNK_QUALITIES;
+
     var meshes = {};
     for (var i = 0; i < CHUNK_QUALITIES.length; i++) {
         var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
@@ -23,6 +24,12 @@ function Chunk(blocks, geometries, scene, quality) {
         self.remove();
         quality = newQuality;
         self.add();
+    }
+
+    //The greedy mesher is a lot simplier if Chunk and ChunkGeometry both expose
+    //getQuality and block.
+    self.getQuality = function() {
+        return quality;
     }
 
     self.block = function (oc) {

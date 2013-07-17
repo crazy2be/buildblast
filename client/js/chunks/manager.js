@@ -1,8 +1,19 @@
 function ChunkManager(scene, player) {
     var self = this;
 
+    var vertStats = null;
+    if(settings.showGeometryGraph) {
+        vertStats = new PerfChart({
+            title: ' verts'
+        });
+        vertStats.elm.style.position = 'absolute';
+        vertStats.elm.style.top = '74px';
+        vertStats.elm.style.right = '160px';
+        document.getElementById('container').appendChild(vertStats.elm);
+    }
+
     var chunks = {};
-    var geometryWorker = new Worker('js/chunks/worker.js');
+    var geometryWorker = new Worker('js/chunks/worker/worker.js');
     startChunkConn(player.name());
 
     self.chunk = function (cc) {
@@ -61,6 +72,8 @@ function ChunkManager(scene, player) {
         })
     }
 
+    //Processes a geometry created by the worker thread which describes a chunk
+    //(as in, DOES NOT process a chunk sent from the server to the client...)
     function processChunk(payload) {
         var pg = payload.geometries;
         var geometries = [];
@@ -85,6 +98,16 @@ function ChunkManager(scene, player) {
         chunks[ccStr(cc)] = chunk;
 
         console.log("Added chunk at ", cc);
+
+        if(settings.showGeometryGraph) {
+            var vertCount = 0;
+            for (var i = 0; i < pg.length; i++) {
+                var curCount = pg[i].attributes.position.array.length;
+                vertCount += curCount;
+            }
+
+            vertStats.addDataPoint(vertCount);
+        }
     }
 
     function processQualityChange(payload) {

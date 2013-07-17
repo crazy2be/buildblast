@@ -66,6 +66,7 @@ Block.isMineable = function (block) {
     return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
 }
 
+//Maybe isEmpty should be defined in terms of isSolid, or vice versa?
 Block.isEmpty = function (block) {
     return Block.inSubtype(block, Block.EMPTY);
 }

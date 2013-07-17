@@ -87,8 +87,9 @@ Item.destroyMapAction = function (world, camera) {
     var bc = world.getLookedAtBlock(camera, true);
     if(!bc) return;
 
+    //If we destroy too many blocks, it will likely cause the server to kick everyone.
     var radius = new THREE.Vector3(5, 5, 5);
-    var percent = 1;
+    var percent = 0.25;
 
     LOOP.For3D(bc.sub(radius), radius.add(radius), sometimesMineBlock);
 
