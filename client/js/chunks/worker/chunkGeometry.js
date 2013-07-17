@@ -26,9 +26,13 @@ function ChunkGeometry(cc, blocks, manager) {
         CHUNK_QUALITIES.forEach(function (quality) {
             self.quality = quality;
 
-            var meshFunction = greedyMesh ? greedyMesh : simpleMesh;
+            var meshFunction = settings.greedyMesh ? greedyMesh : simpleMesh;
+
+            //var resGreedy = greedyMesh(self, manager);
+            //var resSimple = simpleMesh(self, manager);
 
             var res = meshFunction(self, manager);
+            
             geometries.push({
                 attributes: res.attributes,
                 offsets: res.offsets,
