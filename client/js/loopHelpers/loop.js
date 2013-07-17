@@ -46,7 +46,7 @@ LOOP.CubeFaces = function (callback) {
 
 //Not really sure where these belongs
 function CallWithVector3(callback, vector3) {
-    return callback.apply(null, vector3.toArray());
+    return callback(vector3.x, vector3.y, vector3.z);
 }
 
 //Kinda like clamp, but wraps (10 wrapped from 0 to 10 is 0, 10 wrapper from 2 to 6 is 4)

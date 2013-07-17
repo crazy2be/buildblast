@@ -33,6 +33,10 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var res = meshFunction(self, manager);
             
+            if(resGreedy.attributes.position.numItems > 2000) {
+                var veryStrange = true;
+            }
+
             geometries.push({
                 attributes: res.attributes,
                 offsets: res.offsets,
