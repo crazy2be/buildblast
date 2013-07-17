@@ -181,29 +181,13 @@ function simpleMesh(cg, manager) {
             v(wx + r, wy + r/2, wz + r/2);
             f(0, blockType);
         }
-        if (nx) {
-            v(wx, wy    , wz + r);
-            v(wx, wy + r, wz + r);
-            v(wx, wy + r, wz    );
-            v(wx, wy    , wz    );
-            v(wx, wy + r/2, wz + r/2);
-            f(1, blockType);
-        }
         if (py) {
-            v(wx    , wy + r, wz    );
-            v(wx + r, wy + r, wz    );
-            v(wx + r, wy + r, wz + r);
             v(wx    , wy + r, wz + r);
+            v(wx + r, wy + r, wz + r);
+            v(wx + r, wy + r, wz    );
+            v(wx    , wy + r, wz    );
             v(wx + r/2, wy + r, wz + r/2);
             f(2, blockType);
-        }
-        if (ny) {
-            v(wx    , wy, wz + r);
-            v(wx + r, wy, wz + r);
-            v(wx + r, wy, wz    );
-            v(wx    , wy, wz    );
-            v(wx + r/2, wy, wz + r/2);
-            f(3, blockType);
         }
         if (pz) {
             v(wx    , wy    , wz + r);
@@ -213,6 +197,22 @@ function simpleMesh(cg, manager) {
             v(wx + r/2, wy + r/2, wz + r);
             f(4, blockType);
         }
+        if (nx) {
+            v(wx, wy    , wz + r);
+            v(wx, wy + r, wz + r);
+            v(wx, wy + r, wz    );
+            v(wx, wy    , wz    );
+            v(wx, wy + r/2, wz + r/2);
+            f(1, blockType);
+        }
+        if (ny) {
+            v(wx    , wy, wz    );
+            v(wx + r, wy, wz    );
+            v(wx + r, wy, wz + r);
+            v(wx    , wy, wz + r);
+            v(wx + r/2, wy, wz + r/2);
+            f(3, blockType);
+        }
         if (nz) {
             v(wx    , wy + r, wz);
             v(wx + r, wy + r, wz);
@@ -221,6 +221,7 @@ function simpleMesh(cg, manager) {
             v(wx + r/2, wy + r/2, wz);
             f(5, blockType);
         }
+
         return;
         function mod(a, b) {
             return ((a % b) + b) % b;

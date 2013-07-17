@@ -12,11 +12,20 @@
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 function greedyMesh(chunkGeometry, manager) {
     var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_DEPTH, CHUNK_HEIGHT);
-    var curChunkPos = chunkGeometry.cc;
+    var curChunkPos = new THREE.Vector3(chunkGeometry.cc);
 
     var verts = [];
     var index = [];
     var color = [];
+    var noise = [];
+
+    var r = 1 / chunkGeometry.quality;
+    function mod(a, b) {
+        return ((a % b) + b) % b;
+    }
+    function abs(n) {
+        return Math.abs(n);
+    }
     function noiseFunc(x, y, z) {
         function n(q) {
             return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
@@ -61,7 +70,7 @@ function greedyMesh(chunkGeometry, manager) {
     //faceComponents is an array of the components on the face, x=0, y=1, z=2
     //vecComponent is the number of the component of the normal
     var faceNumber = 0;
-    LOOP.CubeFaces.forEach(function (faceVector, faceComponents, vecComponent) {
+    LOOP.CubeFaces(function (faceVector, faceComponents, vecComponent) {
         var negFaceVector = faceVector.clone().multiplyScalar(-1);
 
         var startBlockPos = new THREE.Vector3(0, 0, 0);
@@ -177,7 +186,7 @@ function greedyMesh(chunkGeometry, manager) {
             }
         }
 
-        var quality = chunk.getQuality();
+        var quality = chunkGeometry.getQuality();
         var inverseQuality = 1 / quality;
     
         if(~~inverseQuality != inverseQuality) {
@@ -191,7 +200,7 @@ function greedyMesh(chunkGeometry, manager) {
         //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
         var deltaPlane = new Float32Array(width * height);
 
-        //quad is {startPoint, endPoint, blockType}
+        //quad is {startPoint (3D point though), endPoint (also 3D), blockType}
         var planeQuads = [];
 
         //We are going to need the adjacent chunk on at least one loop.
@@ -204,7 +213,7 @@ function greedyMesh(chunkGeometry, manager) {
             if(zValue < 0 || zValue > depth) {
                 return adjacentChunk;
             }
-            return self;
+            return chunkGeometry;
         }
 
         //We may double load these... but it makes the logic easier to understand.
@@ -232,9 +241,9 @@ function greedyMesh(chunkGeometry, manager) {
             //Find the delta plane
             //As all planes are the same size we can just do a 1 dimensional loop
             for(var ix = 0; ix < width * height; ix++) {
-                //No need make a face if the block above us it filled,
+                //No need make a face if the block adjacent to our face is filled,
                 //or if we have no block.
-                if(!Block.isEmpty(prevPlane) || Block.isEmpty(curPlane)) {
+                if(!Block.isEmpty(adjacentPlane) || Block.isEmpty(curPlane)) {
                     deltaPlane[ix] = null;
                     continue;
                 }
@@ -253,17 +262,21 @@ function greedyMesh(chunkGeometry, manager) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
                 for(var y = 0; y < height; y += inverseQuality) {
-                    planeQuads.push(GetQuad(x, y));
+                    var curQuad = GetQuad(plane, x, y);
+                    if(curQuad) {
+                        planeQuads.push(curQuad);
+                    }
                 }
             }
 
             function GetQuad(plane, x, y) {
-                var curQuadStart = new THREE.Vector2(x, y);
+                var curQuadStart = new THREE.Vector3(x, y, 0);
                 var baseBlock = getPlaneBlock(plane, curQuadStart);
 
-                if(Block.isEmpty(baseBlock)) return;
+                //Meh, the extra check may not be right, but its late...
+                if(!baseBlock || Block.isEmpty(baseBlock)) return;
 
-                var curQuadEnd = new THREE.Vector2(x + inverseQuality, y + inverseQuality);
+                var curQuadEnd = new THREE.Vector3(x + inverseQuality, y + inverseQuality, 0);
 
                 //Try to extend on the y axis
                 while(curQuadEnd.y < height) {
@@ -289,7 +302,7 @@ function greedyMesh(chunkGeometry, manager) {
                     while(curQuadEnd.x < width) {
                         var canExtend = false;
                         for(var yTestPos = curQuadStart.y; yTestPos < curQuadEnd.y; yTestPos += inverseQuality) {
-                            var tempQuadEnd = new THREE.Vector2(curQuadEnd.x, yTestPos);
+                            var tempQuadEnd = new THREE.Vector3(curQuadEnd.x, yTestPos, 0);
                             var curBlock = getPlaneBlock(plane, tempQuadEnd);
                             if(curBlock != baseBlock) {
                                 canExtend = false;
@@ -302,6 +315,12 @@ function greedyMesh(chunkGeometry, manager) {
                         curQuadEnd.x += inverseQuality;
                     }
                 }
+
+                return {
+                    startPoint: curQuadStart, 
+                    endPoint: curQuadEnd, 
+                    blockType: baseBlock
+                };
             }
         }
 
@@ -313,75 +332,48 @@ function greedyMesh(chunkGeometry, manager) {
         //Now turn the planeQuads into vertices, colors, and indexes
         for(var ix = 0; ix < planeQuads.length; ix++) {
             //quad is {startPoint, endPoint, blockType}
-            //var planeQuads = [];
 
-            var blockPos = planeQuads[ix].startPoint.clone();
+            var curQuad = planeQuads[ix];
+
+            var blockPos = curQuad.startPoint.clone();
+            blockPos.setComponent(componentZ, curZ);
             //Offset normal axis based on block size.
             if(faceDirection == 1) {
-                blockPos.setComponent(componentZ, faceDirection.getComponent(componentZ) + inverseQuality);
+                addToComponent(blockPos, componentZ, inverseQuality);
             }
 
-            //faceDirection
-            //0 1
-            //px
-            //0 0
-            //1 0
-            //1 1
-            //0 1
-            //py
-            //0 1
-            //1 1
-            //1 0
-            //0 0
-            //pz
-            //0 0
-            //1 0
-            //1 1
-            //0 1
+            var quadWidth = curQuad.endPoint.X - curQuad.startPoint.X;
+            var quadHeight = curQuad.endPoint.Y - curQuad.startPoint.Y;
 
-            //ny
-            //0 0
-            //1 0
-            //1 1
-            //0 1
-            //nx
-            //0 1
-            //1 1
-            //1 0
-            //0 0
-            //nz
-            //0 1
-            //1 1
-            //1 0
-            //0 0
+            //Not entirely sure, pretty sure this can be better explained.
+            var counterClockwise = [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0.5, 0.5]
+            ];
+            var clockwise = [
+                [0, 1],
+                [1, 1],
+                [1, 0],
+                [0, 0],
+                [0.5, 0.5]
+            ];
 
-            //CallWithVector3(addVert, 
-        }
-        function addVert(x, y, z) {
-            verts.push(x, y, z);
-            noise.push(noiseFunc(x, y, z));
-        }
+            //Yeah, this doesn't make sense...
+            var faceIsClockwise = [false, true, false, false, true, true];
 
-        function addFace(face, blockType) {
-            var l = verts.length / 3;
-            // Each face is made up of two triangles
-            index.push(l-5, l-4, l-1);
-            index.push(l-4, l-3, l-1);
-            index.push(l-3, l-2, l-1);
-            index.push(l-2, l-5, l-1);
+            var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
 
-            var c, c2;
-            var colours = Block.getColours(blockType, face);
-            c = colours.light;
-            c2 = colours.dark;
+            offsetArray.forEach(function(offsets) {
+                var verticePos = blockPos.clone();
+                addToComponent(verticePos, componentX, quadWidth * offsets[0]);
+                addToComponent(verticePos, componentY, quadHeight * offsets[1]);
+                CallWithVector3(addVert, verticePos);
+            });
 
-            for (var i = 0; i < 5; i++) {
-                var n = noise.shift();
-                var r = c.r*n + c2.r*(1 - n);
-                var g = c.g*n + c2.g*(1 - n);
-                var b = c.b*n + c2.b*(1 - n);
-                color.push(r/255, g/255, b/255);
-            }
+            addFace(faceNumber, curQuad.blockType);
         }
 
         faceNumber++;

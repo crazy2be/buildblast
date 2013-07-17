@@ -39,8 +39,8 @@ var LOOP_CUBEFACES_DATA = [
 ];
 //Basically just loops over LOOP_CUBEFACES_DATA and passes you the objects.
 LOOP.CubeFaces = function (callback) {
-    LOOP_CUBEFACES_DATA.ForEach(function (cubeFaceArray) {
-        callback(cubeFaceData.apply(null, cubeFaceArray));
+    LOOP_CUBEFACES_DATA.forEach(function (cubeFaceArray) {
+        callback.apply(null, cubeFaceArray);
     });
 }
 
@@ -68,4 +68,9 @@ function maxFromObject(object) {
     }
 
     return max;
+}
+
+//I just hate typing this over and over again.
+function addToComponent(vector, componentNumber, amountToAdd) {
+    vector.setComponent(componentNumber, vector.getComponent(componentNumber) + amountToAdd);
 }

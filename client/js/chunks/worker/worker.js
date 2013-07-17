@@ -2,10 +2,27 @@
 // a lot more sense anyway.
 var parent = self;
 
+//Need to make threeVector basically work...
+var THREE = {};
+function Error(){}
+var console = {};
+console.warn = function(){}
+THREE.Quaternion = function(){}
+THREE.extend = function(){}
+
+//Most of our required files are above us unfortunately...
 importScripts(
+    '../../1defaultSettings.js',
+    '../../1localSettings.js',
+//Have to ask Justin why it complains when I try to include three.min.js.
+    'threeVector.js',
+    'twoVector.js',
+    '../../loopHelpers/loop.js',
     '../block.js',
     '../common.js',
-    'geometry.js',
+    'simpleMesher.js',
+    'greedyMesher.js',
+    'chunkGeometry.js',
     'noise.js',
     '../../conn.js'
 );
