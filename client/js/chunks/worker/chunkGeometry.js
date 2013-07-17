@@ -28,8 +28,8 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var meshFunction = settings.greedyMesh ? greedyMesh : simpleMesh;
 
-            //var resGreedy = greedyMesh(self, manager);
-            //var resSimple = simpleMesh(self, manager);
+            var resGreedy = greedyMesh(self, manager);
+            var resSimple = simpleMesh(self, manager);
 
             var res = meshFunction(self, manager);
             

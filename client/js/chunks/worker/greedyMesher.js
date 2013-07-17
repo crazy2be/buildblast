@@ -357,7 +357,7 @@ function greedyMesh(chunkGeometry, manager) {
                 addToComponent(blockPos, componentZ, inverseQuality);
             }
 
-            var quadWidth = curQuad.endPoint.y - curQuad.startPoint.x;
+            var quadWidth = curQuad.endPoint.x - curQuad.startPoint.x;
             var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
 
             //Not entirely sure, pretty sure this can be better explained.
