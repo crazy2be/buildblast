@@ -377,7 +377,8 @@ function greedyMesh(chunkGeometry, manager) {
             ];
 
             //Yeah, this doesn't make sense...
-            var faceIsClockwise = [false, true, false, false, true, true];
+            //var faceIsClockwise = [false, true, false, false, true, true];
+            var faceIsClockwise = [true, true, true, true, true, true];
 
             var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
 
