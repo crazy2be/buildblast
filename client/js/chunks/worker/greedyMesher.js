@@ -11,7 +11,7 @@
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 function greedyMesh(chunkGeometry, manager) {
-    var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_DEPTH, CHUNK_HEIGHT);
+    var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
     var curChunkPos = new THREE.Vector3(chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z);
 
     var verts = [];
@@ -262,7 +262,7 @@ function greedyMesh(chunkGeometry, manager) {
         function GreedyMesh(planeQuads, plane, width, height, inverseQuality) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
-                for(var y = 0; y < height;) {
+                for(var y = 0; y < height; y += inverseQuality) {
                     var curQuad = GetQuad(plane, x, y);
                     if(curQuad) {
                         planeQuads.push(curQuad);
@@ -275,9 +275,7 @@ function greedyMesh(chunkGeometry, manager) {
 
                         //We can also increment y by the height, which saves us checks later.
                         //May be slower though because it jumps the loop... idk...
-                        y = curQuad.endPoint.y;
-                    } else {
-                        y += inverseQuality;
+                        //y = curQuad.endPoint.y;
                     }
                 }
             }

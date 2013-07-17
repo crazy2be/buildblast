@@ -94,9 +94,9 @@ type Offset struct {
 }
 
 const (
-	CHUNK_WIDTH  = 2
-	CHUNK_DEPTH  = 2
-	CHUNK_HEIGHT = 2
+	CHUNK_WIDTH  = 1
+	CHUNK_DEPTH  = 1
+	CHUNK_HEIGHT = 1
 )
 
 var CHUNK_SIZE Vec3 = Vec3{
