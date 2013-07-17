@@ -95,7 +95,7 @@ function greedyMesh(chunkGeometry, manager) {
                 }
             );
 
-            //We make our block the most common block, excluding air.
+            //We make our block the most common block, excluding non-solid blocks.
             //However if we are all air, then we do become air (really we just don't
             //render).
             var maxCount = 0;
@@ -103,7 +103,7 @@ function greedyMesh(chunkGeometry, manager) {
 
             for(var blockType in blockCounts) {
                 var blockCount = blockCounts[blockType];
-                if(blockCount > maxCount) {
+                if(blockCount > maxCount && Block.isSolid(blockType)) {
                     maxCount = blockCount;
                     planeBlock = blockType;
                 }
@@ -140,20 +140,22 @@ function greedyMesh(chunkGeometry, manager) {
                     blockPos.setComponent(componentZ, zValue);
 
                     var planeBlock;
-                    if(inverseQuality == 1) {
+                    if(false && inverseQuality == 1) {
                         planeBlock = CallWithVector3(chunk.block, blockPos);
                         setPlaneBlock(plane, planePos, planeBlock);
                     } else {
                         planeBlock = getPixelatedBlockType(chunk, blockPos, inverseQuality);
-                        //This a mildly inefficient way to deal with quality... but w/e,
-                        //we just set all the squares, and then later make sure our greedy mesher
-                        //works in the same scale as our quality.
+
+                        //We can just ignore the other blocks as the greedymesher will ignore them.
+                        setPlaneBlock(plane, planePos, planeBlock);
+                        /*
                         LOOP.For2D(new THREE.Vector2(0, 0), new THREE.Vector2(1, 1).multiplyScalar(inverseQuality),
                             function(offset) {
                                 var samplePlanePos = planePos.clone().add(offset);
                                 setPlaneBlock(plane, samplePlanePos, planeBlock);
                             }
                         );
+                        */
                     }
                 }
             }
@@ -192,9 +194,7 @@ function greedyMesh(chunkGeometry, manager) {
         //We may double load these... but it makes the logic easier to understand.
         var curZ = 0;
         createPlane(curPlane, getChunkAtZ(-inverseQuality), -inverseQuality);
-        createPlane(adjacentPlane, getChunkAtZ(-inverseQuality + faceDirection), -inverseQuality + faceDirection);
-
-
+        createPlane(adjacentPlane, getChunkAtZ(-inverseQuality + faceDirection), -inverseQuality + faceDirection*inverseQuality);
 
         while(curZ < depth) {
             var tempPlane = adjacentPlane;
@@ -206,7 +206,7 @@ function greedyMesh(chunkGeometry, manager) {
                 //(well not current) plane. So we can just set it, and then recalculate the adjacentPlane
                 //curPlane = adjacentPlane;
 
-                createPlane(adjacentPlane, getChunkAtZ(curZ + faceDirection), curZ + faceDirection);
+                createPlane(adjacentPlane, getChunkAtZ(curZ + faceDirection * inverseQuality), curZ + faceDirection * inverseQuality);
             }
             else if(faceDirection == -1) {
                 //The adjacentPlane is just the last plane.
@@ -219,6 +219,7 @@ function greedyMesh(chunkGeometry, manager) {
 
             //Find the delta plane
             //As all planes are the same size we can just do a 1 dimensional loop
+            //Could increment by some amount of inverseQuality...
             for(var ix = 0; ix < width * height; ix++) {
                 //No need make a face if the block adjacent to our face is filled,
                 //or if we have no block.
@@ -247,6 +248,7 @@ function greedyMesh(chunkGeometry, manager) {
                         planeQuads.push(curQuad);
                         //Remove all parts of the quad from the plane.
                         var curQuadSpan = curQuad.endPoint.clone().sub(curQuad.startPoint);
+                        //Could only remove in increments of inverseQuality...
                         LOOP.For2D(curQuad.startPoint, curQuadSpan, 
                             function(planePos) {
                                 setPlaneBlock(plane, planePos, null);
@@ -269,16 +271,19 @@ function greedyMesh(chunkGeometry, manager) {
 
                 var curQuadEnd = new THREE.Vector3(x, y + inverseQuality, curZ);
 
+                
                 //Try to extend on the y axis
                 while(curQuadEnd.y < height) {
                     var curBlock = getPlaneBlock(plane, curQuadEnd);
                     if(curBlock != baseBlock) break;
 
-                    curQuadEnd.y++;
+                    curQuadEnd.y += inverseQuality;
                 }
+                
 
                 curQuadEnd.x += inverseQuality;
 
+                
                 //Try to extend on the x axis
                 if(curQuadEnd.y - curQuadEnd.y == inverseQuality) {
                     //Simple, we have 1 height so width is easy to find
@@ -308,6 +313,7 @@ function greedyMesh(chunkGeometry, manager) {
                         curQuadEnd.x += inverseQuality;
                     }
                 }
+                
 
                 return {
                     startPoint: curQuadStart, 
@@ -346,7 +352,9 @@ function greedyMesh(chunkGeometry, manager) {
             //Offset normal axis based on block size.
             if(faceDirection == 1) {
                 addToComponent(blockPos, componentZ, inverseQuality);
+                //addToComponent(blockPos, componentZ, 1);
             }
+
             //curQuad.endPoint = planeCoordToBlockCoord(curQuad.endPoint);
 
             //Not entirely sure, pretty sure this can be better explained.
@@ -371,8 +379,9 @@ function greedyMesh(chunkGeometry, manager) {
             //The last two get rendered with false, but that is all...
             //It has to do with what they are, not the order accessed though.
             var faceIsClockwise = [false, true, true, false, false, true];
+            //var faceIsClockwise = [true, false, false, true, true, false];
 
-            var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
+            var offsetArray =  faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
             //if(faceNumber == 0) continue;
             //if(faceNumber == 1) continue;
             //if(faceNumber == 2) continue;
