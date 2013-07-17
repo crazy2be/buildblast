@@ -262,10 +262,22 @@ function greedyMesh(chunkGeometry, manager) {
         function GreedyMesh(planeQuads, plane, width, height, inverseQuality) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
-                for(var y = 0; y < height; y += inverseQuality) {
+                for(var y = 0; y < height;) {
                     var curQuad = GetQuad(plane, x, y);
                     if(curQuad) {
                         planeQuads.push(curQuad);
+                        //Remove all parts of the quad from the plane.
+                        LOOP.For2D(curQuad.startPoint, curQuad.endPoint, 
+                            function(planePos) {
+                                setPlaneBlock(plane, planePos, null);
+                            }
+                        );
+
+                        //We can also increment y by the height, which saves us checks later.
+                        //May be slower though because it jumps the loop... idk...
+                        y = curQuad.endPoint.y;
+                    } else {
+                        y += inverseQuality;
                     }
                 }
             }
