@@ -7,7 +7,7 @@ var CHUNK_QUALITIES = [1, 0.5, 0.25];
 var CHUNK_WIDTH = 32;
 var CHUNK_DEPTH = 32;
 var CHUNK_HEIGHT = 32;
-var CHUNK_QUALITIES = [1];
+var CHUNK_QUALITIES = [0.25];
 
 function mod(a, b) {
     return (((a % b) + b) % b);
