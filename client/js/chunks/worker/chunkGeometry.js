@@ -6,6 +6,10 @@
 function ChunkGeometry(cc, blocks, manager) {
     var self = this;
 
+    var cw = CHUNK_WIDTH;
+    var cd = CHUNK_DEPTH;
+    var ch = CHUNK_HEIGHT;
+
     self.blocks = blocks;
     self.cc = cc;
     self.priority = 1;
@@ -17,14 +21,22 @@ function ChunkGeometry(cc, blocks, manager) {
     self.calculateGeometries = function () {
         var geometries = [];
         var transferables = [];
+
+        var originalQuality = self.quality;
         CHUNK_QUALITIES.forEach(function (quality) {
-            var res = simpleMesh(quality);
+            self.quality = quality;
+
+            var meshFunction = greedyMesh ? greedyMesh : simpleMesh;
+
+            var res = meshFunction(self, manager);
             geometries.push({
                 attributes: res.attributes,
                 offsets: res.offsets,
             });
             transferables.concat(res.transferables);
         });
+        self.quality = originalQuality;
+
         return {
             geometries: geometries,
             transferables: transferables,
@@ -34,7 +46,7 @@ function ChunkGeometry(cc, blocks, manager) {
     //The greedy mesher is a lot simplier if Chunk and ChunkGeometry both expose
     //getQuality and block.
     self.getQuality = function() {
-        return quality;
+        return self.quality;
     }
 
     self.block = function block(ox, oy, oz) {
