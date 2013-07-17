@@ -20,7 +20,8 @@ func NewClientConn(name string) *ClientConn {
 	c := new(ClientConn)
 	c.name = name
 
-	c.sendQueue = make(chan Message, 200)
+    //Temporary change to allow the client to send a lot of changes at once.
+	c.sendQueue = make(chan Message, 1000)
 	c.sendLossyQueue = make(chan Message, 5)
 
 	c.recvQueue = make(chan Message, 100)
