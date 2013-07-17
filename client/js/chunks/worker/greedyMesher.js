@@ -12,7 +12,7 @@
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 function greedyMesh(chunkGeometry, manager) {
     var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_DEPTH, CHUNK_HEIGHT);
-    var curChunkPos = new THREE.Vector3(chunkGeometry.cc);
+    var curChunkPos = new THREE.Vector3(chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z);
 
     var verts = [];
     var index = [];
@@ -218,8 +218,8 @@ function greedyMesh(chunkGeometry, manager) {
 
         //We may double load these... but it makes the logic easier to understand.
         var curZ = 0;
-        createPlane(curPlane, getChunkAtZ(curZ), curZ);
-        createPlane(adjacentPlane, getChunkAtZ(curZ + faceDirection), curZ);
+        createPlane(curPlane, getChunkAtZ(-inverseQuality), -inverseQuality);
+        createPlane(adjacentPlane, getChunkAtZ(-inverseQuality + faceDirection), -inverseQuality + faceDirection);
 
         while(curZ < depth) {
             if(faceDirection == 1) {
@@ -243,7 +243,8 @@ function greedyMesh(chunkGeometry, manager) {
             for(var ix = 0; ix < width * height; ix++) {
                 //No need make a face if the block adjacent to our face is filled,
                 //or if we have no block.
-                if(!Block.isEmpty(adjacentPlane) || Block.isEmpty(curPlane)) {
+                //if(!Block.isEmpty(adjacentPlane[ix]) || Block.isEmpty(curPlane[ix])) {
+                if(Block.isEmpty(curPlane[ix])) {
                     deltaPlane[ix] = null;
                     continue;
                 }
@@ -342,8 +343,8 @@ function greedyMesh(chunkGeometry, manager) {
                 addToComponent(blockPos, componentZ, inverseQuality);
             }
 
-            var quadWidth = curQuad.endPoint.X - curQuad.startPoint.X;
-            var quadHeight = curQuad.endPoint.Y - curQuad.startPoint.Y;
+            var quadWidth = curQuad.endPoint.y - curQuad.startPoint.x;
+            var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
 
             //Not entirely sure, pretty sure this can be better explained.
             var counterClockwise = [
