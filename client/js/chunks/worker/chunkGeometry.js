@@ -28,13 +28,17 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var meshFunction = settings.greedyMesh ? greedyMesh : simpleMesh;
 
-            var resGreedy = greedyMesh(self, manager);
-            var resSimple = simpleMesh(self, manager);
+            if(settings.testingMesher) {
+                var resGreedy = greedyMesh(self, manager);
+                var resSimple = simpleMesh(self, manager);
 
-            var res = meshFunction(self, manager);
+                var res = meshFunction(self, manager);
             
-            if(resGreedy.attributes.position.numItems > 2000) {
-                var veryStrange = true;
+                if(resGreedy.attributes.position.numItems > 2000) {
+                    var lotsOfVertices = true;
+                    var greedyNum = resGreedy.attributes.position.numItems;
+                    var simpleNum = resSimple.attributes.position.numItems;
+                }
             }
 
             geometries.push({

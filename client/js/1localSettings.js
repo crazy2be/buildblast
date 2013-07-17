@@ -11,3 +11,4 @@ if (settings === undefined) {
 settings.destroyMapOnMine = true;
 settings.showGeometryGraph = true;
 settings.greedyMesh = true;
+settings.testingMesher = true;
