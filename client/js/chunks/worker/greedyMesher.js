@@ -291,6 +291,7 @@ function greedyMesh(chunkGeometry, manager) {
 
                 var curQuadEnd = new THREE.Vector3(x + inverseQuality, y + inverseQuality, 0);
 
+                /*
                 //Try to extend on the y axis
                 while(curQuadEnd.y < height) {
                     var curBlock = getPlaneBlock(plane, curQuadEnd);
@@ -328,6 +329,7 @@ function greedyMesh(chunkGeometry, manager) {
                         curQuadEnd.x += inverseQuality;
                     }
                 }
+                */
 
                 return {
                     startPoint: curQuadStart, 
@@ -349,7 +351,7 @@ function greedyMesh(chunkGeometry, manager) {
             var curQuad = planeQuads[ix];
 
             var blockPos = curQuad.startPoint.clone();
-            blockPos.setComponent(componentZ, curZ);
+            //blockPos.setComponent(componentZ, curZ);
             //Offset normal axis based on block size.
             if(faceDirection == 1) {
                 addToComponent(blockPos, componentZ, inverseQuality);
