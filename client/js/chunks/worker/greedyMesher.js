@@ -385,6 +385,7 @@ function greedyMesh(chunkGeometry, manager) {
                 var verticePos = blockPos.clone();
                 addToComponent(verticePos, componentX, quadWidth * offsets[0]);
                 addToComponent(verticePos, componentY, quadHeight * offsets[1]);
+                convertBlockPosToWorldPos(verticePos);
                 CallWithVector3(addVert, verticePos);
             });
 
