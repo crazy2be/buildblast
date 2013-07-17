@@ -267,11 +267,14 @@ function greedyMesh(chunkGeometry, manager) {
                     if(curQuad) {
                         planeQuads.push(curQuad);
                         //Remove all parts of the quad from the plane.
-                        LOOP.For2D(curQuad.startPoint, curQuad.endPoint, 
+                        /*
+                        var curQuadSpan = curQuad.endPoint.clone().sub(curQuad.startPoint);
+                        LOOP.For2D(curQuad.startPoint, curQuadSpan, 
                             function(planePos) {
                                 setPlaneBlock(plane, planePos, null);
                             }
                         );
+                        */
 
                         //We can also increment y by the height, which saves us checks later.
                         //May be slower though because it jumps the loop... idk...
@@ -281,13 +284,13 @@ function greedyMesh(chunkGeometry, manager) {
             }
 
             function GetQuad(plane, x, y) {
-                var curQuadStart = new THREE.Vector3(x, y, 0);
+                var curQuadStart = new THREE.Vector3(x, y, curZ);
                 var baseBlock = getPlaneBlock(plane, curQuadStart);
 
                 //Meh, the extra check may not be right, but its late...
                 if(!baseBlock || Block.isEmpty(baseBlock)) return;
 
-                var curQuadEnd = new THREE.Vector3(x + inverseQuality, y + inverseQuality, 0);
+                var curQuadEnd = new THREE.Vector3(x + inverseQuality, y + inverseQuality, curZ);
 
                 /*
                 //Try to extend on the y axis
@@ -342,14 +345,24 @@ function greedyMesh(chunkGeometry, manager) {
             blockPos.add(worldChunkOffset);
         }
 
+        function planeCoordToBlockCoord(planePos) {
+            var blockPos = new THREE.Vector3(0, 0, 0);
+            blockPos.setComponent(componentX, planePos.x);
+            blockPos.setComponent(componentY, planePos.y);
+            blockPos.setComponent(componentZ, planePos.z);
+            return blockPos;
+        }
+
         //Now turn the planeQuads into vertices, colors, and indexes
         for(var ix = 0; ix < planeQuads.length; ix++) {
             //quad is {startPoint, endPoint, blockType}
 
             var curQuad = planeQuads[ix];
 
+            curQuad.startPoint = planeCoordToBlockCoord(curQuad.startPoint);
+            curQuad.endPoint = planeCoordToBlockCoord(curQuad.endPoint);
+
             var blockPos = curQuad.startPoint.clone();
-            //blockPos.setComponent(componentZ, curZ);
             //Offset normal axis based on block size.
             if(faceDirection == 1) {
                 addToComponent(blockPos, componentZ, inverseQuality);
@@ -376,7 +389,7 @@ function greedyMesh(chunkGeometry, manager) {
 
             //Yeah, this doesn't make sense...
             //var faceIsClockwise = [false, true, false, false, true, true];
-            var faceIsClockwise = [true, true, true, true, true, true];
+            var faceIsClockwise = [false, true, true, true, true, true];
 
             var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
 
