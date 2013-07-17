@@ -13,4 +13,7 @@ settings.destroyMapOnMine = false;
 
 settings.showGeometryGraph = false;
 
+//Meh, should really be inverted and called simpleMesh if true is the default.
 settings.greedyMesh = true;
+
+settings.testingMesher = false;
