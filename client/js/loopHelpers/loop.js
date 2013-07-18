@@ -49,9 +49,14 @@ function CallWithVector3(callback, vector3) {
     return callback(vector3.x, vector3.y, vector3.z);
 }
 
-//Kinda like clamp, but wraps (10 wrapped from 0 to 10 is 0, 10 wrapper from 2 to 6 is 4)
+//Kinda like clamp, but wraps (10 wrapped from 0 to 10 is 0, 10 wrapper from 2 to 5 is 4)
+//Don't look at the history for this function, it may be bad now,
+//but before it was so utterly broken in every way.
 function WrapNumber(number, min, max) {
-    return (number - min) % (max - min - 1) + min;
+    var result = (number - min) % (max - min);
+    if (result < 0) result = (max - min) + result;
+    result += min;
+    return result;
 }
 
 //Gets the max key by comparing values of an object
