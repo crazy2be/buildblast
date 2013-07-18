@@ -137,7 +137,7 @@ function greedyMesh(chunkGeometry, manager) {
         function createPlane(plane, zValue) {
             var chunk = chunkGeometry;
 
-            if(zValue < 0 || zValue > depth) {
+            if(zValue < 0 || zValue >= depth) {
                 chunk =  adjacentChunk;
                 zValue = WrapNumber(zValue, 0, depth);
             }
