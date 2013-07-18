@@ -257,7 +257,7 @@ function greedyMesh(chunkGeometry, manager) {
 
                         //We can also increment y by the height, which saves us checks later.
                         //May be slower though because it jumps the loop... idk...
-                        //y = curQuad.endPoint.y - inverseQuality;
+                        y = curQuad.endPoint.y - inverseQuality;
                     }
                 }
             }
