@@ -112,10 +112,39 @@ function greedyMesh(chunkGeometry, manager) {
             return planeBlock;
         }
 
-        function createPlane(plane, chunk, zValue) {
+        var quality = chunkGeometry.getQuality();
+        var inverseQuality = 1 / quality;
+    
+        if(~~inverseQuality != inverseQuality) {
+            //How big do you want us to make the pixelated chunks!
+            throw "1/quality is not an integer, what do I do?";
+        }
+
+        //array of block types.
+        var adjacentPlane = new Float32Array(width * height);
+        var curPlane = new Float32Array(width * height);
+        //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
+        var deltaPlane = new Float32Array(width * height);
+
+        //quad is {startPoint (3D point though), endPoint (also 3D), blockType}
+        var planeQuads = [];
+
+        //We are going to need the adjacent chunk on at least one loop.
+        var adjacentChunkPos = curChunkPos.clone();
+        adjacentChunkPos.setComponent(componentZ, adjacentChunkPos.getComponent(componentZ) + faceDirection);
+        var adjacentChunk = CallWithVector3(manager.chunkAt, adjacentChunkPos);
+
+        function createPlane(plane, zValue) {
+            var chunk = chunkGeometry;
+
+            if(zValue < 0 || zValue > depth) {
+                chunk =  adjacentChunk;
+                zValue = WrapNumber(zValue, 0, depth);
+            }
+
             if(chunk == null) {
                 for(var ix = 0; ix < width * height; ix++) {
-                    plane[ix] = null;
+                    plane[ix] = Block.DIRT;
                 }
                 return;
             }
@@ -161,40 +190,10 @@ function greedyMesh(chunkGeometry, manager) {
             }
         }
 
-        var quality = chunkGeometry.getQuality();
-        var inverseQuality = 1 / quality;
-    
-        if(~~inverseQuality != inverseQuality) {
-            //How big do you want us to make the pixelated chunks!
-            throw "1/quality is not an integer, what do I do?";
-        }
-
-        //array of block types.
-        var adjacentPlane = new Float32Array(width * height);
-        var curPlane = new Float32Array(width * height);
-        //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
-        var deltaPlane = new Float32Array(width * height);
-
-        //quad is {startPoint (3D point though), endPoint (also 3D), blockType}
-        var planeQuads = [];
-
-        //We are going to need the adjacent chunk on at least one loop.
-        var adjacentChunkPos = curChunkPos.clone();
-        adjacentChunkPos.setComponent(componentZ, adjacentChunkPos.getComponent(componentZ) + faceDirection);
-        var adjacentChunk = CallWithVector3(manager.chunkAt, adjacentChunkPos);
-
-        //Usually gets our chunk... but gets the adjacentChunk on edge cases.
-        function getChunkAtZ(zValue) {
-            if(zValue < 0 || zValue > depth) {
-                return adjacentChunk;
-            }
-            return chunkGeometry;
-        }
-
         //We may double load these... but it makes the logic easier to understand.
         var curZ = 0;
-        createPlane(curPlane, getChunkAtZ(-inverseQuality), -inverseQuality);
-        createPlane(adjacentPlane, getChunkAtZ(-inverseQuality + faceDirection), -inverseQuality + faceDirection*inverseQuality);
+        createPlane(curPlane, -inverseQuality);
+        createPlane(adjacentPlane, -inverseQuality + faceDirection*inverseQuality);
 
         while(curZ < depth) {
             var tempPlane = adjacentPlane;
@@ -206,13 +205,13 @@ function greedyMesh(chunkGeometry, manager) {
                 //(well not current) plane. So we can just set it, and then recalculate the adjacentPlane
                 //curPlane = adjacentPlane;
 
-                createPlane(adjacentPlane, getChunkAtZ(curZ + faceDirection * inverseQuality), curZ + faceDirection * inverseQuality);
+                createPlane(adjacentPlane, curZ + faceDirection * inverseQuality);
             }
             else if(faceDirection == -1) {
                 //The adjacentPlane is just the last plane.
                 //adjacentPlane = curPlane;
 
-                createPlane(curPlane, chunkGeometry, curZ);
+                createPlane(curPlane, curZ);
             } else {
                 throw "Not possible";
             }
