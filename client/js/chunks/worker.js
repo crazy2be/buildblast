@@ -104,7 +104,8 @@ function processBlockChange(payload) {
 
     var chunk = manager.get(cc);
     if (!chunk) {
-        throw "Server Error: Got block change for chunk which is not loaded.";
+        console.error("Server Error: Got block change for chunk which is not loaded.");
+        return;
     }
 
     var block = chunk.block(oc.x, oc.y, oc.z);
