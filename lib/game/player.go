@@ -64,6 +64,10 @@ func NewPlayer(world *World, name string) *Player {
 	}
 }
 
+func (p *Player) Rot() coords.Direction {
+	return p.look
+}
+
 func (p *Player) Pos() coords.World {
 	return p.pos
 }

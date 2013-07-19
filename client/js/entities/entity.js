@@ -5,7 +5,9 @@ function Entity(id) {
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
-		wireframe: true,
+	});
+	var faceMat = new THREE.MeshBasicMaterial({
+		color: 0x00ff00
 	});
 	var hitboxMaterial = new THREE.MeshBasicMaterial({
 		color: 0xff0000,
@@ -17,11 +19,18 @@ function Entity(id) {
 	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
 	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
 
-	var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
+	var bodyGeometry = new THREE.CubeGeometry(0.6, 1.3, 0.4);
 	var bodyMesh = new THREE.Mesh(bodyGeometry, material);
 
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-	var headMesh = new THREE.Mesh(headGeometry, material);
+	headGeometry.materials = [material, faceMat];
+	headGeometry.faces[0].materialIndex = 0;
+	headGeometry.faces[1].materialIndex = 0;
+	headGeometry.faces[2].materialIndex = 0;
+	headGeometry.faces[3].materialIndex = 0;
+	headGeometry.faces[4].materialIndex = 1;
+	headGeometry.faces[5].materialIndex = 0;
+	var headMesh = new THREE.Mesh(headGeometry, new THREE.MeshFaceMaterial(headGeometry.materials));
 
 	self.setPos = function (newPos) {
 		pos = newPos;
@@ -45,21 +54,30 @@ function Entity(id) {
 	};
 
 	self.setRot = function (newRot) {
-		headMesh.rotation.set(newRot.x, newRot.y, newRot.z);
-		var br = bodyMesh.rotation;
-		br.y = newRot.y;
+		var headTarget = new THREE.Vector3(
+			headMesh.position.x + newRot.x,
+			headMesh.position.y + newRot.y,
+			headMesh.position.z + newRot.z
+		);
+		headMesh.lookAt(headTarget);
+		var bodyTarget = new THREE.Vector3(
+			bodyMesh.position.x + newRot.x,
+			bodyMesh.position.y,
+			bodyMesh.position.z + newRot.z
+		);
+		bodyMesh.lookAt(bodyTarget);
 	};
 
 	self.addTo = function (scene) {
 		scene.add(bodyMesh);
 		scene.add(headMesh);
-		scene.add(hitboxMesh);
+		//scene.add(hitboxMesh);
 	};
 
 	self.removeFrom = function (scene) {
 		scene.remove(bodyMesh);
 		scene.remove(headMesh);
-		scene.remove(hitboxMesh);
+		//scene.remove(hitboxMesh);
 	};
 
 	self.id = function () {

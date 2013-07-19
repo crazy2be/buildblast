@@ -31,7 +31,7 @@ type MsgEntityCreate struct {
 
 type MsgEntityPosition struct {
 	Pos coords.World
-	Rot coords.Vec3
+	Rot coords.Direction
 	ID  string
 }
 
