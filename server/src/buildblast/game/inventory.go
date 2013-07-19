@@ -58,51 +58,54 @@ func (inv *Inventory) MoveItems(from, to int) {
 	inv.slots[to] = temp
 }
 
-func (inv *Inventory) AddItem(kind byte) {
-	firstOpenSpace := -1
-	// Find the item
-	for i, item := range inv.slots{
-		if firstOpenSpace < 0 && item.kind == ITEM_NIL {
-			firstOpenSpace = i
+func (inv *Inventory) findItemOfKind(kind byte) int {
+	for i, item := range inv.slots {
+		if item.kind == kind {
+			return i
 		}
+	}
+	return -1
+}
+
+func (inv *Inventory) AddItem(kind byte) {
+	for i := len(inv.slots) - 1; i >= 0; i-- {
+		item := inv.slots[i]
 		if item.kind == kind && item.num < MAX_STACK {
 			inv.slots[i].num++
 			return
 		}
 	}
+	emptySlot := inv.findItemOfKind(ITEM_NIL)
 	// TODO: Handle no space left
-	if firstOpenSpace >= 0 {
-		inv.slots[firstOpenSpace] = NewItem(kind)
+	if emptySlot >= 0 {
+		inv.slots[emptySlot] = NewItem(kind)
 	}
 }
 
-func (inv *Inventory) RemoveItem(kind byte) {
-	// Find the item
-
-	// Check your hands first
-	if inv.slots[inv.itemLeft].kind == kind {
-		inv.lowerStack(inv.itemLeft)
-		return
+// Removes an item from the inventory. Returns
+// true if the removal was sucessful, false if the
+// item does not exist in the inventory.
+func (inv *Inventory) RemoveItem(kind byte) bool {
+	if kind == ITEM_NIL {
+		return false
 	}
-	if inv.slots[inv.itemRight].kind == kind {
-		inv.lowerStack(inv.itemRight)
-		return
-	}
-
-	for i, item := range inv.slots {
+	for i := len(inv.slots) - 1; i >= 0; i-- {
+		item := inv.slots[i]
 		if item.kind == kind {
 			inv.lowerStack(i)
-			return
+			return true
 		}
 	}
+	return false
 }
 
 func (inv *Inventory) lowerStack(i int) {
-	if inv.slots[i].num == 1 {
-		inv.slots[i] = NewItem(ITEM_NIL)
+	if inv.slots[i].num > 1 {
+		inv.slots[i].num--
 		return
 	}
-	inv.slots[i].num--
+	inv.slots[i].num = 0
+	inv.slots[i].kind = ITEM_NIL
 }
 
 func (inv *Inventory) ItemsToString() string {

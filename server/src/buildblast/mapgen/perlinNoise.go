@@ -5,7 +5,7 @@ import (
 )
 
 // http://mrl.nyu.edu/~perlin/noise/
-var PerlinPermutations = []int{
+var perlinPermutations = []int{
 	151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,
 	23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,
 	174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,
@@ -73,7 +73,7 @@ func grad(hash int, x, y, z float64) float64 {
 	return r
 }
 
-func PerlinNoise(x, y, z float64) float64 {
+func perlinNoise(x, y, z float64) float64 {
 	floorX := math.Floor(x)
 	floorY := math.Floor(y)
 	floorZ := math.Floor(z)
@@ -90,7 +90,7 @@ func PerlinNoise(x, y, z float64) float64 {
 	v := fade(y)
 	w := fade(z)
 
-	p := PerlinPermutations
+	p := perlinPermutations
 
 	A  := p[X] + Y
 	AA := p[A] + Z

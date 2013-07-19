@@ -48,7 +48,7 @@ type MsgChunk struct {
 }
 
 type MsgBlock struct {
-	Pos  coords.World
+	Pos  coords.Block
 	Type mapgen.Block
 }
 

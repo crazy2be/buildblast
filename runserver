@@ -1,7 +1,8 @@
 #!/bin/bash -e
 
 if go version; then
-	export GOPATH=`pwd`/server
+    export GOPATH="`pwd`/server"
+    export GOBIN=""
     echo "Compiling server..."
     go get buildblast/server
 

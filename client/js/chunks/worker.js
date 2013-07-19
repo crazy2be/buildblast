@@ -10,13 +10,19 @@ importScripts(
     '../conn.js'
 );
 
-var console = {};
-console.log = function (message) {
-    parent.postMessage({
-        kind: 'log',
-        payload: message
-    });
-}
+console = {};
+['log', 'warn', 'error'].forEach(function (type) {
+    console[type] = function () {
+        var args = [].slice.call(arguments);
+        parent.postMessage({
+            kind: 'log',
+            payload: {
+                type: type,
+                message: args,
+            },
+        });
+    };
+});
 
 function sendChunk() {
     var chunk = manager.top();
@@ -52,6 +58,7 @@ parent.onmessage = function (e) {
 function initConn(payload) {
     var conn = new Conn(payload.uri);
     conn.on('chunk', processChunk);
+    conn.on('block', processBlockChange);
 }
 
 var manager = new ChunkManager();
@@ -97,11 +104,7 @@ function processBlockChange(payload) {
 
     var chunk = manager.get(cc);
     if (!chunk) {
-        // Eventually this should be a throw, as the server
-        // will filter block events to only cover chunks
-        // we have loaded. However, for now, we get block
-        // events for *all* chunks, not just loaded ones.
-        // Thus, we have to ignore them here.
+        console.error("Server Error: Got block change for chunk which is not loaded.");
         return;
     }
 

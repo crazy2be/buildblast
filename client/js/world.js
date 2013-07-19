@@ -25,16 +25,7 @@ function World(scene, container) {
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
 
-    conn.on('block', processBlock);
     conn.on('debug-ray', processRay);
-
-    function processBlock(payload) {
-        var wx = payload.Pos.X;
-        var wy = payload.Pos.Y;
-        var wz = payload.Pos.Z;
-        var type = payload.Type;
-        applyBlockChange(wx, wy, wz, type);
-    }
 
     function processRay(payload) {
         var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
@@ -160,7 +151,7 @@ function World(scene, container) {
         return findIntersection(camera, blockAt);
     }
 
-    function doLookedAtBlockAction(camera, cmp, cb) {
+    function doLookedAtBlockAction(camera, cmp, action) {
         var intersect = self.findBlockIntersection(camera);
         if (!intersect) {
             console.log("You aren't looking at anything!");
@@ -183,21 +174,21 @@ function World(scene, container) {
 
         if (onFace(x)) {
             if (cmp(x + 0.5, y, z)) {
-                cb(x + 0.5, y, z);
+                action(x + 0.5, y, z);
             } else {
-                cb(x - 0.5, y, z);
+                action(x - 0.5, y, z);
             }
         } else if (onFace(y)) {
             if (cmp(x, y + 0.5, z)) {
-                cb(x, y + 0.5, z);
+                action(x, y + 0.5, z);
             } else {
-                cb(x, y - 0.5, z);
+                action(x, y - 0.5, z);
             }
         } else if (onFace(z)) {
             if (cmp(x, y, z + 0.5)) {
-                cb(x, y, z + 0.5);
+                action(x, y, z + 0.5);
             } else {
-                cb(x, y, z - 0.5);
+                action(x, y, z - 0.5);
             }
         } else {
             console.log("Could not find looked at block!");
@@ -231,16 +222,12 @@ function World(scene, container) {
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
             Pos: {
-                X: wx,
-                Y: wy,
-                Z: wz,
+                X: Math.floor(wx),
+                Y: Math.floor(wy),
+                Z: Math.floor(wz),
             },
             Type: newType,
         });
-        applyBlockChange(wx, wy, wz, newType);
-    }
-
-    function applyBlockChange(wx, wy, wz, newType) {
         chunkManager.queueBlockChange(wx, wy, wz, newType);
     }
 }
