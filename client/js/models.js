@@ -21,8 +21,9 @@ Models.init = function(loadedCallback) {
 
         loader.load(path, function (geom, mats) {
             var mat = new THREE.MeshFaceMaterial(mats);
-            console.log(mats);
-
+            if (name === 'shovel') {
+                shovelFix(mat.materials);
+            }
             Models[name] = function () {
                 return new THREE.Mesh(geom, mat);
             }
@@ -35,5 +36,11 @@ Models.init = function(loadedCallback) {
     function getAKey(obj) {
         for (var k in obj) return k;
         return false;
+    }
+
+    function shovelFix(mats) {
+        for (var i = 0; i < mats.length; i++) {
+            mats[i].side = THREE.DoubleSide;
+        }
     }
 }
