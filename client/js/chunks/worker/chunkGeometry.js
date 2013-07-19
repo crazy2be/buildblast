@@ -34,7 +34,7 @@ function ChunkGeometry(cc, blocks, manager) {
 
                 var res = meshFunction(self, manager);
             
-                if(resGreedy.attributes.position.numItems > 2000) {
+                if(resGreedy.attributes.position.numItems > 20000) {
                     var lotsOfVertices = true;
                     var greedyNum = resGreedy.attributes.position.numItems;
                     var simpleNum = resSimple.attributes.position.numItems;
