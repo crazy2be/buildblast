@@ -1,8 +1,8 @@
 package physics
 
 import (
-	"buildblast/mapgen"
-	"buildblast/coords"
+	"buildblast/lib/mapgen"
+	"buildblast/lib/coords"
 )
 
 const (

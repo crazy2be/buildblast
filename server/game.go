@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"buildblast/coords"
-	"buildblast/game"
+	"buildblast/lib/coords"
+	"buildblast/lib/game"
 )
 
 type Game struct {

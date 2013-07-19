@@ -1,7 +1,7 @@
 package game
 
 import (
-	"buildblast/mapgen"
+	"buildblast/lib/mapgen"
 )
 
 type Item struct {

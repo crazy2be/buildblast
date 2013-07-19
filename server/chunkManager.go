@@ -4,9 +4,9 @@ import (
 	"log"
 	"sync"
 
-	"buildblast/game"
-	"buildblast/coords"
-	"buildblast/mapgen"
+	"buildblast/lib/game"
+	"buildblast/lib/coords"
+	"buildblast/lib/mapgen"
 )
 
 

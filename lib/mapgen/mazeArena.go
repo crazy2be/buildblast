@@ -3,7 +3,7 @@ package mapgen
 import (
 	"math"
 
-	"buildblast/coords"
+	"buildblast/lib/coords"
 )
 
 type MazeArena struct {

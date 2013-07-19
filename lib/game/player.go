@@ -4,8 +4,8 @@ import (
 	"log"
 	"math"
 
-	"buildblast/physics"
-	"buildblast/coords"
+	"buildblast/lib/physics"
+	"buildblast/lib/coords"
 )
 
 type ControlState struct {

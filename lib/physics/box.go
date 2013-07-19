@@ -1,8 +1,8 @@
 package physics
 
 import (
-	"buildblast/coords"
-	"buildblast/mapgen"
+	"buildblast/lib/coords"
+	"buildblast/lib/mapgen"
 )
 
 // xs means x start, xe means x end, etc.

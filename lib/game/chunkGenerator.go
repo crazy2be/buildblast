@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"buildblast/coords"
-	"buildblast/mapgen"
+	"buildblast/lib/coords"
+	"buildblast/lib/mapgen"
 )
 
 type ChunkGenerator struct {

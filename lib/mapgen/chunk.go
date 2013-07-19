@@ -3,7 +3,7 @@ package mapgen
 import (
 	"fmt"
 
-	"buildblast/coords"
+	"buildblast/lib/coords"
 )
 
 type Chunk [][][]Block

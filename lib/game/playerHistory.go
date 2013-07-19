@@ -1,7 +1,7 @@
 package game
 
 import (
-	"buildblast/coords"
+	"buildblast/lib/coords"
 )
 
 type PlayerHistoryEntry struct {

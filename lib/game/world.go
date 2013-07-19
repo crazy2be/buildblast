@@ -4,9 +4,9 @@ import (
 	"log"
 	"math/rand"
 
-	"buildblast/coords"
-	"buildblast/physics"
-	"buildblast/mapgen"
+	"buildblast/lib/coords"
+	"buildblast/lib/physics"
+	"buildblast/lib/mapgen"
 )
 
 type Entity interface {

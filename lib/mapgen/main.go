@@ -1,7 +1,7 @@
 package mapgen
 
 import (
-	"buildblast/coords"
+	"buildblast/lib/coords"
 )
 
 type Generator interface {

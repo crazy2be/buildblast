@@ -1,14 +1,15 @@
 #!/bin/bash -e
 
 if go version; then
-    export GOPATH="`pwd`/server"
-    export GOBIN=""
+    export GOPATH="`pwd`/../../"
+    export GOBIN="`pwd`/bin"
     echo "Compiling server..."
+	mkdir -p "$GOBIN"
     go get buildblast/server
 
     cd client
     echo "Starting server..."
-    ../server/bin/server
+    ../bin/server
 
     exit 0
 else
