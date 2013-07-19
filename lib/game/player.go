@@ -4,22 +4,22 @@ import (
 	"log"
 	"math"
 
-	"buildblast/lib/physics"
 	"buildblast/lib/coords"
+	"buildblast/lib/physics"
 )
 
 type ControlState struct {
-	Forward         bool
-	Left            bool
-	Right           bool
-	Back            bool
-	Jump            bool
-	ActivateLeft    bool
-	ActivateRight   bool
-	Lat             float64
-	Lon             float64
+	Forward       bool
+	Left          bool
+	Right         bool
+	Back          bool
+	Jump          bool
+	ActivateLeft  bool
+	ActivateRight bool
+	Lat           float64
+	Lon           float64
 
-	Timestamp       float64 // In ms
+	Timestamp float64 // In ms
 }
 
 var PLAYER_HEIGHT = 1.75
@@ -40,14 +40,14 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	pos       coords.World
-	look      coords.Direction
-	vy        float64
-	box       physics.Box
-	controls  ControlState
-	history   *PlayerHistory
-	world     *World
-	name      string
+	pos      coords.World
+	look     coords.Direction
+	vy       float64
+	box      physics.Box
+	controls ControlState
+	history  *PlayerHistory
+	world    *World
+	name     string
 
 	// Gameplay state
 	hp        int
@@ -56,11 +56,11 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		history: NewPlayerHistory(),
-		hp: PLAYER_MAX_HP,
+		history:   NewPlayerHistory(),
+		hp:        PLAYER_MAX_HP,
 		inventory: NewInventory(),
-		world: world,
-		name: name,
+		world:     world,
+		name:      name,
 	}
 }
 
@@ -121,17 +121,17 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	sin := math.Sin
 
 	move := coords.Vec3{
-		X: -cos(controls.Lon) * fw + sin(controls.Lon) * rt,
+		X: -cos(controls.Lon)*fw + sin(controls.Lon)*rt,
 		Y: p.vy * dt,
-		Z: -sin(controls.Lon) * fw - cos(controls.Lon) * rt,
+		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
 	}
 
 	box := p.Box()
 
 	move = box.AttemptMove(p.world, move)
 
-	if (move.Y == 0) {
-		if (controls.Jump) {
+	if move.Y == 0 {
+		if controls.Jump {
 			p.vy = 6
 		} else {
 			p.vy = 0

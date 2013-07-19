@@ -11,14 +11,14 @@ const (
 	// See "Block encoding.txt"
 
 	// Properties
-	BLOCK_MINEABLE  = 0x80000000
+	BLOCK_MINEABLE = 0x80000000
 
 	// Subtypes
 	BLOCK_EMPTY = 0x1 << 0
 	BLOCK_SOLID = 0x1 << 1
 )
 
-var BLOCK_PROPERTIES []uint32 = []uint32 {
+var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** NIL    */ 0,
 	/** AIR    */ BLOCK_EMPTY,
 	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
@@ -26,5 +26,5 @@ var BLOCK_PROPERTIES []uint32 = []uint32 {
 }
 
 func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b] & BLOCK_SOLID > 0;
+	return BLOCK_PROPERTIES[b]&BLOCK_SOLID > 0
 }

@@ -16,4 +16,3 @@ type blockGenerator interface {
 type BlockSource interface {
 	Block(bc coords.Block) Block
 }
-

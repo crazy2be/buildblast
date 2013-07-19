@@ -11,7 +11,7 @@ type PlayerHistoryEntry struct {
 }
 
 type PlayerHistory struct {
-	buf []PlayerHistoryEntry
+	buf    []PlayerHistoryEntry
 	offset int
 }
 
@@ -33,12 +33,12 @@ func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
 	l := len(ph.buf)
 	// Go has the same problem as JavaScript...
 	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
-	return ph.buf[(((ph.offset + i) % l) + l) % l]
+	return ph.buf[(((ph.offset+i)%l)+l)%l]
 }
 
 func (ph *PlayerHistory) set(i int, val PlayerHistoryEntry) {
 	l := len(ph.buf)
-	ph.buf[(((ph.offset + i) % l) + l) % l] = val
+	ph.buf[(((ph.offset+i)%l)+l)%l] = val
 }
 
 func (ph *PlayerHistory) Clear() {

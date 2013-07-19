@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 
-	"buildblast/lib/game"
 	"buildblast/lib/coords"
+	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 )
 
@@ -30,9 +30,9 @@ type MsgEntityCreate struct {
 }
 
 type MsgEntityPosition struct {
-	Pos   coords.World
-	Rot   coords.Vec3
-	ID    string
+	Pos coords.World
+	Rot coords.Vec3
+	ID  string
 }
 
 type MsgEntityRemove struct {
@@ -44,7 +44,7 @@ type MsgChunk struct {
 	Size  coords.Vec3
 	// Go is really slow at encoding arrays. This
 	// is much faster (and more space efficient)
-	Data  string
+	Data string
 }
 
 type MsgBlock struct {
@@ -53,7 +53,7 @@ type MsgBlock struct {
 }
 
 type MsgControlsState struct {
-	Controls  game.ControlState
+	Controls game.ControlState
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
 }
@@ -64,11 +64,11 @@ type MsgChat struct {
 }
 
 type MsgPlayerState struct {
-	Pos        coords.World
-	VelocityY  float64
+	Pos       coords.World
+	VelocityY float64
 	// JavaScript performance.now() timestamp.
-	Timestamp  float64
-	Hp         int
+	Timestamp float64
+	Hp        int
 }
 
 type MsgDebugRay struct {
@@ -91,7 +91,7 @@ type MsgInventoryMove struct {
 }
 
 type ClientMessage struct {
-	Kind MessageKind
+	Kind    MessageKind
 	Payload json.RawMessage
 }
 

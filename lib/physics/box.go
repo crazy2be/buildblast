@@ -50,7 +50,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 
 	b.xs += amount.X
 	b.xe += amount.X
-	if (b.inSolid(world)) {
+	if b.inSolid(world) {
 		b.xs -= amount.X
 		b.xe -= amount.X
 		amount.X = 0
@@ -59,7 +59,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 	b.ys += amount.Y
 	b.ym += amount.Y
 	b.ye += amount.Y
-	if (b.inSolid(world)) {
+	if b.inSolid(world) {
 		b.ys -= amount.Y
 		b.ym -= amount.Y
 		b.ye -= amount.Y
@@ -68,7 +68,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 
 	b.zs += amount.Z
 	b.ze += amount.Z
-	if (b.inSolid(world)) {
+	if b.inSolid(world) {
 		b.zs -= amount.Z
 		b.ze -= amount.Z
 		amount.Z = 0
@@ -85,19 +85,23 @@ func (b *Box) Contains(position coords.World) bool {
 }
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
-	solid := func (x, y, z float64) bool {
+	solid := func(x, y, z float64) bool {
 		block := world.Block(coords.World{x, y, z}.Block())
 		return block.Solid()
 	}
 
-	xs := b.xs; xe := b.xe
-	ys := b.ys; ym := b.ym; ye := b.ye
-	zs := b.zs; ze := b.ze
+	xs := b.xs
+	xe := b.xe
+	ys := b.ys
+	ym := b.ym
+	ye := b.ye
+	zs := b.zs
+	ze := b.ze
 
 	return solid(xs, ys, zs) || solid(xs, ys, ze) ||
-		   solid(xs, ym, zs) || solid(xs, ym, ze) ||
-		   solid(xs, ye, zs) || solid(xs, ye, ze) ||
-		   solid(xe, ys, zs) || solid(xe, ys, ze) ||
-		   solid(xe, ym, zs) || solid(xe, ym, ze) ||
-		   solid(xe, ye, zs) || solid(xe, ye, ze)
+		solid(xs, ym, zs) || solid(xs, ym, ze) ||
+		solid(xs, ye, zs) || solid(xs, ye, ze) ||
+		solid(xe, ys, zs) || solid(xe, ys, ze) ||
+		solid(xe, ym, zs) || solid(xe, ym, ze) ||
+		solid(xe, ye, zs) || solid(xe, ye, ze)
 }

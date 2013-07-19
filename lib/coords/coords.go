@@ -60,7 +60,7 @@ func (wc World) Offset() Offset {
 }
 
 func (wc World) Block() Block {
-	floor := func (n float64) int {
+	floor := func(n float64) int {
 		return int(math.Floor(n))
 	}
 	return Block{
@@ -77,8 +77,8 @@ type Block struct {
 }
 
 func (bc Block) Chunk() Chunk {
-	div := func (a, b int) int {
-		if (a < 0) {
+	div := func(a, b int) int {
+		if a < 0 {
 			// By default, integer division in go, like in C,
 			// "truncates towards zero". However, we want
 			// to floor the result of the division, "truncating
@@ -99,7 +99,7 @@ func (bc Block) Chunk() Chunk {
 }
 
 func (bc Block) Offset() Offset {
-	mod := func (a, b int) int {
+	mod := func(a, b int) int {
 		return ((a % b) + b) % b
 	}
 	return Offset{
@@ -130,8 +130,8 @@ type Offset struct {
 }
 
 const (
-	ChunkWidth = 32
-	ChunkDepth = 32
+	ChunkWidth  = 32
+	ChunkDepth  = 32
 	ChunkHeight = 32
 )
 

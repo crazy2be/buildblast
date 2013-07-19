@@ -4,23 +4,22 @@ import (
 	"log"
 	"sync"
 
-	"buildblast/lib/game"
 	"buildblast/lib/coords"
+	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 )
-
 
 // Manages the chunks loaded, displayed, etc for a
 // single client.
 type ChunkManager struct {
 	chunks map[coords.Chunk]ChunkStatus
-	mutex sync.Mutex
+	mutex  sync.Mutex
 }
 
 type ChunkStatus struct {
-	sent bool
+	sent     bool
 	priority int
-	data mapgen.Chunk
+	data     mapgen.Chunk
 }
 
 func NewChunkManager() *ChunkManager {
@@ -91,11 +90,11 @@ func (cm *ChunkManager) ApplyBlockChange(bc coords.Block, b mapgen.Block) bool {
 	return true
 }
 
-func (cm *ChunkManager) QueueChunksNearby(w* game.World, wc coords.World) {
+func (cm *ChunkManager) QueueChunksNearby(w *game.World, wc coords.World) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	queue := func (cc coords.Chunk, priority int) {
+	queue := func(cc coords.Chunk, priority int) {
 		cm.queue(w, cc, priority)
 	}
 

@@ -12,7 +12,7 @@ type Item struct {
 func NewItem(kind byte) Item {
 	return Item{
 		kind: kind,
-		num: 1,
+		num:  1,
 	}
 }
 
@@ -26,10 +26,9 @@ const (
 	// Properties
 	STACKABLE = 0x1 << 0
 	SHOOTABLE = 0x1 << 1
-
 )
 
-var ITEM_PROPERTIES []uint32 = []uint32 {
+var ITEM_PROPERTIES []uint32 = []uint32{
 	/** NIL    */ 0,
 	/** DIRT   */ STACKABLE,
 	/** STONE  */ STACKABLE,
@@ -37,7 +36,7 @@ var ITEM_PROPERTIES []uint32 = []uint32 {
 	/** GUN    */ SHOOTABLE,
 }
 
-var ITEM_FROM_BLOCK []byte = []byte {
+var ITEM_FROM_BLOCK []byte = []byte{
 	/** NIL    */ ITEM_NIL,
 	/** AIR    */ ITEM_NIL,
 	/** DIRT   */ ITEM_DIRT,
@@ -45,11 +44,11 @@ var ITEM_FROM_BLOCK []byte = []byte {
 }
 
 func (i Item) Stackable() bool {
-	return ITEM_PROPERTIES[i.kind] & STACKABLE > 0
+	return ITEM_PROPERTIES[i.kind]&STACKABLE > 0
 }
 
 func (i Item) Shootable() bool {
-	return ITEM_PROPERTIES[i.kind] & SHOOTABLE > 0
+	return ITEM_PROPERTIES[i.kind]&SHOOTABLE > 0
 }
 
 func ItemFromBlock(block mapgen.Block) byte {

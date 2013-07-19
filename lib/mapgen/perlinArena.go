@@ -30,9 +30,9 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	abs := math.Abs
 
 	mult := 0.1 * pow(1.05,
-					  max(abs(x) - 32, 0) +
-					  max(abs(z) - 128, 0))
-	height = height*mult + float64(coords.ChunkHeight) / 2
+		max(abs(x)-32, 0)+
+			max(abs(z)-128, 0))
+	height = height*mult + float64(coords.ChunkHeight)/2
 	return height
 }
 

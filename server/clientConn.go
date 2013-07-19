@@ -16,7 +16,7 @@ type ClientConn struct {
 
 	Errors chan error
 
-	sendQueue chan Message
+	sendQueue      chan Message
 	sendLossyQueue chan Message
 
 	recvQueue chan Message

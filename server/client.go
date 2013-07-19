@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"reflect"
+	"time"
 
-	"buildblast/lib/game"
 	"buildblast/lib/coords"
+	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 )
 
@@ -16,7 +16,7 @@ type Client struct {
 	name string
 
 	// Send the client the right chunks.
-	cm *ChunkManager
+	cm             *ChunkManager
 	blockSendQueue chan *MsgBlock
 
 	player *game.Player
@@ -108,10 +108,10 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 	c.cm.QueueChunksNearby(w, pos)
 
 	c.Send(&MsgPlayerState{
-		Pos: pos,
+		Pos:       pos,
 		VelocityY: vy,
 		Timestamp: m.Timestamp,
-		Hp: hp,
+		Hp:        hp,
 	})
 
 	if hitPos != nil {
@@ -149,7 +149,7 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 
 func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
 	m := &MsgBlock{
-		Pos: bc,
+		Pos:  bc,
 		Type: b,
 	}
 	select {
@@ -173,8 +173,8 @@ func (c *Client) RunChunks(conn *Conn) {
 			if chunk != nil {
 				m := &MsgChunk{
 					CCPos: cc,
-					Size: coords.ChunkSize,
-					Data: chunk.Flatten(),
+					Size:  coords.ChunkSize,
+					Data:  chunk.Flatten(),
 				}
 				conn.Send(m)
 			}

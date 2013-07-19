@@ -5,8 +5,8 @@ import (
 	"math/rand"
 
 	"buildblast/lib/coords"
-	"buildblast/lib/physics"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/physics"
 )
 
 type Entity interface {
@@ -31,14 +31,14 @@ type BlockListener interface {
 }
 
 type World struct {
-	seed         float64
-	chunks       map[coords.Chunk]mapgen.Chunk
-	spawns      []coords.World
+	seed           float64
+	chunks         map[coords.Chunk]mapgen.Chunk
+	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	entities     []Entity
+	entities        []Entity
 	entityListeners []EntityListener
-	blockListeners []BlockListener
+	blockListeners  []BlockListener
 }
 
 func NewWorld(seed float64) *World {
@@ -55,7 +55,6 @@ func NewWorld(seed float64) *World {
 	w.entityListeners = make([]EntityListener, 0)
 	return w
 }
-
 
 func (w *World) Tick() {
 	w.generationTick()
@@ -96,11 +95,9 @@ func (w *World) findSpawn() coords.World {
 	return w.spawns[rand.Intn(l)]
 }
 
-
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
 	return w.chunks[cc]
 }
-
 
 func (w *World) Block(bc coords.Block) mapgen.Block {
 	chunk := w.chunks[bc.Chunk()]
@@ -129,14 +126,13 @@ func (w *World) AddBlockListener(listener BlockListener) {
 func (w *World) RemoveBlockListener(listener BlockListener) {
 	for i, other := range w.blockListeners {
 		if other == listener {
-			w.blockListeners[i] = w.blockListeners[len(w.blockListeners) - 1]
-			w.blockListeners = w.blockListeners[:len(w.blockListeners) - 1]
+			w.blockListeners[i] = w.blockListeners[len(w.blockListeners)-1]
+			w.blockListeners = w.blockListeners[:len(w.blockListeners)-1]
 			return
 		}
 	}
 	log.Println("WARN: Attempt to remove block listener which does not exist.")
 }
-
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
@@ -150,8 +146,8 @@ func (w *World) AddEntity(e Entity) {
 func (w *World) RemoveEntity(e Entity) {
 	for i, entity := range w.entities {
 		if entity == e {
-			w.entities[i] = w.entities[len(w.entities) - 1]
-			w.entities = w.entities[:len(w.entities) - 1]
+			w.entities[i] = w.entities[len(w.entities)-1]
+			w.entities = w.entities[:len(w.entities)-1]
 
 			for _, listener := range w.entityListeners {
 				listener.EntityRemoved(e.ID())

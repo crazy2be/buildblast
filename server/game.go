@@ -9,13 +9,13 @@ import (
 )
 
 type Game struct {
-	clients map[string]*Client
+	clients           map[string]*Client
 	connectingClients chan *Client
 
-	clientRequests chan string
+	clientRequests  chan string
 	clientResponses chan *Client
 
-	world          *game.World
+	world *game.World
 }
 
 func NewGame() *Game {
@@ -49,7 +49,7 @@ func (g *Game) handleConnectingClients() {
 				log.Println("[WARN] Attempt to connect client with id", id, "who is already playing in this world!")
 				c.Send(&MsgChat{
 					DisplayName: "SERVER",
-					Message: "Player with name " + id + " already playing on this world!",
+					Message:     "Player with name " + id + " already playing on this world!",
 				})
 				return
 			}
@@ -82,10 +82,10 @@ func (g *Game) Announce(message string) {
 }
 
 func (g *Game) Chat(user string, message string) {
-	log.Println("[CHAT]", user + ":", message)
+	log.Println("[CHAT]", user+":", message)
 	g.Broadcast(&MsgChat{
 		DisplayName: user,
-		Message: message,
+		Message:     message,
 	})
 }
 
@@ -148,7 +148,7 @@ func (g *Game) EntityCreated(id string) {
 
 func (g *Game) EntityMoved(id string, pos coords.World) {
 	g.BroadcastLossy(&MsgEntityPosition{
-		ID: id,
+		ID:  id,
 		Pos: pos,
 	})
 }

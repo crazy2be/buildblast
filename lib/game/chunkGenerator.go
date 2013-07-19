@@ -12,20 +12,20 @@ type ChunkGenerator struct {
 	// Chunks are sent to this channel as they are generated
 	Generated chan ChunkGenerationResult
 
-	chunks map[coords.Chunk]ChunkStatus
-	mutex sync.Mutex
+	chunks    map[coords.Chunk]ChunkStatus
+	mutex     sync.Mutex
 	generator mapgen.Generator
 }
 
 type ChunkGenerationResult struct {
-	cc coords.Chunk
-	chunk mapgen.Chunk
+	cc     coords.Chunk
+	chunk  mapgen.Chunk
 	spawns []coords.World
 }
 
 type ChunkStatus struct {
 	generated bool
-	priority int
+	priority  int
 }
 
 func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
@@ -51,7 +51,7 @@ func (cm *ChunkGenerator) QueueChunksNearby(wc coords.World) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	queue := func (cc coords.Chunk, priority int) {
+	queue := func(cc coords.Chunk, priority int) {
 		cm.queue(cc, priority)
 	}
 
@@ -86,8 +86,8 @@ func (cm *ChunkGenerator) Run() {
 
 		chunk, spawns := cm.generator.Chunk(cc)
 		cm.Generated <- ChunkGenerationResult{
-			cc: cc,
-			chunk: chunk,
+			cc:     cc,
+			chunk:  chunk,
 			spawns: spawns,
 		}
 
@@ -100,7 +100,7 @@ func (cm *ChunkGenerator) Run() {
 }
 
 func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
-	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
+	occ := func(cc coords.Chunk, x, y, z int) coords.Chunk {
 		return coords.Chunk{
 			X: cc.X + x,
 			Y: cc.Y + y,
@@ -108,14 +108,14 @@ func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
 		}
 	}
 
-	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
-		abs := func (n int) int {
+	eachWithin := func(cc coords.Chunk, xdist, ydist, zdist int, cb func(newCC coords.Chunk, dist int)) {
+		abs := func(n int) int {
 			if n < 0 {
 				return -n
 			}
 			return n
 		}
-		dist := func (x, y, z int) int {
+		dist := func(x, y, z int) int {
 			return abs(x) + abs(y) + abs(z)
 		}
 
@@ -130,10 +130,10 @@ func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
 	}
 
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
+	eachWithin(cc, 2, 0, 2, func(newCC coords.Chunk, dist int) {
 		// We want to prioritize further away chunks lower, but the
 		// priority must be a positive integer.
-		cb(newCC, 10 - dist)
+		cb(newCC, 10-dist)
 	})
 
 	oc := wc.Offset()

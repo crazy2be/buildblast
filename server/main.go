@@ -1,15 +1,15 @@
 package main
 
 import (
-	"os"
-	"os/signal"
 	"fmt"
 	"log"
-	"time"
-	"strings"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
 	"runtime/pprof"
+	"strings"
+	"time"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -18,7 +18,7 @@ import (
 var globalGame = NewGame()
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "." + r.URL.Path)
+	http.ServeFile(w, r, "."+r.URL.Path)
 }
 
 func getClientName(config *websocket.Config) string {
@@ -54,11 +54,11 @@ func doProfile() {
 	}
 	pprof.StartCPUProfile(f)
 
-	go func () {
+	go func() {
 		cycles := 4
 		for i := 0; i < cycles; i++ {
-			log.Print((cycles - i) * 30, " seconds left")
-			<-time.After(30*time.Second)
+			log.Print((cycles-i)*30, " seconds left")
+			<-time.After(30 * time.Second)
 		}
 		pprof.StopCPUProfile()
 		log.Print("Done! Exiting...")
@@ -110,7 +110,7 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
-// 	go doProfile()
+	// 	go doProfile()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
