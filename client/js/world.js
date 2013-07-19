@@ -3,11 +3,11 @@ function World(scene, container) {
 
     self.addToScene = function (mesh) {
         scene.add(mesh);
-    }
+    };
 
     self.removeFromScene = function (mesh) {
         scene.remove(mesh);
-    }
+    };
 
     var playerName = localStorage.playerName;
     while (!playerName) {
@@ -36,7 +36,7 @@ function World(scene, container) {
         player.update(dt);
         chunkManager.update(dt);
         chat.update(dt);
-    }
+    };
 
     self.render = player.render;
     self.resize = player.resize;
@@ -48,7 +48,7 @@ function World(scene, container) {
         var cube = new THREE.Mesh( smallCube, smallCubeMat );
         cube.position = position;
         scene.add(cube);
-    }
+    };
 
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -60,7 +60,7 @@ function World(scene, container) {
         var block = chunk.block(oc);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
-    }
+    };
 
     self.findClosestGround = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -109,12 +109,12 @@ function World(scene, container) {
         } else {
             throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
-    }
+    };
 
     var projector = new THREE.Projector();
     function findIntersection(camera, cb, precision, maxDist) {
-        var precision = precision || 0.01;
-        var maxDist = maxDist || 100;
+        precision = precision || 0.01;
+        maxDist = maxDist || 100;
         var look = new THREE.Vector3(0, 0, 1);
         // http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
         projector.unprojectVector(look, camera);
@@ -141,7 +141,7 @@ function World(scene, container) {
             return entityManager.entityAt(wx, wy, wz);
         }
         return findIntersection(camera, entityAt, 0.1);
-    }
+    };
 
     self.findBlockIntersection = function (camera) {
         function blockAt(wx, wy, wz) {
@@ -149,7 +149,7 @@ function World(scene, container) {
             return block && block.mineable();
         }
         return findIntersection(camera, blockAt);
-    }
+    };
 
     function doLookedAtBlockAction(camera, cmp, action) {
         var intersect = self.findBlockIntersection(camera);
@@ -205,7 +205,7 @@ function World(scene, container) {
             changeBlock(wx, wy, wz, Block.AIR);
         }
         doLookedAtBlockAction(camera, mineable, removeBlock);
-    }
+    };
 
     self.addLookedAtBlock = function (camera, blockType) {
         function empty(x, y, z) {
@@ -217,7 +217,7 @@ function World(scene, container) {
             changeBlock(wx, wy, wz, blockType);
         }
         doLookedAtBlockAction(camera, empty, addBlock);
-    }
+    };
 
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {

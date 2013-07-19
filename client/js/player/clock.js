@@ -6,7 +6,7 @@ function Clock(conn) {
     var offset = 0;
     self.time = function () {
         return offset + now();
-    }
+    };
 
     var clientTime;
     function startSync() {

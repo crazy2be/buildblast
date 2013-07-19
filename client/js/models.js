@@ -26,8 +26,8 @@ Models.init = function(loadedCallback) {
             }
             Models[name] = function () {
                 return new THREE.Mesh(geom, mat);
-            }
-            delete modelsToLoad[name]
+            };
+            delete modelsToLoad[name];
             loadNextModel();
         });
     }
@@ -43,4 +43,4 @@ Models.init = function(loadedCallback) {
             mats[i].side = THREE.DoubleSide;
         }
     }
-}
+};

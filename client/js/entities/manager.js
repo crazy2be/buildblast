@@ -53,5 +53,5 @@ function EntityManager(scene, conn, player) {
                 return entity;
             }
         }
-    }
+    };
 }

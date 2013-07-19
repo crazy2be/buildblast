@@ -8,7 +8,7 @@ function Box(p, halfExtents, centerOffset) {
 
     self.setPos = function (newPos) {
         p = newPos;
-    }
+    };
 
     self.attemptMove = function (world, move) {
         if (inSolid(world)) {
@@ -17,7 +17,7 @@ function Box(p, halfExtents, centerOffset) {
             p.y = gh;
         }
 
-        p.x += move.x
+        p.x += move.x;
         if (inSolid(world)) {
             p.x -= move.x;
             move.x = 0;
@@ -36,7 +36,7 @@ function Box(p, halfExtents, centerOffset) {
         }
 
         return p;
-    }
+    };
 
     self.contains = function (x, y, z) {
         var he = halfExtents;
@@ -48,7 +48,7 @@ function Box(p, halfExtents, centerOffset) {
         return xs < x && xe > x &&
             ys < y && ye > y &&
             zs < z && ze > z;
-    }
+    };
 
     function bboxEach(fn, reduce) {
         var he = halfExtents;

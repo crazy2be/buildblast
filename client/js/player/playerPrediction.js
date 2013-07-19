@@ -6,7 +6,7 @@ function PlayerPrediction(world, conn, position) {
     self.update = function (controls) {
         sendControlsToNetwork(controls);
         return applyRemainingClientPredictions();
-    }
+    };
 
     function sendControlsToNetwork(c) {
         var userCommand = {

@@ -34,7 +34,7 @@ function PerfChart(opts) {
         drawGraph();
 
         currentDataPoint = (currentDataPoint + 1) % dataPoints.length;
-    }
+    };
 
     var canvas = document.createElement('canvas');
     canvas.width = opts.width;

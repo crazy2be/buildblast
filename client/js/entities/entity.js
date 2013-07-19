@@ -36,34 +36,34 @@ function Entity(id) {
         headMesh.position.set(c.x, c.y + bh/2, c.z);
         hitboxMesh.position.set(c.x, c.y, c.z);
         return self;
-    }
+    };
 
     self.contains = function (x, y, z) {
         if (!pos) return;
         var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
         return box.contains(x, y, z);
-    }
+    };
 
     self.setRot = function (newRot) {
         headMesh.rotation.set(newRot.x, newRot.y, newRot.z);
         var br = bodyMesh.rotation;
         br.y = newRot.y;
-    }
+    };
 
     self.addTo = function (scene) {
         scene.add(bodyMesh);
         scene.add(headMesh);
         scene.add(hitboxMesh);
-    }
+    };
 
     self.removeFrom = function (scene) {
         scene.remove(bodyMesh);
         scene.remove(headMesh);
         scene.remove(hitboxMesh);
-    }
+    };
 
     self.id = function () {
         return id;
-    }
+    };
 }
 

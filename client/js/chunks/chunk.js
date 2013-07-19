@@ -13,17 +13,17 @@ function Chunk(blocks, geometries, scene, quality) {
 
     self.remove = function () {
         scene.remove(meshes[quality]);
-    }
+    };
 
     self.add = function () {
         scene.add(meshes[quality]);
-    }
+    };
 
     self.setQuality = function (newQuality) {
         self.remove();
         quality = newQuality;
         self.add();
-    }
+    };
 
     self.block = function (oc) {
         if (validChunkOffset(oc.x, oc.y, oc.z)) {
@@ -39,5 +39,5 @@ function Chunk(blocks, geometries, scene, quality) {
         } else {
             throw "block coords out of bounds: " + oc;
         }
-    }
+    };
 }

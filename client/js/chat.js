@@ -101,14 +101,14 @@ function Chat(controls, conn, container) {
                 alpha = (1.0 - completion) * 4;
             }
             elm.style.opacity = alpha;
-        }
+        };
 
         self.finished = function () {
             return elapsedTime >= totalTime;
-        }
+        };
 
         self.end = function () {
             elm.style.opacity = '';
-        }
+        };
     }
 }

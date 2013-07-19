@@ -28,7 +28,7 @@ function FeatureTester() {
         tests.webgl = hasWebGL();
         tests.workers = !!window.Worker;
         tests.pointerLock = hasPointerLock();
-    }
+    };
 
     self.pass = function () {
         if (!tests) throw Error("You need to call FeatureTester.run() before checking the results of .pass()");
@@ -38,7 +38,7 @@ function FeatureTester() {
             }
         }
         return true;
-    }
+    };
 
     self.errors = function () {
         var errors = document.createElement('div');
@@ -56,17 +56,17 @@ function FeatureTester() {
         }
         if (!tests.workers) {
             var elm = document.createElement('p');
-            elm.innerHTML = "Your browser does not seem to support Web Workers."
+            elm.innerHTML = "Your browser does not seem to support Web Workers.";
             errors.appendChild(elm);
         }
         if (!tests.pointerLock) {
             var elm = document.createElement('p');
-            elm.innerHTML = "Your browser does not seem to support the pointer lock API."
+            elm.innerHTML = "Your browser does not seem to support the pointer lock API.";
             errors.appendChild(elm);
         }
         var elm = document.createElement('p');
         elm.innerHTML = "You should probably just upgrade to <a href='http://www.google.com/chrome/'>Google Chrome</a>.";
         errors.appendChild(elm);
         return errors;
-    }
+    };
 };

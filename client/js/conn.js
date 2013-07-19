@@ -22,19 +22,19 @@ function Conn(uri) {
         } else {
             messageQueue.push(obj);
         }
-    }
+    };
 
     var handlers = {};
     self.on = function (kind, cb) {
         handlers[kind] = handlers[kind] || [];
         handlers[kind].push(cb);
-    }
+    };
 
     ws.onopen = function () {
         for (var i = 0; i < messageQueue.length; i++) {
             ws.send(JSON.stringify(messageQueue[i]));
         }
-    }
+    };
 
     ws.onmessage = function (ev) {
         var o = JSON.parse(ev.data);
@@ -47,14 +47,13 @@ function Conn(uri) {
         for (var i = 0; i < h.length; h++) {
             h[i](o.Payload);
         }
-    }
+    };
 
     ws.onerror = function (ev) {
         throw new Error("Alas, it seems I have errd. Forgive me master!", ev);
-    }
+    };
 
     ws.onclose = function (ev) {
         throw new Error("Someone closed my websocket :(", ev);
-    }
-
+    };
 }

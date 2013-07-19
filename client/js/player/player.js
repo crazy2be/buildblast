@@ -28,15 +28,15 @@ function Player(name, world, conn, controls) {
 
     self.pos = function () {
         return camera.position.clone();
-    }
+    };
 
     self.name = function () {
         return name;
-    }
+    };
 
     self.id = function() {
         return "player-" + name;
-    }
+    };
 
     self.render = function (renderer, scene) {
         renderer.render(scene, camera);

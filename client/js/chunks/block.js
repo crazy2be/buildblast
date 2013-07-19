@@ -44,7 +44,7 @@ Block.getColours = function (blockType, face) {
             result.light = hex(0x784800);
             result.dark  = hex(0x000000);
         }
-    } else if (blockType === Block.STONE){
+    } else if (blockType === Block.STONE) {
         result.light = hex(0x5E5E5E);
         result.dark  = hex(0x000000);
     } else {
@@ -59,20 +59,20 @@ Block.getColours = function (blockType, face) {
             b:  num        & 0xFF,
         };
     }
-}
+};
 
 Block.isMineable = function (block) {
     return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
-}
+};
 
 Block.isEmpty = function (block) {
     return Block.inSubtype(block, Block.EMPTY);
-}
+};
 
 Block.isSolid = function (block) {
     return Block.inSubtype(block, Block.SOLID);
-}
+};
 
 Block.inSubtype = function (block, subtype) {
     return (Block.PROPERTIES[block] & 0xF) === subtype;
-}
+};
