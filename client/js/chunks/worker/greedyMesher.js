@@ -83,7 +83,7 @@ function greedyMesh(chunkGeometry, manager) {
             //If we wanted to allow for say, inverseQuality of 3 (meaning the edges
             //are different size) this would be where we would do part of it... it would
             //make the chunk boundaries look bad though.
-                        
+
             LOOP.For3D(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 1, 1).multiplyScalar(inverseQuality),
                 function(offset) {
                     var sampleBlockPos = blockPos.clone().add(offset);
