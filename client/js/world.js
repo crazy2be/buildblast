@@ -168,34 +168,27 @@ function World(scene, container) {
             return Math.abs(n);
         }
 
-        function cb(x, y, z) {
-            x = Math.floor(x);
-            y = Math.floor(y);
-            z = Math.floor(z);
-            action(x, y, z);
-        }
-
         var x = p.x;
         var y = p.y;
         var z = p.z;
 
         if (onFace(x)) {
             if (cmp(x + 0.5, y, z)) {
-                cb(x + 0.5, y, z);
+                action(x + 0.5, y, z);
             } else {
-                cb(x - 0.5, y, z);
+                action(x - 0.5, y, z);
             }
         } else if (onFace(y)) {
             if (cmp(x, y + 0.5, z)) {
-                cb(x, y + 0.5, z);
+                action(x, y + 0.5, z);
             } else {
-                cb(x, y - 0.5, z);
+                action(x, y - 0.5, z);
             }
         } else if (onFace(z)) {
             if (cmp(x, y, z + 0.5)) {
-                cb(x, y, z + 0.5);
+                action(x, y, z + 0.5);
             } else {
-                cb(x, y, z - 0.5);
+                action(x, y, z - 0.5);
             }
         } else {
             console.log("Could not find looked at block!");
@@ -229,9 +222,9 @@ function World(scene, container) {
     function changeBlock(wx, wy, wz, newType) {
         conn.queue('block', {
             Pos: {
-                X: wx,
-                Y: wy,
-                Z: wz,
+                X: Math.floor(wx),
+                Y: Math.floor(wy),
+                Z: Math.floor(wz),
             },
             Type: newType,
         });
