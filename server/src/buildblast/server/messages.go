@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	"buildblast/game"
 	"buildblast/coords"
 	"buildblast/mapgen"
 )
@@ -20,6 +21,8 @@ const (
 	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
+	MSG_INVENTORY_STATE = MessageKind("inventory-state")
+	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
 )
 
 type MsgEntityCreate struct {
@@ -50,7 +53,7 @@ type MsgBlock struct {
 }
 
 type MsgControlsState struct {
-	Controls  ControlState
+	Controls  game.ControlState
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
 }
@@ -74,6 +77,17 @@ type MsgDebugRay struct {
 
 type MsgNtpSync struct {
 	ServerTime float64
+}
+
+type MsgInventoryState struct {
+	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
+	ItemLeft  int
+	ItemRight int
+}
+
+type MsgInventoryMove struct {
+	From int
+	To   int
 }
 
 type ClientMessage struct {

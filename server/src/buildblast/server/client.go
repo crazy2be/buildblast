@@ -6,93 +6,142 @@ import (
 	"reflect"
 
 	"buildblast/coords"
+	"buildblast/game"
+	"buildblast/mapgen"
 )
 
 type Client struct {
-	world *World
-	conn *Conn
+	*ClientConn
 
 	name string
 
-	// Generic messages to be sent to client
-	sendQueue chan Message
-	sendLossyQueue chan Message
-
-	// Server-side simulation of players.
-	ControlState chan *ControlState
-
 	// Send the client the right chunks.
 	cm *ChunkManager
+
+	player *game.Player
 }
 
-func NewClient(world *World, name string) *Client {
+func NewClient(name string) *Client {
 	c := new(Client)
-	c.world = world
+	c.ClientConn = NewClientConn(name)
+
 	c.name = name
 
-	c.sendQueue = make(chan Message, 20)
-	c.sendLossyQueue = make(chan Message, 5)
-
-	c.ControlState = make(chan *ControlState, 10)
-	c.cm = newChunkManager()
+	c.cm = NewChunkManager()
 
 	return c
 }
 
-func (c *Client) Run(conn *Conn) {
-	c.conn = conn
-	c.world.Join <- c
-
+func (c *Client) Tick(g *Game, w *game.World) {
 	for {
 		select {
-		case m := <-c.sendQueue:
-			c.conn.Send(m)
+		case m := <-c.recvQueue:
+			c.handleMessage(g, w, m)
+		default:
+			return
+		}
+	}
+}
 
-		case m := <-c.sendLossyQueue:
-			c.conn.Send(m)
+func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
+	switch m.(type) {
+		case *MsgBlock:
+			m := m.(*MsgBlock)
+			oldBlock := w.ChangeBlock(m.Pos, m.Type)
+
+			// TODO: Validate this
+			if (m.Type == mapgen.BLOCK_AIR) {
+				// User is removing a block
+				c.player.Inventory().AddItem(game.ItemFromBlock(oldBlock))
+			} else {
+				// User is placing a block
+				c.player.Inventory().RemoveItem(game.ItemFromBlock(m.Type))
+			}
+
+			c.Send(&MsgInventoryState{
+				Items: c.player.Inventory().ItemsToString(),
+			})
+
+			// TODO: World should broadcast this automatically
+			g.Broadcast(m)
+
+		case *MsgControlsState:
+			m := m.(*MsgControlsState)
+			m.Controls.Timestamp = m.Timestamp
+
+			pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
+
+			c.cm.QueueChunksNearby(pos)
+
+			c.Send(&MsgPlayerState{
+				Pos: pos,
+				VelocityY: vy,
+				Timestamp: m.Timestamp,
+				Hp: hp,
+			})
+
+			if hitPos != nil {
+				g.Broadcast(&MsgDebugRay{
+					Pos: *hitPos,
+				})
+			}
+
+		case *MsgChat:
+			g.Chat(c.name, m.(*MsgChat).Message)
+
+		case *MsgInventoryState:
+			m := m.(*MsgInventoryState)
+			c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
+
+		case *MsgInventoryMove:
+			m := m.(*MsgInventoryMove)
+			c.player.Inventory().MoveItems(m.From, m.To)
+
+			c.Send(&MsgInventoryState{
+				Items: c.player.Inventory().ItemsToString(),
+			})
 
 		default:
-			m := c.conn.Recv()
-			if m != nil {
-				c.handleMessage(m)
-			} else {
-				c.world.Leave <- c
-				return
-			}
-		}
+			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
+			return
 	}
 }
 
-func (c *Client) Send(m Message) {
-	select {
-	case c.sendQueue <- m:
-		if mep, ok := m.(*MsgPlayerState); ok {
-			c.queueNearbyChunks(mep.Pos)
-		}
-	default:
-		log.Println("[WARN] Unable to send message", m, "to player", c.name)
+func (c *Client) Connected(g *Game, w *game.World) {
+	p := game.NewPlayer(w, c.name)
+
+	for _, id := range w.GetEntityIDs() {
+		c.Send(&MsgEntityCreate{
+			ID: id,
+		})
 	}
+
+	w.AddEntity(p)
+	c.player = p
+	c.Send(&MsgInventoryState{
+		Items: c.player.Inventory().ItemsToString(),
+	})
 }
 
-func (c *Client) SendLossy(m Message) {
-	if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
-		return
-	}
-	select {
-	case c.sendLossyQueue <- m:
-	default:
-	}
+func (c *Client) Disconnected(g *Game, w *game.World) {
+	w.RemoveEntity(c.player)
 }
 
-func (c *Client) RunChunks(conn *Conn) {
+// WARNING: This runs on a seperate thread from everything
+// else in client! It should be refactored, but for now, just be cautious.
+func (c *Client) RunChunks(conn *Conn, world *game.World) {
 	for {
-		cc, valid := c.cm.top()
+		// c.cm.Top() doesn't block, so we are effectively polling
+		// it every tenth of a second. Sketchy, I know.
+		cc, valid := c.cm.Top()
 		if !valid {
 			<-time.After(time.Second / 10)
 			continue
 		}
 
-		chunk := c.world.RequestChunk(cc)
+		// This has lots of thread safety problems, we
+		// should probably fix it.
+		chunk := world.RequestChunk(cc)
 
 		m := &MsgChunk{
 			CCPos: cc,
@@ -102,83 +151,4 @@ func (c *Client) RunChunks(conn *Conn) {
 
 		conn.Send(m)
 	}
-}
-
-func (c *Client) handleMessage(m Message) {
-	switch m.(type) {
-		case *MsgBlock:
-			c.handleBlock(m.(*MsgBlock))
-		case *MsgControlsState:
-			c.handleControlsState(m.(*MsgControlsState))
-		case *MsgChat:
-			c.handleChat(m.(*MsgChat))
-		case *MsgNtpSync:
-			c.handleNtpSync(m.(*MsgNtpSync))
-		default:
-			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
-			return
-	}
-}
-
-func (c *Client) handleBlock(m *MsgBlock) {
-	c.world.ChangeBlock(m.Pos, m.Type)
-	c.world.Broadcast <- m
-}
-
-func (c *Client) queueNearbyChunks(wc coords.World) {
-	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
-		return coords.Chunk{
-			X: cc.X + x,
-			Y: cc.Y + y,
-			Z: cc.Z + z,
-		}
-	}
-
-	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
-		abs := func (n int) int {
-			if n < 0 {
-				return -n
-			}
-			return n
-		}
-		dist := func (x, y, z int) int {
-			return abs(x) + abs(y) + abs(z)
-		}
-		cb(cc, 0)
-		for x := -xdist; x <= xdist; x++ {
-			for y := -ydist; y <= ydist; y++ {
-				for z := -zdist; z <= zdist; z++ {
-					cb(occ(cc, x, y, z), dist(x, y, z))
-				}
-			}
-		}
-	}
-
-	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		c.cm.display(newCC, -dist)
-	});
-
-	oc := wc.Offset()
-	if oc.Y <= 4 {
-		c.cm.display(occ(cc, 0, -1, 0), 1)
-	} else if oc.Y >= 28 {
-		c.cm.display(occ(cc, 0, 1, 0), 1)
-	}
-}
-
-func (c *Client) handleControlsState(m *MsgControlsState) {
-	m.Controls.Timestamp = m.Timestamp
-	c.ControlState <- &m.Controls
-}
-
-func (c *Client) handleChat(m *MsgChat) {
-	m.DisplayName = c.name
-	log.Println("[CHAT]", m.DisplayName + ":", m.Message)
-	c.world.Broadcast <- m
-}
-
-func (c *Client) handleNtpSync(m *MsgNtpSync) {
-	m.ServerTime = float64(time.Now().UnixNano()) / 1e6
-	c.conn.Send(m)
 }

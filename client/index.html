@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="css/health.css" />
         <link rel="stylesheet" href="css/splash.css" />
     </head>
-    <body>
+    <body class="no-select">
         <div id="container">
             <div id="opengl"></div>
             <div id="splash">
@@ -39,20 +39,27 @@
                 <div class="bottom">
                     <div id="chat">
                         <div class="messages"></div>
-                        <input type="text" class="input"/>
+                        <input type="text" class="input" />
                     </div>
-                    <table id="inventory">
-                        <tr>
-                            <td class="build"></td>
-                            <td class="blast"></td>
-                        </tr>
-                    </table>
+                    <div id="inventory">
+                        <div id="bag"></div>
+                        <div class="left">
+                            <div id="leftReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+                            <div id="leftPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+                        </div>
+                        <div class="right">
+                            <div id="rightPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+                            <div id="rightReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script src="lib/three.min.js"></script>
         <script src="lib/jquery.min.js"></script>
+        <script src="lib/jquery-ui.min.js"></script>
+        <script src="lib/jquery.waitforimages.min.js"></script>
 
         <script src="js/includes.js"></script>
     </body>

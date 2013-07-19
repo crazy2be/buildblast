@@ -3,8 +3,11 @@ package main
 import (
 	"io"
 	"log"
+	"fmt"
+	"time"
 	"reflect"
 	"encoding/json"
+
 	"code.google.com/p/go.net/websocket"
 )
 
@@ -18,7 +21,7 @@ func NewConn(ws *websocket.Conn) *Conn {
 	return c
 }
 
-func (c *Conn) Send(m Message) {
+func (c *Conn) Send(m Message) error {
 	var err error
 
 	cm := new(ClientMessage)
@@ -26,34 +29,42 @@ func (c *Conn) Send(m Message) {
 
 	cm.Payload, err = json.Marshal(m)
 	if err != nil {
-		log.Println("Marshalling websocket message:", err)
-		return
+		return fmt.Errorf("marshalling websocket message: %s", err)
 	}
+
+	start := time.Now().UnixNano() / 1e6
 
 	err = websocket.JSON.Send(c.ws, cm)
 	if err != nil {
-		log.Println("Sending websocket message:", err)
-		return
+		return fmt.Errorf("sending websocket message: %s", err)
 	}
+
+	end := time.Now().UnixNano() / 1e6 - start
+	if end > 10 {
+		log.Println("That took", end, "ms to send")
+	}
+
+	return nil
 }
 
-func (c *Conn) Recv() Message {
+func (c *Conn) Recv() (Message, error) {
 	cm := new(ClientMessage)
 	err := websocket.JSON.Receive(c.ws, cm)
 	if err != nil {
-		if err != io.EOF {
-			log.Println("Reading websocket message:", err)
+		if err == io.EOF {
+			return nil, err
 		}
-		return nil
+		return nil, fmt.Errorf("reading websocket message: %s", err)
 	}
 
 	m := kindToType(cm.Kind)
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
-		log.Println("Unmarshalling websocket message:", err)
+		log.Println(cm.Payload)
+		return nil, fmt.Errorf("unmarshalling websocket message: %s", err)
 	}
 
-	return m
+	return m, nil
 }
 
 func kindToType(kind MessageKind) Message {
@@ -76,6 +87,10 @@ func kindToType(kind MessageKind) Message {
 			return &MsgDebugRay{}
 		case MSG_NTP_SYNC:
 			return &MsgNtpSync{}
+		case MSG_INVENTORY_STATE:
+			return &MsgInventoryState{}
+		case MSG_INVENTORY_MOVE:
+			return &MsgInventoryMove{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -102,6 +117,10 @@ func typeToKind(m Message) MessageKind {
 			return MSG_DEBUG_RAY
 		case *MsgNtpSync:
 			return MSG_NTP_SYNC
+		case *MsgInventoryState:
+			return MSG_INVENTORY_STATE
+		case *MsgInventoryMove:
+			return MSG_INVENTORY_MOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
