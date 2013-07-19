@@ -8,10 +8,6 @@ import (
 	"buildblast/mapgen"
 )
 
-const (
-	ChunkMaxDist = 100
-)
-
 type ChunkGenerator struct {
 	// Chunks are sent to this channel as they are generated
 	Generated chan ChunkGenerationResult
@@ -77,7 +73,6 @@ func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
 		return cc, true
 	}
 	return cc, false
-
 }
 
 func (cm *ChunkGenerator) Run() {
@@ -136,7 +131,9 @@ func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
 
 	cc := wc.Chunk()
 	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		cb(newCC, ChunkMaxDist - dist)
+		// We want to prioritize further away chunks lower, but the
+		// priority must be a positive integer.
+		cb(newCC, 10 - dist)
 	})
 
 	oc := wc.Offset()
