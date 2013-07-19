@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"time"
 	"reflect"
 
-	"buildblast/coords"
 	"buildblast/game"
+	"buildblast/coords"
 	"buildblast/mapgen"
 )
 
@@ -17,6 +17,7 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm *ChunkManager
+	blockSendQueue chan *MsgBlock
 
 	player *game.Player
 }
@@ -28,6 +29,7 @@ func NewClient(name string) *Client {
 	c.name = name
 
 	c.cm = NewChunkManager()
+	c.blockSendQueue = make(chan *MsgBlock, 10)
 
 	return c
 }
@@ -45,65 +47,77 @@ func (c *Client) Tick(g *Game, w *game.World) {
 
 func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	switch m.(type) {
-		case *MsgBlock:
-			m := m.(*MsgBlock)
-			oldBlock := w.ChangeBlock(m.Pos, m.Type)
+	case *MsgBlock:
+		m := m.(*MsgBlock)
+		c.handleBlock(g, w, m)
 
-			// TODO: Validate this
-			if (m.Type == mapgen.BLOCK_AIR) {
-				// User is removing a block
-				c.player.Inventory().AddItem(game.ItemFromBlock(oldBlock))
-			} else {
-				// User is placing a block
-				c.player.Inventory().RemoveItem(game.ItemFromBlock(m.Type))
-			}
+	case *MsgControlsState:
+		m := m.(*MsgControlsState)
+		m.Controls.Timestamp = m.Timestamp
+		c.handleControlState(g, w, m)
 
-			c.Send(&MsgInventoryState{
-				Items: c.player.Inventory().ItemsToString(),
-			})
+	case *MsgChat:
+		g.Chat(c.name, m.(*MsgChat).Message)
 
-			// TODO: World should broadcast this automatically
-			g.Broadcast(m)
+	case *MsgInventoryState:
+		m := m.(*MsgInventoryState)
+		c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
 
-		case *MsgControlsState:
-			m := m.(*MsgControlsState)
-			m.Controls.Timestamp = m.Timestamp
+	case *MsgInventoryMove:
+		m := m.(*MsgInventoryMove)
+		c.player.Inventory().MoveItems(m.From, m.To)
 
-			pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
+		c.Send(&MsgInventoryState{
+			Items: c.player.Inventory().ItemsToString(),
+		})
 
-			c.cm.QueueChunksNearby(pos)
+	default:
+		c.Errors <- fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m))
+	}
+}
 
-			c.Send(&MsgPlayerState{
-				Pos: pos,
-				VelocityY: vy,
-				Timestamp: m.Timestamp,
-				Hp: hp,
-			})
+func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
+	// Eventually we should simulate block placement/removal entirely
+	// on the server side, but for now, this works fairly well.
+	inv := c.player.Inventory()
+	curBlock := w.Block(m.Pos)
 
-			if hitPos != nil {
-				g.Broadcast(&MsgDebugRay{
-					Pos: *hitPos,
-				})
-			}
+	if curBlock == mapgen.BLOCK_AIR {
+		// Placing a block
+		item := game.ItemFromBlock(m.Type)
+		if inv.RemoveItem(item) {
+			w.ChangeBlock(m.Pos, m.Type)
+		} else {
+			c.sendBlockChanged(m.Pos, curBlock)
+		}
+	} else {
+		// Removing a block
+		item := game.ItemFromBlock(curBlock)
+		inv.AddItem(item)
+		w.ChangeBlock(m.Pos, m.Type)
+	}
 
-		case *MsgChat:
-			g.Chat(c.name, m.(*MsgChat).Message)
+	c.Send(&MsgInventoryState{
+		Items: c.player.Inventory().ItemsToString(),
+	})
+}
 
-		case *MsgInventoryState:
-			m := m.(*MsgInventoryState)
-			c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
+func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
+	pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
 
-		case *MsgInventoryMove:
-			m := m.(*MsgInventoryMove)
-			c.player.Inventory().MoveItems(m.From, m.To)
+	c.cm.QueueChunksNearby(w, pos)
 
-			c.Send(&MsgInventoryState{
-				Items: c.player.Inventory().ItemsToString(),
-			})
+	c.Send(&MsgPlayerState{
+		Pos: pos,
+		VelocityY: vy,
+		Timestamp: m.Timestamp,
+		Hp: hp,
+	})
 
-		default:
-			log.Print("Unknown message recieved from client:", reflect.TypeOf(m))
-			return
+	if hitPos != nil {
+		g.Broadcast(&MsgDebugRay{
+			Pos: *hitPos,
+		})
 	}
 }
 
@@ -117,6 +131,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	}
 
 	w.AddEntity(p)
+	w.AddBlockListener(c)
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
@@ -125,30 +140,45 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
+	w.RemoveBlockListener(c)
+}
+
+func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
+	c.sendBlockChanged(bc, new)
+}
+
+func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
+	m := &MsgBlock{
+		Pos: bc,
+		Type: b,
+	}
+	select {
+	case c.blockSendQueue <- m:
+	default:
+		c.Errors <- fmt.Errorf("unable to send block update to player %s (server overloaded?)", c.name)
+	}
 }
 
 // WARNING: This runs on a seperate thread from everything
-// else in client! It should be refactored, but for now, just be cautious.
-func (c *Client) RunChunks(conn *Conn, world *game.World) {
+// else in client!
+func (c *Client) RunChunks(conn *Conn) {
 	for {
-		// c.cm.Top() doesn't block, so we are effectively polling
-		// it every tenth of a second. Sketchy, I know.
-		cc, valid := c.cm.Top()
-		if !valid {
-			<-time.After(time.Second / 10)
-			continue
+		select {
+		case m := <-c.blockSendQueue:
+			if !c.cm.ApplyBlockChange(m.Pos, m.Type) {
+				conn.Send(m)
+			}
+		default:
+			cc, chunk := c.cm.Top()
+			if chunk != nil {
+				m := &MsgChunk{
+					CCPos: cc,
+					Size: coords.ChunkSize,
+					Data: chunk.Flatten(),
+				}
+				conn.Send(m)
+			}
+			<-time.After(time.Second / 100)
 		}
-
-		// This has lots of thread safety problems, we
-		// should probably fix it.
-		chunk := world.RequestChunk(cc)
-
-		m := &MsgChunk{
-			CCPos: cc,
-			Size: coords.CHUNK_SIZE,
-			Data: chunk.Flatten(),
-		}
-
-		conn.Send(m)
 	}
 }

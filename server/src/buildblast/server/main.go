@@ -44,7 +44,7 @@ func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
 	c := globalGame.clientWithID(name)
-	c.RunChunks(NewConn(ws), globalGame.world)
+	c.RunChunks(NewConn(ws))
 }
 
 func doProfile() {
@@ -110,6 +110,7 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
+// 	go doProfile()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))

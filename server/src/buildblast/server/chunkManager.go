@@ -4,111 +4,100 @@ import (
 	"log"
 	"sync"
 
+	"buildblast/game"
 	"buildblast/coords"
+	"buildblast/mapgen"
 )
 
 
 // Manages the chunks loaded, displayed, etc for a
 // single client.
 type ChunkManager struct {
-	chunks map[coords.Chunk]*ChunkStatus
+	chunks map[coords.Chunk]ChunkStatus
 	mutex sync.Mutex
 }
 
 type ChunkStatus struct {
-	queued bool
+	sent bool
 	priority int
+	data mapgen.Chunk
 }
 
 func NewChunkManager() *ChunkManager {
 	cm := new(ChunkManager)
-	cm.chunks = make(map[coords.Chunk]*ChunkStatus, 10)
+	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
 	return cm
 }
 
-func (cm *ChunkManager) display(cc coords.Chunk, priority int) {
+func (cm *ChunkManager) queue(w *game.World, cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
-
-	if status != nil {
-		return
-	}
-
-	cm.queue(cc, priority)
-}
-
-func (cm *ChunkManager) queue(cc coords.Chunk, priority int) {
-	status := cm.chunks[cc]
-	if status != nil {
-		log.Println("Got request for chunk at", cc, "to be queued, even though it has already been queued.")
-		return
-	}
-
-	status = new(ChunkStatus)
-	cm.chunks[cc] = status
-	status.queued = true
 	status.priority = priority
+	if status.sent == false && status.data == nil {
+		status.data = w.Chunk(cc)
+	}
+	cm.chunks[cc] = status
 }
 
-func (cm *ChunkManager) Top() (cc coords.Chunk, valid bool) {
+func (cm *ChunkManager) Top() (cc coords.Chunk, data mapgen.Chunk) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	highest := -1000
-	for key, val := range cm.chunks {
-		if val.priority > highest && val.queued {
-			highest = val.priority
-			cc = key
+	highest := -1
+	var highestCC coords.Chunk
+	for cc, status := range cm.chunks {
+		if status.priority > highest &&
+			!status.sent && status.data != nil {
+			highest = status.priority
+			highestCC = cc
 		}
 	}
-	if highest != -1000 {
-		cm.chunks[cc].queued = false
-		return cc, true
+	if highest > -1 {
+		status := cm.chunks[highestCC]
+		data := status.data
+		status.sent = true
+		status.data = nil
+		cm.chunks[highestCC] = status
+		return highestCC, data
 	}
-	return cc, false
+	return coords.Chunk{}, nil
 }
 
-func (cm *ChunkManager) QueueChunksNearby(wc coords.World) {
+// Applies the given block change to the currently queued chunks
+// Returns true if the change was applied (the block has not yet been
+// sent), false if it should be sent to the client instead (they already
+// have the chunk).
+// This is needed to avoid sending stale chunks to the client.
+func (cm *ChunkManager) ApplyBlockChange(bc coords.Block, b mapgen.Block) bool {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 
-	occ := func (cc coords.Chunk, x, y, z int) coords.Chunk {
-		return coords.Chunk{
-			X: cc.X + x,
-			Y: cc.Y + y,
-			Z: cc.Z + z,
-		}
+	cc := bc.Chunk()
+	status, exists := cm.chunks[cc]
+	if !exists {
+		// We don't techincally apply the block change to ourselves if the
+		// chunk does not exist in our list, but we don't want it to be sent
+		// to the client, so we return false regardless.
+		return false
+	}
+	if status.sent {
+		return false
+	}
+	if status.data == nil {
+		log.Println("WARN: Recieved block change for chunk that is not loaded (this probably shouldn't happen?)")
+		return false
+	}
+	oc := bc.Offset()
+	status.data.SetBlock(oc, b)
+	return true
+}
+
+func (cm *ChunkManager) QueueChunksNearby(w* game.World, wc coords.World) {
+	cm.mutex.Lock()
+	defer cm.mutex.Unlock()
+
+	queue := func (cc coords.Chunk, priority int) {
+		cm.queue(w, cc, priority)
 	}
 
-	eachWithin := func (cc coords.Chunk, xdist, ydist, zdist int, cb func (newCC coords.Chunk, dist int)) {
-		abs := func (n int) int {
-			if n < 0 {
-				return -n
-			}
-			return n
-		}
-		dist := func (x, y, z int) int {
-			return abs(x) + abs(y) + abs(z)
-		}
-
-		cb(cc, 0)
-		for x := -xdist; x <= xdist; x++ {
-			for y := -ydist; y <= ydist; y++ {
-				for z := -zdist; z <= zdist; z++ {
-					cb(occ(cc, x, y, z), dist(x, y, z))
-				}
-			}
-		}
-	}
-
-	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func (newCC coords.Chunk, dist int) {
-		cm.display(newCC, -dist)
-	})
-
-	oc := wc.Offset()
-	if oc.Y <= 4 {
-		cm.display(occ(cc, 0, -1, 0), 1)
-	} else if oc.Y >= 28 {
-		cm.display(occ(cc, 0, 1, 0), 1)
-	}
+	game.EachChunkNearby(wc, queue)
 }

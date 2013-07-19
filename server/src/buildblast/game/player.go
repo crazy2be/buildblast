@@ -41,7 +41,7 @@ var PLAYER_MAX_HP = 100
 
 type Player struct {
 	pos       coords.World
-	look      coords.Vec3
+	look      coords.Direction
 	vy        float64
 	box       physics.Box
 	controls  ControlState
@@ -56,7 +56,6 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		pos: world.generator.Spawn(),
 		history: NewPlayerHistory(),
 		hp: PLAYER_MAX_HP,
 		inventory: NewInventory(),
@@ -200,8 +199,8 @@ func (p *Player) Dead() bool {
 	return p.hp <= 0
 }
 
-func (p *Player) Respawn() {
-	p.pos = p.world.generator.Spawn()
+func (p *Player) Respawn(pos coords.World) {
+	p.pos = pos
 	p.hp = PLAYER_MAX_HP
 	p.history.Clear()
 }
