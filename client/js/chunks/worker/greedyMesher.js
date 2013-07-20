@@ -210,7 +210,7 @@ function greedyMesh(chunkGeometry, manager) {
                     blockPos.setComponent(componentZ, zValue);
 
                     var planeBlock;
-                    if(false && inverseQuality == 1) {
+                    if(inverseQuality == 1) {
                         planeBlock = CallWithVector3(getBlock, blockPos);
                         setPlaneBlock(plane, planePos, planeBlock);
                     } else {
