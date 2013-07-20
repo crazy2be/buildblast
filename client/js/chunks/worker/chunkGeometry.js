@@ -7,8 +7,8 @@ function ChunkGeometry(cc, blocks, manager) {
     var self = this;
 
     var cw = CHUNK_WIDTH;
-    var cd = CHUNK_DEPTH;
     var ch = CHUNK_HEIGHT;
+    var cd = CHUNK_DEPTH;
 
     self.blocks = blocks;
     self.cc = cc;
@@ -28,23 +28,26 @@ function ChunkGeometry(cc, blocks, manager) {
 
             var meshFunction = settings.greedyMesh ? greedyMesh : simpleMesh;
 
+            var geometry = { };
+
+            var res = meshFunction(self, manager);
+
+            geometry.attributes = res.attributes;
+            geometry.offsets = res.offsets;
+
             if(settings.testingMesher) {
+                geometry.testData = { };
                 var resGreedy = greedyMesh(self, manager);
                 var resSimple = simpleMesh(self, manager);
 
-                var res = meshFunction(self, manager);
-            
-                if(resGreedy.attributes.position.numItems > 20000) {
-                    var lotsOfVertices = true;
-                    var greedyNum = resGreedy.attributes.position.numItems;
-                    var simpleNum = resSimple.attributes.position.numItems;
-                }
+                geometry.testData.greedy = { };
+                geometry.testData.simple = { };
+
+                geometry.testData.greedy.verticeCount = resGreedy.attributes.position.numItems;
+                geometry.testData.simple.verticeCount = resSimple.attributes.position.numItems;
             }
 
-            geometries.push({
-                attributes: res.attributes,
-                offsets: res.offsets,
-            });
+            geometries.push(geometry);
             transferables.concat(res.transferables);
         });
         self.quality = originalQuality;

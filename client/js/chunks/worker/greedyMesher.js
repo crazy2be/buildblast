@@ -14,17 +14,15 @@ function greedyMesh(chunkGeometry, manager) {
     var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
     var curChunkPos = new THREE.Vector3(chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z);
 
-    var verts = [];
-    var index = [];
-    var color = [];
-    var noise = [];
-
     var r = 1 / chunkGeometry.quality;
     function mod(a, b) {
         return ((a % b) + b) % b;
     }
     function abs(n) {
         return Math.abs(n);
+    }
+    function clamp(n, a, b) {
+        return Math.min(Math.max(n, a), b);
     }
     function noiseFunc(x, y, z) {
         function n(q) {
@@ -37,6 +35,11 @@ function greedyMesh(chunkGeometry, manager) {
     }
 
     var blocks = chunkGeometry.blocks;
+
+    var verts = [];
+    var blockTypes = []; //1 per face, which is 5 triangles, so 15 verts
+    var faceNumbers = []; //same a blockTypes in size
+    var index = []; //indexes into triangles of verts
 
     //Go over our blocks in 6 passes, 1 for every face (of a cube).
     //faceVector is the normal to the face.
@@ -76,7 +79,18 @@ function greedyMesh(chunkGeometry, manager) {
             plane[planePos.x * width + planePos.y] = blockValue;
         }
 
-        function getPixelatedBlockType(chunk, blockPosStart, blockSize, adjacent) {
+        function getOurBlock(x, y, z) {
+            return chunkGeometry.blocks[
+                x * CHUNK_WIDTH * CHUNK_HEIGHT +
+                y * CHUNK_WIDTH +
+                z
+            ];
+        }
+        function getNeighbourBlock(chunk, x, y, z) {
+            return chunk.block(x, y, z);
+        }
+
+        function getPixelatedBlockType(getBlock, blockPosStart, blockSize, adjacent) {
             //Ugh... have to sample to find the block
             var blockCounts = {};
             
@@ -86,10 +100,13 @@ function greedyMesh(chunkGeometry, manager) {
             //are different size) this would be where we would do part of it... it would
             //make the chunk boundaries look bad though.
 
+            var blockX = blockPosStart.x;
+            var blockY = blockPosStart.y;
+            var blockZ = blockPosStart.z;
+
             LOOP.For3D(new THREE.Vector3(0, 0, 0), blockSize,
                 function(offset) {
-                    var sampleBlockPos = blockPosStart.clone().add(offset);
-                    var sampleBlockType = CallWithVector3(chunk.block, sampleBlockPos);
+                    var sampleBlockType = getBlock(blockX + offset.x, blockY + offset.y, blockZ + offset.z);
                     if(!blockCounts[sampleBlockType]) {
                         blockCounts[sampleBlockType] = 0;
                     }
@@ -122,7 +139,7 @@ function greedyMesh(chunkGeometry, manager) {
 
         var quality = chunkGeometry.getQuality();
         var inverseQuality = 1 / quality;
-    
+
         if(~~inverseQuality != inverseQuality) {
             //How big do you want us to make the pixelated chunks!
             throw "1/quality is not an integer, what do I do?";
@@ -143,8 +160,6 @@ function greedyMesh(chunkGeometry, manager) {
         var adjacentChunk = CallWithVector3(manager.chunkAt, adjacentChunkPos);
 
         function createPlane(plane, zValue, direction) {
-            var chunk = chunkGeometry;
-
             zValue += inverseQuality * direction;
 
             var zLength = inverseQuality;
@@ -153,27 +168,27 @@ function greedyMesh(chunkGeometry, manager) {
 
             var adjacent = false;
 
-            if(zValue < 0) {
+            getBlock = getOurBlock;
+
+            if(zValue < 0 || zValue >= depth) {
+                if(adjacentChunk == null) {
+                    for(var ix = 0; ix < width * height; ix++) {
+                        plane[ix] = Block.DIRT; //Any solid would do here
+                    }
+                    return;
+                }
+
                 adjacent = true;
-                chunk = adjacentChunk;
-                //subInverseQuality = 1;
-                zValue = depth - 1; //Must assume neighbour quality is 1, as it may change and our mesh still needs to work.
+                getBlock = getNeighbourBlock.bind(null, adjacentChunk);
                 zLength = 1;
-            } else if(zValue >= depth) {
-                adjacent = true;
-                chunk = adjacentChunk;
-                //subInverseQuality = 1;
-                zValue = 0; //We assume chunk size is divisible by inverseQuality
-                zLength = 1;
+                
+                if(zValue < 0) {
+                    zValue = depth - 1; //Must assume neighbour quality is 1, as it may change and our mesh still needs to work.
+                } else if(zValue >= depth) {
+                    zValue = 0; //We assume chunk size is divisible by inverseQuality
+                }
             }
 
-            if(chunk == null) {
-                for(var ix = 0; ix < width * height; ix++) {
-                    plane[ix] = Block.DIRT;
-                }
-                return;
-            }
-            
             if(~~subInverseQuality != subInverseQuality) {
                 //How big do you want us to make the pixelated chunks!
                 throw "1/quality is not an integer, what do I do?";
@@ -196,21 +211,13 @@ function greedyMesh(chunkGeometry, manager) {
 
                     var planeBlock;
                     if(false && inverseQuality == 1) {
-                        planeBlock = CallWithVector3(chunk.block, blockPos);
+                        planeBlock = CallWithVector3(getBlock, blockPos);
                         setPlaneBlock(plane, planePos, planeBlock);
                     } else {
-                        planeBlock = getPixelatedBlockType(chunk, blockPos, blockSize, adjacent);
+                        planeBlock = getPixelatedBlockType(getBlock, blockPos, blockSize, adjacent);
                         //(chunk, blockPosStart, blockSize, adjacent)
                         //We can just ignore the other blocks as the greedymesher will ignore them.
                         setPlaneBlock(plane, planePos, planeBlock);
-                        /*
-                        LOOP.For2D(new THREE.Vector2(0, 0), new THREE.Vector2(1, 1).multiplyScalar(inverseQuality),
-                            function(offset) {
-                                var samplePlanePos = planePos.clone().add(offset);
-                                setPlaneBlock(plane, samplePlanePos, planeBlock);
-                            }
-                        );
-                        */
                     }
                 }
             }
@@ -296,7 +303,6 @@ function greedyMesh(chunkGeometry, manager) {
 
                 var curQuadEnd = new THREE.Vector3(x, y + inverseQuality, curZ);
 
-                
                 //Try to extend on the y axis
                 while(curQuadEnd.y < height) {
                     var curBlock = getPlaneBlock(plane, curQuadEnd);
@@ -304,10 +310,8 @@ function greedyMesh(chunkGeometry, manager) {
 
                     curQuadEnd.y += inverseQuality;
                 }
-                
 
                 curQuadEnd.x += inverseQuality;
-
                 
                 //Try to extend on the x axis
                 if(curQuadEnd.y - curQuadEnd.y == inverseQuality) {
@@ -367,90 +371,66 @@ function greedyMesh(chunkGeometry, manager) {
 
             var curQuad = planeQuads[ix];
 
-            var quadWidth = curQuad.endPoint.x - curQuad.startPoint.x;
-            var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
+            addQuad(curQuad);
 
-            var blockPos = curQuad.startPoint.clone();
+            function addQuad(curQuad) {
+                var quadWidth = curQuad.endPoint.x - curQuad.startPoint.x;
+                var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
 
-            blockPos = planeCoordToBlockCoord(blockPos);
+                var blockPos = curQuad.startPoint.clone();
 
-            //Offset normal axis based on block size.
-            if(faceDirection == 1) {
-                addToComponent(blockPos, componentZ, inverseQuality);
-                //addToComponent(blockPos, componentZ, 1);
-            }
+                blockPos = planeCoordToBlockCoord(blockPos);
 
-            //curQuad.endPoint = planeCoordToBlockCoord(curQuad.endPoint);
+                //Offset normal axis based on block size.
+                if(faceDirection == 1) {
+                    addToComponent(blockPos, componentZ, inverseQuality);
+                }
 
-            //Not entirely sure, pretty sure this can be better explained.
-            var counterClockwise = [
-                [0, 0],
-                [1, 0],
-                [1, 1],
-                [0, 1],
-                [0.5, 0.5]
-            ];
-            var clockwise = [
-                [0, 1],
-                [1, 1],
-                [1, 0],
-                [0, 0],
-                [0.5, 0.5]
-            ];
+                //Not entirely sure, pretty sure this can be better explained.
+                var counterClockwise = [
+                    [0, 0],
+                    [1, 0],
+                    [1, 1],
+                    [0, 1],
+                    [0.5, 0.5]
+                ];
+                var clockwise = [
+                    [0, 1],
+                    [1, 1],
+                    [1, 0],
+                    [0, 0],
+                    [0.5, 0.5]
+                ];
 
-            //Yeah, this doesn't make sense...
-            //var faceIsClockwise = [false, true, false, false, true, true];
-            //var faceIsClockwise = [true, false, true, true, false, false];
-            //The last two get rendered with false, but that is all...
-            //It has to do with what they are, not the order accessed though.
-            var faceIsClockwise = [false, true, true, false, false, true];
-            //var faceIsClockwise = [true, false, false, true, true, false];
+                //Yeah, this doesn't make sense...
+                var faceIsClockwise = [false, true, true, false, false, true];
 
-            var offsetArray =  faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
-            //if(faceNumber == 0) continue;
-            //if(faceNumber == 1) continue;
-            //if(faceNumber == 2) continue;
-            //if(faceNumber == 3) continue;
-            //if(faceNumber == 4) continue;
-            //if(faceNumber == 5) continue;
+                var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
 
-            offsetArray.forEach(function(offsets) {
-                var verticePos = blockPos.clone();
-                addToComponent(verticePos, componentX, quadWidth * offsets[0]);
-                addToComponent(verticePos, componentY, quadHeight * offsets[1]);
-                convertBlockPosToWorldPos(verticePos);
+                var xCompOffset = blockPos.getComponent(componentX);
+                var yCompOffset = blockPos.getComponent(componentY);
+                var zCompOffset = blockPos.getComponent(componentZ);
 
-                //Add vertex
-                CallWithVector3(verts.push.bind(verts), verticePos);
-                noise.push(CallWithVector3(noiseFunc, verticePos));
-            });
+                offsetArray.forEach(function(offsets) {
+                    //Make some room
+                    var iVertStart = verts.length;
+                    verts.push(0, 0, 0);
+                    var compXIndex = iVertStart + componentX;
+                    var compYIndex = iVertStart + componentY;
+                    var compZIndex = iVertStart + componentZ;
 
-            //Add face
-            var blockType = curQuad.blockType;
-            var l = verts.length / 3;
-            
-            if(offsetArray.length == 4) {
-                index.push(l-3, l-2, l-1);
-                index.push(l-4, l-3, l-1);
-            } else if(offsetArray.length == 5) {
-            // Each face is made up of four triangles?
-                index.push(l-5, l-4, l-1);
-                index.push(l-4, l-3, l-1);
-                index.push(l-3, l-2, l-1);
-                index.push(l-2, l-5, l-1);
-            }
+                    verts[compXIndex] = xCompOffset + quadWidth * offsets[0];
+                    verts[compYIndex] = yCompOffset + quadHeight * offsets[1];
+                    verts[compZIndex] = zCompOffset;
 
-            var c, c2;
-            var colours = Block.getColours(blockType, faceNumber);
-            c = colours.light;
-            c2 = colours.dark;
+                    verts[iVertStart] += worldChunkOffset.x;
+                    verts[iVertStart + 1] += worldChunkOffset.y;
+                    verts[iVertStart + 2] += worldChunkOffset.z;
+                });
 
-            for (var i = 0; i < offsetArray.length; i++) {
-                var n = noise.shift();
-                var r = c.r*n + c2.r*(1 - n);
-                var g = c.g*n + c2.g*(1 - n);
-                var b = c.b*n + c2.b*(1 - n);
-                color.push(r/255, g/255, b/255);
+                var blockType = curQuad.blockType;
+                blockTypes.push(blockType);
+                faceNumbers.push(faceNumber);
             }
         }
 
@@ -465,6 +445,39 @@ function greedyMesh(chunkGeometry, manager) {
 
     var vertsa = new Float32Array(verts.length);
     copy(verts, vertsa);
+
+    //Bunch of squares, point in each corner and one in the middle
+    //Each point is made up of 3 numbers
+    for(var iVert = 0; iVert < verts.length / 3; iVert += 5) {
+        index.push(iVert, iVert + 1, iVert + 4);
+        index.push(iVert + 1, iVert + 2, iVert + 4);
+        index.push(iVert + 2, iVert + 3, iVert + 4);
+        index.push(iVert + 3, iVert, iVert + 4);
+    }
+
+    var color = [];
+
+    for(var iFace = 0; iFace < verts.length / 15; iFace++) {
+        var iVertexStart = iFace * 15;
+        var blockType = blockTypes[iFace];
+        var faceNumber = faceNumbers[iFace];
+
+        var colours = Block.getColours(blockType, faceNumber);
+        var c = colours.light;
+        var c2 = colours.dark;
+
+        for(var iTriangle = 0; iTriangle < 5; iTriangle++) {
+            var iVS = iVertexStart;
+            var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2]);
+
+            var r = c.r*noise + c2.r*(1 - noise);
+            var g = c.g*noise + c2.g*(1 - noise);
+            var b = c.b*noise + c2.b*(1 - noise);
+            color.push(r/255, g/255, b/255);
+
+            iVertexStart += 3;
+        }
+    }
 
     var indexa = new Uint16Array(index.length);
     copy(index, indexa);
