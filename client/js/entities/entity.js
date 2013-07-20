@@ -2,6 +2,7 @@ function Entity(id) {
 	var self = this;
 
 	var pos;
+	var isMoving = false;
 	var bodyParts = new THREE.Object3D();
 
 	var material = new THREE.MeshBasicMaterial({
@@ -67,8 +68,17 @@ function Entity(id) {
 	rightArm.position.y = -(ph - pbh) / 2 + pbh / 2;
 	bodyParts.add(rightArm);
 
+	var totalTime = 0;
 	self.update = function (dt) {
-		
+		if (!isMoving) return;
+		totalTime += dt;
+		var angle = (Math.PI / 2) * sin(totalTime * 2*Math.PI)
+		if (angle > -0.1 && angle < 0.1) {
+			isMoving = false;
+			angle = 0;
+		}
+		rightArm.rotation.x = angle;
+		leftArm.rotation.x = -1 * angle;
 	}
 
 	self.setPos = function (newPos) {
@@ -78,7 +88,13 @@ function Entity(id) {
 			pos.y + co.y,
 			pos.z + co.z
 		);
+
+		var diffX = bodyParts.position.x - c.x;
+		var diffZ = bodyParts.position.z - c.z;
+		if (diffX !== 0 || diffZ !== 0) isMoving = true;
+
 		bodyParts.position.set(c.x, c.y, c.z);
+
 		return self;
 	};
 
@@ -113,4 +129,3 @@ function Entity(id) {
 		return id;
 	};
 }
-
