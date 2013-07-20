@@ -15,6 +15,7 @@ type Entity interface {
 	Dead() bool
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
+	Vy() float64
 	Pos() coords.World
 	Rot() coords.Direction
 	ID() string
@@ -22,7 +23,7 @@ type Entity interface {
 
 type EntityListener interface {
 	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World, rot coords.Direction)
+	EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64)
 	EntityDied(id string, killer string)
 	EntityRemoved(id string)
 }
@@ -64,10 +65,11 @@ func (w *World) Tick() {
 		id := e.ID()
 		pos := e.Pos()
 		rot := e.Rot()
+		vy := e.Vy()
 		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos, rot)
+			listener.EntityMoved(id, pos, rot, vy)
 		}
 	}
 }

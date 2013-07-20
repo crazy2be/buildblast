@@ -37,6 +37,7 @@ function EntityManager(scene, conn, player) {
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
+		entity.setVy(payload.Vy);
 	});
 
 	conn.on('entity-remove', function (payload) {

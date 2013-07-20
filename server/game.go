@@ -146,11 +146,12 @@ func (g *Game) EntityCreated(id string) {
 	})
 }
 
-func (g *Game) EntityMoved(id string, pos coords.World, rot coords.Direction) {
+func (g *Game) EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64) {
 	g.BroadcastLossy(&MsgEntityPosition{
 		ID:  id,
 		Pos: pos,
 		Rot: rot,
+		Vy:  vy,
 	})
 }
 

@@ -2,6 +2,7 @@ function Entity(id) {
 	var self = this;
 
 	var pos;
+	var vy;
 	var isMoving = false;
 	var bodyParts = new THREE.Object3D();
 
@@ -72,7 +73,23 @@ function Entity(id) {
 	bodyParts.add(rightArm);
 
 	var totalTime = 0;
+	var jumpArms = 0;
+	var hPi = 4 * Math.PI / 5;
 	self.update = function (dt) {
+		if (vy > 0) {
+			if (jumpArms < hPi) {
+				jumpArms += (dt / 0.3) * hPi;
+			}
+		} else {
+			if (jumpArms < 0) {
+				jumpArms = 0;
+			} else if (jumpArms > 0) {
+				jumpArms -= (dt / 0.3) * hPi;
+			}
+		}
+		rightArm.rotation.z = -jumpArms;
+		leftArm.rotation.z = jumpArms;
+
 		if (!isMoving) return;
 		totalTime += dt;
 		var angle = (Math.PI / 2) * sin(totalTime * 2*Math.PI)
@@ -83,6 +100,10 @@ function Entity(id) {
 		rightArm.rotation.x = angle;
 		leftArm.rotation.x = -1 * angle;
 	}
+
+	self.setVy = function (newVy) {
+		vy = newVy;
+	};
 
 	self.setPos = function (newPos) {
 		pos = newPos;
