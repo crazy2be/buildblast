@@ -3,6 +3,10 @@ function EntityManager(scene, conn, player) {
 
 	var entities = {};
 
+	self.update = function (dt) {
+		for (var id in entities) entities[id].update(dt);
+	};
+
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (id == player.id()) return;

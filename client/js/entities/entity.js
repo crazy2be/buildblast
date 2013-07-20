@@ -2,25 +2,37 @@ function Entity(id) {
 	var self = this;
 
 	var pos;
+	var bodyParts = new THREE.Object3D();
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
+		wireframe: true
 	});
 	var faceMat = new THREE.MeshBasicMaterial({
 		color: 0x00ff00
 	});
 	var hitboxMaterial = new THREE.MeshBasicMaterial({
 		color: 0xff0000,
-		wireframe: true,
+		wireframe: true
+	});
+	var armMat = new THREE.MeshBasicMaterial({
+		color: 0xff0000,
+		wireframe: true
 	});
 
 	var he = PLAYER_HALF_EXTENTS;
 	var co = PLAYER_CENTER_OFFSET;
+	var ph = PLAYER_HEIGHT;
+	var pbh = PLAYER_BODY_HEIGHT;
+
 	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
 	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+	//bodyParts.add(hitboxMesh);
 
 	var bodyGeometry = new THREE.CubeGeometry(0.6, 1.3, 0.4);
 	var bodyMesh = new THREE.Mesh(bodyGeometry, material);
+	bodyMesh.position.y = -(ph - pbh) / 2;
+	bodyParts.add(bodyMesh);
 
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
 	headGeometry.materials = [material, faceMat];
@@ -31,6 +43,33 @@ function Entity(id) {
 	headGeometry.faces[4].materialIndex = 1;
 	headGeometry.faces[5].materialIndex = 0;
 	var headMesh = new THREE.Mesh(headGeometry, new THREE.MeshFaceMaterial(headGeometry.materials));
+	headMesh.position.y = pbh / 2;
+	bodyParts.add(headMesh);
+
+	// Create an arm
+	var leftArmGeo = new THREE.CubeGeometry(0.2, 0.6, 0.2);
+	var leftArmMesh = new THREE.Mesh(leftArmGeo, armMat);
+	leftArmMesh.position.y = -0.3;
+
+	var leftArm = new THREE.Object3D();
+	leftArm.add(leftArmMesh);
+	leftArm.position.x = 0.4;
+	leftArm.position.y = -(ph - pbh) / 2 + pbh / 2;
+	bodyParts.add(leftArm);
+
+	var rightArmGeo = new THREE.CubeGeometry(0.2, 0.6, 0.2);
+	var rightArmMesh = new THREE.Mesh(leftArmGeo, armMat);
+	rightArmMesh.position.y = -0.3;
+
+	var rightArm = new THREE.Object3D();
+	rightArm.add(rightArmMesh);
+	rightArm.position.x = -0.4;
+	rightArm.position.y = -(ph - pbh) / 2 + pbh / 2;
+	bodyParts.add(rightArm);
+
+	self.update = function (dt) {
+		
+	}
 
 	self.setPos = function (newPos) {
 		pos = newPos;
@@ -39,11 +78,7 @@ function Entity(id) {
 			pos.y + co.y,
 			pos.z + co.z
 		);
-		var h = PLAYER_HEIGHT;
-		var bh = PLAYER_BODY_HEIGHT;
-		bodyMesh.position.set(c.x, c.y - (h - bh)/2, c.z);
-		headMesh.position.set(c.x, c.y + bh/2, c.z);
-		hitboxMesh.position.set(c.x, c.y, c.z);
+		bodyParts.position.set(c.x, c.y, c.z);
 		return self;
 	};
 
@@ -54,30 +89,24 @@ function Entity(id) {
 	};
 
 	self.setRot = function (newRot) {
-		var headTarget = new THREE.Vector3(
-			headMesh.position.x + newRot.x,
-			headMesh.position.y + newRot.y,
-			headMesh.position.z + newRot.z
-		);
-		headMesh.lookAt(headTarget);
-		var bodyTarget = new THREE.Vector3(
-			bodyMesh.position.x + newRot.x,
-			bodyMesh.position.y,
-			bodyMesh.position.z + newRot.z
-		);
-		bodyMesh.lookAt(bodyTarget);
+		function lookAt(obj, x, y, z) {
+			var headTarget = new THREE.Vector3(
+				obj.position.x + x,
+				obj.position.y + y,
+				obj.position.z + z
+			);
+			obj.lookAt(headTarget);
+		}
+		lookAt(bodyParts, newRot.x, 0, newRot.z);
+		lookAt(headMesh, 0, newRot.y, 1);
 	};
 
 	self.addTo = function (scene) {
-		scene.add(bodyMesh);
-		scene.add(headMesh);
-		//scene.add(hitboxMesh);
+		scene.add(bodyParts);
 	};
 
 	self.removeFrom = function (scene) {
-		scene.remove(bodyMesh);
-		scene.remove(headMesh);
-		//scene.remove(hitboxMesh);
+		scene.remove(bodyParts);
 	};
 
 	self.id = function () {
