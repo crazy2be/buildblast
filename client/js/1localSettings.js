@@ -9,6 +9,6 @@ if (settings === undefined) {
 
 //To make it easy to find settings put all settings in defaultSettings, but set to them to false false.
 settings.destroyMapOnMine = true;
-settings.showGeometryGraph = true;
+settings.showGeometryGraph = false;
 settings.greedyMesh = true;
-settings.testingMesher = true;
+settings.testingMesher = false;

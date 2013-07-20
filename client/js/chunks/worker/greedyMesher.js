@@ -118,7 +118,7 @@ function greedyMesh(chunkGeometry, manager) {
             //However if we are all air, then we do become air (really we just don't
             //render).
             var maxCount = 0;
-            var planeBlock = null; //Eh... slightly different than simpleMesher, but will result in the same thing.
+            var planeBlock = Block.AIR; //Eh... slightly different than simpleMesher, but will result in the same thing.
 
             for(var blockType in blockCounts) {
                 var blockCount = blockCounts[blockType];
@@ -163,9 +163,6 @@ function greedyMesh(chunkGeometry, manager) {
             zValue += inverseQuality * direction;
 
             var zLength = inverseQuality;
-
-            var subInverseQuality = inverseQuality;
-
             var adjacent = false;
 
             getBlock = getOurBlock;
@@ -179,8 +176,8 @@ function greedyMesh(chunkGeometry, manager) {
                 }
 
                 adjacent = true;
-                getBlock = getNeighbourBlock.bind(null, adjacentChunk);
                 zLength = 1;
+                getBlock = getNeighbourBlock.bind(null, adjacentChunk);
                 
                 if(zValue < 0) {
                     zValue = depth - 1; //Must assume neighbour quality is 1, as it may change and our mesh still needs to work.
@@ -189,18 +186,13 @@ function greedyMesh(chunkGeometry, manager) {
                 }
             }
 
-            if(~~subInverseQuality != subInverseQuality) {
-                //How big do you want us to make the pixelated chunks!
-                throw "1/quality is not an integer, what do I do?";
-            }
-
             var blockSize = new THREE.Vector3(0, 0, 0);
-            blockSize.setComponent(componentX, subInverseQuality);
-            blockSize.setComponent(componentY, subInverseQuality);
+            blockSize.setComponent(componentX, inverseQuality);
+            blockSize.setComponent(componentY, inverseQuality);
             blockSize.setComponent(componentZ, zLength);
 
-            for(var ix = 0; ix < width; ix += subInverseQuality) {
-                for(var iy = 0; iy < height; iy += subInverseQuality) {
+            for(var ix = 0; ix < width; ix += inverseQuality) {
+                for(var iy = 0; iy < height; iy += inverseQuality) {
                     var planePos = new THREE.Vector2(ix, iy);
 
                     //Essentially handles the rotation from the plane coords to block coords
@@ -255,9 +247,8 @@ function greedyMesh(chunkGeometry, manager) {
             for(var ix = 0; ix < width * height; ix++) {
                 //No need make a face if the block adjacent to our face is filled,
                 //or if we have no block.
-                if(adjacentPlane[ix] && !Block.isEmpty(adjacentPlane[ix]) || !curPlane[ix] || Block.isEmpty(curPlane[ix])) {
-                //if(!curPlane[ix] || Block.isEmpty(curPlane[ix])) {
-                    deltaPlane[ix] = null;
+                if(!Block.isEmpty(adjacentPlane[ix]) || Block.isEmpty(curPlane[ix])) {
+                    deltaPlane[ix] = Block.AIR;
                     continue;
                 }
 
@@ -280,10 +271,10 @@ function greedyMesh(chunkGeometry, manager) {
                         planeQuads.push(curQuad);
                         //Remove all parts of the quad from the plane.
                         var curQuadSpan = curQuad.endPoint.clone().sub(curQuad.startPoint);
-                        //Could only remove in increments of inverseQuality...
+                        //Could only remove in increments of inverseQuality if we wanted...
                         LOOP.For2D(curQuad.startPoint, curQuadSpan, 
                             function(planePos) {
-                                setPlaneBlock(plane, planePos, null);
+                                setPlaneBlock(plane, planePos, Block.AIR);
                             }
                         );
 
