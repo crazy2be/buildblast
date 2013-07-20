@@ -27,7 +27,7 @@ func (fa *MazeArena) Block(bc coords.Block) (Block, bool) {
 	isWall := val-math.Floor(val) < 0.05
 
 	if bc.Y == 21 && isWall {
-		return BLOCK_AIR, false
+		return BLOCK_AIR, true
 	}
 
 	if bc.Y < 20 && isWall {

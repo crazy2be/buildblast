@@ -227,7 +227,7 @@ function Controls(elm) {
 			// Pointer was just unlocked, disable the mousemove listener
 			elm.removeEventListener('mousemove', mouseMove, false);
 			if (isLocked) {
-				//elm.classList.remove('interactive');
+				elm.classList.remove('interactive');
 			}
 		}
 	}
