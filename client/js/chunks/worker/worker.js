@@ -2,14 +2,6 @@
 // a lot more sense anyway.
 var parent = self;
 
-//Need to make threeVector basically work...
-var THREE = {};
-function Error(){}
-var console = {};
-console.warn = function(){}
-THREE.Quaternion = function(){}
-THREE.extend = function(){}
-
 //Most of our required files are above us unfortunately...
 importScripts(
     '../../1defaultSettings.js',
@@ -24,7 +16,8 @@ importScripts(
     'greedyMesher.js',
     'chunkGeometry.js',
     'noise.js',
-    '../../conn.js'
+    '../../conn.js',
+    'workerChunkManager.js'
 );
 
 var console = {};
@@ -72,7 +65,7 @@ function initConn(payload) {
     conn.on('chunk', processChunk);
 }
 
-var manager = new ChunkManager();
+var manager = new WorkerChunkManager();
 
 function processChunk(payload) {
     var size = payload.Size;
@@ -198,58 +191,4 @@ function clamp(n, a, b) {
 
 function dist(p1, p2) {
     return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
-}
-
-function ChunkManager() {
-    var self = this;
-    var chunkList = {};
-
-    self.get = function (cc) {
-        return chunkList[ccStr(cc)];
-    }
-
-    self.set = function (cc, item) {
-        chunkList[ccStr(cc)] = item;
-    }
-
-    self.top = function () {
-        var highest = -1000;
-        var key = "";
-        for (var k in chunkList) {
-            var item = chunkList[k];
-            if (item.priority > highest
-                && item.shown && item.changed
-            ) {
-                highest = item.priority;
-                key = k;
-            }
-        }
-        return chunkList[key];
-    }
-
-    self.each = function (cb) {
-        for (var k in chunkList) {
-            cb(chunkList[k])
-        }
-    }
-
-    self.chunkAt = function (cx, cy, cz) {
-        return self.get({x: cx, y: cy, z: cz});
-    }
-
-    self.refreshNeighbouring = function (cc) {
-        var cx = cc.x;
-        var cy = cc.y;
-        var cz = cc.z;
-        function r(cx, cy, cz) {
-            var chunk = self.get({x: cx, y: cy, z: cz});
-            if (chunk) chunk.changed = true;
-        };
-        r(cx + 1, cy, cz);
-        r(cx - 1, cy, cz);
-        r(cx, cy + 1, cz);
-        r(cx, cy - 1, cz);
-        r(cx, cy, cz + 1);
-        r(cx, cy, cz - 1);
-    }
 }
