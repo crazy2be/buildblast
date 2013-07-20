@@ -179,6 +179,10 @@ function simpleMesh(cg, manager) {
         function abs(n) {
             return Math.abs(n);
         }
+        function clamp(n, a, b) {
+            return Math.min(Math.max(n, a), b);
+        }
+
         function inCenter(x, y, z) {
             return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
                 Math.abs(mod(y, 1) - 0.5) < 0.001 ||

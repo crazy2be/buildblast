@@ -1,15 +1,24 @@
 function ChunkManager(scene, player) {
     var self = this;
 
-    var vertStats = null;
+    var vertStatsSimple = null;
+    var vertStatsGreedy = null;
     if(settings.showGeometryGraph) {
-        vertStats = new PerfChart({
+        vertStatsSimple = new PerfChart({
             title: ' verts'
         });
-        vertStats.elm.style.position = 'absolute';
-        vertStats.elm.style.top = '74px';
-        vertStats.elm.style.right = '160px';
-        document.getElementById('container').appendChild(vertStats.elm);
+        vertStatsSimple.elm.style.position = 'absolute';
+        vertStatsSimple.elm.style.top = '74px';
+        vertStatsSimple.elm.style.right = '160px';
+        document.getElementById('container').appendChild(vertStatsSimple.elm);
+
+        vertStatsGreedy = new PerfChart({
+            title: ' verts'
+        });
+        vertStatsGreedy.elm.style.position = 'absolute';
+        vertStatsGreedy.elm.style.top = '74px';
+        vertStatsGreedy.elm.style.right = '240px';
+        document.getElementById('container').appendChild(vertStatsGreedy.elm);
     }
 
     var chunks = {};
@@ -100,13 +109,13 @@ function ChunkManager(scene, player) {
         console.log("Added chunk at ", cc);
 
         if(settings.showGeometryGraph) {
-            var vertCount = 0;
-            for (var i = 0; i < pg.length; i++) {
-                var curCount = pg[i].attributes.position.array.length;
-                vertCount += curCount;
-            }
+            var simpleVertCount = pg[0].testData.simple.verticeCount;
+            var greedyVertCount = pg[0].testData.greedy.verticeCount;
 
-            vertStats.addDataPoint(vertCount);
+            if(greedyVertCount) {
+                vertStatsSimple.addDataPoint(simpleVertCount/greedyVertCount);
+                vertStatsGreedy.addDataPoint(greedyVertCount);
+            }
         }
     }
 
