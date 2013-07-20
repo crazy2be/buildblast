@@ -9,6 +9,9 @@ function Entity(id) {
 		color: 0x0000ff,
 		wireframe: true
 	});
+	var headMat = new THREE.MeshBasicMaterial({
+		color: 0x0000ff
+	});
 	var faceMat = new THREE.MeshBasicMaterial({
 		color: 0x00ff00
 	});
@@ -36,7 +39,7 @@ function Entity(id) {
 	bodyParts.add(bodyMesh);
 
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-	headGeometry.materials = [material, faceMat];
+	headGeometry.materials = [headMat, faceMat];
 	headGeometry.faces[0].materialIndex = 0;
 	headGeometry.faces[1].materialIndex = 0;
 	headGeometry.faces[2].materialIndex = 0;
