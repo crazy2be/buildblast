@@ -76,17 +76,19 @@ function greedyMesh(chunkGeometry, manager) {
             plane[planePos.x * width + planePos.y] = blockValue;
         }
 
-        function getPixelatedBlockType(chunk, blockPos, inverseQuality) {
+        function getPixelatedBlockType(chunk, blockPosStart, blockSize, adjacent) {
             //Ugh... have to sample to find the block
             var blockCounts = {};
+            
+            blockPosStart = blockPosStart.clone();
 
             //If we wanted to allow for say, inverseQuality of 3 (meaning the edges
             //are different size) this would be where we would do part of it... it would
             //make the chunk boundaries look bad though.
 
-            LOOP.For3D(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1, 1, 1).multiplyScalar(inverseQuality),
+            LOOP.For3D(new THREE.Vector3(0, 0, 0), blockSize,
                 function(offset) {
-                    var sampleBlockPos = blockPos.clone().add(offset);
+                    var sampleBlockPos = blockPosStart.clone().add(offset);
                     var sampleBlockType = CallWithVector3(chunk.block, sampleBlockPos);
                     if(!blockCounts[sampleBlockType]) {
                         blockCounts[sampleBlockType] = 0;
@@ -103,9 +105,15 @@ function greedyMesh(chunkGeometry, manager) {
 
             for(var blockType in blockCounts) {
                 var blockCount = blockCounts[blockType];
-                if(blockCount > maxCount && Block.isSolid(blockType)) {
-                    maxCount = blockCount;
-                    planeBlock = blockType;
+                if(Block.isSolid(blockType)) {
+                    if(blockCount > maxCount) {
+                        maxCount = blockCount;
+                        planeBlock = blockType;
+                    }
+                } else if(adjacent) {
+                    //If it is adjacent any empty may manifest as their quality level may be anything, so
+                    //this means we pretend the whole thing is empty so our quality level is independent of theirs.
+                    return blockType;
                 }
             }
 
@@ -134,12 +142,29 @@ function greedyMesh(chunkGeometry, manager) {
         adjacentChunkPos.setComponent(componentZ, adjacentChunkPos.getComponent(componentZ) + faceDirection);
         var adjacentChunk = CallWithVector3(manager.chunkAt, adjacentChunkPos);
 
-        function createPlane(plane, zValue) {
+        function createPlane(plane, zValue, direction) {
             var chunk = chunkGeometry;
 
-            if(zValue < 0 || zValue >= depth) {
-                chunk =  adjacentChunk;
-                zValue = WrapNumber(zValue, 0, depth);
+            zValue += inverseQuality * direction;
+
+            var zLength = inverseQuality;
+
+            var subInverseQuality = inverseQuality;
+
+            var adjacent = false;
+
+            if(zValue < 0) {
+                adjacent = true;
+                chunk = adjacentChunk;
+                //subInverseQuality = 1;
+                zValue = depth - 1; //Must assume neighbour quality is 1, as it may change and our mesh still needs to work.
+                zLength = 1;
+            } else if(zValue >= depth) {
+                adjacent = true;
+                chunk = adjacentChunk;
+                //subInverseQuality = 1;
+                zValue = 0; //We assume chunk size is divisible by inverseQuality
+                zLength = 1;
             }
 
             if(chunk == null) {
@@ -149,17 +174,18 @@ function greedyMesh(chunkGeometry, manager) {
                 return;
             }
             
-            //Could be calling a ChunkGeometry or just a Chunk.
-            var quality = chunk.getQuality();
-            var inverseQuality = 1 / quality;
-    
-            if(~~inverseQuality != inverseQuality) {
+            if(~~subInverseQuality != subInverseQuality) {
                 //How big do you want us to make the pixelated chunks!
                 throw "1/quality is not an integer, what do I do?";
             }
 
-            for(var ix = 0; ix < width; ix += inverseQuality) {
-                for(var iy = 0; iy < height; iy += inverseQuality) {
+            var blockSize = new THREE.Vector3(0, 0, 0);
+            blockSize.setComponent(componentX, subInverseQuality);
+            blockSize.setComponent(componentY, subInverseQuality);
+            blockSize.setComponent(componentZ, zLength);
+
+            for(var ix = 0; ix < width; ix += subInverseQuality) {
+                for(var iy = 0; iy < height; iy += subInverseQuality) {
                     var planePos = new THREE.Vector2(ix, iy);
 
                     //Essentially handles the rotation from the plane coords to block coords
@@ -173,8 +199,8 @@ function greedyMesh(chunkGeometry, manager) {
                         planeBlock = CallWithVector3(chunk.block, blockPos);
                         setPlaneBlock(plane, planePos, planeBlock);
                     } else {
-                        planeBlock = getPixelatedBlockType(chunk, blockPos, inverseQuality);
-
+                        planeBlock = getPixelatedBlockType(chunk, blockPos, blockSize, adjacent);
+                        //(chunk, blockPosStart, blockSize, adjacent)
                         //We can just ignore the other blocks as the greedymesher will ignore them.
                         setPlaneBlock(plane, planePos, planeBlock);
                         /*
@@ -192,8 +218,8 @@ function greedyMesh(chunkGeometry, manager) {
 
         //We may double load these... but it makes the logic easier to understand.
         var curZ = 0;
-        createPlane(curPlane, -inverseQuality);
-        createPlane(adjacentPlane, -inverseQuality + faceDirection*inverseQuality);
+        createPlane(curPlane, -inverseQuality, 0);
+        createPlane(adjacentPlane, -inverseQuality, faceDirection);
 
         while(curZ < depth) {
             var tempPlane = adjacentPlane;
@@ -205,13 +231,13 @@ function greedyMesh(chunkGeometry, manager) {
                 //(well not current) plane. So we can just set it, and then recalculate the adjacentPlane
                 //curPlane = adjacentPlane;
 
-                createPlane(adjacentPlane, curZ + faceDirection * inverseQuality);
+                createPlane(adjacentPlane, curZ, faceDirection);
             }
             else if(faceDirection == -1) {
                 //The adjacentPlane is just the last plane.
                 //adjacentPlane = curPlane;
 
-                createPlane(curPlane, curZ);
+                createPlane(curPlane, curZ, 0);
             } else {
                 throw "Not possible";
             }
