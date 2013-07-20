@@ -38,7 +38,7 @@ function test_largeChunkMesh() {
         chunk.calculateGeometries();
     }
 
-    var maxChunk = 1;
+    var maxChunk = 2;
 
     function doTest() {
         LOOP.For3D(
