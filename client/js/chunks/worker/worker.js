@@ -14,6 +14,7 @@ importScripts(
     '../common.js',
     'simpleMesher.js',
     'greedyMesher.js',
+    'simpleGreedyMesher.js',
     'chunkGeometry.js',
     'noise.js',
     '../../conn.js',

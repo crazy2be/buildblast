@@ -26,7 +26,21 @@ function ChunkGeometry(cc, blocks, manager) {
         CHUNK_QUALITIES.forEach(function (quality) {
             self.quality = quality;
 
-            var meshFunction = settings.greedyMesh ? greedyMesh : simpleMesh;
+            var meshFunction;
+            switch(settings.greedyMesh) {
+                case 0: {
+                    meshFunction = simpleMesh;
+                    break;
+                }
+                case 1: {
+                    meshFunction = greedyMesh;
+                    break;
+                }
+                case 2: {
+                    meshFunction = greedyMesh2;
+                    break;
+                }
+            }
 
             var geometry = { };
 
@@ -34,18 +48,6 @@ function ChunkGeometry(cc, blocks, manager) {
 
             geometry.attributes = res.attributes;
             geometry.offsets = res.offsets;
-
-            if(settings.testingMesher) {
-                geometry.testData = { };
-                var resGreedy = greedyMesh(self, manager);
-                var resSimple = simpleMesh(self, manager);
-
-                geometry.testData.greedy = { };
-                geometry.testData.simple = { };
-
-                geometry.testData.greedy.verticeCount = resGreedy.attributes.position.numItems;
-                geometry.testData.simple.verticeCount = resSimple.attributes.position.numItems;
-            }
 
             geometries.push(geometry);
             transferables.concat(res.transferables);
@@ -56,12 +58,6 @@ function ChunkGeometry(cc, blocks, manager) {
             geometries: geometries,
             transferables: transferables,
         };
-    }
-
-    //The greedy mesher is a lot simplier if Chunk and ChunkGeometry both expose
-    //getQuality and block.
-    self.getQuality = function() {
-        return self.quality;
     }
 
     self.block = function block(ox, oy, oz) {

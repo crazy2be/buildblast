@@ -7,10 +7,12 @@ LOOP.For3D = function (startPoint, spanVector, callback) {
     for (var xOffset = 0; xOffset < spanVector.x; xOffset++) {
         for (var yOffset = 0; yOffset < spanVector.y; yOffset++) {
             for (var zOffset = 0; zOffset < spanVector.z; zOffset++) {
-                callback(new THREE.Vector3(
+                var stop = callback(new THREE.Vector3(
                                 startPoint.x + xOffset,
                                 startPoint.y + yOffset,
                                 startPoint.z + zOffset));
+
+                if (stop) return;
             }
         }
     }
@@ -19,9 +21,10 @@ LOOP.For3D = function (startPoint, spanVector, callback) {
 LOOP.For2D = function (startPoint, spanVector, callback) {
     for (var xOffset = 0; xOffset < spanVector.x; xOffset++) {
         for (var yOffset = 0; yOffset < spanVector.y; yOffset++) {
-            callback(new THREE.Vector3(
+            var stop = callback(new THREE.Vector3(
                             startPoint.x + xOffset,
                             startPoint.y + yOffset));
+            if (stop) return;
         }
     }
 }

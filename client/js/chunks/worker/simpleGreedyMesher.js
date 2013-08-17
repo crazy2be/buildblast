@@ -10,7 +10,7 @@
 //      The algorithm to make the rectangle just extends the height as much as possible,
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
-function greedyMesh(chunkGeometry, manager) {
+function greedyMesh2(chunkGeometry, manager) {
     var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
     var curChunkPos = new THREE.Vector3(chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z);
 
@@ -36,10 +36,10 @@ function greedyMesh(chunkGeometry, manager) {
 
     var blocks = chunkGeometry.blocks;
 
-    var verts = []; //Each vertice is made of 3 integers (3D point)
-    var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
+    var verts = [];
+    var blockTypes = []; //1 per face, which is 5 triangles, so 15 verts
     var faceNumbers = []; //same a blockTypes in size
-    var index = []; //indexes for triangles of points in verts
+    var index = []; //indexes into triangles of verts
 
     //Go over our blocks in 6 passes, 1 for every face (of a cube).
     //faceVector is the normal to the face.
@@ -47,10 +47,6 @@ function greedyMesh(chunkGeometry, manager) {
     //vecComponent is the number of the component of the normal
     var faceNumber = 0;
     LOOP.CubeFaces(function (faceVector, faceComponents, vecComponent) {
-        if(faceNumber == 2) {
-            //faceNumber++;
-            //return;
-        }
         var negFaceVector = faceVector.clone().multiplyScalar(-1);
 
         var startBlockPos = new THREE.Vector3(0, 0, 0);
@@ -94,7 +90,7 @@ function greedyMesh(chunkGeometry, manager) {
             return chunk.block(x, y, z);
         }
 
-        function getPixelatedBlockType(blockPosStart, blockSize) {
+        function getPixelatedBlockType(getBlock, blockPosStart, blockSize, adjacent) {
             //Ugh... have to sample to find the block
             var blockCounts = {};
             
@@ -110,14 +106,7 @@ function greedyMesh(chunkGeometry, manager) {
 
             LOOP.For3D(new THREE.Vector3(0, 0, 0), blockSize,
                 function(offset) {
-                    var x = blockX + offset.x;
-                    var y = blockY + offset.y;
-                    var z = blockZ + offset.z;
-                    var sampleBlockType = chunkGeometry.blocks[
-                        x * CHUNK_WIDTH * CHUNK_HEIGHT +
-                        y * CHUNK_WIDTH +
-                        z
-                    ];
+                    var sampleBlockType = getBlock(blockX + offset.x, blockY + offset.y, blockZ + offset.z);
                     if(!blockCounts[sampleBlockType]) {
                         blockCounts[sampleBlockType] = 0;
                     }
@@ -138,6 +127,10 @@ function greedyMesh(chunkGeometry, manager) {
                         maxCount = blockCount;
                         planeBlock = blockType;
                     }
+                } else if(adjacent) {
+                    //If it is adjacent any empty may manifest as their quality level may be anything, so
+                    //this means we pretend the whole thing is empty so our quality level is independent of theirs.
+                    return blockType;
                 }
             }
 
@@ -166,8 +159,32 @@ function greedyMesh(chunkGeometry, manager) {
         adjacentChunkPos.setComponent(componentZ, adjacentChunkPos.getComponent(componentZ) + faceDirection);
         var adjacentChunk = CallWithVector3(manager.chunkAt, adjacentChunkPos);
 
-        function createPlane(plane, zValue) {
+        function createPlane(plane, zValue, direction) {
+            zValue += inverseQuality * direction;
+
             var zLength = inverseQuality;
+            var adjacent = false;
+
+            getBlock = getOurBlock;
+
+            if(zValue < 0 || zValue >= depth) {
+                if(adjacentChunk == null) {
+                    for(var ix = 0; ix < width * height; ix++) {
+                        plane[ix] = Block.DIRT; //Any solid would do here
+                    }
+                    return;
+                }
+
+                adjacent = true;
+                zLength = 1;
+                getBlock = getNeighbourBlock.bind(null, adjacentChunk);
+                
+                if(zValue < 0) {
+                    zValue = depth - 1; //Must assume neighbour quality is 1, as it may change and our mesh still needs to work.
+                } else if(zValue >= depth) {
+                    zValue = 0; //We assume chunk size is divisible by inverseQuality
+                }
+            }
 
             var blockSize = new THREE.Vector3(0, 0, 0);
             blockSize.setComponent(componentX, inverseQuality);
@@ -186,17 +203,10 @@ function greedyMesh(chunkGeometry, manager) {
 
                     var planeBlock;
                     if(inverseQuality == 1) {
-                        var x = blockPos.x;
-                        var y = blockPos.y;
-                        var z = blockPos.z;
-                        planeBlock = chunkGeometry.blocks[
-                            x * CHUNK_WIDTH * CHUNK_HEIGHT +
-                            y * CHUNK_WIDTH +
-                            z
-                        ];
+                        planeBlock = CallWithVector3(getBlock, blockPos);
                         setPlaneBlock(plane, planePos, planeBlock);
                     } else {
-                        planeBlock = getPixelatedBlockType(blockPos, blockSize);
+                        planeBlock = getPixelatedBlockType(getBlock, blockPos, blockSize, adjacent);
                         //(chunk, blockPosStart, blockSize, adjacent)
                         //We can just ignore the other blocks as the greedymesher will ignore them.
                         setPlaneBlock(plane, planePos, planeBlock);
@@ -205,65 +215,31 @@ function greedyMesh(chunkGeometry, manager) {
             }
         }
 
-        //Start off beyond the bounds, and then go back in the bounds inside the loop
-        var curZ;
-        var zBound;
-        //We go 1 into our neighbour, as we assume their inverseQuality is 1
-        //curZ = mod(depth + faceDirection, depth);
-        if(faceDirection == -1) {
-            curZ = depth - 1;
-        } else {
-            curZ = 0;
-        }
+        //We may double load these... but it makes the logic easier to understand.
+        var curZ = 0;
+        createPlane(curPlane, -inverseQuality, 0);
+        createPlane(adjacentPlane, -inverseQuality, faceDirection);
 
-        if(adjacentChunk == null) {
-            for(var ix = 0; ix < width * height; ix++) {
-                curPlane[ix] = Block.DIRT; //Any solid would do here
+        while(curZ < depth) {
+            var tempPlane = adjacentPlane;
+            adjacentPlane = curPlane;
+            curPlane = tempPlane;
+
+            if(faceDirection == 1) {
+                //We always move up, and the faces are up, so the adjacentPlane is actually next
+                //(well not current) plane. So we can just set it, and then recalculate the adjacentPlane
+                //curPlane = adjacentPlane;
+
+                createPlane(adjacentPlane, curZ, faceDirection);
             }
-        } else {
-            var blockSize = new THREE.Vector3(0, 0, 0);
-            blockSize.setComponent(componentX, inverseQuality);
-            blockSize.setComponent(componentY, inverseQuality);
-            blockSize.setComponent(componentZ, 1); //We must assume our neighbours have inverseQuality of 1
+            else if(faceDirection == -1) {
+                //The adjacentPlane is just the last plane.
+                //adjacentPlane = curPlane;
 
-            for(var ix = 0; ix < width; ix += inverseQuality) {
-                for(var iy = 0; iy < height; iy += inverseQuality) {
-                    var planePos = new THREE.Vector2(ix, iy);
-
-                    //Essentially handles the rotation from the plane coords to block coords
-                    var blockPos = new THREE.Vector3(0, 0, 0);
-                    blockPos.setComponent(componentX, ix);
-                    blockPos.setComponent(componentY, iy);
-                    blockPos.setComponent(componentZ, curZ);
-
-                    var getBlock = getNeighbourBlock.bind(null, adjacentChunk);
-                    var planeBlock = Block.DIRT; //Any solid block would do here
-                    if(inverseQuality == 1) {
-                        planeBlock = CallWithVector3(getBlock, blockPos);
-                    } else {
-                        LOOP.For3D(blockPos, blockSize, function(pos) {
-                            if(!Block.isSolid(CallWithVector3(getBlock, pos))) {
-                                planeBlock = Block.AIR; //If any of the blocks are not solid, then our entire face must be solid
-                                return true; //stop
-                            }
-                        });
-                    }
-
-                    setPlaneBlock(adjacentPlane, planePos, planeBlock);
-                }
+                createPlane(curPlane, curZ, 0);
+            } else {
+                throw "Not possible";
             }
-        }
-
-        if(faceDirection == -1) {
-            curZ = 0;
-            zBound = depth;
-        } else {
-            curZ = depth - inverseQuality;
-            zBound = -inverseQuality;
-        }
-
-        while(curZ != zBound) {
-            createPlane(curPlane, curZ);
 
             //Find the delta plane
             //As all planes are the same size we can just do a 1 dimensional loop
@@ -280,19 +256,13 @@ function greedyMesh(chunkGeometry, manager) {
             }
 
             //Now apply the actual greedy meshing to the deltaPlane
-            GreedyMesh(planeQuads, deltaPlane, width, height, inverseQuality, curZ);
+            GreedyMesh(planeQuads, deltaPlane, width, height, inverseQuality);
 
-            //The curPlane becomes the adjacentPlane
-            var temp = curPlane;
-            curPlane = adjacentPlane;
-            adjacentPlane = temp;
-
-            //Go opposite the face direction
-            curZ -= inverseQuality * faceDirection;
+            curZ += inverseQuality;
         }
 
         //Adds quads to planeQuads array, where a quad is {startPoint, endPoint, blockType}
-        function GreedyMesh(planeQuads, plane, width, height, inverseQuality, curZ) {
+        function GreedyMesh(planeQuads, plane, width, height, inverseQuality) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
                 for(var y = 0; y < height; y += inverseQuality) {
@@ -425,7 +395,6 @@ function greedyMesh(chunkGeometry, manager) {
 
                 //Yeah, this doesn't make sense...
                 var faceIsClockwise = [false, true, true, false, false, true];
-                //var faceIsClockwise = [true, false, false, true, true, false];
 
                 var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
 
@@ -488,7 +457,7 @@ function greedyMesh(chunkGeometry, manager) {
         var c = colours.light;
         var c2 = colours.dark;
 
-        for(var iVertex = 0; iVertex < 5; iVertex++) {
+        for(var iTriangle = 0; iTriangle < 5; iTriangle++) {
             var iVS = iVertexStart;
             var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2]);
 
