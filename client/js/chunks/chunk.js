@@ -26,8 +26,6 @@ function Chunk(blocks, geometries, scene, quality) {
         self.add();
     }
 
-    //The greedy mesher is a lot simplier if Chunk and ChunkGeometry both expose
-    //getQuality and block.
     self.getQuality = function() {
         return quality;
     }

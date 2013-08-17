@@ -38,7 +38,7 @@ function test_largeChunkMesh() {
         chunk.calculateGeometries();
     }
 
-    var maxChunk = 2;
+    var maxChunk = 1;
 
     function doTest() {
         LOOP.For3D(
@@ -60,16 +60,22 @@ function test_largeChunkMesh() {
         }
     }
 
-    settings.greedyMesh = true;
+    settings.greedyMesh = 2;
+    var greedyTime2 = new Date().getTime();
+    doTest();
+    greedyTime2 = new Date().getTime() - greedyTime2;
+
+    settings.greedyMesh = 1;
     var greedyTime = new Date().getTime();
     doTest();
     greedyTime = new Date().getTime() - greedyTime;
 
-    settings.greedyMesh = false;
+    settings.greedyMesh = 0;
     var simpleTime = new Date().getTime();
     doTest();
     simpleTime = new Date().getTime() - simpleTime;
 
+    console.log("GreedyOld time: " + greedyTime2);
     console.log("Greedy time: " + greedyTime);
     console.log("Simple time: " + simpleTime);
 }

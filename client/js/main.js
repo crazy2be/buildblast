@@ -1,6 +1,6 @@
 window.onload = function () {
-    //test_largeChunkMesh();
-    //return;
+    test_largeChunkMesh();
+    return;
 
     var container = document.getElementById('container');
     var tester = new FeatureTester();

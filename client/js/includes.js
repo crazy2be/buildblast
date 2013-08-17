@@ -28,6 +28,7 @@
 	'js/./chunks/worker/chunkGeometry.js',
 	'js/./chunks/worker/greedyMesher.js',
 	'js/./chunks/worker/noise.js',
+	'js/./chunks/worker/simpleGreedyMesher.js',
 	'js/./chunks/worker/simpleMesher.js',
 	'js/./chunks/worker/threeVector.js',
 	'js/./chunks/worker/twoVector.js',
