@@ -15,8 +15,10 @@ function World(scene, container) {
 		localStorage.playerName = playerName;
 	}
 	var conn = new Conn(getWSURI("main/" + playerName));
+	var clock = new Clock(conn);
+
 	var controls = new Controls(container);
-	var player = new Player(self, conn, controls);
+	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
 	var chunkManager = new ChunkManager(scene, playerName);

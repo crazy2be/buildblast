@@ -12,13 +12,13 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, controls) {
+function Player(world, conn, clock, controls) {
 	var self = this;
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
 	var inventory = new Inventory(world, camera, conn, controls);
-	var prediction = new PlayerPrediction(world, conn, camera.position);
+	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	self.resize = function () {
 		camera.aspect = window.innerWidth / window.innerHeight;

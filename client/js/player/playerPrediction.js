@@ -1,7 +1,5 @@
-function PlayerPrediction(world, conn, position) {
+function PlayerPrediction(world, conn, clock, position) {
 	var self = this;
-
-	var clock = new Clock(conn);
 
 	self.update = function (controls) {
 		sendControlsToNetwork(controls);

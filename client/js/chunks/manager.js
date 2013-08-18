@@ -1,9 +1,9 @@
-function ChunkManager(scene, playerName) {
+function ChunkManager(scene, playerID) {
 	var self = this;
 
 	var chunks = {};
 	var geometryWorker = new Worker('js/chunks/worker.js');
-	startChunkConn(playerName);
+	startChunkConn(playerID);
 
 	self.chunk = function (cc) {
 		return chunks[ccStr(cc)];
