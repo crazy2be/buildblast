@@ -8,7 +8,17 @@ window.onload = function () {
 		return;
 	}
 
-	Models.init(startGame);
+	async.parallel([
+		function (callback) {
+			Models.init(callback);
+		},
+		function (callback) {
+			callback(null, 'testing');
+		}
+	], function (err, results) {
+		console.log(results);
+		startGame();
+	})
 
 	function startGame() {
 		var scene = new THREE.Scene();

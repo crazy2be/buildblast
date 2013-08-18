@@ -2,23 +2,17 @@ function Models() {};
 
 Models.init = function(loadedCallback) {
 	var loader = new THREE.JSONLoader();
+	var models = [
+		'pistol',
+		'shovel',
+		'block',
+		'stone',
+	];
 
-	var modelsToLoad = {
-		pistol: 'models/pistol/pistol.js',
-		shovel: 'models/shovel/shovel.js',
-		block: 'models/block/block.js',
-		stone: 'models/block/stone.js',
-	};
+	async.map(models, loadModel, loadedCallback);
 
-	function loadNextModel() {
-		var name = getAKey(modelsToLoad);
-		if (name === false) {
-			loadedCallback();
-			return;
-		}
-
-		var path = modelsToLoad[name];
-
+	function loadModel(name, done) {
+		var path = 'models/' + name + '/' + name + '.js';
 		loader.load(path, function (geom, mats) {
 			var mat = new THREE.MeshFaceMaterial(mats);
 			if (name === 'shovel') {
@@ -27,15 +21,8 @@ Models.init = function(loadedCallback) {
 			Models[name] = function () {
 				return new THREE.Mesh(geom, mat);
 			};
-			delete modelsToLoad[name];
-			loadNextModel();
+			done();
 		});
-	}
-	loadNextModel();
-
-	function getAKey(obj) {
-		for (var k in obj) return k;
-		return false;
 	}
 
 	function shovelFix(mats) {
