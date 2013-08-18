@@ -132,6 +132,8 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddEntity(p)
 	w.AddBlockListener(c)
+	w.AddEntityListener(c)
+
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
@@ -141,10 +143,41 @@ func (c *Client) Connected(g *Game, w *game.World) {
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
+	w.RemoveEntityListener(c)
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
 	c.sendBlockChanged(bc, new)
+}
+
+func (c *Client) EntityCreated(id string) {
+	if id == c.name {
+		return
+	}
+	c.Send(&MsgEntityCreate{
+		ID: id,
+	})
+}
+
+func (c *Client) EntityMoved(id string, pos coords.World) {
+	if id == c.name {
+		return
+	}
+	c.SendLossy(&MsgEntityPosition{
+		ID: id,
+		Pos: pos,
+	})
+}
+
+func (c *Client) EntityDied(id string, killer string) {}
+
+func (c *Client) EntityRemoved(id string) {
+	if id == c.name {
+		return
+	}
+	c.Send(&MsgEntityRemove{
+		ID: id,
+	})
 }
 
 func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {

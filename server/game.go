@@ -140,25 +140,12 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityCreated(id string) {
-	g.Broadcast(&MsgEntityCreate{
-		ID: id,
-	})
-}
+func (g *Game) EntityCreated(id string) {}
 
-func (g *Game) EntityMoved(id string, pos coords.World) {
-	g.BroadcastLossy(&MsgEntityPosition{
-		ID:  id,
-		Pos: pos,
-	})
-}
+func (g *Game) EntityMoved(id string, pos coords.World) {}
 
 func (g *Game) EntityDied(id string, killer string) {
 	g.Announce(killer + " killed " + id)
 }
 
-func (g *Game) EntityRemoved(id string) {
-	g.Broadcast(&MsgEntityRemove{
-		ID: id,
-	})
-}
+func (g *Game) EntityRemoved(id string) {}

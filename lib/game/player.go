@@ -69,7 +69,7 @@ func (p *Player) Pos() coords.World {
 }
 
 func (p *Player) ID() string {
-	return "player-" + p.name
+	return p.name
 }
 
 func (p *Player) Inventory() *Inventory {
