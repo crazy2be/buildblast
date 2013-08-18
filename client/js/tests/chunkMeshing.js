@@ -20,6 +20,52 @@ function generateRandomBlockArray() {
     return blocks;
 }
 
+function generateRandomBlockGeometryArray() {
+    var blocks = new Float32Array(CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH);
+
+    //Generate random shapes
+    //Rect3 = { start: Vector3, size: Vector3 };
+    var Rect3s = [];
+
+    var rect3Count = 2;
+
+    while (rect3Count-- > 0) {
+        var xs = random(0, CHUNK_WIDTH);
+        var ys = random(0, CHUNK_HEIGHT);
+        var zs = random(0, CHUNK_DEPTH);
+
+        var dx = random(1, 6);
+        var dy = random(1, 6);
+        var dz = random(1, 6);
+        Rect3s.push({ start: { x: xs, y: ys, z: zs }, size: { x:dx, y:dy, z:dz } });
+    }
+
+    //1 is air
+    LOOP.For3D(
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH),
+        function (blockPos) {
+            blocks[
+                blockPos.x * CHUNK_WIDTH * CHUNK_HEIGHT +
+                blockPos.y * CHUNK_WIDTH +
+                blockPos.z
+            ] = Block.AIR;
+        }
+    );
+
+    for (var ix = 0; ix < Rect3s.length; ix++) {
+        LOOP.For3D(Rect3s[ix].start, Rect3s[ix].size, function (blockPos) {
+            blocks[
+                blockPos.x * CHUNK_WIDTH * CHUNK_HEIGHT +
+                blockPos.y * CHUNK_WIDTH +
+                blockPos.z
+            ] = Block.DIRT;
+        });
+    }
+
+    return blocks;
+}
+
 function test_largeChunkMesh() {
     //Must reset the setting, their local settings should not impact the test,
     //instead any settings should be set in the test.
@@ -29,53 +75,55 @@ function test_largeChunkMesh() {
 
     function loadChunk(cc) {
         var chunk = manager.get(cc);
-        chunk = new ChunkGeometry(cc, generateRandomBlockArray(), manager);
+        chunk = new ChunkGeometry(cc, generateRandomBlockGeometryArray(), manager);
         manager.set(cc, chunk);
-    }
-
-    function calculateGeometry(cc) {
-        var chunk = manager.get(cc);
-        chunk.calculateGeometries();
     }
 
     var maxChunk = 1;
 
-    function doTest() {
-        LOOP.For3D(
-            new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(maxChunk, maxChunk, maxChunk),
-            function (chunkPos) {
-                loadChunk(chunkPos);
-            }
-        );
+    LOOP.For3D(
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(maxChunk, maxChunk, maxChunk),
+        function (chunkPos) {
+            loadChunk(chunkPos);
+        }
+    );
 
-        for (var ix = 0; ix < 1; ix++) {
+    function doTest() {
+        var totalVerts = 0;
+        for (var ix = 0; ix < 3; ix++) {
             LOOP.For3D(
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(maxChunk, maxChunk, maxChunk),
                 function (chunkPos) {
-                    calculateGeometry(chunkPos);
+                    var geometries = manager.get(chunkPos).calculateGeometries().geometries;
+                    for (var ig = 0; ig < geometries.length; ig++) {
+                        totalVerts += geometries[ig].attributes.position.numItems;
+                    }
                 }
             );
         }
+        return totalVerts;
     }
 
-    settings.greedyMesh = 2;
-    var greedyTime2 = new Date().getTime();
-    doTest();
-    greedyTime2 = new Date().getTime() - greedyTime2;
+    var tests = [
+        {name: "SimpleFast", number: 4},
+        {name: "FastGreedy", number: 3},
+        {name: "GreedyOld", number: 2},
+        {name: "Greedy", number: 1},
+        {name: "Simple", number: 0}
+    ];
 
-    settings.greedyMesh = 1;
-    var greedyTime = new Date().getTime();
-    doTest();
-    greedyTime = new Date().getTime() - greedyTime;
+    for(var ix = 0; ix < tests.length; ix++) {
+        var time = new Date().getTime();
+        settings.greedyMesh = tests[ix].number;
 
-    settings.greedyMesh = 0;
-    var simpleTime = new Date().getTime();
-    doTest();
-    simpleTime = new Date().getTime() - simpleTime;
+        console.profile(tests[ix].name);
+        var verts = doTest();
+        console.profileEnd();
 
-    console.log("GreedyOld time: " + greedyTime2);
-    console.log("Greedy time: " + greedyTime);
-    console.log("Simple time: " + simpleTime);
+        time = new Date().getTime() - time;
+
+        console.log(tests[ix].name + " time: " + time + " with: " + verts + " verts");
+    }
 }

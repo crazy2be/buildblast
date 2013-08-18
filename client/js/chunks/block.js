@@ -12,6 +12,7 @@ Block.prototype.solid = function () {
 };
 
 //Block Types
+Block.NIL   = 0x0; //Putting this here so its clear it's reserved
 Block.AIR   = 0x1;
 Block.DIRT  = 0x2;
 Block.STONE = 0x3;

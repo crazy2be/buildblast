@@ -40,6 +40,14 @@ function ChunkGeometry(cc, blocks, manager) {
                     meshFunction = greedyMesh2;
                     break;
                 }
+                case 3: {
+                    meshFunction = fastGreedyMesh;
+                    break;
+                }
+                case 4: {
+                    meshFunction = simpleMesh2;
+                    break;
+                }
             }
 
             var geometry = { };
