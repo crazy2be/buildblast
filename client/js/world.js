@@ -16,11 +16,11 @@ function World(scene, container) {
 	}
 	var conn = new Conn(getWSURI("main/" + playerName));
 	var controls = new Controls(container);
-	var player = new Player(playerName, self, conn, controls);
+	var player = new Player(self, conn, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var chunkManager = new ChunkManager(scene, player);
-	var entityManager = new EntityManager(scene, conn, player);
+	var chunkManager = new ChunkManager(scene, playerName);
+	var entityManager = new EntityManager(scene, conn);
 
 	var ambientLight = new THREE.AmbientLight(0xffffff);
 	scene.add(ambientLight);
@@ -34,7 +34,7 @@ function World(scene, container) {
 
 	self.update = function (dt) {
 		player.update(dt);
-		chunkManager.update(dt);
+		chunkManager.update(dt, player.pos());
 		chat.update(dt);
 	};
 

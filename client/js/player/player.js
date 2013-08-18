@@ -12,7 +12,7 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(name, world, conn, controls) {
+function Player(world, conn, controls) {
 	var self = this;
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
@@ -28,14 +28,6 @@ function Player(name, world, conn, controls) {
 
 	self.pos = function () {
 		return camera.position.clone();
-	};
-
-	self.name = function () {
-		return name;
-	};
-
-	self.id = function() {
-		return "player-" + name;
 	};
 
 	self.render = function (renderer, scene) {
