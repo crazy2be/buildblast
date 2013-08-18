@@ -9,7 +9,7 @@ var settings = {};
 //A locally stored localSettings.js file sets the settings too
 
 //Makes mining destroy a large portion of the map, making it more varied for testing purposes.
-settings.destroyMapOnMine = false;
+settings.destroyMapOnMine = true;
 
 settings.showGeometryGraph = false;
 

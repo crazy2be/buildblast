@@ -39,21 +39,33 @@ function fastGreedyMesh(chunkGeometry, manager) {
     var verts = []; //Each vertice is made of 3 integers (3D point)
     var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
     var faceNumbers = []; //same a blockTypes in size
-    var index = []; //indexes for triangles of points in verts
+    var indexes = []; //indexes for triangles of points in verts
 
     //Go over our blocks in 6 passes, 1 for every face (of a cube).
     //faceVector is the normal to the face.
     //faceComponents is an array of the components on the face, x=0, y=1, z=2
     //vecComponent is the number of the component of the normal
-    var faceNumber = 0;
-    LOOP.CubeFaces(function (faceVector, faceComponents, vecComponent) {
-        var negFaceVector = faceVector.clone().multiplyScalar(-1);
 
-        var startBlockPos = new THREE.Vector3(0, 0, 0);
+    //Face normal, components of face, component of normal (same as THREE.js, x=0, y=1, z=2)
+    //The order is important here! It makes sure the normals line up with the 'face numbers' given
+    //by Block.getColors.
 
-        //Extend to the bounds of chunkSize with negFaceVector, so we
-        //are iterating against the direction the faces are in.
-        startBlockPos.multiplyVectors(chunkSize, negFaceVector);
+    var LOOP_CUBEFACES_DATA = [
+    //Face normal, components of face, component of normal (same as THREE.js, x=0, y=1, z=2)
+    //The order is important here! It makes sure the normals line up with the 'face numbers' given
+    //by Block.getColors.
+        [new THREE.Vector3(1, 0, 0), [1, 2], 0],
+        [new THREE.Vector3(-1, 0, 0), [1, 2], 0],
+        [new THREE.Vector3(0, 1, 0), [0, 2], 1],
+        [new THREE.Vector3(0, -1, 0), [0, 2], 1],
+        [new THREE.Vector3(0, 0, 1), [0, 1], 2],
+        [new THREE.Vector3(0, 0, -1), [0, 1], 2],
+    ];
+
+    for(var iSide = 0; iSide < 6; iSide++) {
+        var faceVector = LOOP_CUBEFACES_DATA[iSide][0];
+        var faceComponents = LOOP_CUBEFACES_DATA[iSide][1];
+        var vecComponent = LOOP_CUBEFACES_DATA[iSide][2];
 
         //We now loop over all the 2D planes that make up this face.
         //So for example, all the bottom sides when y = 0, then when y = 1, etc, etc.
@@ -81,37 +93,31 @@ function fastGreedyMesh(chunkGeometry, manager) {
         }
 
         function getPlaneBlock(plane, planePos) {
-            return plane[planePos.x * width + planePos.y];
+            return plane[(planePos.x * width / inverseQuality + planePos.y) / inverseQuality];
         }
         function setPlaneBlock(plane, planePos, blockValue) {
-            plane[planePos.x * width + planePos.y] = blockValue;
+            plane[(planePos.x * width / inverseQuality + planePos.y) / inverseQuality] = blockValue;
         }
 
-        function getPixelatedBlockType(blockPosStart) {
+        function getPixelatedBlockType(oxStart, oyStart, ozStart) {
             //Ugh... have to sample to find the block
             var blockCounts = {};
             
-            blockPosStart = blockPosStart.clone();
-
             //If we wanted to allow for say, inverseQuality of 3 (meaning the edges
             //are different size) this would be where we would do part of it... it would
             //make the chunk boundaries look bad though.
 
-            var blockX = blockPosStart.x;
-            var blockY = blockPosStart.y;
-            var blockZ = blockPosStart.z;
+            var oxEnd = oxStart + inverseQuality;
+            var oyEnd = oyStart + inverseQuality;
+            var ozEnd = ozStart + inverseQuality;
 
-            var blockXEnd = blockX + inverseQuality;
-            var blockYEnd = blockY + inverseQuality;
-            var blockZEnd = blockZ + inverseQuality;
-
-            for(var ox = blockX; ox < blockXEnd; ox++) {
-                for(var oy = blockY; oy < blockYEnd; oy++) {
-                    for(var oz = blockZ; oz < blockZEnd; oz++) {
+            for(var ox = oxStart; ox < oxEnd; ox++) {
+                for(var oy = oyStart; oy < oyEnd; oy++) {
+                    for(var oz = ozStart; oz < ozEnd; oz++) {
                         var sampleBlockType = chunkGeometry.blocks[
-                        ox * CHUNK_WIDTH * CHUNK_HEIGHT +
-                        oy * CHUNK_WIDTH +
-                        oz
+                            ox * CHUNK_WIDTH * CHUNK_HEIGHT +
+                            oy * CHUNK_WIDTH +
+                            oz
                         ];
                         if(!blockCounts[sampleBlockType]) {
                             blockCounts[sampleBlockType] = 0;
@@ -141,33 +147,32 @@ function fastGreedyMesh(chunkGeometry, manager) {
         }
 
         function createPlane(plane, zValue) {
+            var rotArr = []; //Used to apply rotation
+            rotArr[0] = 0;
+            rotArr[1] = 0;
+            rotArr[2] = 0;
+
             for(var ix = 0; ix < width; ix += inverseQuality) {
                 for(var iy = 0; iy < height; iy += inverseQuality) {
-                    var planePos = new THREE.Vector2(ix, iy);
-
                     //Essentially handles the rotation from the plane coords to block coords
-                    var blockPos = new THREE.Vector3(0, 0, 0);
-                    blockPos.setComponent(componentX, ix);
-                    blockPos.setComponent(componentY, iy);
-                    blockPos.setComponent(componentZ, zValue);
+                    rotArr[componentX] = ix;
+                    rotArr[componentY] = iy;
+                    rotArr[componentZ] = zValue;
 
                     var planeBlock;
                     if(inverseQuality == 1) {
-                        var x = blockPos.x;
-                        var y = blockPos.y;
-                        var z = blockPos.z;
                         planeBlock = chunkGeometry.blocks[
-                            x * CHUNK_WIDTH * CHUNK_HEIGHT +
-                            y * CHUNK_WIDTH +
-                            z
+                            rotArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
+                            rotArr[1] * CHUNK_WIDTH +
+                            rotArr[2]
                         ];
                     } else {
-                        planeBlock = getPixelatedBlockType(blockPos);
+                        planeBlock = getPixelatedBlockType(rotArr[0], rotArr[1], rotArr[2]);
                         //(chunk, blockPosStart, blockSize, adjacent)
                         //We can just ignore the other blocks as the greedymesher will ignore them.
                     }
 
-                    setPlaneBlock(plane, planePos, planeBlock);
+                    plane[(ix * width / inverseQuality + iy) / inverseQuality] = planeBlock;
                 }
             }
         }
@@ -273,7 +278,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
         }
 
         var worldChunkOffset = new THREE.Vector3().multiplyVectors(chunkSize, curChunkPos.clone());
-        function addQuad(curQuad) {
+        function addQuad(curQuad, iFace) {
             var quadWidth = curQuad.endPoint.x - curQuad.startPoint.x;
             var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
 
@@ -310,7 +315,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
             var faceIsClockwise = [false, true, true, false, false, true];
             //var faceIsClockwise = [true, false, false, true, true, false];
 
-            var offsetArray = faceIsClockwise[faceNumber] ? clockwise : counterClockwise;
+            var offsetArray = faceIsClockwise[iSide] ? clockwise : counterClockwise;
 
             var xCompOffset = blockPos.getComponent(componentX);
             var yCompOffset = blockPos.getComponent(componentY);
@@ -335,14 +340,14 @@ function fastGreedyMesh(chunkGeometry, manager) {
 
             var blockType = curQuad.blockType;
             blockTypes.push(blockType);
-            faceNumbers.push(faceNumber);
+            faceNumbers.push(iFace);
         }
 
         //array of block types.
-        var adjacentPlane = new Float32Array(width * height);
-        var curPlane = new Float32Array(width * height);
+        var adjacentPlane = new Float32Array(width * height / inverseQuality / inverseQuality);
+        var curPlane = new Float32Array(width * height / inverseQuality / inverseQuality);
         //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
-        var deltaPlane = new Float32Array(width * height);
+        var deltaPlane = new Float32Array(width * height / inverseQuality / inverseQuality);
 
         //quad is {startPoint (3D point though), endPoint (also 3D), blockType}
         var planeQuads = [];
@@ -365,7 +370,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
         if(adjacentChunk == null) {
             for(var ix = 0; ix < width; ix += inverseQuality) {
                 for(var iy = 0; iy < height; iy += inverseQuality) {
-                    var index = ix * width + iy;
+                    var index = (ix * width / inverseQuality + iy) / inverseQuality;
                     adjacentPlane[index] = Block.DIRT; //Any solid would do here
                 }
             }
@@ -377,8 +382,6 @@ function fastGreedyMesh(chunkGeometry, manager) {
 
             for(var ix = 0; ix < width; ix += inverseQuality) {
                 for(var iy = 0; iy < height; iy += inverseQuality) {
-                    var planePos = new THREE.Vector2(ix, iy);
-
                     //Essentially handles the rotation from the plane coords to block coords
                     var blockPos = new THREE.Vector3(0, 0, 0);
                     blockPos.setComponent(componentX, ix);
@@ -398,7 +401,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
                         });
                     }
 
-                    setPlaneBlock(adjacentPlane, planePos, planeBlock);
+                    adjacentPlane[(ix * width / inverseQuality + iy) / inverseQuality] = planeBlock;
                 }
             }
         }
@@ -419,7 +422,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
                 for(var iy = 0; iy < height; iy += inverseQuality) {
                     //No need make a face if the block adjacent to our face is filled,
                     //or if we have no block.
-                    var index = ix * width + iy;
+                    var index = (ix * width / inverseQuality + iy) / inverseQuality;
 
                     //if(!Block.isEmpty(adjacentPlane[index]) || Block.isEmpty(curPlane[index])) {
                     if(adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
@@ -446,11 +449,9 @@ function fastGreedyMesh(chunkGeometry, manager) {
 
         //Now turn the planeQuads into vertices, colors, and indexes
         for(var ix = 0; ix < planeQuads.length; ix++) {
-            addQuad(planeQuads[ix]);
+            addQuad(planeQuads[ix], iSide);
         }
-
-        faceNumber++;
-    });
+    }
 
     function copy(src, dst) {
         for (var i = 0; i < src.length; i++) {
@@ -464,10 +465,10 @@ function fastGreedyMesh(chunkGeometry, manager) {
     //Bunch of squares, point in each corner and one in the middle
     //Each point is made up of 3 numbers
     for(var iVert = 0; iVert < verts.length / 3; iVert += 5) {
-        index.push(iVert, iVert + 1, iVert + 4);
-        index.push(iVert + 1, iVert + 2, iVert + 4);
-        index.push(iVert + 2, iVert + 3, iVert + 4);
-        index.push(iVert + 3, iVert, iVert + 4);
+        indexes.push(iVert, iVert + 1, iVert + 4);
+        indexes.push(iVert + 1, iVert + 2, iVert + 4);
+        indexes.push(iVert + 2, iVert + 3, iVert + 4);
+        indexes.push(iVert + 3, iVert, iVert + 4);
     }
 
     var color = [];
@@ -494,8 +495,8 @@ function fastGreedyMesh(chunkGeometry, manager) {
         }
     }
 
-    var indexa = new Uint16Array(index.length);
-    copy(index, indexa);
+    var indexa = new Uint16Array(indexes.length);
+    copy(indexes, indexa);
 
     var colora = new Float32Array(color.length);
     copy(color, colora);
@@ -509,7 +510,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
         index: {
             itemSize: 1,
             array: indexa,
-            numItems: index.length,
+            numItems: indexes.length,
         },
         color: {
             itemSize: 3,
@@ -519,7 +520,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
     };
     var offsets = [{
         start: 0,
-        count: index.length,
+        count: indexes.length,
         index: 0,
     }];
 
