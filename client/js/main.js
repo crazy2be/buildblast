@@ -8,20 +8,21 @@ window.onload = function () {
 		return;
 	}
 
-	var playerName = localStorage.playerName;
-	while (!playerName) {
-		playerName = prompt("Please enter your name.","Unknown");
-		localStorage.playerName = playerName;
-	}
-	var conn = new Conn(getWSURI("main/" + playerName));
-	var clock = new Clock(conn);
+	var conn = new Conn(getWSURI("main/"));
+	var clock;
+	var playerID;
 
 	async.parallel([
 		function (callback) {
 			Models.init(callback);
 		},
 		function (callback) {
-			callback(null, 'testing');
+			conn.on('handshake-reply', function (payload) {
+				clock = new Clock(conn, payload.ServerTime);
+				playerID = payload.ClientID;
+				callback();
+			})
+			conn.queue('handshake-init', {});
 		}
 	], function (err, results) {
 		console.log(results);
@@ -30,7 +31,7 @@ window.onload = function () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var world = new World(scene, conn, clock, container, playerName);
+		var world = new World(scene, conn, clock, container, playerID);
 		world.resize();
 
 		var renderer = new THREE.WebGLRenderer();

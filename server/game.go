@@ -23,18 +23,17 @@ func NewGame() *Game {
 
 	g.clients = make(map[string]*Client, 0)
 
-	g.connectingClients = make(chan *Client, 10)
+	g.connectingClients = make(chan *Client)
 
 	g.clientRequests = make(chan string)
 	g.clientResponses = make(chan *Client)
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
-	g.world.AddEntityListener(g)
 
 	return g
 }
 
-// Thread safe
+// Thread safe, blocking
 func (g *Game) Connect(c *Client) {
 	g.connectingClients <- c
 }
@@ -140,12 +139,11 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityCreated(id string) {}
-
-func (g *Game) EntityMoved(id string, pos coords.World) {}
-
 func (g *Game) EntityDied(id string, killer string) {
 	g.Announce(killer + " killed " + id)
 }
 
+func (g *Game) EntityCreated(id string) {}
+func (g *Game) EntityMoved(id string, pos coords.World) {}
 func (g *Game) EntityRemoved(id string) {}
+

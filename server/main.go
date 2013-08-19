@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -30,13 +31,36 @@ func getClientName(config *websocket.Config) string {
 	return bits[3]
 }
 
+func generateRandomName() string {
+	lower := "abcdefghijklmnopqrstuvwxyz"
+	upper := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	digit := "0123456789"
+	alphabet := lower + upper + digit
+	length := 10
+	name := "guest-"
+	for i := 0; i < length; i++ {
+		n := rand.Intn(len(alphabet))
+		name += alphabet[n:n+1]
+	}
+	return name
+}
+
 func mainSocketHandler(ws *websocket.Conn) {
-	name := getClientName(ws.Config())
+	name := generateRandomName()
+	print(name)
+
+	conn := NewConn(ws)
+	_, err := conn.Recv()
+	if err != nil {
+		panic(err)
+	}
+	conn.Send(&MsgHandshakeReply{
+		ServerTime: float64(time.Now().Unix()) / 1000,
+		ClientID: name,
+	})
 
 	c := NewClient(name)
 	globalGame.Connect(c)
-
-	conn := NewConn(ws)
 	c.Run(conn)
 }
 
