@@ -14,6 +14,7 @@ type MessageKind string
 const (
 	MSG_HANDSHAKE_INIT = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
+	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
 	MSG_ENTITY_POSITION = MessageKind("entity-position")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
@@ -62,6 +63,8 @@ func typeToKind(m Message) MessageKind {
 	switch m.(type) {
 		case *MsgHandshakeReply:
 			return MSG_HANDSHAKE_REPLY
+		case *MsgHandshakeError:
+			return MSG_HANDSHAKE_ERROR
 		case *MsgEntityCreate:
 			return MSG_ENTITY_CREATE
 		case *MsgEntityPosition:
@@ -91,12 +94,16 @@ func typeToKind(m Message) MessageKind {
 }
 
 type MsgHandshakeInit struct {
-
+	DesiredName string
 }
 
 type MsgHandshakeReply struct {
 	ServerTime float64
 	ClientID string
+}
+
+type MsgHandshakeError struct {
+	Message string
 }
 
 type MsgEntityCreate struct {

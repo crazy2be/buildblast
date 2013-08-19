@@ -46,14 +46,28 @@ func generateRandomName() string {
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
-	name := generateRandomName()
-	print(name)
-
 	conn := NewConn(ws)
-	_, err := conn.Recv()
+
+	msg, err := conn.Recv()
 	if err != nil {
 		panic(err)
 	}
+
+	name := msg.(*MsgHandshakeInit).DesiredName
+	if name == "" {
+		name = generateRandomName()
+	}
+
+	print(name)
+
+	client := globalGame.clientWithID(name)
+	if client != nil {
+		conn.Send(&MsgHandshakeError{
+			Message: "Client with username " + name + " is already playing on this server!",
+		})
+		return
+	}
+
 	conn.Send(&MsgHandshakeReply{
 		ServerTime: float64(time.Now().Unix()) / 1000,
 		ClientID: name,

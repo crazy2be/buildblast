@@ -22,7 +22,9 @@ window.onload = function () {
 				playerID = payload.ClientID;
 				callback();
 			})
-			conn.queue('handshake-init', {});
+			conn.queue('handshake-init', {
+				DesiredName: localStorage.playerName,
+			});
 		}
 	], function (err, results) {
 		console.log(results);

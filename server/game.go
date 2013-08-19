@@ -100,6 +100,7 @@ func (g *Game) BroadcastLossy(m Message) {
 	}
 }
 
+// Thread safe, blocking
 func (g *Game) clientWithID(id string) *Client {
 	g.clientRequests <- id
 	return <-g.clientResponses
