@@ -1,4 +1,4 @@
-function World(scene, container) {
+function World(scene, conn, clock, container, playerID) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -9,19 +9,11 @@ function World(scene, container) {
 		scene.remove(mesh);
 	};
 
-	var playerName = localStorage.playerName;
-	while (!playerName) {
-		playerName = prompt("Please enter your name.","Unknown");
-		localStorage.playerName = playerName;
-	}
-	var conn = new Conn(getWSURI("main/" + playerName));
-	var clock = new Clock(conn);
-
 	var controls = new Controls(container);
 	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var chunkManager = new ChunkManager(scene, playerName);
+	var chunkManager = new ChunkManager(scene, playerID);
 	var entityManager = new EntityManager(scene, conn);
 
 	var ambientLight = new THREE.AmbientLight(0xffffff);

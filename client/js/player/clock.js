@@ -8,6 +8,10 @@ function Clock(conn) {
 		return offset + now();
 	};
 
+	self.update = function () {
+
+	};
+
 	var clientTime;
 	function startSync() {
 		clientTime = now();

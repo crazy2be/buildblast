@@ -12,9 +12,9 @@ function ChunkManager(scene, playerID) {
 	var accumulatedTime = 0;
 	self.update = function (dt, playerPos) {
 		accumulatedTime += dt;
-		if (accumulatedTime < 1) return;
+		if (accumulatedTime < 1000 /*ms*/) return;
 
-		accumulatedTime -= 1;
+		accumulatedTime -= 1000;
 		var p = playerPos;
 		geometryWorker.postMessage({
 			'kind': 'player-position',

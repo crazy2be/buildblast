@@ -8,6 +8,14 @@ window.onload = function () {
 		return;
 	}
 
+	var playerName = localStorage.playerName;
+	while (!playerName) {
+		playerName = prompt("Please enter your name.","Unknown");
+		localStorage.playerName = playerName;
+	}
+	var conn = new Conn(getWSURI("main/" + playerName));
+	var clock = new Clock(conn);
+
 	async.parallel([
 		function (callback) {
 			Models.init(callback);
@@ -22,8 +30,7 @@ window.onload = function () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var clock = new THREE.Clock();
-		var world = new World(scene, container);
+		var world = new World(scene, conn, clock, container, playerName);
 		world.resize();
 
 		var renderer = new THREE.WebGLRenderer();
@@ -50,11 +57,15 @@ window.onload = function () {
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
+		var previousTime = clock.time();
 		function animate() {
-			var dt = clock.getDelta();
+			clock.update();
+			var newTime = clock.time();
+			var dt = newTime - previousTime;
+			previousTime = newTime;
 			world.update(dt);
 			world.render(renderer, scene);
-			speed.addDataPoint(dt*1000);
+			speed.addDataPoint(dt);
 
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);

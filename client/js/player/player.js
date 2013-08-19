@@ -34,7 +34,7 @@ function Player(world, conn, clock, controls) {
 		renderer.render(scene, camera);
 	};
 
-	self.update = function (dt) {
+	self.update = function () {
 		var c = controls.sample();
 
 		var p = prediction.update(c);
