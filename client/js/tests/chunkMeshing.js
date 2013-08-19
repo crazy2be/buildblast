@@ -20,6 +20,29 @@ function generateRandomBlockArray() {
     return blocks;
 }
 
+function getCurrentChunkBlockArray() {
+    var playerCount = 0;
+    var aPlayer = null;
+    for (var player in testExposure.players) {
+        aPlayer = player;
+        playerCount++;
+    }
+
+    if (playerCount != 1) {
+        console.warn("Multiple players, testing on chunk of first player: " + aPlayer);
+    }
+
+    var cameraPos = window.testExposure.players[aPlayer].camera.position.clone();
+
+    var cords = CallWithVector3(worldToChunk, cameraPos);
+    var oc = cords.o;
+    var cc = cords.c;
+
+    var chunkManager = window.testExposure.chunkManager;
+    var chunk = chunkManager.chunk(cc);
+    return chunk.testExposure.blocks;
+}
+
 function generateRandomBlockGeometryArray() {
     var blocks = new Float32Array(CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH);
 
@@ -27,7 +50,7 @@ function generateRandomBlockGeometryArray() {
     //Rect3 = { start: Vector3, size: Vector3 };
     var Rect3s = [];
 
-    var rect3Count = 2;
+    var rect3Count = 60;
 
     while (rect3Count-- > 0) {
         var xs = random(0, CHUNK_WIDTH);
@@ -81,17 +104,9 @@ function test_largeChunkMesh() {
 
     var maxChunk = 1;
 
-    LOOP.For3D(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(maxChunk, maxChunk, maxChunk),
-        function (chunkPos) {
-            loadChunk(chunkPos);
-        }
-    );
-
     function doTest() {
         var totalVerts = 0;
-        for (var ix = 0; ix < 3; ix++) {
+        for (var ix = 0; ix < 1; ix++) {
             LOOP.For3D(
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(maxChunk, maxChunk, maxChunk),
@@ -110,20 +125,39 @@ function test_largeChunkMesh() {
         {name: "SimpleFast", number: 4},
         {name: "FastGreedy", number: 3},
         {name: "GreedyOld", number: 2},
-        {name: "Greedy", number: 1},
-        {name: "Simple", number: 0}
+        //{name: "Greedy", number: 1},
+        //{name: "Simple", number: 0}
     ];
 
-    for(var ix = 0; ix < tests.length; ix++) {
-        var time = new Date().getTime();
-        settings.greedyMesh = tests[ix].number;
+    var loops = 500;
+    for (var i = 0; i < loops; i++) {
+        LOOP.For3D(
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(maxChunk, maxChunk, maxChunk),
+            function (chunkPos) {
+                loadChunk(chunkPos);
+            }
+        );
 
-        console.profile(tests[ix].name);
-        var verts = doTest();
-        console.profileEnd();
+        for (var ix = 0; ix < tests.length; ix++) {
+            var time = new Date().getTime();
+            settings.greedyMesh = tests[ix].number;
 
-        time = new Date().getTime() - time;
+            if(loops == 1) console.profile(tests[ix].name);
+            var verts = doTest();
+            if (loops == 1) console.profileEnd();
 
-        console.log(tests[ix].name + " time: " + time + " with: " + verts + " verts");
+            time = new Date().getTime() - time;
+
+            tests[ix].time = tests[ix].time || 0;
+            tests[ix].time += time;
+
+            tests[ix].verts = tests[ix].verts || 0;
+            tests[ix].verts += verts;
+        }
+    }
+
+    for (var ix = 0; ix < tests.length; ix++) {
+        console.log(tests[ix].name + " time: " + tests[ix].time + " with: " + tests[ix].verts + " verts");
     }
 }

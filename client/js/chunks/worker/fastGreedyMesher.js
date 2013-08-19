@@ -11,8 +11,12 @@
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 function fastGreedyMesh(chunkGeometry, manager) {
-    var chunkSize = new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH);
+    //Should probably turn chunkGeometry.cc into a Vector3, so I don't have to do this copy.
     var curChunkPos = new THREE.Vector3(chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z);
+
+    var bcxStart = CHUNK_WIDTH * chunkGeometry.cc.x;
+    var bcyStart = CHUNK_HEIGHT * chunkGeometry.cc.y;
+    var bczStart = CHUNK_DEPTH * chunkGeometry.cc.z;
 
     var r = 1 / chunkGeometry.quality;
     function mod(a, b) {
@@ -78,9 +82,9 @@ function fastGreedyMesh(chunkGeometry, manager) {
         var componentY = faceComponents[1]; //'y' (see above)
         var componentZ = vecComponent; //'z' (see above)
 
-        var width = chunkSize.getComponent(componentX);
-        var height = chunkSize.getComponent(componentY);
-        var depth = chunkSize.getComponent(componentZ);
+        var width = CHUNK_WIDTH;
+        var height = CHUNK_HEIGHT;
+        var depth = CHUNK_DEPTH;
 
         var faceDirection = faceVector.getComponent(componentZ);
 
@@ -177,122 +181,113 @@ function fastGreedyMesh(chunkGeometry, manager) {
             }
         }
 
-        //Adds quads to planeQuads array, where a quad is {startPoint, endPoint, blockType}
         function GreedyMesh(planeQuads, plane, width, height, inverseQuality, curZ) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
                 for(var y = 0; y < height; y += inverseQuality) {
                     var curQuad = GetQuad(plane, x, y);
-                    if(curQuad) {
-                        planeQuads.push(curQuad);
-                        //Remove all parts of the quad from the plane.
-                        var curQuadSpan = curQuad.endPoint.clone().sub(curQuad.startPoint);
-                        //Could only remove in increments of inverseQuality if we wanted...
-                        LOOP.For2D(curQuad.startPoint, curQuadSpan, 
-                            function(planePos) {
-                                setPlaneBlock(plane, planePos, Block.AIR);
-                            }
-                        );
+                    if(!curQuad) continue;
 
-                        //We can also increment y by the height, which saves us checks later.
-                        //May be slower though because it jumps the loop... idk...
-                        y = curQuad.endPoint.y - inverseQuality;
+                    planeQuads.push(curQuad);
+                    //Remove all parts of the quad from the plane.
+                    var px = curQuad[0];
+                    var py = curQuad[1];
+
+                    for(var pox = 0; pox < curQuad[3]; pox += inverseQuality) {
+                        for(var poy = 0; poy < curQuad[4]; poy += inverseQuality) {
+                            plane[((px + pox) * width / inverseQuality + (py + poy)) / inverseQuality] = Block.AIR;
+                        }
                     }
+
+                    //We can also increment y by the height, which saves us checks later.
+                    //May be slower though because it jumps the loop... idk...
+                    y = (py + curQuad[4]) - inverseQuality;
                 }
             }
 
             function GetQuad(plane, x, y) {
-                var curQuadStart = new THREE.Vector3(x, y, curZ);
-                var baseBlock = getPlaneBlock(plane, curQuadStart);
+                //The current end of the rectangle (exclusive)
+                var px = x;
+                var py = y;
 
+                //Do a quick check to make sure we are not just empty
+                var baseBlock = plane[(px * width / inverseQuality + py) / inverseQuality];
                 if(baseBlock == Block.AIR) return;
 
-                var curQuadEnd = new THREE.Vector3(x, y + inverseQuality, curZ);
+                py += inverseQuality;
 
                 //Try to extend on the y axis
-                while(curQuadEnd.y < height) {
-                    var curBlock = getPlaneBlock(plane, curQuadEnd);
+                while(py < height) {
+                    var curBlock = plane[(px * width / inverseQuality + py) / inverseQuality];
                     if(curBlock != baseBlock) break;
 
-                    curQuadEnd.y += inverseQuality;
+                    py += inverseQuality;
                 }
 
-                curQuadEnd.x += inverseQuality;
+                px += inverseQuality;
                 
                 //Try to extend on the x axis
-                if(curQuadEnd.y - curQuadEnd.y == inverseQuality) {
-                    //Simple, we have 1 height so width is easy to find
-                    while(curQuadEnd.x < width) {
-                        var curBlock = getPlaneBlock(plane, curQuadEnd);
-                        if(curBlock != baseBlock) break;
-
-                        //Could cause problems if chunk size is not divisible by inverseQuality.
-                        curQuadEnd.x += inverseQuality;
-                    }
-                } else {
-                    //A bit harder, when extending the width we have to make sure
-                    //all of the multiple new squares added match the type.
-                    while(curQuadEnd.x < width) {
-                        var canExtend = true;
-                        for(var yTestPos = curQuadStart.y; yTestPos < curQuadEnd.y; yTestPos += inverseQuality) {
-                            var tempQuadEnd = new THREE.Vector3(curQuadEnd.x, yTestPos, 0);
-                            var curBlock = getPlaneBlock(plane, tempQuadEnd);
-                            if(curBlock != baseBlock) {
-                                canExtend = false;
-                                break;
-                            }
+                while(px < width) {
+                    //For every 1 we extend it, we have to check the entire new column
+                    for(var pyTest = y; pyTest < py; pyTest += inverseQuality) {
+                        var curBlock = plane[(px * width / inverseQuality + pyTest) / inverseQuality];
+                        if(curBlock != baseBlock) {
+                            break;
                         }
-
-                        if(!canExtend) break;
-
-                        curQuadEnd.x += inverseQuality;
                     }
+
+                    //Did not match all blocks in the column
+                    if(pyTest != py) {
+                        break;
+                    }
+
+                    px += inverseQuality;
                 }
                 
-                return {
-                    startPoint: curQuadStart, 
-                    endPoint: curQuadEnd, 
-                    blockType: baseBlock
-                };
+                return [
+                    x, y, curZ,
+                    (px - x), (py - y),
+                    baseBlock
+                ];
             }
         }
         function SimpleMesh(planeQuads, plane, width, height, inverseQuality, curZ) {
             //I expanded this loop so I can skip iterations when possible.
             for(var x = 0; x < width; x += inverseQuality) {
                 for(var y = 0; y < height; y += inverseQuality) {
-                    var curQuadStart = new THREE.Vector3(x, y, curZ);
-                    var curQuadEnd = new THREE.Vector3(x + inverseQuality, y + inverseQuality, curZ + 1);
-                    var baseBlock = getPlaneBlock(plane, curQuadStart);
+                    var baseBlock = plane[(x * width / inverseQuality + y) / inverseQuality];
 
                     if(baseBlock == Block.AIR) continue;
 
-                    var curQuad = {
-                        startPoint: curQuadStart, 
-                        endPoint: curQuadEnd, 
-                        blockType: baseBlock                        
-                    };
+                    var curQuad = [
+                        x, y, curZ,
+                        inverseQuality, inverseQuality,
+                        baseBlock                        
+                    ];
 
                     planeQuads.push(curQuad);
                 }
             }
         }
 
-        var worldChunkOffset = new THREE.Vector3().multiplyVectors(chunkSize, curChunkPos.clone());
         function addQuad(curQuad, iFace) {
-            var quadWidth = curQuad.endPoint.x - curQuad.startPoint.x;
-            var quadHeight = curQuad.endPoint.y - curQuad.startPoint.y;
+            var px = curQuad[0];
+            var py = curQuad[1];
+            var pz = curQuad[2];
 
-            var planePos = curQuad.startPoint.clone();
+            var quadWidth = curQuad[3];
+            var quadHeight = curQuad[4];
 
-            var blockPos = new THREE.Vector3();
+            var blockType = curQuad[5];
 
-            blockPos.setComponent(componentX, planePos.x);
-            blockPos.setComponent(componentY, planePos.y);
-            blockPos.setComponent(componentZ, planePos.z);
+            var oArr = [0, 0, 0];
+            oArr[componentX] = px;
+            oArr[componentY] = py;
+            oArr[componentZ] = pz;
 
             //Offset normal axis based on block size.
             if(faceDirection == 1) {
-                addToComponent(blockPos, componentZ, inverseQuality);
+                oArr[componentZ] += inverseQuality;
             }
 
             //Not entirely sure, pretty sure this can be better explained.
@@ -317,10 +312,6 @@ function fastGreedyMesh(chunkGeometry, manager) {
 
             var offsetArray = faceIsClockwise[iSide] ? clockwise : counterClockwise;
 
-            var xCompOffset = blockPos.getComponent(componentX);
-            var yCompOffset = blockPos.getComponent(componentY);
-            var zCompOffset = blockPos.getComponent(componentZ);
-
             offsetArray.forEach(function(offsets) {
                 //Make some room
                 var iVertStart = verts.length;
@@ -329,16 +320,19 @@ function fastGreedyMesh(chunkGeometry, manager) {
                 var compYIndex = iVertStart + componentY;
                 var compZIndex = iVertStart + componentZ;
 
-                verts[compXIndex] = xCompOffset + quadWidth * offsets[0];
-                verts[compYIndex] = yCompOffset + quadHeight * offsets[1];
-                verts[compZIndex] = zCompOffset;
+                verts[compXIndex] = px + quadWidth * offsets[0];
+                verts[compYIndex] = py + quadHeight * offsets[1];
+                verts[compZIndex] = pz;
 
-                verts[iVertStart] += worldChunkOffset.x;
-                verts[iVertStart + 1] += worldChunkOffset.y;
-                verts[iVertStart + 2] += worldChunkOffset.z;
+                if(faceDirection == 1) {
+                    verts[compZIndex] += inverseQuality;
+                }
+
+                verts[iVertStart] += bcxStart;
+                verts[iVertStart + 1] += bcyStart;
+                verts[iVertStart + 2] += bczStart;
             });
 
-            var blockType = curQuad.blockType;
             blockTypes.push(blockType);
             faceNumbers.push(iFace);
         }
@@ -349,7 +343,7 @@ function fastGreedyMesh(chunkGeometry, manager) {
         //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
         var deltaPlane = new Float32Array(width * height / inverseQuality / inverseQuality);
 
-        //quad is {startPoint (3D point though), endPoint (also 3D), blockType}
+        //quad is [ox, oy, oz, xSize, ySize, blockType]
         var planeQuads = [];
 
         //We are going to need the adjacent chunk on at least one loop.
@@ -424,7 +418,6 @@ function fastGreedyMesh(chunkGeometry, manager) {
                     //or if we have no block.
                     var index = (ix * width / inverseQuality + iy) / inverseQuality;
 
-                    //if(!Block.isEmpty(adjacentPlane[index]) || Block.isEmpty(curPlane[index])) {
                     if(adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
                         deltaPlane[index] = Block.AIR;
                         continue;
@@ -435,8 +428,8 @@ function fastGreedyMesh(chunkGeometry, manager) {
             }
 
             //Now apply the actual greedy meshing to the deltaPlane
-            //GreedyMesh(planeQuads, deltaPlane, width, height, inverseQuality, curZ);
-            SimpleMesh(planeQuads, deltaPlane, width, height, inverseQuality, curZ);
+            GreedyMesh(planeQuads, deltaPlane, width, height, inverseQuality, curZ);
+            //SimpleMesh(planeQuads, deltaPlane, width, height, inverseQuality, curZ);
 
             //The curPlane becomes the adjacentPlane
             var temp = curPlane;

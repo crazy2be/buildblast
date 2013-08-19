@@ -45,4 +45,8 @@ function Chunk(blocks, geometries, scene, quality) {
             throw "block coords out of bounds: " + oc;
         }
     }
+
+    self.testExposure = {
+        blocks: blocks
+    };
 }
