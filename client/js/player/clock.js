@@ -1,18 +1,38 @@
 function Clock(conn) {
 	var self = this;
 
+	var curTime = 0;
+	self.time = function () {
+		return curTime;
+	};
 
 	var offset = 0;
-	self.time = function () {
-		return offset + now();
-	};
-
+	var appliedOffset = 0;
+	var prevNow = now();
+	var prevTime = 0;
 	self.update = function () {
+		var curNow = now();
+		var dt = curNow - prevNow;
+		var doff = offset - appliedOffset;
+		appliedOffset += min(abs(dt*0.5), abs(doff)) * signum(doff);
 
+		curTime = appliedOffset + curNow;
+		if (curTime < prevTime) {
+			debugger;
+		}
+		prevNow = curNow;
+		prevTime = curTime;
 	};
+
+	function signum(n) {
+		if (n > 0) return 1;
+		else if (n < 0) return -1;
+		else return 0;
+	}
 
 	self.init = function (serverTime) {
 		offset = calcOffset(clientTime, serverTime, serverTime, now());
+		appliedOffset = offset;
 		conn.on('ntp-sync', proccessSync);
 		startSync();
 	}
