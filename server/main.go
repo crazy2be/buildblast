@@ -58,8 +58,6 @@ func mainSocketHandler(ws *websocket.Conn) {
 		name = generateRandomName()
 	}
 
-	print(name)
-
 	client := globalGame.clientWithID(name)
 	if client != nil {
 		conn.Send(&MsgHandshakeError{
@@ -69,7 +67,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	}
 
 	conn.Send(&MsgHandshakeReply{
-		ServerTime: float64(time.Now().Unix()) / 1000,
+		ServerTime: float64(time.Now().UnixNano()) / 1e6,
 		ClientID: name,
 	})
 

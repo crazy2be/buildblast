@@ -9,7 +9,7 @@ window.onload = function () {
 	}
 
 	var conn = new Conn(getWSURI("main/"));
-	var clock;
+	var clock = new Clock(conn);
 	var playerID;
 
 	async.parallel([
@@ -18,7 +18,8 @@ window.onload = function () {
 		},
 		function (callback) {
 			conn.on('handshake-reply', function (payload) {
-				clock = new Clock(conn, payload.ServerTime);
+				console.log(payload);
+				clock.init(payload.ServerTime)
 				playerID = payload.ClientID;
 				callback();
 			});
