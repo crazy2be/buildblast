@@ -2,14 +2,21 @@ function Clock(conn) {
 	var self = this;
 
 	var curTime = 0;
+	// Only updated after you call .update(). This way, all
+	// things querying the time in a frame will get the
+	// same time.
 	self.time = function () {
 		return curTime;
 	};
 
+	// Actual client <-> server offset, according to most
+	// recent sync.
 	var offset = 0;
+	// How much of the offset we've actually applied. We
+	// don't want to apply it all at once, because that will
+	// cause lots of jerk.
 	var appliedOffset = 0;
 	var prevNow = now();
-	var prevTime = 0;
 	self.update = function () {
 		var curNow = now();
 		var dt = curNow - prevNow;
@@ -17,11 +24,7 @@ function Clock(conn) {
 		appliedOffset += min(abs(dt*0.5), abs(doff)) * signum(doff);
 
 		curTime = appliedOffset + curNow;
-		if (curTime < prevTime) {
-			debugger;
-		}
 		prevNow = curNow;
-		prevTime = curTime;
 	};
 
 	function signum(n) {
