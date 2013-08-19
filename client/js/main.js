@@ -21,7 +21,10 @@ window.onload = function () {
 				clock = new Clock(conn, payload.ServerTime);
 				playerID = payload.ClientID;
 				callback();
-			})
+			});
+			conn.on('handshake-error', function (payload) {
+				throw payload.Message;
+			});
 			conn.queue('handshake-init', {
 				DesiredName: localStorage.playerName,
 			});
