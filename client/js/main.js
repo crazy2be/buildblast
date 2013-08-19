@@ -8,12 +8,16 @@ window.onload = function () {
         return;
     }
 
+    //We use this to expose certain variables for test code.
+    window.testExposure = { };
+
     Models.init(startGame);
 
     function startGame() {
         var scene = new THREE.Scene();
         var clock = new THREE.Clock();
         var world = new World(scene, container);
+        window.testExposure.world = world;
         world.resize();
 
         var renderer = new THREE.WebGLRenderer();

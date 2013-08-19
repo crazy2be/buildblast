@@ -21,6 +21,8 @@ function World(scene, container) {
 
     var chunkManager = new ChunkManager(scene, player);
     var entityManager = new EntityManager(scene, conn, player);
+    window.testExposure.chunkManager = chunkManager;
+    window.testExposure.entityManager = entityManager;
 
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -142,19 +144,19 @@ function World(scene, container) {
         }
     }
 
-    self.findPlayerIntersection = function (camera) {
+    self.findPlayerIntersection = function (camera, precision) {
         function entityAt(wx, wy, wz) {
             return entityManager.entityAt(wx, wy, wz);
         }
-        return findIntersection(camera, entityAt, 0.1);
+        return findIntersection(camera, entityAt, precision);
     }
 
-    function findSolidBlockIntersection(camera) {
+    function findSolidBlockIntersection(camera, precision) {
         function blockAt(wx, wy, wz) {
             var block = self.blockAt(wx, wy, wz);
             return block && block.solid();
         }
-        return findIntersection(camera, blockAt);
+        return findIntersection(camera, blockAt, precision);
     }
 
     function getLookedAtDirection(camera) {
@@ -168,20 +170,21 @@ function World(scene, container) {
     //  or the block right before the solid block (so for example and air block right before the solid block).
     //return a THREE.Vector3 which is the position of the block.
     self.getLookedAtBlock = function(camera, wantSolidBlock) {
-        var intersect = findSolidBlockIntersection(camera);
+        //Very important, without specifying this we cannot accurately backup to find
+        //a block before a solid block!
+        var precision = 0.1;
+
+        var intersect = findSolidBlockIntersection(camera, precision);
         if (!intersect) {
             console.log("You aren't looking at anything!");
             return;
         }
         var p = intersect.point;
 
-        //We get a small vector in the direction of the camera so we can find
-        //the block right before the solid block.
-        var camDirection = getLookedAtDirection(camera).setLength(0.05);
-
         if(!wantSolidBlock) {
-            //Go back a bit, so we are outside the block
-            p.sub(camDirection);
+            //We backup to the last point, so should be the block directly before a solid.
+            var cameraDirection = getLookedAtDirection(camera).setLength(precision);
+            p.sub(cameraDirection);
         }
 
         return p;
