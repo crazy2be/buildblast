@@ -61,9 +61,11 @@ func mainSocketHandler(ws *websocket.Conn) {
 
 	name := baseName
 	nameNumber := 1
+	var client *Client
 	for {
-		client := globalGame.clientWithID(name)
-		if client == nil {
+		var isNew bool
+		client, isNew = globalGame.clientWithID(name)
+		if isNew {
 			break
 		}
 		name = fmt.Sprintf("%s-%d", baseName, nameNumber)
@@ -75,17 +77,16 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ClientID: name,
 	})
 
-	client := NewClient(name)
-	globalGame.Connect(client)
 	client.Run(conn)
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
-	client := globalGame.clientWithID(name)
-	if client == nil {
-		log.Println("Warning: Attempt to connect to chunk socket for client '" + name + "' who is not connected on main socket.")
+	client, isNew := globalGame.clientWithID(name)
+	if isNew {
+		log.Println("Warning: Attempt to connect to chunk socket for client '" + name + "' who is not connected on main socket!")
+		globalGame.Disconnect(name, "invalid connection")
 		return
 	}
 	client.RunChunks(NewConn(ws))
