@@ -34,7 +34,7 @@ function getCurrentChunkBlockArray() {
 
     var cameraPos = window.testExposure.players[aPlayer].camera.position.clone();
 
-    var cords = CallWithVector3(worldToChunk, cameraPos);
+    var cords = worldToChunk(cameraPos[0], cameraPos[1], cameraPos[2]);
     var oc = cords.o;
     var cc = cords.c;
 
@@ -122,7 +122,7 @@ function test_largeChunkMesh() {
     }
 
     var tests = [
-        { name: "greedyMesh" },
+        { name: "greedyMesher" },
         { name: "simpleMesh" },
         { name: "simpleMesh2" }
     ];

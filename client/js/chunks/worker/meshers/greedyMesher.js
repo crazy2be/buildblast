@@ -10,7 +10,7 @@
 //      The algorithm to make the rectangle just extends the height as much as possible,
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
-function greedyMesh(chunkGeometry, manager) {
+function greedyMesher(chunkGeometry, manager) {
     //Should probably turn chunkGeometry.cc into a Vector3, so I don't have to do this copy.
     var ccArr = [chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z];
 

@@ -12,8 +12,6 @@
         document.body.appendChild(script);
     }
 }([
-	'js/./1defaultSettings.js',
-	'js/./1localSettings.js',
 	'js/./box.js',
 	'js/./chat.js',
 	'js/./conn.js',
@@ -36,7 +34,6 @@
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
 	'js/./entities/entity.js',
 	'js/./entities/manager.js',
-	'js/./loopHelpers/loop.js',
 	'js/./perf/chart.js',
 	'js/./player/clock.js',
 	'js/./player/controls.js',
