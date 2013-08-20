@@ -70,7 +70,7 @@ function ChunkManager(scene, player) {
         var pg = payload.geometries;
         var geometries = [];
         //Geometry for each quality (as in, far away, medium, close, etc... we
-        //'pixelate' cubes that are far away).
+        //'voxelize' cubes that are far away).
         for (var i = 0; i < pg.length; i++) {
             var geometry = new THREE.BufferGeometry();
             geometry.attributes = pg[i].attributes;

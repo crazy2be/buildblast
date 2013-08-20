@@ -117,7 +117,7 @@ function greedyMesher(chunkGeometry, manager) {
                                 ocArr[2]
                             ];
                         } else {
-                            planeBlock = getPixelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, chunkGeometry.blocks);
+                            planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, chunkGeometry.blocks);
                         }
 
                         plane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
