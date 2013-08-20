@@ -12,6 +12,12 @@ var CHUNK_QUALITIES = [1, 0.5, 0.25];
 function mod(a, b) {
     return (((a % b) + b) % b);
 }
+function abs(n) {
+    return Math.abs(n);
+}
+function clamp(n, a, b) {
+    return Math.min(Math.max(n, a), b);
+}
 
 function worldToChunk(wx, wy, wz) {
     if (wz === undefined) {

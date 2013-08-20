@@ -11,7 +11,4 @@ var settings = {};
 //Makes mining destroy a large portion of the map, making it more varied for testing purposes.
 settings.destroyMapOnMine = true;
 
-//Meh, should really be inverted and called simpleMesh if true is the default.
-settings.greedyMesh = 3;
-
 settings.testingMesher = false;

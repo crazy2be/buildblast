@@ -27,27 +27,10 @@ function ChunkGeometry(cc, blocks, manager) {
             self.quality = quality;
 
             var meshFunction;
-            switch(settings.greedyMesh) {
-                case 0: {
-                    meshFunction = simpleMesh;
-                    break;
-                }
-                case 1: {
-                    meshFunction = greedyMesh;
-                    break;
-                }
-                case 2: {
-                    meshFunction = greedyMesh2;
-                    break;
-                }
-                case 3: {
-                    meshFunction = fastGreedyMesh;
-                    break;
-                }
-                case 4: {
-                    meshFunction = simpleMesh2;
-                    break;
-                }
+            if(settings.greedyMesh) {
+                meshFunction = settings.greedyMesh;
+            } else {
+                meshFunction = greedyMesh2;
             }
 
             var geometry = { };

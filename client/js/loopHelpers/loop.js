@@ -29,24 +29,6 @@ LOOP.For2D = function (startPoint, spanVector, callback) {
     }
 }
 
-var LOOP_CUBEFACES_DATA = [
-//Face normal, components of face, component of normal (same as THREE.js, x=0, y=1, z=2)
-//The order is important here! It makes sure the normals line up with the 'face numbers' given
-//by Block.getColors.
-    [new THREE.Vector3(1, 0, 0), [1, 2], 0],
-    [new THREE.Vector3(-1, 0, 0), [1, 2], 0],
-    [new THREE.Vector3(0, 1, 0), [0, 2], 1],
-    [new THREE.Vector3(0, -1, 0), [0, 2], 1],
-    [new THREE.Vector3(0, 0, 1), [0, 1], 2],
-    [new THREE.Vector3(0, 0, -1), [0, 1], 2],
-];
-//Basically just loops over LOOP_CUBEFACES_DATA and passes you the objects.
-LOOP.CubeFaces = function (callback) {
-    LOOP_CUBEFACES_DATA.forEach(function (cubeFaceArray) {
-        callback.apply(null, cubeFaceArray);
-    });
-}
-
 //Not really sure where these belongs
 function CallWithVector3(callback, vector3) {
     return callback(vector3.x, vector3.y, vector3.z);

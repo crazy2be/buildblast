@@ -89,6 +89,8 @@ function generateRandomBlockGeometryArray() {
     return blocks;
 }
 
+var testOnLiveData = true;
+
 function test_largeChunkMesh() {
     //Must reset the setting, their local settings should not impact the test,
     //instead any settings should be set in the test.
@@ -98,7 +100,9 @@ function test_largeChunkMesh() {
 
     function loadChunk(cc) {
         var chunk = manager.get(cc);
-        chunk = new ChunkGeometry(cc, generateRandomBlockGeometryArray(), manager);
+        chunk = new ChunkGeometry(cc,
+            testOnLiveData ? getCurrentChunkBlockArray() :
+                generateRandomBlockGeometryArray(), manager);
         manager.set(cc, chunk);
     }
 
@@ -122,14 +126,14 @@ function test_largeChunkMesh() {
     }
 
     var tests = [
-        {name: "SimpleFast", number: 4},
-        {name: "FastGreedy", number: 3},
-        {name: "GreedyOld", number: 2},
-        //{name: "Greedy", number: 1},
-        //{name: "Simple", number: 0}
+        //{ name: "simpleMesh2"},
+        //{ name: "fastGreedyMesh"},
+        {name: "greedyMesh2"},
+        {name: "greedyMesh"},
+        //{ name: "simpleMesh"}
     ];
 
-    var loops = 500;
+    var loops = 20;
     for (var i = 0; i < loops; i++) {
         LOOP.For3D(
             new THREE.Vector3(0, 0, 0),
@@ -141,7 +145,7 @@ function test_largeChunkMesh() {
 
         for (var ix = 0; ix < tests.length; ix++) {
             var time = new Date().getTime();
-            settings.greedyMesh = tests[ix].number;
+            settings.greedyMesh = window[tests[ix].name];
 
             if(loops == 1) console.profile(tests[ix].name);
             var verts = doTest();

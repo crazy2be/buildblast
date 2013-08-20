@@ -26,7 +26,7 @@
 //        }],
 //    transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 //};
-function simpleMesh2(cg, manager) {
+function simpleMesh(cg, manager) {
     var cw = CHUNK_WIDTH;
     var cd = CHUNK_DEPTH;
     var ch = CHUNK_HEIGHT;
@@ -165,7 +165,7 @@ function simpleMesh2(cg, manager) {
         var wy = oy + cy*ch;
         var wz = oz + cz*cd;
 
-        var blockType;
+        var blockType = Block.DIRT;
         if (r === 1) {
             blockType = blockTypeAt(ox, oy, oz);
         } else {
