@@ -1,30 +1,28 @@
-function simpleMesh2(cg, manager) {
-    var chunkGeometry = cg;
-
+function simpleMesh2(blocks, quality, cc, manager) {
     var cw = CHUNK_WIDTH;
     var ch = CHUNK_HEIGHT;
     var cd = CHUNK_DEPTH;
 
     var chunkDims = [cw, ch, cd];
 
-    preprocessBlocks(chunkGeometry.blocks, chunkDims);
+    preprocessBlocks(blocks, chunkDims);
 
-    var ccArr = [cg.cc.x, cg.cc.y, cg.cc.z];
+    var ccArr = [cc.x, cc.y, cc.z];
 
-    var bcxStart = CHUNK_WIDTH * chunkGeometry.cc.x;
-    var bcyStart = CHUNK_HEIGHT * chunkGeometry.cc.y;
-    var bczStart = CHUNK_DEPTH * chunkGeometry.cc.z;
+    var bcxStart = CHUNK_WIDTH * cc.x;
+    var bcyStart = CHUNK_HEIGHT * cc.y;
+    var bczStart = CHUNK_DEPTH * cc.z;
 
     var verts = []; //Each vertice is made of 3 integers (3D point)
     var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
     var faceNumbers = []; //same a blockTypes in size
     var indexes = []; //indexes for triangles of points in verts
 
-    var inverseQuality = 1 / chunkGeometry.quality;
+    var inverseQuality = 1 / quality;
 
     function addBlockGeometry(ocX, ocY, ocZ, inverseQuality) {
         var noise = [];
-        var ourBlockType = getPixelatedBlockType(ocX, ocY, ocZ, inverseQuality, chunkGeometry.blocks);
+        var ourBlockType = getVoxelatedBlockType(ocX, ocY, ocZ, inverseQuality, blocks);
         if (ourBlockType == Block.AIR) return;
 
         var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
@@ -62,13 +60,13 @@ function simpleMesh2(cg, manager) {
                 }
             } else {
                 if(inverseQuality === 1) {
-                    adjacentBlock = chunkGeometry.blocks[
+                    adjacentBlock = blocks[
                         oAdjArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
                         oAdjArr[1] * CHUNK_WIDTH +
                         oAdjArr[2]
                     ];
                 } else {
-                    adjacentBlock = getPixelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], inverseQuality, chunkGeometry.blocks);
+                    adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], inverseQuality, blocks);
                 }
             }
             if(adjacentBlock == Block.AIR) {

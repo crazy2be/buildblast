@@ -1,5 +1,4 @@
-//cg is a ChunkGeometry.
-//Returns: (same as greedyMesh)
+//Returns: (same as greedyMesher)
 //{
 //    attributes: {
 //            position: { //x, y, z (triangles)
@@ -26,14 +25,14 @@
 //        }],
 //    transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 //};
-function simpleMesh(cg, manager) {
+function simpleMesh(blocks, quality, cc, manager) {
     var cw = CHUNK_WIDTH;
     var cd = CHUNK_DEPTH;
     var ch = CHUNK_HEIGHT;
 
-    var cx = cg.cc.x;
-    var cy = cg.cc.y;
-    var cz = cg.cc.z;
+    var cx = cc.x;
+    var cy = cc.y;
+    var cz = cc.z;
 
     // Neighbouring chunks (for blockTypeAt)
     var nxc, pxc, nyc, pyc, nzc, pzc;
@@ -42,8 +41,8 @@ function simpleMesh(cg, manager) {
     var index = [];
     var color = [];
 
-    var quality = cg.quality;
-    var blocks = cg.blocks;
+    var quality = quality;
+    var blocks = blocks;
 
     updateNeighbours();
 

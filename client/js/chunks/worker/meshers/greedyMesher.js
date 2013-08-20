@@ -10,16 +10,15 @@
 //      The algorithm to make the rectangle just extends the height as much as possible,
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
-function greedyMesher(chunkGeometry, manager) {
-    //Should probably turn chunkGeometry.cc into a Vector3, so I don't have to do this copy.
-    var ccArr = [chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z];
+function greedyMesher(blocks, quality, cc, manager) {
+    var ccArr = [cc.x, cc.y, cc.z];
 
     var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-    preprocessBlocks(chunkGeometry.blocks, chunkDims);
+    preprocessBlocks(blocks, chunkDims);
 
-    var bcxStart = CHUNK_WIDTH * chunkGeometry.cc.x;
-    var bcyStart = CHUNK_HEIGHT * chunkGeometry.cc.y;
-    var bczStart = CHUNK_DEPTH * chunkGeometry.cc.z;
+    var bcxStart = CHUNK_WIDTH * cc.x;
+    var bcyStart = CHUNK_HEIGHT * cc.y;
+    var bczStart = CHUNK_DEPTH * cc.z;
 
     var verts = []; //Each vertice is made of 3 integers (3D point)
     var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -36,7 +35,7 @@ function greedyMesher(chunkGeometry, manager) {
         var compY = LOOP_CUBEFACES_DATA[iFace][2]; 
         var compZ = LOOP_CUBEFACES_DATA[iFace][3];
 
-        var inverseQuality = 1 / chunkGeometry.quality;
+        var inverseQuality = 1 / quality;
 
         var pcWidth = chunkDims[compX];
         var pcHeight = chunkDims[compY];
@@ -111,13 +110,13 @@ function greedyMesher(chunkGeometry, manager) {
 
                         var planeBlock;
                         if (inverseQuality == 1) {
-                            planeBlock = chunkGeometry.blocks[
+                            planeBlock = blocks[
                                 ocArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
                                 ocArr[1] * CHUNK_WIDTH +
                                 ocArr[2]
                             ];
                         } else {
-                            planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, chunkGeometry.blocks);
+                            planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, blocks);
                         }
 
                         plane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;

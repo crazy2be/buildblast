@@ -98,19 +98,20 @@ function test_largeChunkMesh() {
         var chunk = manager.get(cc);
         chunk = new ChunkGeometry(cc,
             testOnLiveData ? getCurrentChunkBlockArray() :
-                generateRandomBlockGeometryArray(), manager);
+                generateRandomBlockGeometryArray(), manager, function () { }); //No mesher initially
         manager.set(cc, chunk);
     }
 
     var maxChunk = 1;
 
-    function doTest() {
+    function doTest(chunkMesher) {
         var totalVerts = 0;
         for (var ix = 0; ix < 1; ix++) {
             LOOP.For3D(
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(maxChunk, maxChunk, maxChunk),
                 function (chunkPos) {
+                    manager.get(chunkPos).chunkMesher = chunkMesher;
                     var geometries = manager.get(chunkPos).calculateGeometries().geometries;
                     for (var ig = 0; ig < geometries.length; ig++) {
                         totalVerts += geometries[ig].attributes.position.numItems;
@@ -139,10 +140,9 @@ function test_largeChunkMesh() {
 
         for (var ix = 0; ix < tests.length; ix++) {
             var time = new Date().getTime();
-            localStorage.chunkMesher = window[tests[ix].name];
 
             if(loops == 1) console.profile(tests[ix].name);
-            var verts = doTest();
+            var verts = doTest(window[tests[ix].name]);
             if (loops == 1) console.profileEnd();
 
             time = new Date().getTime() - time;

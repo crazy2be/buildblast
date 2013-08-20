@@ -1,5 +1,5 @@
 //Makes it so mining will mine random blocks, greatly deterioting the map.
-localStorage.destroyMapOnMine = false;
+//localStorage.destroyMapOnMine
 
 function Item(type, num) {
     this.type = type;

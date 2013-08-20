@@ -6,8 +6,6 @@
 function ChunkGeometry(cc, blocks, manager, chunkMesher) {
     var self = this;
 
-    chunkMesher = chunkMesher || greedyMesher;
-
     var cw = CHUNK_WIDTH;
     var ch = CHUNK_HEIGHT;
     var cd = CHUNK_DEPTH;
@@ -19,18 +17,16 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
     self.changed = true;
     self.loaded = false;
     self.quality = 1;
+    self.chunkMesher = chunkMesher;
 
     self.calculateGeometries = function () {
         var geometries = [];
         var transferables = [];
 
-        var originalQuality = self.quality;
         CHUNK_QUALITIES.forEach(function (quality) {
-            self.quality = quality;
-
             var geometry = { };
 
-            var res = chunkMesher(self, manager);
+            var res = self.chunkMesher(self.blocks, quality, self.cc, manager);
 
             geometry.attributes = res.attributes;
             geometry.offsets = res.offsets;
@@ -38,7 +34,6 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
             geometries.push(geometry);
             transferables.concat(res.transferables);
         });
-        self.quality = originalQuality;
 
         return {
             geometries: geometries,

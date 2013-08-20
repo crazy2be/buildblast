@@ -95,7 +95,7 @@ function processChunk(payload) {
     var chunk = manager.get(cc);
     if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
-    chunk = new ChunkGeometry(cc, blocks, manager);
+    chunk = new ChunkGeometry(cc, blocks, manager, greedyMesher);
     manager.set(cc, chunk);
     manager.refreshNeighbouring(cc);
 }
