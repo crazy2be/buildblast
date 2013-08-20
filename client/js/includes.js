@@ -34,4 +34,5 @@
 	'js/./player/items.js',
 	'js/./player/player.js',
 	'js/./player/playerPrediction.js',
+	'js/./player/stack.js',
 ]));

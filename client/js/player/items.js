@@ -1,7 +1,7 @@
 function Item(type, num) {
 	this.type = type;
 	this.num = num;
-	this.model = Item.DATA[this.type].model();
+// 	this.model = Item.DATA[this.type].model();
 }
 
 Item.prototype.stackable = function () {
@@ -19,6 +19,10 @@ Item.prototype.action = function () {
 Item.prototype.icon = function () {
 	return Item.DATA[this.type].icon;
 };
+
+Item.prototype.model = function () {
+	return Item.DATA[this.type].model();
+}
 
 Item.NIL	= function () { return new Item(0x0); };
 Item.DIRT   = function () { return new Item(0x1); };
@@ -42,7 +46,7 @@ Item.isStackable = function (item) {
 };
 
 Item.hasProperty = function (item, prop) {
-	return (Item.PROPERTIES[item] & prop) > 0;
+	return (Item.PROPERTIES[item] & prop) != 0;
 };
 
 Item.throttle = function (func, param) {
