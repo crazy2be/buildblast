@@ -67,7 +67,7 @@ function noiseFunc(bcX, bcY, bcZ, inverseQuality) {
     return clamp(val / 2 + 0.5, 0.0, 1.0);
 }
 
-function getPixelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blocks) {
+function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blocks) {
     //Ugh... have to sample to find the block
     var blockCounts = {};
 
