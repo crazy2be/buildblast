@@ -279,8 +279,8 @@ function Inventory(world, camera, conn, controls) {
 		swapLeftWasDown = leftWasDown;
 		swapRightWasDown = rightWasDown;
 
-		function activateSlot(slot) {
-			var action = slot.item.action();
+		function activateStack(stack) {
+			var action = stack.item.action();
 			if (action) {
 				action(world, camera);
 			} else {
@@ -309,13 +309,13 @@ function Inventory(world, camera, conn, controls) {
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
-				updateEquipped((isLeft ? slot : null),
-							   (isLeft ? null : slot));
+				updateEquipped((isLeft ? stack : null),
+							   (isLeft ? null : stack));
 				updateHtmlEquipChanged(isLeft);
 			}
 
 			if (c[activateTrigger]) {
-				activateSlot(slot);
+				activateStack(stack);
 			}
 
 			return swapDown;

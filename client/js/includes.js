@@ -31,7 +31,7 @@
 	'js/./entities/manager.js',
 	'js/./perf/chart.js',
 	'js/./player/inventory.js',
-	'js/./player/items.js',
+	'js/./player/item.js',
 	'js/./player/player.js',
 	'js/./player/playerPrediction.js',
 	'js/./player/stack.js',
