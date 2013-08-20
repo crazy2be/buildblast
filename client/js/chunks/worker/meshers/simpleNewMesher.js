@@ -5,6 +5,10 @@ function simpleMesh2(cg, manager) {
     var ch = CHUNK_HEIGHT;
     var cd = CHUNK_DEPTH;
 
+    var chunkDims = [cw, ch, cd];
+
+    preprocessBlocks(chunkGeometry.blocks, chunkDims);
+
     var ccArr = [cg.cc.x, cg.cc.y, cg.cc.z];
 
     var bcxStart = CHUNK_WIDTH * chunkGeometry.cc.x;
@@ -18,9 +22,9 @@ function simpleMesh2(cg, manager) {
 
     var inverseQuality = 1 / chunkGeometry.quality;
 
-    function addBlockGeometry(ox, oy, oz, inverseQuality) {
+    function addBlockGeometry(ocX, ocY, ocZ, inverseQuality) {
         var noise = [];
-        var ourBlockType = getPixelatedBlockType(ox, oy, oz, inverseQuality, chunkGeometry.blocks);
+        var ourBlockType = getPixelatedBlockType(ocX, ocY, ocZ, inverseQuality, chunkGeometry.blocks);
         if (ourBlockType == Block.AIR) return;
 
         var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
@@ -29,32 +33,32 @@ function simpleMesh2(cg, manager) {
 
         for(var iFace = 0; iFace < 6; iFace++) {
             var faceDirection = LOOP_CUBEFACES_DATA[iFace][0];
-            var componentX = LOOP_CUBEFACES_DATA[iFace][1]; //'x' (see above)
-            var componentY = LOOP_CUBEFACES_DATA[iFace][2]; //'y' (see above)
-            var componentZ = LOOP_CUBEFACES_DATA[iFace][3]; //'z' (see above)
+            var compX = LOOP_CUBEFACES_DATA[iFace][1]; //'x' (see above)
+            var compY = LOOP_CUBEFACES_DATA[iFace][2]; //'y' (see above)
+            var compZ = LOOP_CUBEFACES_DATA[iFace][3]; //'z' (see above)
 
-            var oAdjArr = [ox, oy, oz];
-            oAdjArr[componentZ] += faceDirection * inverseQuality;
+            var oAdjArr = [ocX, ocY, ocZ];
+            oAdjArr[compZ] += faceDirection * inverseQuality;
 
             //We assume it's dirt if we cannot access an adjacent chunk
             var adjacentBlock = Block.DIRT;
-            if(oAdjArr[componentZ] < 0 || oAdjArr[componentZ] >= oMax[componentZ]) {
+            if (oAdjArr[compZ] < 0 || oAdjArr[compZ] >= oMax[compZ]) {
                 //Off the edge, so we need to check our neighbour... ugh...
 
-                if(oAdjArr[componentZ] < 0) {
-                    oAdjArr[componentZ] = oMax[componentZ] - 1;
+                if (oAdjArr[compZ] < 0) {
+                    oAdjArr[compZ] = oMax[compZ] - 1;
                 }
-                if(oAdjArr[componentZ] >= oMax[componentZ]) {
-                    oAdjArr[componentZ] = 0;
+                if (oAdjArr[compZ] >= oMax[compZ]) {
+                    oAdjArr[compZ] = 0;
                 }
 
-                ccArr[componentZ] += faceDirection;
+                ccArr[compZ] += faceDirection;
                 var neighbourChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
-                ccArr[componentZ] -= faceDirection;
+                ccArr[compZ] -= faceDirection;
 
                 if(neighbourChunk) {
                     adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], 
-                                          neighbourChunk.block, componentZ, inverseQuality);
+                                          neighbourChunk.block, compZ, inverseQuality);
                 }
             } else {
                 if(inverseQuality === 1) {
@@ -68,7 +72,7 @@ function simpleMesh2(cg, manager) {
                 }
             }
             if(adjacentBlock == Block.AIR) {
-                addQuad(ox + bcxStart, oy + bcyStart, oz + bczStart, inverseQuality, inverseQuality, componentZ, faceDirection, inverseQuality, verts);
+                addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, inverseQuality, inverseQuality, compZ, faceDirection, inverseQuality, verts);
                 blockTypes.push(ourBlockType);
                 faceNumbers.push(iFace);
             }
@@ -77,10 +81,10 @@ function simpleMesh2(cg, manager) {
 
     //Pick blocks in increments based on the quality (like sampling), later code will look through the
     //area and decide what type the block should really be.
-    for (var ox = 0; ox < cw; ox += inverseQuality) {
-        for (var oy = 0; oy < ch; oy += inverseQuality) {
-            for (var oz = 0; oz < cd; oz += inverseQuality) {
-                addBlockGeometry(ox, oy, oz, inverseQuality);
+    for (var ocX = 0; ocX < cw; ocX += inverseQuality) {
+        for (var ocY = 0; ocY < ch; ocY += inverseQuality) {
+            for (var ocZ = 0; ocZ < cd; ocZ += inverseQuality) {
+                addBlockGeometry(ocX, ocY, ocZ, inverseQuality);
             }
         }
     }

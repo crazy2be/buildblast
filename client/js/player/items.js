@@ -1,3 +1,6 @@
+//Makes it so mining will mine random blocks, greatly deterioting the map.
+localStorage.destroyMapOnMine = false;
+
 function Item(type, num) {
     this.type = type;
     this.num = num;
@@ -66,7 +69,7 @@ Item.pistolAction = function (world, camera) {
 };
 
 Item.shovelAction = function (world, camera) {
-    if(settings.destroyMapOnMine) {
+    if(localStorage.destroyMapOnMine) {
         Item.destroyMapAction(world, camera);
         return;
     }

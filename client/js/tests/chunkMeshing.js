@@ -89,13 +89,9 @@ function generateRandomBlockGeometryArray() {
     return blocks;
 }
 
-var testOnLiveData = true;
+var testOnLiveData = false;
 
 function test_largeChunkMesh() {
-    //Must reset the setting, their local settings should not impact the test,
-    //instead any settings should be set in the test.
-    settings = {};
-
     var manager = new WorkerChunkManager();
 
     function loadChunk(cc) {
@@ -126,11 +122,9 @@ function test_largeChunkMesh() {
     }
 
     var tests = [
-        //{ name: "simpleMesh2"},
-        //{ name: "fastGreedyMesh"},
-        {name: "greedyMesh2"},
-        {name: "greedyMesh"},
-        //{ name: "simpleMesh"}
+        { name: "greedyMesh" },
+        { name: "simpleMesh" },
+        { name: "simpleMesh2" }
     ];
 
     var loops = 20;
@@ -145,7 +139,7 @@ function test_largeChunkMesh() {
 
         for (var ix = 0; ix < tests.length; ix++) {
             var time = new Date().getTime();
-            settings.greedyMesh = window[tests[ix].name];
+            localStorage.chunkMesher = window[tests[ix].name];
 
             if(loops == 1) console.profile(tests[ix].name);
             var verts = doTest();
