@@ -26,6 +26,18 @@
 //    transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 //};
 
+//IMPORTANT! Before you call any of these functions, run this function on your blocks array!
+//This makes it so all empty blocks become AIR, I found this makes the
+//greedy mesher about 20% faster (even with the preprocessing).
+function preprocessBlocks(blocks, chunkDims) {
+    var totalCount = chunkDims[0] * chunkDims[1] * chunkDims[2];
+    for (var index = 0; index < totalCount; index++) {
+        if (Block.isEmpty(blocks[index])) {
+            blocks[index] = Block.AIR;
+        }
+    }
+}
+
 //cc stands for chunk,
 //oc stands for offset, as in the block offset within a chunk
 //bc stands for block, as in the block position (globally unique)

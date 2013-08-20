@@ -15,7 +15,7 @@ function greedyMesh(chunkGeometry, manager) {
     var ccArr = [chunkGeometry.cc.x, chunkGeometry.cc.y, chunkGeometry.cc.z];
 
     var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-    //preprocessBlocks(chunkGeometry.blocks, chunkDims);
+    preprocessBlocks(chunkGeometry.blocks, chunkDims);
 
     var bcxStart = CHUNK_WIDTH * chunkGeometry.cc.x;
     var bcyStart = CHUNK_HEIGHT * chunkGeometry.cc.y;
@@ -60,7 +60,7 @@ function greedyMesh(chunkGeometry, manager) {
         var pcZBound;
         //We go 1 into our neighbour, as we assume their inverseQuality is 1
         if (faceDirection == -1) {
-            pcZCur = pcDepth - 1; //This is not entirely correct, it should be size[componentZ]
+            pcZCur = pcDepth - 1;
         } else {
             pcZCur = 0;
         }

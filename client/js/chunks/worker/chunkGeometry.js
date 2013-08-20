@@ -2,6 +2,8 @@
 //blocks is the raw block array, filled with block types.
 //quality is a value describing the 'pixelation', lower values mean more pixelation.
 
+localStorage.chunkMesher = greedyMesh;
+
 //This is basically just POD, the meshers do all the heavy lifting.
 function ChunkGeometry(cc, blocks, manager) {
     var self = this;
@@ -26,12 +28,7 @@ function ChunkGeometry(cc, blocks, manager) {
         CHUNK_QUALITIES.forEach(function (quality) {
             self.quality = quality;
 
-            var meshFunction;
-            if(settings.greedyMesh) {
-                meshFunction = settings.greedyMesh;
-            } else {
-                meshFunction = greedyMesh2;
-            }
+            var meshFunction = localStorage.chunkMesher;
 
             var geometry = { };
 
