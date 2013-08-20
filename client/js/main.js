@@ -19,8 +19,9 @@ window.onload = function () {
 		function (callback) {
 			conn.on('handshake-reply', function (payload) {
 				console.log(payload);
-				clock.init(payload.ServerTime)
+				clock.init(payload.ServerTime);
 				playerID = payload.ClientID;
+				conn.setImmediate(false);
 				callback();
 			});
 			conn.on('handshake-error', function (payload) {
@@ -70,6 +71,7 @@ window.onload = function () {
 			var newTime = clock.time();
 			var dt = newTime - previousTime;
 			previousTime = newTime;
+			conn.update();
 			world.update(dt);
 			world.render(renderer, scene);
 			speed.addDataPoint(dt);
