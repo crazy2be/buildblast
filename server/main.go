@@ -50,20 +50,24 @@ func mainSocketHandler(ws *websocket.Conn) {
 
 	msg, err := conn.Recv()
 	if err != nil {
-		panic(err)
-	}
-
-	name := msg.(*MsgHandshakeInit).DesiredName
-	if name == "" {
-		name = generateRandomName()
-	}
-
-	client := globalGame.clientWithID(name)
-	if client != nil {
-		conn.Send(&MsgHandshakeError{
-			Message: "Client with username " + name + " is already playing on this server!",
-		})
+		log.Println("Error connecting client, unable to read handshake message: ", err)
 		return
+	}
+
+	baseName := msg.(*MsgHandshakeInit).DesiredName
+	if baseName == "" {
+		baseName = "guest"
+	}
+
+	name := baseName
+	nameNumber := 1
+	for {
+		client := globalGame.clientWithID(name)
+		if client == nil {
+			break
+		}
+		name = fmt.Sprintf("%s-%d", baseName, nameNumber)
+		nameNumber++
 	}
 
 	conn.Send(&MsgHandshakeReply{
@@ -71,16 +75,20 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ClientID: name,
 	})
 
-	c := NewClient(name)
-	globalGame.Connect(c)
-	c.Run(conn)
+	client := NewClient(name)
+	globalGame.Connect(client)
+	client.Run(conn)
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
-	c := globalGame.clientWithID(name)
-	c.RunChunks(NewConn(ws))
+	client := globalGame.clientWithID(name)
+	if client == nil {
+		log.Println("Warning: Attempt to connect to chunk socket for client '" + name + "' who is not connected on main socket.")
+		return
+	}
+	client.RunChunks(NewConn(ws))
 }
 
 func doProfile() {

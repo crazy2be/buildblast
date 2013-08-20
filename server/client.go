@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+	"sync"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/game"
@@ -18,6 +19,7 @@ type Client struct {
 	// Send the client the right chunks.
 	cm             *ChunkManager
 	blockSendQueue chan *MsgBlock
+	chunksOnce sync.Once
 
 	player *game.Player
 }
@@ -195,6 +197,16 @@ func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
 // WARNING: This runs on a seperate thread from everything
 // else in client!
 func (c *Client) RunChunks(conn *Conn) {
+	// This prevents multiple clients from attempting to connect to
+	// the same client's RunChunks, which could cause strange
+	// race conditions and other problems.
+	action := func () {
+		c.internalRunChunks(conn)
+	}
+	c.chunksOnce.Do(action)
+}
+
+func (c *Client) internalRunChunks(conn *Conn) {
 	for {
 		select {
 		case m := <-c.blockSendQueue:

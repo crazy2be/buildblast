@@ -35,6 +35,7 @@ function Clock(conn) {
 
 	self.init = function (serverTime) {
 		offset = calcOffset(clientTime, serverTime, serverTime, now());
+		// We want to apply the initial offset right away
 		appliedOffset = offset;
 		conn.on('ntp-sync', proccessSync);
 		startSync();
