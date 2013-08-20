@@ -4,12 +4,9 @@ var parent = self;
 
 //Most of our required files are above us unfortunately...
 importScripts(
-    '../../1defaultSettings.js',
-    '../../1localSettings.js',
-//Have to ask Justin why it complains when I try to include three.min.js.
+//We need these because THREE.js cannot be included on a worker.
     'threeVector.js',
     'twoVector.js',
-    '../../loopHelpers/loop.js',
     '../block.js',
     '../common.js',
     'meshers/meshCommon.js',

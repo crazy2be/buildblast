@@ -116,8 +116,8 @@ function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, getBlock, neighbour
     var sampleSizeArr = [inverseQuality, inverseQuality, inverseQuality];
     sampleSizeArr[neighbourComp] = 1;
     for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
-        for (var ocY = ocYStart; ocY < sampleSizeArr[0] + ocYStart; ocY++) {
-            for (var ocZ = ocZStart; ocZ < sampleSizeArr[0] + ocZStart; ocZ++) {
+        for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
+            for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
                 var adjBlock = getBlock(ocX, ocY, ocZ);
                 if (adjBlock == Block.AIR) {
                     return Block.AIR;
@@ -247,4 +247,35 @@ function generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQualit
         offsets: offsets,
         transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
     };
+}
+
+var LOOP = {};
+
+//Loops starting at startPoint.x, .y, .z and loops
+//the distance of spanVector.z, .y, .z on each axis,
+//calling the callback with current THREE.Vector3 each iteration.
+LOOP.For3D = function (startPoint, spanVector, callback) {
+    for (var xOffset = 0; xOffset < spanVector.x; xOffset++) {
+        for (var yOffset = 0; yOffset < spanVector.y; yOffset++) {
+            for (var zOffset = 0; zOffset < spanVector.z; zOffset++) {
+                var stop = callback(new THREE.Vector3(
+                                startPoint.x + xOffset,
+                                startPoint.y + yOffset,
+                                startPoint.z + zOffset));
+
+                if (stop) return;
+            }
+        }
+    }
+}
+
+LOOP.For2D = function (startPoint, spanVector, callback) {
+    for (var xOffset = 0; xOffset < spanVector.x; xOffset++) {
+        for (var yOffset = 0; yOffset < spanVector.y; yOffset++) {
+            var stop = callback(new THREE.Vector3(
+                            startPoint.x + xOffset,
+                            startPoint.y + yOffset));
+            if (stop) return;
+        }
+    }
 }
