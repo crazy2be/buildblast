@@ -74,8 +74,6 @@ function ChunkManager(scene, player) {
         for (var i = 0; i < pg.length; i++) {
             var geometry = new THREE.BufferGeometry();
             geometry.attributes = pg[i].attributes;
-            //Why is this needed? Doesn't seem to provide any more benefit than
-            //just adding multiple geometries. If you know why, tell Quentin.
             geometry.offsets = pg[i].offsets;
             geometries.push(geometry);
         }
