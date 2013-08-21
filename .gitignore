@@ -1,5 +1,6 @@
 *~
 *.kate-swp
+*.kateproject.d
 *.swp
 buildshoot-server
 buildshoot-server.exe
