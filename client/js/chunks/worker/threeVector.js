@@ -1,11 +1,11 @@
 /**
- * @author mrdoob / http://mrdoob.com/
- * @author *kile / http://kile.stravaganza.org/
- * @author philogb / http://blog.thejit.org/
- * @author mikael emtinger / http://gomo.se/
- * @author egraether / http://egraether.com/
- * @author WestLangley / http://github.com/WestLangley
- */
+* @author mrdoob / http://mrdoob.com/
+* @author *kile / http://kile.stravaganza.org/
+* @author philogb / http://blog.thejit.org/
+* @author mikael emtinger / http://gomo.se/
+* @author egraether / http://egraether.com/
+* @author WestLangley / http://github.com/WestLangley
+*/
 
 //Need to make threeVector basically work...
 if (typeof THREE === 'undefined') {
@@ -688,3 +688,4 @@ if (typeof THREE === 'undefined') {
 
     });
 }
+

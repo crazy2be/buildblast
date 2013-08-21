@@ -12,3 +12,4 @@ pkg
 github.com
 code.google.com
 *.blend[0-9]*
+*.orig
