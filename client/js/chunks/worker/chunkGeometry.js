@@ -1,6 +1,6 @@
 //cc is just a vector giving the chunk coords.
 //blocks is the raw block array, filled with block types.
-//quality is a value describing the 'voxelization', lower values mean more pixelation.
+//quality is a value describing the 'voxelization', lower values mean more voxelization.
 
 //This is basically just POD, the meshers do all the heavy lifting.
 function ChunkGeometry(cc, blocks, manager, chunkMesher) {

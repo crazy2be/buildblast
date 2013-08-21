@@ -96,11 +96,11 @@ function World(scene, container) {
                     }
                 }
                 block = chunk.block(oc);
-                if (block && block.solid()) {
+                if (block && !block.empty()) {
                     return oc.y + cc.y * CHUNK_HEIGHT + 1;
                 }
             }
-        } else if (block.solid()) {
+        } else if (!block.empty()) {
             // Try and find air above
             while (true) {
                 oc.y++;
@@ -123,14 +123,15 @@ function World(scene, container) {
     }
 
     var projector = new THREE.Projector();
-    function findIntersection(camera, criteriaFnc, precision, maxDist) {
+    function findIntersection(point, look, criteriaFnc, precision, maxDist) {
         var precision = precision || 0.01;
         var maxDist = maxDist || 100;
 
-        var look = getLookedAtDirection(camera);
+        point = point.clone();
+
+        look = look.clone();
         look.setLength(precision);
 
-        var point = camera.position.clone();
         for (var dist = 0; dist < maxDist; dist += precision) {
             point.add(look);
             var collision = criteriaFnc(point.x, point.y, point.z);
@@ -148,15 +149,15 @@ function World(scene, container) {
         function entityAt(wx, wy, wz) {
             return entityManager.entityAt(wx, wy, wz);
         }
-        return findIntersection(camera, entityAt, precision);
+        return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
     }
 
     function findSolidBlockIntersection(camera, precision) {
         function blockAt(wx, wy, wz) {
             var block = self.blockAt(wx, wy, wz);
-            return block && block.solid();
+            return block && !block.empty();
         }
-        return findIntersection(camera, blockAt, precision);
+        return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
     }
 
     function getLookedAtDirection(camera) {

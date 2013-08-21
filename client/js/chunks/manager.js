@@ -1,11 +1,8 @@
 function ChunkManager(scene, player) {
     var self = this;
 
-    var vertStatsSimple = null;
-    var vertStatsGreedy = null;
-
     var chunks = {};
-    var geometryWorker = new Worker('js/chunks/worker/worker.js');
+    var geometryWorker = new Worker('js/chunks/worker/main.js');
     startChunkConn(player.name());
 
     self.chunk = function (cc) {
@@ -38,23 +35,6 @@ function ChunkManager(scene, player) {
         });
     }
 
-    geometryWorker.onmessage = function (e) {
-        var payload = e.data.payload;
-        if (e.data.kind === 'chunk') {
-            processChunk(payload);
-        } else if (e.data.kind === 'show-chunk') {
-            processShowChunk(payload);
-        } else if (e.data.kind === 'hide-chunk') {
-            processHideChunk(payload);
-        } else if (e.data.kind === 'chunk-quality-change') {
-            processQualityChange(payload);
-        } else if (e.data.kind === 'log') {
-            console.log(e.data.payload);
-        }
-    }
-
-    geometryWorker.onerror = fatalError;
-
     function startChunkConn(name) {
         geometryWorker.postMessage({
             'kind': 'start-conn',
@@ -64,8 +44,20 @@ function ChunkManager(scene, player) {
         })
     }
 
-    //Processes a geometry created by the worker thread which describes a chunk
-    //(as in, DOES NOT process a chunk sent from the server to the client...)
+    geometryWorker.onmessage = function (e) {
+        var payload = e.data.payload;
+        if (e.data.kind === 'chunk') {
+            processChunk(payload);
+        } else if (e.data.kind === 'chunk-quality-change') {
+            processQualityChange(payload);
+        } else if (e.data.kind === 'log') {
+            console.log(e.data.payload);
+        }
+    }
+
+    geometryWorker.onerror = fatalError;
+
+    //Payload contains vertices creates by the mesher.
     function processChunk(payload) {
         var pg = payload.geometries;
         var geometries = [];

@@ -11,26 +11,26 @@ function Box(p, halfExtents, centerOffset) {
     }
 
     self.attemptMove = function (world, move) {
-        if (inSolid(world)) {
+        if (inBlock(world)) {
             var gh = groundHeight(world);
             move.y = p.y - gh;
             p.y = gh;
         }
 
         p.x += move.x
-        if (inSolid(world)) {
+        if (inBlock(world)) {
             p.x -= move.x;
             move.x = 0;
         }
 
         p.y += move.y;
-        if (inSolid(world)) {
+        if (inBlock(world)) {
             p.y -= move.y;
             move.y = 0;
         }
 
         p.z += move.z;
-        if (inSolid(world)) {
+        if (inBlock(world)) {
             p.z -= move.z;
             move.z = 0;
         }
@@ -84,13 +84,13 @@ function Box(p, halfExtents, centerOffset) {
         return false;
     }
 
-    function inSolid(world) {
-        function solid(x, y, z) {
+    function inBlock(world) {
+        function blockHere(x, y, z) {
             var block = world.blockAt(x, y, z);
             if (!block) return true;
-            else return block.solid();
+            else return !block.empty();
         }
-        return bboxEach(solid, logicalOr);
+        return bboxEach(blockHere, logicalOr);
     }
 
     function groundHeight(world) {

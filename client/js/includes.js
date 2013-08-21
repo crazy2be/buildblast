@@ -16,7 +16,6 @@
 	'js/./chat.js',
 	'js/./conn.js',
 	'js/./featureTester.js',
-	'js/./main.js',
 	'js/./models.js',
 	'js/./world.js',
 	'js/./chunks/block.js',
