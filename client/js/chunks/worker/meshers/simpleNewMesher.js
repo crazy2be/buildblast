@@ -45,7 +45,7 @@ function simpleMesh2(blocks, quality, cc, manager) {
             if (adjacentBlocks != blocks) {
                 if (adjacentBlocks) {
                     adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
-                                          adjacentBlocks, compZ, inverseQuality);
+                                        adjacentBlocks, compZ, inverseQuality);
                 }
             } else {
                 if(inverseQuality === 1) {
