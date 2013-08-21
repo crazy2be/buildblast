@@ -36,10 +36,10 @@ div.helper {
 	height: 64px;
 }
 #inventory #bag div.has-left-sibling {
-    margin-left: -3px;
+	margin-left: -3px;
 }
 #inventory #bag div.has-top-sibling {
-    margin-top: -3px;
+	margin-top: -3px;
 }
 #inventory div.left {
 	float: left;

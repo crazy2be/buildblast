@@ -7,7 +7,7 @@ function ChunkManager(scene, player) {
 
     self.chunk = function (cc) {
         return chunks[ccStr(cc)];
-    }
+    };
 
     var accumulatedTime = 0;
     self.update = function (dt) {
@@ -20,10 +20,10 @@ function ChunkManager(scene, player) {
                 'payload': {
                     'pos': {x: p.x, y: p.y, z: p.z},
                 },
-            })
+            });
         }
 
-    }
+    };
 
     self.queueBlockChange = function (wx, wy, wz, newType) {
         geometryWorker.postMessage({
@@ -33,7 +33,7 @@ function ChunkManager(scene, player) {
                 'Type': newType,
             }
         });
-    }
+    };
 
     function startChunkConn(name) {
         geometryWorker.postMessage({
@@ -41,19 +41,21 @@ function ChunkManager(scene, player) {
             'payload': {
                 'uri': getWSURI('chunk/' + name),
             },
-        })
+        });
     }
 
     geometryWorker.onmessage = function (e) {
+        var kind = e.data.kind;
         var payload = e.data.payload;
-        if (e.data.kind === 'chunk') {
+        if (kind === 'chunk') {
             processChunk(payload);
-        } else if (e.data.kind === 'chunk-quality-change') {
+        } else if (kind === 'chunk-quality-change') {
             processQualityChange(payload);
-        } else if (e.data.kind === 'log') {
-            console.log(e.data.payload);
+        } else if (kind === 'log') {
+            var args = ["Geometry worker:"].concat(payload.message);
+            console[payload.type || 'log'].apply(console, args);
         }
-    }
+    };
 
     geometryWorker.onerror = fatalError;
 
@@ -92,3 +94,5 @@ function ChunkManager(scene, player) {
         chunk.setQuality(payload.quality);
     }
 }
+
+

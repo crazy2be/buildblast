@@ -3,11 +3,11 @@ function World(scene, container) {
 
     self.addToScene = function (mesh) {
         scene.add(mesh);
-    }
+    };
 
     self.removeFromScene = function (mesh) {
         scene.remove(mesh);
-    }
+    };
 
     var playerName = localStorage.playerName;
     while (!playerName) {
@@ -27,16 +27,7 @@ function World(scene, container) {
     var ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
 
-    conn.on('block', processBlock);
     conn.on('debug-ray', processRay);
-
-    function processBlock(payload) {
-        var wx = payload.Pos.X;
-        var wy = payload.Pos.Y;
-        var wz = payload.Pos.Z;
-        var type = payload.Type;
-        applyBlockChange(wx, wy, wz, type);
-    }
 
     function processRay(payload) {
         var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
@@ -47,7 +38,7 @@ function World(scene, container) {
         player.update(dt);
         chunkManager.update(dt);
         chat.update(dt);
-    }
+    };
 
     self.render = player.render;
     self.resize = player.resize;
@@ -59,7 +50,7 @@ function World(scene, container) {
         var cube = new THREE.Mesh( smallCube, smallCubeMat );
         cube.position = position;
         scene.add(cube);
-    }
+    };
 
     self.blockAt = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -71,7 +62,7 @@ function World(scene, container) {
         var block = chunk.block(oc);
         if (!block) throw "Could not load blockkk!!!";
         else return block;
-    }
+    };
 
     self.findClosestGround = function (wx, wy, wz) {
         var cords = worldToChunk(wx, wy, wz);
@@ -120,12 +111,12 @@ function World(scene, container) {
         } else {
             throw "findClosestGround only knows how to deal with solid and empty. Got " + block.getType();
         }
-    }
+    };
 
     var projector = new THREE.Projector();
     function findIntersection(point, look, criteriaFnc, precision, maxDist) {
-        var precision = precision || 0.01;
-        var maxDist = maxDist || 100;
+        precision = precision || 0.01;
+        maxDist = maxDist || 100;
 
         point = point.clone();
 
@@ -150,7 +141,7 @@ function World(scene, container) {
             return entityManager.entityAt(wx, wy, wz);
         }
         return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
-    }
+    };
 
     function findSolidBlockIntersection(camera, precision) {
         function blockAt(wx, wy, wz) {
@@ -158,7 +149,7 @@ function World(scene, container) {
             return block && !block.empty();
         }
         return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
-    }
+    };
 
     function getLookedAtDirection(camera) {
         var look = new THREE.Vector3(0, 0, 1);
@@ -189,21 +180,19 @@ function World(scene, container) {
         }
 
         return p;
-    }
+    };
 
     self.changeBlock = function(wx, wy, wz, newType) {
         conn.queue('block', {
             Pos: {
-                X: wx,
-                Y: wy,
-                Z: wz,
+                X: Math.floor(wx),
+                Y: Math.floor(wy),
+                Z: Math.floor(wz),
             },
             Type: newType,
         });
-        applyBlockChange(wx, wy, wz, newType);
-    }
-
-    function applyBlockChange(wx, wy, wz, newType) {
         chunkManager.queueBlockChange(wx, wy, wz, newType);
     }
 }
+
+

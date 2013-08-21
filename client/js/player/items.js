@@ -23,21 +23,21 @@ Item.prototype.icon = function () {
     return Item.DATA[this.type].icon;
 };
 
-Item.NIL    = function () { return new Item(0x0); };
+Item.NIL	= function () { return new Item(0x0); };
 Item.DIRT   = function () { return new Item(0x1); };
 Item.STONE  = function () { return new Item(0x2); };
 Item.SHOVEL = function () { return new Item(0x3); };
-Item.GUN    = function () { return new Item(0x4); };
+Item.GUN	= function () { return new Item(0x4); };
 
 // Item properties
 Item.STACKABLE = 0x1;
 
 Item.PROPERTIES = [
-    /** NIL    */ 0,
+    /** NIL	*/ 0,
     /** DIRT   */ Item.STACKABLE,
     /** STONE  */ Item.STACKABLE,
     /** SHOVEL */ 0,
-    /** GUN    */ 0,
+    /** GUN	*/ 0,
 ];
 
 Item.isStackable = function (item) {
@@ -150,3 +150,4 @@ Item.DATA = [
         icon: 4,
     }
 ];
+

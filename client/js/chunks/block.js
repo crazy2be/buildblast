@@ -17,7 +17,7 @@ Block.STONE = 0x3;
 //See "Block encoding.txt"
 
 //Block properties
-Block.MINEABLE    = 0x80000000;
+Block.MINEABLE	= 0x80000000;
 
 //Subtypes
 //The mesher's assume anything that is empty is not drawn, and
@@ -27,8 +27,8 @@ Block.EMPTY = 0x1;
 Block.SOLID = 0x2;
 
 Block.PROPERTIES = [
-    /** NIL    */ 0,
-    /** AIR    */ Block.EMPTY,
+    /** NIL	*/ 0,
+    /** AIR	*/ Block.EMPTY,
     /** DIRT   */ Block.SOLID | Block.MINEABLE,
     /** STONE  */ Block.SOLID | Block.MINEABLE,
 ];
@@ -46,7 +46,7 @@ Block.getColours = function (blockType, face) {
             result.light = hex(0x784800);
             result.dark  = hex(0x000000);
         }
-    } else if (blockType === Block.STONE){
+    } else if (blockType === Block.STONE) {
         result.light = hex(0x5E5E5E);
         result.dark  = hex(0x000000);
     } else {
@@ -58,19 +58,21 @@ Block.getColours = function (blockType, face) {
         return {
             r: (num >> 16) & 0xFF,
             g: (num >> 8)  & 0xFF,
-            b:  num        & 0xFF,
+            b:  num		& 0xFF,
         };
     }
-}
+};
 
 Block.isMineable = function (block) {
     return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
-}
+};
 
 Block.isEmpty = function (block) {
     return Block.inSubtype(block, Block.EMPTY);
-}
+};
 
 Block.inSubtype = function (block, subtype) {
     return (Block.PROPERTIES[block] & 0xF) === subtype;
-}
+};
+
+

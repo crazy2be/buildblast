@@ -90,7 +90,7 @@ function fatalError(err) {
     function exitPointerLock() {
         (document.exitPointerLock ||
         document.mozExitPointerLock ||
-        document.webkitExitPointerLock).call(document)
+        document.webkitExitPointerLock).call(document);
     }
 }
 
@@ -101,3 +101,5 @@ var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var pow = Math.pow;
+
+
