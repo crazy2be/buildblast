@@ -21,11 +21,10 @@ type Client struct {
 	player *game.Player
 }
 
-func NewClient(world *World, name string) *Client {
+func NewClient(name string) *Client {
 	c := new(Client)
 	c.ClientConn = NewClientConn(name)
 
-	c.world = world
 	c.name = name
 
 	c.cm = NewChunkManager()

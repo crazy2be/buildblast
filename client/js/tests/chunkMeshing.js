@@ -98,7 +98,7 @@ function test_largeChunkMesh() {
         var chunk = manager.get(cc);
         chunk = new ChunkGeometry(cc,
             testOnLiveData ? getCurrentChunkBlockArray() :
-                generateRandomBlockGeometryArray(), manager, function () { }); //No mesher initially
+                generateRandomBlockGeometryArray(), manager);
         manager.set(cc, chunk);
     }
 

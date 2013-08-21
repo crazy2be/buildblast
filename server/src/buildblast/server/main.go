@@ -32,9 +32,11 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
-	conn := NewConn(ws)
-	c := NewClient(globalWorld, name)
+
+	c := NewClient(name)
 	globalGame.Connect(c)
+
+	conn := NewConn(ws)
 	c.Run(conn)
 }
 
