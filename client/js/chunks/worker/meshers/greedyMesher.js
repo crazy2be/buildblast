@@ -48,23 +48,15 @@ function greedyMesher(blocks, quality, cc, manager) {
         //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
         var deltaPlane = new Float32Array(planeSize);
 
+        //Gets an offset in the correct chunk
+        var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
+        ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
-        //We are going to need the adjacent chunk on at least one loop.
-        ccArr[compZ] += faceDirection;
-        var adjacentChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
-        ccArr[compZ] -= faceDirection;
+        var adjacentBlocks = getBlockData(manager, blocks, ccArr, ocArr, compZ);
 
-        //Start off beyond the bounds, and then go back in the bounds inside the loop
-        var pcZCur;
-        var pcZBound;
-        //We go 1 into our neighbour, as we assume their inverseQuality is 1
-        if (faceDirection == -1) {
-            pcZCur = pcDepth - 1;
-        } else {
-            pcZCur = 0;
-        }
+        var pcZAdj = ocArr[compZ];
 
-        if (adjacentChunk == null) {
+        if (adjacentBlocks == null) {
             for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
                 for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
                     var index = (pcX * pcWidth / inverseQuality + pcY) / inverseQuality;
@@ -78,15 +70,18 @@ function greedyMesher(blocks, quality, cc, manager) {
                     var ocArr = [0, 0, 0];
                     ocArr[compX] = pcX;
                     ocArr[compY] = pcY;
-                    ocArr[compZ] = pcZCur;
+                    ocArr[compZ] = pcZAdj;
 
-                    var getBlock = adjacentChunk.block;
-                    var planeBlock = getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], getBlock, compZ, inverseQuality);
+                    var planeBlock = getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, inverseQuality);
 
                     adjacentPlane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
                 }
             }
         }
+
+        //Start off beyond the bounds, and then go back in the bounds inside the loop
+        var pcZCur;
+        var pcZBound;
 
         if (faceDirection == -1) {
             pcZCur = 0;

@@ -112,13 +112,16 @@ function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blo
     return parseInt(planeBlock);
 }
 
-function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, getBlock, neighbourComp, inverseQuality) {
+function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourComp, inverseQuality) {
     var sampleSizeArr = [inverseQuality, inverseQuality, inverseQuality];
     sampleSizeArr[neighbourComp] = 1;
     for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
         for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
             for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
-                var adjBlock = getBlock(ocX, ocY, ocZ);
+                var adjBlock = blocks[  
+                        ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
+                        ocY * CHUNK_WIDTH +
+                        ocZ];
                 if (adjBlock == Block.AIR) {
                     return Block.AIR;
                 }
@@ -126,6 +129,34 @@ function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, getBlock, neighbour
         }
     }
     return Block.DIRT; //Any solid would do
+}
+
+//ocArr is an in/out, if it is beyond the bounds of the cc chunk, a neighbour chunk's data
+//  is returned and oc is modified to be relative to that.
+//compZ is the dimension in ocArr we should check.
+//Assumes ocArr is only 1 off, which makes it easier for greedyMesher.
+//Returns null if the chunk does not exist
+var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+function getBlockData(manager, blocks, ccArr, ocArr, compZ) {
+    var ccDirection = 0;
+    if (ocArr[compZ] < 0) {
+        ocArr[compZ] = chunkDims[compZ] - 1;
+        ccDirection = -1;
+    }
+    else if (ocArr[compZ] >= chunkDims[compZ]) {
+        ocArr[compZ] = 0;
+        ccDirection = +1;
+    } else {
+        return blocks;
+    }
+
+    ccArr[compZ] += ccDirection;
+    var neighbourChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
+    ccArr[compZ] -= ccDirection;
+
+    if(!neighbourChunk) return null;
+
+    return neighbourChunk.blocks;
 }
 
 function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, inverseQuality, verts) {

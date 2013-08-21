@@ -38,25 +38,14 @@ function simpleMesh2(blocks, quality, cc, manager) {
             var oAdjArr = [ocX, ocY, ocZ];
             oAdjArr[compZ] += faceDirection * inverseQuality;
 
+            var adjacentBlocks = getBlockData(manager, blocks, ccArr, oAdjArr, compZ);
+
             //We assume it's dirt if we cannot access an adjacent chunk
             var adjacentBlock = Block.DIRT;
-            if (oAdjArr[compZ] < 0 || oAdjArr[compZ] >= oMax[compZ]) {
-                //Off the edge, so we need to check our neighbour... ugh...
-
-                if (oAdjArr[compZ] < 0) {
-                    oAdjArr[compZ] = oMax[compZ] - 1;
-                }
-                if (oAdjArr[compZ] >= oMax[compZ]) {
-                    oAdjArr[compZ] = 0;
-                }
-
-                ccArr[compZ] += faceDirection;
-                var neighbourChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
-                ccArr[compZ] -= faceDirection;
-
-                if(neighbourChunk) {
-                    adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], 
-                                          neighbourChunk.block, compZ, inverseQuality);
+            if (adjacentBlocks != blocks) {
+                if (adjacentBlocks) {
+                    adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
+                                          adjacentBlocks, compZ, inverseQuality);
                 }
             } else {
                 if(inverseQuality === 1) {
