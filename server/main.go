@@ -59,7 +59,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 
 	conn.Send(&MsgHandshakeReply{
 		ServerTime: float64(time.Now().UnixNano()) / 1e6,
-		ClientID: name,
+		ClientID:   name,
 	})
 
 	client.Run(conn)

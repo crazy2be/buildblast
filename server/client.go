@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"reflect"
-	"time"
 	"sync"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/game"
@@ -19,7 +19,7 @@ type Client struct {
 	// Send the client the right chunks.
 	cm             *ChunkManager
 	blockSendQueue chan *MsgBlock
-	chunksOnce sync.Once
+	chunksOnce     sync.Once
 
 	player *game.Player
 }
@@ -166,7 +166,7 @@ func (c *Client) EntityMoved(id string, pos coords.World) {
 		return
 	}
 	c.SendLossy(&MsgEntityPosition{
-		ID: id,
+		ID:  id,
 		Pos: pos,
 	})
 }
@@ -200,7 +200,7 @@ func (c *Client) RunChunks(conn *Conn) {
 	// This prevents multiple clients from attempting to connect to
 	// the same client's RunChunks, which could cause strange
 	// race conditions and other problems.
-	action := func () {
+	action := func() {
 		c.internalRunChunks(conn)
 	}
 	c.chunksOnce.Do(action)

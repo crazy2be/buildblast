@@ -10,19 +10,19 @@ import (
 
 type clientResponse struct {
 	client *Client
-	isNew bool
+	isNew  bool
 }
 
 type disconnectingClient struct {
-	id string
+	id     string
 	reason string
 }
 
 type Game struct {
-	clients           map[string]*Client
+	clients map[string]*Client
 
-	clientRequests  chan string
-	clientResponses chan clientResponse
+	clientRequests       chan string
+	clientResponses      chan clientResponse
 	disconnectingClients chan disconnectingClient
 
 	world *game.World
@@ -65,7 +65,7 @@ func (g *Game) handleClientRequests() {
 		}
 		g.clientResponses <- clientResponse{
 			client: client,
-			isNew: isNew,
+			isNew:  isNew,
 		}
 	default:
 		return
@@ -75,7 +75,7 @@ func (g *Game) handleClientRequests() {
 // Thread safe
 func (g *Game) Disconnect(id, reason string) {
 	g.disconnectingClients <- disconnectingClient{
-		id: id,
+		id:     id,
 		reason: reason,
 	}
 }
@@ -125,7 +125,6 @@ func (g *Game) BroadcastLossy(m Message) {
 	}
 }
 
-
 func (g *Game) Run() {
 	updateTicker := time.Tick(time.Second / 60)
 	for {
@@ -152,7 +151,6 @@ func (g *Game) EntityDied(id string, killer string) {
 	g.Announce(killer + " killed " + id)
 }
 
-func (g *Game) EntityCreated(id string) {}
+func (g *Game) EntityCreated(id string)                 {}
 func (g *Game) EntityMoved(id string, pos coords.World) {}
-func (g *Game) EntityRemoved(id string) {}
-
+func (g *Game) EntityRemoved(id string)                 {}

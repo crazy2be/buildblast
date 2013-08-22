@@ -2,7 +2,7 @@ package game
 
 type Stack struct {
 	item Item
-	num byte
+	num  byte
 }
 
 func NewStack(item Item) Stack {
@@ -12,6 +12,6 @@ func NewStack(item Item) Stack {
 func NewStackOf(item Item, num byte) Stack {
 	return Stack{
 		item: item,
-		num: num,
+		num:  num,
 	}
 }
