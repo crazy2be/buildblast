@@ -11,202 +11,200 @@
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 function greedyMesher(blocks, quality, cc, manager) {
-    var ccArr = [cc.x, cc.y, cc.z];
+	var ccArr = [cc.x, cc.y, cc.z];
 
-    var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-    preprocessBlocks(blocks, chunkDims);
+	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+	preprocessBlocks(blocks, chunkDims);
 
-    var bcxStart = CHUNK_WIDTH * cc.x;
-    var bcyStart = CHUNK_HEIGHT * cc.y;
-    var bczStart = CHUNK_DEPTH * cc.z;
+	var bcxStart = CHUNK_WIDTH * cc.x;
+	var bcyStart = CHUNK_HEIGHT * cc.y;
+	var bczStart = CHUNK_DEPTH * cc.z;
 
-    var verts = []; //Each vertice is made of 3 integers (3D point)
-    var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
-    var faceNumbers = []; //same a blockTypes in size
-    var indexes = []; //indexes for triangles of points in verts
+	var verts = []; //Each vertice is made of 3 integers (3D point)
+	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
+	var faceNumbers = []; //same a blockTypes in size
+	var indexes = []; //indexes for triangles of points in verts
 
-    //Go over our blocks in 6 passes, 1 for every face (of a cube).
+	//Go over our blocks in 6 passes, 1 for every face (of a cube).
 
-    //See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
+	//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
 
-    for (var iFace = 0; iFace < 6; iFace++) {
-        var faceDirection = LOOP_CUBEFACES_DATA[iFace][0];
-        var compX = LOOP_CUBEFACES_DATA[iFace][1];
-        var compY = LOOP_CUBEFACES_DATA[iFace][2]; 
-        var compZ = LOOP_CUBEFACES_DATA[iFace][3];
+	for (var iFace = 0; iFace < 6; iFace++) {
+		var faceDirection = LOOP_CUBEFACES_DATA[iFace][0];
+		var compX = LOOP_CUBEFACES_DATA[iFace][1];
+		var compY = LOOP_CUBEFACES_DATA[iFace][2]; 
+		var compZ = LOOP_CUBEFACES_DATA[iFace][3];
 
-        var inverseQuality = 1 / quality;
+		var inverseQuality = 1 / quality;
 
-        var pcWidth = chunkDims[compX];
-        var pcHeight = chunkDims[compY];
-        var pcDepth = chunkDims[compZ];
+		var pcWidth = chunkDims[compX];
+		var pcHeight = chunkDims[compY];
+		var pcDepth = chunkDims[compZ];
 
-        //array of block types.
-        var planeSize = pcWidth * pcHeight / inverseQuality / inverseQuality;
-        var adjacentPlane = new Float32Array(planeSize);
-        var curPlane = new Float32Array(planeSize);
-        //Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
-        var deltaPlane = new Float32Array(planeSize);
+		//array of block types.
+		var planeSize = pcWidth * pcHeight / inverseQuality / inverseQuality;
+		var adjacentPlane = new Float32Array(planeSize);
+		var curPlane = new Float32Array(planeSize);
+		//Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
+		var deltaPlane = new Float32Array(planeSize);
 
-        //Gets an offset in the correct chunk
-        var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
-        ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
+		//Gets an offset in the correct chunk
+		var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
+		ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
-        var adjacentBlocks = getBlockData(manager, blocks, ccArr, ocArr, compZ);
+		var adjacentBlocks = getBlockData(manager, blocks, ccArr, ocArr, compZ);
 
-        var pcZAdj = ocArr[compZ];
+		var pcZAdj = ocArr[compZ];
 
-        if (adjacentBlocks == null) {
-            for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
-                for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
-                    var index = (pcX * pcWidth / inverseQuality + pcY) / inverseQuality;
-                    adjacentPlane[index] = Block.DIRT; //Any solid would do here
-                }
-            }
-        } else {
-            for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
-                for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
-                    //Handles the rotation from the plane coords to block coords
-                    var ocArr = [0, 0, 0];
-                    ocArr[compX] = pcX;
-                    ocArr[compY] = pcY;
-                    ocArr[compZ] = pcZAdj;
+		if (adjacentBlocks == null) {
+			for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
+				for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
+					var index = (pcX * pcWidth / inverseQuality + pcY) / inverseQuality;
+					adjacentPlane[index] = Block.DIRT; //Any solid would do here
+				}
+			}
+		} else {
+			for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
+				for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
+					//Handles the rotation from the plane coords to block coords
+					var ocArr = [0, 0, 0];
+					ocArr[compX] = pcX;
+					ocArr[compY] = pcY;
+					ocArr[compZ] = pcZAdj;
 
-                    var planeBlock = getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, inverseQuality);
+					var planeBlock = getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, inverseQuality);
 
-                    adjacentPlane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
-                }
-            }
-        }
+					adjacentPlane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
+				}
+			}
+		}
 
-        //Start off beyond the bounds, and then go back in the bounds inside the loop
-        var pcZCur;
-        var pcZBound;
+		//Start off beyond the bounds, and then go back in the bounds inside the loop
+		var pcZCur;
+		var pcZBound;
 
-        if (faceDirection == -1) {
-            pcZCur = 0;
-            pcZBound = pcDepth;
-        } else {
-            pcZCur = pcDepth - inverseQuality;
-            pcZBound = -inverseQuality;
-        }
+		if (faceDirection == -1) {
+			pcZCur = 0;
+			pcZBound = pcDepth;
+		} else {
+			pcZCur = pcDepth - inverseQuality;
+			pcZBound = -inverseQuality;
+		}
 
-        while (pcZCur != pcZBound) {
-            createPlane(curPlane, pcWidth, pcHeight, pcZCur);
-            function createPlane(plane, pcWidth, pcHeight, pcZValue) {
-                var ocArr = [0, 0, 0]; //Used to apply rotation
+		while (pcZCur != pcZBound) {
+			createPlane(curPlane, pcWidth, pcHeight, pcZCur);
+			function createPlane(plane, pcWidth, pcHeight, pcZValue) {
+				var ocArr = [0, 0, 0]; //Used to apply rotation
 
-                for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
-                    for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
-                        //Essentially handles the rotation from the plane coords to block coords
-                        ocArr[compX] = pcX;
-                        ocArr[compY] = pcY;
-                        ocArr[compZ] = pcZValue;
+				for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
+					for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
+						//Essentially handles the rotation from the plane coords to block coords
+						ocArr[compX] = pcX;
+						ocArr[compY] = pcY;
+						ocArr[compZ] = pcZValue;
 
-                        var planeBlock;
-                        if (inverseQuality == 1) {
-                            planeBlock = blocks[
-                                ocArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
-                                ocArr[1] * CHUNK_WIDTH +
-                                ocArr[2]
-                            ];
-                        } else {
-                            planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, blocks);
-                        }
+						var planeBlock;
+						if (inverseQuality == 1) {
+							planeBlock = blocks[
+								ocArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
+								ocArr[1] * CHUNK_WIDTH +
+								ocArr[2]
+							];
+						} else {
+							planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, blocks);
+						}
 
-                        plane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
-                    }
-                }
-            }
+						plane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
+					}
+				}
+			}
 
-            //Find the delta plane
-            for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
-                for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
-                    //No need make a face if the block adjacent to our face is filled,
-                    //or if we have no block.
-                    var index = (pcX * pcWidth / inverseQuality + pcY) / inverseQuality;
+			//Find the delta plane
+			for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
+				for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
+					//No need make a face if the block adjacent to our face is filled,
+					//or if we have no block.
+					var index = (pcX * pcWidth / inverseQuality + pcY) / inverseQuality;
 
-                    if (adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
-                        deltaPlane[index] = Block.AIR;
-                        continue;
-                    }
+					if (adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
+						deltaPlane[index] = Block.AIR;
+						continue;
+					}
 
-                    deltaPlane[index] = curPlane[index];
-                }
-            }
+					deltaPlane[index] = curPlane[index];
+				}
+			}
 
-            //Now apply the actual greedy meshing to the deltaPlane
-            GreedyMesh(deltaPlane, pcWidth, pcHeight, inverseQuality, pcZCur, iFace);
-            function GreedyMesh(plane, pcWidth, pcHeight, inverseQuality, pcZCur, iFace) {
-                for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
-                    for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
-                        //The current end of the rectangle (exclusive)
-                        var pcXEnd = pcX;
-                        var pcYEnd = pcY;
+			//Now apply the actual greedy meshing to the deltaPlane
+			GreedyMesh(deltaPlane, pcWidth, pcHeight, inverseQuality, pcZCur, iFace);
+			function GreedyMesh(plane, pcWidth, pcHeight, inverseQuality, pcZCur, iFace) {
+				for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
+					for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
+						//The current end of the rectangle (exclusive)
+						var pcXEnd = pcX;
+						var pcYEnd = pcY;
 
-                        //Do a quick check to make sure we are not just empty
-                        var baseBlock = plane[(pcXEnd * pcWidth / inverseQuality + pcYEnd) / inverseQuality];
-                        if (baseBlock == Block.AIR) continue;
+						//Do a quick check to make sure we are not just empty
+						var baseBlock = plane[(pcXEnd * pcWidth / inverseQuality + pcYEnd) / inverseQuality];
+						if (baseBlock == Block.AIR) continue;
 
-                        pcYEnd += inverseQuality;
+						pcYEnd += inverseQuality;
 
-                        //Try to extend on the y axis
-                        while (pcYEnd < pcHeight) {
-                            var curBlock = plane[(pcXEnd * pcWidth / inverseQuality + pcYEnd) / inverseQuality];
-                            if (curBlock != baseBlock) break;
+						//Try to extend on the y axis
+						while (pcYEnd < pcHeight) {
+							var curBlock = plane[(pcXEnd * pcWidth / inverseQuality + pcYEnd) / inverseQuality];
+							if (curBlock != baseBlock) break;
 
-                            pcYEnd += inverseQuality;
-                        }
+							pcYEnd += inverseQuality;
+						}
 
-                        pcXEnd += inverseQuality;
+						pcXEnd += inverseQuality;
 
-                        //Try to extend on the x axis
-                        while (pcXEnd < pcWidth) {
-                            //For every 1 we extend it, we have to check the entire new column
-                            for (var pyTest = pcY; pyTest < pcYEnd; pyTest += inverseQuality) {
-                                var curBlock = plane[(pcXEnd * pcWidth / inverseQuality + pyTest) / inverseQuality];
-                                if (curBlock != baseBlock) break;
-                            }
+						//Try to extend on the x axis
+						while (pcXEnd < pcWidth) {
+							//For every 1 we extend it, we have to check the entire new column
+							for (var pyTest = pcY; pyTest < pcYEnd; pyTest += inverseQuality) {
+								var curBlock = plane[(pcXEnd * pcWidth / inverseQuality + pyTest) / inverseQuality];
+								if (curBlock != baseBlock) break;
+							}
 
-                            //Did not match all blocks in the column
-                            if (pyTest != pcYEnd) break;
+							//Did not match all blocks in the column
+							if (pyTest != pcYEnd) break;
 
-                            pcXEnd += inverseQuality;
-                        }
+							pcXEnd += inverseQuality;
+						}
 
-                        //Add quad to vertices, faces, etc
-                        var rotArr = [0, 0, 0];
-                        rotArr[compX] = pcX;
-                        rotArr[compY] = pcY;
-                        rotArr[compZ] = pcZCur;
-                        addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, inverseQuality, verts);
-                        blockTypes.push(baseBlock);
-                        faceNumbers.push(iFace);
+						//Add quad to vertices, faces, etc
+						var rotArr = [0, 0, 0];
+						rotArr[compX] = pcX;
+						rotArr[compY] = pcY;
+						rotArr[compZ] = pcZCur;
+						addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, inverseQuality, verts);
+						blockTypes.push(baseBlock);
+						faceNumbers.push(iFace);
 
-                        //Remove all parts of the quad from the plane.
-                        for (var pcXRem = pcX; pcXRem < pcXEnd; pcXRem += inverseQuality) {
-                            for (var pcYRem = pcY; pcYRem < pcYEnd; pcYRem += inverseQuality) {
-                                plane[(pcXRem * pcWidth / inverseQuality + pcYRem) / inverseQuality] = Block.AIR;
-                            }
-                        }
+						//Remove all parts of the quad from the plane.
+						for (var pcXRem = pcX; pcXRem < pcXEnd; pcXRem += inverseQuality) {
+							for (var pcYRem = pcY; pcYRem < pcYEnd; pcYRem += inverseQuality) {
+								plane[(pcXRem * pcWidth / inverseQuality + pcYRem) / inverseQuality] = Block.AIR;
+							}
+						}
 
-                        //We can also increment y by the height, which saves us checks later.
-                        pcY = pcYEnd - inverseQuality;
-                    }
-                }
-            }
+						//We can also increment y by the height, which saves us checks later.
+						pcY = pcYEnd - inverseQuality;
+					}
+				}
+			}
 
-            //The curPlane becomes the adjacentPlane
-            var temp = curPlane;
-            curPlane = adjacentPlane;
-            adjacentPlane = temp;
+			//The curPlane becomes the adjacentPlane
+			var temp = curPlane;
+			curPlane = adjacentPlane;
+			adjacentPlane = temp;
 
-            //Go opposite the face direction
-            pcZCur -= inverseQuality * faceDirection;
-        }
-    }
+			//Go opposite the face direction
+			pcZCur -= inverseQuality * faceDirection;
+		}
+	}
 
-    return generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQuality);
+	return generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQuality);
 }
-
-

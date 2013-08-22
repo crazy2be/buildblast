@@ -30,12 +30,12 @@
 //This makes it so all empty blocks become AIR, I found this makes the
 //greedy mesher about 20% faster (even with the preprocessing).
 function preprocessBlocks(blocks, chunkDims) {
-    var totalCount = chunkDims[0] * chunkDims[1] * chunkDims[2];
-    for (var index = 0; index < totalCount; index++) {
-        if (Block.isEmpty(blocks[index])) {
-            blocks[index] = Block.AIR;
-        }
-    }
+	var totalCount = chunkDims[0] * chunkDims[1] * chunkDims[2];
+	for (var index = 0; index < totalCount; index++) {
+		if (Block.isEmpty(blocks[index])) {
+			blocks[index] = Block.AIR;
+		}
+	}
 }
 
 //cc stands for chunk,
@@ -49,86 +49,86 @@ function preprocessBlocks(blocks, chunkDims) {
 
 var LOOP_CUBEFACES_DATA = [
 //Face direction, (parallel axis), perpendicular axis
-    [1, 1, 2, 0],
-    [-1, 1, 2, 0],
-    [1, 2, 0, 1],
-    [-1, 2, 0, 1],
-    [1, 0, 1, 2],
-    [-1, 0, 1, 2],
+	[1, 1, 2, 0],
+	[-1, 1, 2, 0],
+	[1, 2, 0, 1],
+	[-1, 2, 0, 1],
+	[1, 0, 1, 2],
+	[-1, 0, 1, 2],
 ];
 
 function noiseFunc(bcX, bcY, bcZ, inverseQuality) {
-    function n(q) {
-        return perlinNoise(Math.abs(bcX) / q, Math.abs(bcY) / q, Math.abs(bcZ) / q);
-    }
-    var val = n(8) + n(32);
-    if (abs(inverseQuality - 4) > 0.001) val += n(4);
-    if (abs(inverseQuality - 2) > 0.001) val += n(2);
-    return clamp(val / 2 + 0.5, 0.0, 1.0);
+	function n(q) {
+		return perlinNoise(Math.abs(bcX) / q, Math.abs(bcY) / q, Math.abs(bcZ) / q);
+	}
+	var val = n(8) + n(32);
+	if (abs(inverseQuality - 4) > 0.001) val += n(4);
+	if (abs(inverseQuality - 2) > 0.001) val += n(2);
+	return clamp(val / 2 + 0.5, 0.0, 1.0);
 }
 
 function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blocks) {
-    //Ugh... have to sample to find the block
-    var blockCounts = {};
+	//Ugh... have to sample to find the block
+	var blockCounts = {};
 
-    //If we wanted to allow for say, inverseQuality of 3 (meaning the edges
-    //are different size) this would be where we would do part of it... it would
-    //make the chunk boundaries look bad though.
+	//If we wanted to allow for say, inverseQuality of 3 (meaning the edges
+	//are different size) this would be where we would do part of it... it would
+	//make the chunk boundaries look bad though.
 
-    var ocXEnd = ocXStart + inverseQuality;
-    var ocYEnd = ocYStart + inverseQuality;
-    var ocZEnd = ocZStart + inverseQuality;
+	var ocXEnd = ocXStart + inverseQuality;
+	var ocYEnd = ocYStart + inverseQuality;
+	var ocZEnd = ocZStart + inverseQuality;
 
-    for (var ocX = ocXStart; ocX < ocXEnd; ocX++) {
-        for (var ocY = ocYStart; ocY < ocYEnd; ocY++) {
-            for (var ocZ = ocZStart; ocZ < ocZEnd; ocZ++) {
-                var sampleBlockType = blocks[
-                        ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
-                        ocY * CHUNK_WIDTH +
-                        ocZ
-                    ];
-                if (!blockCounts[sampleBlockType]) {
-                    blockCounts[sampleBlockType] = 0;
-                }
-                blockCounts[sampleBlockType]++;
-            }
-        }
-    }
+	for (var ocX = ocXStart; ocX < ocXEnd; ocX++) {
+		for (var ocY = ocYStart; ocY < ocYEnd; ocY++) {
+			for (var ocZ = ocZStart; ocZ < ocZEnd; ocZ++) {
+				var sampleBlockType = blocks[
+						ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
+						ocY * CHUNK_WIDTH +
+						ocZ
+					];
+				if (!blockCounts[sampleBlockType]) {
+					blockCounts[sampleBlockType] = 0;
+				}
+				blockCounts[sampleBlockType]++;
+			}
+		}
+	}
 
-    //We make our block the most common block, excluding non-solid blocks.
-    //However if we are all air, then we do become air (really we just don't
-    //render).
-    var maxCount = 0;
-    var planeBlock = Block.AIR; //Eh... slightly different than simpleMesher, but will result in the same thing.
+	//We make our block the most common block, excluding non-solid blocks.
+	//However if we are all air, then we do become air (really we just don't
+	//render).
+	var maxCount = 0;
+	var planeBlock = Block.AIR; //Eh... slightly different than simpleMesher, but will result in the same thing.
 
-    for (var blockType in blockCounts) {
-        var blockCount = blockCounts[blockType];
-        if (blockCount > maxCount && blockType != Block.AIR) {
-            maxCount = blockCount;
-            planeBlock = blockType;
-        }
-    }
+	for (var blockType in blockCounts) {
+		var blockCount = blockCounts[blockType];
+		if (blockCount > maxCount && blockType != Block.AIR) {
+			maxCount = blockCount;
+			planeBlock = blockType;
+		}
+	}
 
-    return parseInt(planeBlock);
+	return parseInt(planeBlock);
 }
 
 function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourComp, inverseQuality) {
-    var sampleSizeArr = [inverseQuality, inverseQuality, inverseQuality];
-    sampleSizeArr[neighbourComp] = 1;
-    for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
-        for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
-            for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
-                var adjBlock = blocks[  
-                        ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
-                        ocY * CHUNK_WIDTH +
-                        ocZ];
-                if (adjBlock == Block.AIR) {
-                    return Block.AIR;
-                }
-            }
-        }
-    }
-    return Block.DIRT; //Any solid would do
+	var sampleSizeArr = [inverseQuality, inverseQuality, inverseQuality];
+	sampleSizeArr[neighbourComp] = 1;
+	for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
+		for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
+			for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
+				var adjBlock = blocks[  
+						ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
+						ocY * CHUNK_WIDTH +
+						ocZ];
+				if (adjBlock == Block.AIR) {
+					return Block.AIR;
+				}
+			}
+		}
+	}
+	return Block.DIRT; //Any solid would do
 }
 
 //ocArr is an in/out, if it is beyond the bounds of the cc chunk, a neighbour chunk's data
@@ -138,62 +138,62 @@ function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourCo
 //Returns null if the chunk does not exist
 var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
 function getBlockData(manager, blocks, ccArr, ocArr, compZ) {
-    var ccDirection = 0;
-    if (ocArr[compZ] < 0) {
-        ocArr[compZ] = chunkDims[compZ] - 1;
-        ccDirection = -1;
-    }
-    else if (ocArr[compZ] >= chunkDims[compZ]) {
-        ocArr[compZ] = 0;
-        ccDirection = +1;
-    } else {
-        return blocks;
-    }
+	var ccDirection = 0;
+	if (ocArr[compZ] < 0) {
+		ocArr[compZ] = chunkDims[compZ] - 1;
+		ccDirection = -1;
+	}
+	else if (ocArr[compZ] >= chunkDims[compZ]) {
+		ocArr[compZ] = 0;
+		ccDirection = +1;
+	} else {
+		return blocks;
+	}
 
-    ccArr[compZ] += ccDirection;
-    var neighbourChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
-    ccArr[compZ] -= ccDirection;
+	ccArr[compZ] += ccDirection;
+	var neighbourChunk = manager.chunkAt(ccArr[0], ccArr[1], ccArr[2]);
+	ccArr[compZ] -= ccDirection;
 
-    if(!neighbourChunk) return null;
+	if(!neighbourChunk) return null;
 
-    return neighbourChunk.blocks;
+	return neighbourChunk.blocks;
 }
 
 function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, inverseQuality, verts) {
-    //The face direction is always right-hand rule, so we place the vertices accordingly
-    var counterClockwise = [
-            [0, 0],
-            [1, 0],
-            [1, 1],
-            [0, 1],
-            [0.5, 0.5]
-        ];
-    var clockwise = [
-            [0, 0],
-            [0, 1],
-            [1, 1],
-            [1, 0],
-            [0.5, 0.5]
-        ];
-    var offsetArray = faceDirection == 1 ? counterClockwise : clockwise;
+	//The face direction is always right-hand rule, so we place the vertices accordingly
+	var counterClockwise = [
+			[0, 0],
+			[1, 0],
+			[1, 1],
+			[0, 1],
+			[0.5, 0.5]
+		];
+	var clockwise = [
+			[0, 0],
+			[0, 1],
+			[1, 1],
+			[1, 0],
+			[0.5, 0.5]
+		];
+	var offsetArray = faceDirection == 1 ? counterClockwise : clockwise;
 
-    var bcVerts = [bcX, bcY, bcZ];
+	var bcVerts = [bcX, bcY, bcZ];
 
-    if (faceDirection == 1) {
-        bcVerts[compZ] += inverseQuality;
-    }
+	if (faceDirection == 1) {
+		bcVerts[compZ] += inverseQuality;
+	}
 
-    for (var iVertex = 0; iVertex < offsetArray.length; iVertex++) {
-        var offsets = offsetArray[iVertex];
+	for (var iVertex = 0; iVertex < offsetArray.length; iVertex++) {
+		var offsets = offsetArray[iVertex];
 
-        bcVerts[(compZ + 1) % 3] += quadWidth * offsets[0];
-        bcVerts[(compZ + 2) % 3] += quadHeight * offsets[1];
+		bcVerts[(compZ + 1) % 3] += quadWidth * offsets[0];
+		bcVerts[(compZ + 2) % 3] += quadHeight * offsets[1];
 
-        verts.push(bcVerts[0], bcVerts[1], bcVerts[2]);
+		verts.push(bcVerts[0], bcVerts[1], bcVerts[2]);
 
-        bcVerts[(compZ + 1) % 3] -= quadWidth * offsets[0];
-        bcVerts[(compZ + 2) % 3] -= quadHeight * offsets[1];
-    }
+		bcVerts[(compZ + 1) % 3] -= quadWidth * offsets[0];
+		bcVerts[(compZ + 2) % 3] -= quadHeight * offsets[1];
+	}
 }
 
 //Takes:
@@ -202,80 +202,80 @@ function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, inv
 //var faceNumbers = []; //same a blockTypes in size
 //var indexes = []; //indexes for triangles of points in verts
 function generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQuality) {
-    function copy(src, dst) {
-        for (var i = 0; i < src.length; i++) {
-            dst[i] = src[i];
-        }
-    }
+	function copy(src, dst) {
+		for (var i = 0; i < src.length; i++) {
+			dst[i] = src[i];
+		}
+	}
 
-    var vertsa = new Float32Array(verts.length);
-    copy(verts, vertsa);
+	var vertsa = new Float32Array(verts.length);
+	copy(verts, vertsa);
 
-    //Bunch of squares, point in each corner and one in the middle
-    //Each point is made up of 3 numbers
-    for(var iVert = 0; iVert < verts.length / 3; iVert += 5) {
-        indexes.push(iVert, iVert + 1, iVert + 4);
-        indexes.push(iVert + 1, iVert + 2, iVert + 4);
-        indexes.push(iVert + 2, iVert + 3, iVert + 4);
-        indexes.push(iVert + 3, iVert, iVert + 4);
-    }
+	//Bunch of squares, point in each corner and one in the middle
+	//Each point is made up of 3 numbers
+	for(var iVert = 0; iVert < verts.length / 3; iVert += 5) {
+		indexes.push(iVert, iVert + 1, iVert + 4);
+		indexes.push(iVert + 1, iVert + 2, iVert + 4);
+		indexes.push(iVert + 2, iVert + 3, iVert + 4);
+		indexes.push(iVert + 3, iVert, iVert + 4);
+	}
 
-    var color = [];
+	var color = [];
 
-    for(var iFace = 0; iFace < verts.length / 15; iFace++) {
-        var iVertexStart = iFace * 15;
-        var blockType = blockTypes[iFace];
-        var faceNumber = faceNumbers[iFace];
+	for(var iFace = 0; iFace < verts.length / 15; iFace++) {
+		var iVertexStart = iFace * 15;
+		var blockType = blockTypes[iFace];
+		var faceNumber = faceNumbers[iFace];
 
-        var colours = Block.getColours(blockType, faceNumber);
-        var c = colours.light;
-        var c2 = colours.dark;
+		var colours = Block.getColours(blockType, faceNumber);
+		var c = colours.light;
+		var c2 = colours.dark;
 
-        for(var iVertex = 0; iVertex < 5; iVertex++) {
-            var iVS = iVertexStart;
-            var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2], inverseQuality);
+		for(var iVertex = 0; iVertex < 5; iVertex++) {
+			var iVS = iVertexStart;
+			var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2], inverseQuality);
 
-            var r = c.r*noise + c2.r*(1 - noise);
-            var g = c.g*noise + c2.g*(1 - noise);
-            var b = c.b*noise + c2.b*(1 - noise);
-            color.push(r/255, g/255, b/255);
+			var r = c.r*noise + c2.r*(1 - noise);
+			var g = c.g*noise + c2.g*(1 - noise);
+			var b = c.b*noise + c2.b*(1 - noise);
+			color.push(r/255, g/255, b/255);
 
-            iVertexStart += 3;
-        }
-    }
+			iVertexStart += 3;
+		}
+	}
 
-    var indexa = new Uint16Array(indexes.length);
-    copy(indexes, indexa);
+	var indexa = new Uint16Array(indexes.length);
+	copy(indexes, indexa);
 
-    var colora = new Float32Array(color.length);
-    copy(color, colora);
+	var colora = new Float32Array(color.length);
+	copy(color, colora);
 
-    var attributes = {
-        position: {
-            itemSize: 3,
-            array: vertsa,
-            numItems: verts.length,
-        },
-        index: {
-            itemSize: 1,
-            array: indexa,
-            numItems: indexes.length,
-        },
-        color: {
-            itemSize: 3,
-            array: colora,
-            numItems: color.length,
-        },
-    };
-    var offsets = [{
-        start: 0,
-        count: indexes.length,
-        index: 0,
-    }];
+	var attributes = {
+		position: {
+			itemSize: 3,
+			array: vertsa,
+			numItems: verts.length,
+		},
+		index: {
+			itemSize: 1,
+			array: indexa,
+			numItems: indexes.length,
+		},
+		color: {
+			itemSize: 3,
+			array: colora,
+			numItems: color.length,
+		},
+	};
+	var offsets = [{
+		start: 0,
+		count: indexes.length,
+		index: 0,
+	}];
 
-    return {
-        attributes: attributes,
-        offsets: offsets,
-        transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
-    };
+	return {
+		attributes: attributes,
+		offsets: offsets,
+		transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
+	};
 }
