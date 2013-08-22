@@ -24,13 +24,12 @@ Block.MINEABLE	= 0x80000000;
 //anything which is not empty (solid is not used) is drawn fully.
 //This makes transparent blocks impossible, although it would be easy to change.
 Block.EMPTY = 0x1;
-Block.SOLID = 0x2;
 
 Block.PROPERTIES = [
 	/** NIL	*/ 0,
 	/** AIR	*/ Block.EMPTY,
-	/** DIRT   */ Block.SOLID | Block.MINEABLE,
-	/** STONE  */ Block.SOLID | Block.MINEABLE,
+	/** DIRT   */ Block.MINEABLE,
+	/** STONE  */ Block.MINEABLE,
 ];
 
 Block.getColours = function (blockType, face) {
