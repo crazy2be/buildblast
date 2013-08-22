@@ -4,9 +4,6 @@ var parent = self;
 
 //Most of our required files are above us unfortunately...
 importScripts(
-//We need these because THREE.js cannot be included on a worker.
-    'threeVector.js',
-    'twoVector.js',
     '../block.js',
     '../common.js',
     'meshers/meshCommon.js',
@@ -193,6 +190,4 @@ function dist(p1, p2) {
 
 function clamp(n, a, b) {
     return Math.min(Math.max(n, a), b);
-    };
 }
-
