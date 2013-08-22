@@ -30,11 +30,11 @@ Item.prototype.model = function () {
 	return Item.DATA[this.type].model;
 };
 
-Item.NIL	= 0x0;
+Item.NIL    = 0x0;
 Item.DIRT   = 0x1;
 Item.STONE  = 0x2;
 Item.SHOVEL = 0x3;
-Item.GUN	= 0x4;
+Item.GUN    = 0x4;
 
 Item.init = function () {
 	if (Item.initialized) return;
