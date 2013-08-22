@@ -10,7 +10,7 @@ window.onload = function () {
 
 	var conn = new Conn(getWSURI("main/"));
 	var clock = new Clock(conn);
-	var playerID;
+	var clientID;
 
 	async.parallel([
 		function (callback) {
@@ -18,9 +18,9 @@ window.onload = function () {
 		},
 		function (callback) {
 			conn.on('handshake-reply', function (payload) {
-				console.log(payload);
+				console.log("Got handshake reply:", payload);
 				clock.init(payload.ServerTime);
-				playerID = payload.ClientID;
+				clientID = payload.ClientID;
 				conn.setImmediate(false);
 				callback();
 			});
@@ -38,7 +38,8 @@ window.onload = function () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var world = new World(scene, conn, clock, container, playerID);
+		var chunkManager = new ChunkManager(scene, clientID);
+		var world = new World(scene, conn, clock, container, chunkManager);
 		world.resize();
 
 		var renderer = new THREE.WebGLRenderer();

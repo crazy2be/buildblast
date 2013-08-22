@@ -1,4 +1,4 @@
-function World(scene, conn, clock, container, playerID) {
+function World(scene, conn, clock, container, chunkManager) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -13,7 +13,6 @@ function World(scene, conn, clock, container, playerID) {
 	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var chunkManager = new ChunkManager(scene, playerID);
 	var entityManager = new EntityManager(scene, conn);
 
 	var ambientLight = new THREE.AmbientLight(0xffffff);
