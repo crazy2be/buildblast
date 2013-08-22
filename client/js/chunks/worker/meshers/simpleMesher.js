@@ -327,3 +327,4 @@ function simpleMesh(blocks, quality, cc, manager) {
 		nzc = manager.chunkAt(cx, cy, cz - 1);
 	}
 }
+

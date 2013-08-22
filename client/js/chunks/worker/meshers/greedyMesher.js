@@ -208,3 +208,4 @@ function greedyMesher(blocks, quality, cc, manager) {
 
 	return generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQuality);
 }
+
