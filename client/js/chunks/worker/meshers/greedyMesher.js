@@ -14,7 +14,7 @@ function greedyMesher(blocks, quality, cc, manager) {
 	var ccArr = [cc.x, cc.y, cc.z];
 
 	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-	preprocessBlocks(blocks, chunkDims);
+	preprocessBlocks(blocks);
 
 	var bcxStart = CHUNK_WIDTH * cc.x;
 	var bcyStart = CHUNK_HEIGHT * cc.y;

@@ -3,9 +3,7 @@ function simpleMesh2(blocks, quality, cc, manager) {
 	var ch = CHUNK_HEIGHT;
 	var cd = CHUNK_DEPTH;
 
-	var chunkDims = [cw, ch, cd];
-
-	preprocessBlocks(blocks, chunkDims);
+	preprocessBlocks(blocks);
 
 	var ccArr = [cc.x, cc.y, cc.z];
 

@@ -1,48 +1,13 @@
-//All meshers return:
-//{
-//    attributes: {
-//            position: { //x, y, z (triangles)
-//                itemSize: 3,
-//                array: vertsa,
-//                numItems: verts.length,
-//            },
-//            color: { //colors of positions (vertices), we use a vertex shader
-//                     //(possibly a built in one) to color the faces based on these.
-//                itemSize: 3,
-//                array: colora,
-//                numItems: color.length,
-//            },
-//            index: { //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
-//                itemSize: 1,
-//                array: indexa,
-//                numItems: index.length,
-//            },
-//        },
-//    offsets: [{ //Just states the index size, you could theoretically have multiple of these?
-//            start: 0,
-//            count: index.length,
-//            index: 0,
-//        }],
-//    transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
-//};
-
 //IMPORTANT! Before you call any of these functions, run this function on your blocks array!
 //This makes it so all empty blocks become AIR, I found this makes the
 //greedy mesher about 20% faster (even with the preprocessing).
-function preprocessBlocks(blocks, chunkDims) {
-	var totalCount = chunkDims[0] * chunkDims[1] * chunkDims[2];
-	for (var index = 0; index < totalCount; index++) {
+function preprocessBlocks(blocks) {
+	for (var index = 0; index < blocks.length; index++) {
 		if (Block.isEmpty(blocks[index])) {
 			blocks[index] = Block.AIR;
 		}
 	}
 }
-
-//cc stands for chunk,
-//oc stands for offset, as in the block offset within a chunk
-//bc stands for block, as in the block position (globally unique)
-//pc stands for plane, this means a coordinate in the rotated model we use which abstracts our face creation code.
-//  In this model z is perpendicular to the face. compX, compY, etc refer to the mapping from pc to bc (compX = 1, means pcX represents bcY)
 
 //The order is important here! It makes sure the normals line up with the 'face numbers' given
 //by Block.getColors.
@@ -69,7 +34,7 @@ function noiseFunc(bcX, bcY, bcZ, inverseQuality) {
 
 function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blocks) {
 	//Ugh... have to sample to find the block
-	var blockCounts = {};
+	var blockCounts = [];
 
 	//If we wanted to allow for say, inverseQuality of 3 (meaning the edges
 	//are different size) this would be where we would do part of it... it would
@@ -101,7 +66,7 @@ function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blo
 	var maxCount = 0;
 	var planeBlock = Block.AIR; //Eh... slightly different than simpleMesher, but will result in the same thing.
 
-	for (var blockType in blockCounts) {
+	for(var blockType = 0; blockType < blockCounts.length; blockType++) {
 		var blockCount = blockCounts[blockType];
 		if (blockCount > maxCount && blockType != Block.AIR) {
 			maxCount = blockCount;
@@ -109,7 +74,7 @@ function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blo
 		}
 	}
 
-	return parseInt(planeBlock);
+	return planeBlock;
 }
 
 function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourComp, inverseQuality) {
@@ -196,6 +161,8 @@ function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, inv
 	}
 }
 
+//This is the function which most meshers should call to create their return structure.
+
 //Takes:
 //var verts = []; //Each vertice is made of 3 integers (3D point)
 //var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -251,23 +218,24 @@ function generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQualit
 	copy(color, colora);
 
 	var attributes = {
-		position: {
+		position: { //x, y, z (triangles)
 			itemSize: 3,
 			array: vertsa,
 			numItems: verts.length,
 		},
-		index: {
+		index: {    //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
 			itemSize: 1,
 			array: indexa,
 			numItems: indexes.length,
 		},
-		color: {
+		color: {    //colors of positions (vertices), we use a vertex shader
+					//(possibly a built in one) to color the faces based on these.
 			itemSize: 3,
 			array: colora,
 			numItems: color.length,
 		},
 	};
-	var offsets = [{
+	var offsets = [{ //Just states the indexes used, you could theoretically have multiple of these?
 		start: 0,
 		count: indexes.length,
 		index: 0,

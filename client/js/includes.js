@@ -24,8 +24,6 @@
 	'js/./chunks/manager.js',
 	'js/./chunks/worker/chunkGeometry.js',
 	'js/./chunks/worker/noise.js',
-	'js/./chunks/worker/threeVector.js',
-	'js/./chunks/worker/twoVector.js',
 	'js/./chunks/worker/workerChunkManager.js',
 	'js/./chunks/worker/meshers/greedyMesher.js',
 	'js/./chunks/worker/meshers/meshCommon.js',

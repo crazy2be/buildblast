@@ -1,30 +1,3 @@
-//Returns: (same as greedyMesher)
-//{
-//    attributes: {
-//            position: { //x, y, z (triangles)
-//                itemSize: 3,
-//                array: vertsa,
-//                numItems: verts.length,
-//            },
-//            color: { //colors of positions (vertices), we use a vertex shader
-//                     //(possibly a built in one) to color the faces based on these.
-//                itemSize: 3,
-//                array: colora,
-//                numItems: color.length,
-//            },
-//            index: { //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
-//                itemSize: 1,
-//                array: indexa,
-//                numItems: index.length,
-//            },
-//        },
-//    offsets: [{ //Just states the index size, you could theoretically have multiple of these?
-//            start: 0,
-//            count: index.length,
-//            index: 0,
-//        }],
-//    transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
-//};
 function simpleMesh(blocks, quality, cc, manager) {
 	var cw = CHUNK_WIDTH;
 	var cd = CHUNK_DEPTH;

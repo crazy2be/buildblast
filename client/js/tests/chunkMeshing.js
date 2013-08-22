@@ -1,3 +1,6 @@
+//Causes the fake data to be created instead of live data (fake data is more consistent)
+//localStorage.fakeData
+
 function random(min, max) {
 	return ~~(Math.random() * (max - min)) + min;
 }
@@ -34,7 +37,7 @@ function getCurrentChunkBlockArray() {
 
 	var cameraPos = window.testExposure.players[aPlayer].camera.position.clone();
 
-	var cords = worldToChunk(cameraPos[0], cameraPos[1], cameraPos[2]);
+	var cords = worldToChunk(cameraPos.x, cameraPos.y, cameraPos.z);
 	var oc = cords.o;
 	var cc = cords.c;
 
@@ -89,16 +92,14 @@ function generateRandomBlockGeometryArray() {
 	return blocks;
 }
 
-var testOnLiveData = false;
-
 function test_largeChunkMesh() {
 	var manager = new WorkerChunkManager();
 
 	function loadChunk(cc) {
 		var chunk = manager.get(cc);
 		chunk = new ChunkGeometry(cc,
-			testOnLiveData ? getCurrentChunkBlockArray() :
-				generateRandomBlockGeometryArray(), manager);
+			localStorage.fakeData ? generateRandomBlockGeometryArray() :
+				getCurrentChunkBlockArray(), manager);
 		manager.set(cc, chunk);
 	}
 
