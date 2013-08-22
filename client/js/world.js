@@ -194,6 +194,3 @@ function World(scene, container) {
 		chunkManager.queueBlockChange(wx, wy, wz, newType);
 	}
 }
-
-
-

@@ -41,6 +41,3 @@ function Clock(conn) {
 
 	startSync();
 }
-
-
-

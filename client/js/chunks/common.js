@@ -40,6 +40,3 @@ function validChunkOffset(ox, oy, oz) {
 function ccStr(cc) {
 	return cc.x + "," + cc.y + "," + cc.z;
 }
-
-
-

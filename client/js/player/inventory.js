@@ -359,6 +359,3 @@ $.ui.draggable.prototype._mouseStop = function(event) {
 
 	return false;
 };
-
-
-

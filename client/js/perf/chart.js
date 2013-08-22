@@ -109,6 +109,3 @@ function PerfChart(opts) {
 		return max(a, min(b, n));
 	}
 }
-
-
-

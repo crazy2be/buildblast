@@ -159,5 +159,3 @@ function test_largeChunkMesh() {
 		console.log(tests[ix].name + " time: " + tests[ix].time + " with: " + tests[ix].verts + " verts");
 	}
 }
-
-

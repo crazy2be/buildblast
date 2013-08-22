@@ -94,6 +94,3 @@ function ChunkManager(scene, player) {
 		chunk.setQuality(payload.quality);
 	}
 }
-
-
-

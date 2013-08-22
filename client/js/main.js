@@ -101,6 +101,3 @@ var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var pow = Math.pow;
-
-
-

@@ -74,6 +74,3 @@ Block.isEmpty = function (block) {
 Block.inSubtype = function (block, subtype) {
 	return (Block.PROPERTIES[block] & 0xF) === subtype;
 };
-
-
-

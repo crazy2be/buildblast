@@ -688,5 +688,3 @@ if (typeof THREE === 'undefined') {
 
 	});
 }
-
-

@@ -283,6 +283,3 @@ function Controls(elm) {
 		return newO;
 	}
 };
-
-
-

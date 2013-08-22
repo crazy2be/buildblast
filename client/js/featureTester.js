@@ -70,6 +70,3 @@ function FeatureTester() {
 		return errors;
 	};
 };
-
-
-

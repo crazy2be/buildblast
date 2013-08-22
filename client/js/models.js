@@ -44,6 +44,3 @@ Models.init = function(loadedCallback) {
 		}
 	}
 };
-
-
-

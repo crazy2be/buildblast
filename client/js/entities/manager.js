@@ -55,6 +55,3 @@ function EntityManager(scene, conn, player) {
 		}
 	};
 }
-
-
-

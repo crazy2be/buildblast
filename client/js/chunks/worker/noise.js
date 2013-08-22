@@ -74,6 +74,3 @@ var perlinNoise = (function () {
 
 	return noise;
 }());
-
-
-

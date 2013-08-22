@@ -64,6 +64,3 @@ function Player(name, world, conn, controls) {
 		camera.lookAt(target);
 	}
 };
-
-
-

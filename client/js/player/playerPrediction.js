@@ -140,6 +140,3 @@ function PlayerPrediction(world, conn, position) {
 		return Math.round(n * factor) / factor;
 	}
 }
-
-
-

@@ -66,7 +66,3 @@ function Entity(id) {
 		return id;
 	};
 }
-
-
-
-

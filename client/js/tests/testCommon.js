@@ -9,4 +9,3 @@ LOOP.For3D = function (startPoint, span, fnc) {
 		}
 	}
 };
-

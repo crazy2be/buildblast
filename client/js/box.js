@@ -98,6 +98,3 @@ function Box(p, halfExtents, centerOffset) {
 		return bboxEach(cg, Math.max) + halfExtents.y - centerOffset.y;
 	}
 }
-
-
-

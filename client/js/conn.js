@@ -57,6 +57,3 @@ function Conn(uri) {
 		throw new Error("Someone closed my websocket :(", ev);
 	};
 }
-
-
-

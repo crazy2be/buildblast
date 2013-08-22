@@ -279,4 +279,3 @@ function generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQualit
 		transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 	};
 }
-
