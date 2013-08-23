@@ -13,12 +13,12 @@ function Inventory(world, camera, conn, controls) {
 		return index;
 	}
 
-	function leftItem() {
-		return slots.length > 0 ? slots[getEquippedSlot(true, leftIsPrimary)] : Item.NIL();
+	function leftStack() {
+		return slots.length > 0 ? slots[getEquippedSlot(true, leftIsPrimary)] : {};
 	}
 
-	function rightItem() {
-		return slots.length > 0 ? slots[getEquippedSlot(false, rightIsPrimary)] : Item.NIL();
+	function rightStack() {
+		return slots.length > 0 ? slots[getEquippedSlot(false, rightIsPrimary)] : {};
 	}
 
 	var bagIsShowing = false;
@@ -35,24 +35,17 @@ function Inventory(world, camera, conn, controls) {
 		}
 
 		// Create the item array, track if it changed
-		if (!anyChanged(items)) return;
-		var oldLeft = leftItem();
-		var oldRight = rightItem();
-		if (slots.length > items.length) slots = [];
+		var oldLeft = leftStack();
+		var oldRight = rightStack();
+
+		slots = [];
 		for (var i = 0; i < items.length; i += 2) {
-			slots[i / 2] = new Item(items[i], items[i + 1]);
+			slots[i / 2] = new Stack(new Item(items[i]), items[i + 1]);
 		}
+
 		updateEquipped(oldLeft, oldRight);
 		updateHtmlItemIcons();
 	});
-
-	function anyChanged(items) {
-		if (slots.length !== items.length) return true;
-		for (var i = 0; i < items.length; i++) {
-			if (slots[i].type !== items[i]) return true;
-		}
-		return false;
-	}
 
 	var aspectRatio = 1.0;
 
@@ -149,26 +142,26 @@ function Inventory(world, camera, conn, controls) {
 		for (var y = 0; y < 5; y++) {
 			for (var x = 0; x < 5; x++) {
 				var index = y*5 + x;
-				var item = slots[index];
-				$("#bag" + index + " > div").css("background-position", item.icon() * -64 + "px 0");
-				updateStackSize(item, $("#bag" + index));
+				var stack = slots[index];
+				$("#bag" + index + " > div").css("background-position", stack.item.icon() * -64 + "px 0");
+				updateStackSize(stack, $("#bag" + index));
 			}
 		}
 
 		// TODO: Fix this shit.
-		$("#leftPrimary > div").css("background-position", slots[BAG_SIZE].icon() * -64 + "px 0");
-		$("#leftReserve > div").css("background-position", slots[BAG_SIZE + 1].icon() * -64 + "px 0");
-		$("#rightPrimary > div").css("background-position", slots[BAG_SIZE + 2].icon() * -64 + "px 0");
-		$("#rightReserve > div").css("background-position", slots[BAG_SIZE + 3].icon() * -64 + "px 0");
+		$("#leftPrimary > div").css("background-position", slots[BAG_SIZE].item.icon() * -64 + "px 0");
+		$("#leftReserve > div").css("background-position", slots[BAG_SIZE + 1].item.icon() * -64 + "px 0");
+		$("#rightPrimary > div").css("background-position", slots[BAG_SIZE + 2].item.icon() * -64 + "px 0");
+		$("#rightReserve > div").css("background-position", slots[BAG_SIZE + 3].item.icon() * -64 + "px 0");
 		updateStackSize(slots[BAG_SIZE], $("#leftPrimary"));
 		updateStackSize(slots[BAG_SIZE + 1], $("#leftReserve"));
 		updateStackSize(slots[BAG_SIZE + 2], $("#rightPrimary"));
 		updateStackSize(slots[BAG_SIZE + 3], $("#rightReserve"));
 	}
 
-	function updateStackSize(item, $elm) {
-		if (item.stackable()) {
-			$elm.children("div").children("span").text(item.num);
+	function updateStackSize(stack, $elm) {
+		if (stack.item.stackable()) {
+			$elm.children("div").children("span").text(stack.num);
 		} else {
 			$elm.children("div").children("span").text("");
 		}
@@ -178,11 +171,11 @@ function Inventory(world, camera, conn, controls) {
 		if (slots.length === 0) return;
 
 		if (oldLeft !== null) {
-			swapModels(oldLeft, leftItem());
+			swapModels(oldLeft, leftStack());
 		}
 
 		if (oldRight !== null) {
-			swapModels(oldRight, rightItem());
+			swapModels(oldRight, rightStack());
 		}
 
 		conn.queue('inventory-state', {
@@ -202,30 +195,30 @@ function Inventory(world, camera, conn, controls) {
 		}
 	}
 
-	function swapModels(oldItem, newItem) {
-		if (oldItem.model !== null) {
-			world.removeFromScene(oldItem.model);
+	function swapModels(oldStack, newStack) {
+		if (oldStack.model !== null) {
+			world.removeFromScene(oldStack.model);
 		}
-		var model = newItem.model;
+		var model = newStack.model;
 		if (model !== null) {
 			model.scale.set(1/16, 1/16, 1/16);
 			world.addToScene(model);
 		}
-		return oldItem.type === newItem.type;
+		return oldStack.type === newStack.type;
 	}
 
-	function pointItem(item, c) {
-		var p = item.position;
+	function pointItem(model, c) {
+		var p = model.position;
 		var target = new THREE.Vector3();
 		target.x = p.x + sin(c.lat) * cos(c.lon);
 		target.y = p.y + cos(c.lat);
 		target.z = p.z + sin(c.lat) * sin(c.lon);
-		item.lookAt(target);
+		model.lookAt(target);
 	}
 
-	function positionItem(item, playerPos, c) {
+	function positionItem(model, playerPos, c) {
 		var pp = playerPos;
-		var ip = item.position;
+		var ip = model.position;
 
 		// http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
 		var theta = c.lat - 0.5;
@@ -243,10 +236,10 @@ function Inventory(world, camera, conn, controls) {
 		);
 	}
 
-	function postitionPerspective(item, leftward) {
-		var p = item.position;
+	function postitionPerspective(model, leftward) {
+		var p = model.position;
 		var r = new THREE.Matrix4();
-		r.setRotationFromEuler(item.rotation, item.eulerOrder);
+		r.setRotationFromEuler(model.rotation, model.eulerOrder);
 
 		var amount = leftward * aspectRatio * 0.05;
 
@@ -259,11 +252,11 @@ function Inventory(world, camera, conn, controls) {
 
 	var leftOffset = { x: Math.random(), z: Math.random() };
 	var rightOffset = { x: Math.random(), z: Math.random() };
-	function addJitter(item, values) {
+	function addJitter(model, values) {
 		values.x += Math.random() / 30;
 		values.z += Math.random() / 30;
-		item.position.x += Math.sin(values.x) / 400;
-		item.position.z += Math.sin(values.z) / 400;
+		model.position.x += Math.sin(values.x) / 400;
+		model.position.z += Math.sin(values.z) / 400;
 	}
 
 	var swapLeftWasDown = false;
@@ -286,8 +279,8 @@ function Inventory(world, camera, conn, controls) {
 		swapLeftWasDown = leftWasDown;
 		swapRightWasDown = rightWasDown;
 
-		function activateItem(item) {
-			var action = item.action();
+		function activateStack(stack) {
+			var action = stack.item.action();
 			if (action) {
 				action(world, camera);
 			} else {
@@ -302,8 +295,8 @@ function Inventory(world, camera, conn, controls) {
 			var side = isLeft ? "Left" : "Right";
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
-			var item = isLeft ? leftItem() : rightItem();
-			var itemModel = item.model;
+			var stack = isLeft ? leftStack() : rightStack();
+			var itemModel = stack.model;
 
 			if (itemModel !== null) {
 				pointItem(itemModel, c);
@@ -316,13 +309,13 @@ function Inventory(world, camera, conn, controls) {
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
-				updateEquipped((isLeft ? item : null),
-							   (isLeft ? null : item));
+				updateEquipped((isLeft ? stack : null),
+							   (isLeft ? null : stack));
 				updateHtmlEquipChanged(isLeft);
 			}
 
 			if (c[activateTrigger]) {
-				activateItem(item);
+				activateStack(stack);
 			}
 
 			return swapDown;

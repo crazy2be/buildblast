@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"reflect"
 	"time"
 
 	"code.google.com/p/go.net/websocket"
@@ -65,62 +64,4 @@ func (c *Conn) Recv() (Message, error) {
 	}
 
 	return m, nil
-}
-
-func kindToType(kind MessageKind) Message {
-	switch kind {
-	case MSG_ENTITY_CREATE:
-		return &MsgEntityCreate{}
-	case MSG_ENTITY_POSITION:
-		return &MsgEntityPosition{}
-	case MSG_ENTITY_REMOVE:
-		return &MsgEntityRemove{}
-	case MSG_BLOCK:
-		return &MsgBlock{}
-	case MSG_CONTROLS_STATE:
-		return &MsgControlsState{}
-	case MSG_CHAT:
-		return &MsgChat{}
-	case MSG_PLAYER_STATE:
-		return &MsgPlayerState{}
-	case MSG_DEBUG_RAY:
-		return &MsgDebugRay{}
-	case MSG_NTP_SYNC:
-		return &MsgNtpSync{}
-	case MSG_INVENTORY_STATE:
-		return &MsgInventoryState{}
-	case MSG_INVENTORY_MOVE:
-		return &MsgInventoryMove{}
-	}
-	panic("Unknown message recieved from client: " + string(kind))
-}
-
-func typeToKind(m Message) MessageKind {
-	switch m.(type) {
-	case *MsgEntityCreate:
-		return MSG_ENTITY_CREATE
-	case *MsgEntityPosition:
-		return MSG_ENTITY_POSITION
-	case *MsgEntityRemove:
-		return MSG_ENTITY_REMOVE
-	case *MsgChunk:
-		return MSG_CHUNK
-	case *MsgBlock:
-		return MSG_BLOCK
-	case *MsgControlsState:
-		return MSG_CONTROLS_STATE
-	case *MsgChat:
-		return MSG_CHAT
-	case *MsgPlayerState:
-		return MSG_PLAYER_STATE
-	case *MsgDebugRay:
-		return MSG_DEBUG_RAY
-	case *MsgNtpSync:
-		return MSG_NTP_SYNC
-	case *MsgInventoryState:
-		return MSG_INVENTORY_STATE
-	case *MsgInventoryMove:
-		return MSG_INVENTORY_MOVE
-	}
-	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
