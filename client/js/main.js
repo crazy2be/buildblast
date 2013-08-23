@@ -8,12 +8,38 @@ window.onload = function () {
 		return;
 	}
 
-	Models.init(startGame);
+	var conn = new Conn(getWSURI("main/"));
+	var clock = new Clock(conn);
+	var clientID;
+
+	async.parallel([
+		function (callback) {
+			Models.init(callback);
+		},
+		function (callback) {
+			conn.on('handshake-reply', function (payload) {
+				console.log("Got handshake reply:", payload);
+				clock.init(payload.ServerTime);
+				clientID = payload.ClientID;
+				conn.setImmediate(false);
+				callback();
+			});
+			conn.on('handshake-error', function (payload) {
+				throw payload.Message;
+			});
+			conn.queue('handshake-init', {
+				DesiredName: localStorage.playerName,
+			});
+		}
+	], function (err, results) {
+		console.log(results);
+		startGame();
+	})
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var clock = new THREE.Clock();
-		var world = new World(scene, container);
+		var chunkManager = new ChunkManager(scene, clientID);
+		var world = new World(scene, conn, clock, container, chunkManager);
 		world.resize();
 
 		var renderer = new THREE.WebGLRenderer();
@@ -40,11 +66,16 @@ window.onload = function () {
 			renderer.setSize(window.innerWidth, window.innerHeight);
 		}
 
+		var previousTime = clock.time();
 		function animate() {
-			var dt = clock.getDelta();
+			clock.update();
+			var newTime = clock.time();
+			var dt = newTime - previousTime;
+			previousTime = newTime;
+			conn.update();
 			world.update(dt);
 			world.render(renderer, scene);
-			speed.addDataPoint(dt*1000);
+			speed.addDataPoint(dt);
 
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);

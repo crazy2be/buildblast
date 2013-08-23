@@ -67,7 +67,7 @@ func (c *ClientConn) runRecv(conn *Conn) {
 			return
 		}
 		if mntp, ok := m.(*MsgNtpSync); ok {
-			mntp.ServerTime = float64(time.Now().UnixNano() / 1e6)
+			mntp.ServerTime = float64(time.Now().UnixNano()) / 1e6
 			c.Send(mntp)
 			continue
 		}

@@ -90,7 +90,7 @@ function Chat(controls, conn, container) {
 
 	function Tween(elm) {
 		var self = this;
-		var totalTime = 6.0;
+		var totalTime = 6000.0;
 		var elapsedTime = 0.0;
 
 		self.update = function (dt, focused) {

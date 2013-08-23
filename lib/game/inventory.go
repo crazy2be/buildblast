@@ -5,7 +5,7 @@ import (
 )
 
 type Inventory struct {
-	slots     []Item
+	slots     []Stack
 	itemLeft  int
 	itemRight int
 }
@@ -23,14 +23,14 @@ func NewInventory() *Inventory {
 	// [w*h + 1]    = left reserve
 	// [w*h + 2]    = right equip
 	// [w*h + 3]    = right reserve
-	inv := make([]Item, INV_WIDTH*INV_HEIGHT+4)
-	inv[0] = NewItem(ITEM_GUN)
-	inv[1] = NewItem(ITEM_SHOVEL)
-	inv[2] = NewItem(ITEM_DIRT)
-	inv[3] = NewItem(ITEM_STONE)
-	inv[INV_WIDTH*INV_HEIGHT] = NewItem(ITEM_GUN)
-	inv[INV_WIDTH*INV_HEIGHT+2] = NewItem(ITEM_SHOVEL)
-	inv[INV_WIDTH*INV_HEIGHT+3] = NewItem(ITEM_DIRT)
+	inv := make([]Stack, INV_WIDTH*INV_HEIGHT+4)
+	inv[0] = NewStack(ITEM_GUN)
+	inv[1] = NewStack(ITEM_SHOVEL)
+	inv[2] = NewStackOf(ITEM_DIRT, MAX_STACK)
+	inv[3] = NewStackOf(ITEM_STONE, MAX_STACK)
+	inv[INV_WIDTH*INV_HEIGHT] = NewStack(ITEM_GUN)
+	inv[INV_WIDTH*INV_HEIGHT+2] = NewStack(ITEM_SHOVEL)
+	inv[INV_WIDTH*INV_HEIGHT+3] = NewStackOf(ITEM_DIRT, MAX_STACK)
 
 	return &Inventory{
 		slots:     inv,
@@ -45,11 +45,11 @@ func (inv *Inventory) SetActiveItems(left, right int) {
 }
 
 func (inv *Inventory) LeftItem() Item {
-	return inv.slots[inv.itemLeft]
+	return inv.slots[inv.itemLeft].item
 }
 
 func (inv *Inventory) RightItem() Item {
-	return inv.slots[inv.itemRight]
+	return inv.slots[inv.itemRight].item
 }
 
 func (inv *Inventory) MoveItems(from, to int) {
@@ -58,19 +58,19 @@ func (inv *Inventory) MoveItems(from, to int) {
 	inv.slots[to] = temp
 }
 
-func (inv *Inventory) findItemOfKind(kind byte) int {
-	for i, item := range inv.slots {
-		if item.kind == kind {
+func (inv *Inventory) findItemOfKind(item Item) int {
+	for i, slot := range inv.slots {
+		if slot.item == item {
 			return i
 		}
 	}
 	return -1
 }
 
-func (inv *Inventory) AddItem(kind byte) {
+func (inv *Inventory) AddItem(item Item) {
 	for i := len(inv.slots) - 1; i >= 0; i-- {
-		item := inv.slots[i]
-		if item.kind == kind && item.num < MAX_STACK {
+		slot := inv.slots[i]
+		if slot.item == item && slot.num < MAX_STACK {
 			inv.slots[i].num++
 			return
 		}
@@ -78,20 +78,20 @@ func (inv *Inventory) AddItem(kind byte) {
 	emptySlot := inv.findItemOfKind(ITEM_NIL)
 	// TODO: Handle no space left
 	if emptySlot >= 0 {
-		inv.slots[emptySlot] = NewItem(kind)
+		inv.slots[emptySlot] = NewStack(item)
 	}
 }
 
 // Removes an item from the inventory. Returns
 // true if the removal was sucessful, false if the
 // item does not exist in the inventory.
-func (inv *Inventory) RemoveItem(kind byte) bool {
-	if kind == ITEM_NIL {
+func (inv *Inventory) RemoveItem(item Item) bool {
+	if item == ITEM_NIL {
 		return false
 	}
 	for i := len(inv.slots) - 1; i >= 0; i-- {
-		item := inv.slots[i]
-		if item.kind == kind {
+		slot := inv.slots[i]
+		if slot.item == item {
 			inv.lowerStack(i)
 			return true
 		}
@@ -105,13 +105,13 @@ func (inv *Inventory) lowerStack(i int) {
 		return
 	}
 	inv.slots[i].num = 0
-	inv.slots[i].kind = ITEM_NIL
+	inv.slots[i].item = ITEM_NIL
 }
 
 func (inv *Inventory) ItemsToString() string {
 	data := make([]byte, len(inv.slots)*2)
 	for i := 0; i < len(data); i += 2 {
-		data[i] = toStringByte(byte(inv.slots[i/2].kind))
+		data[i] = toStringByte(byte(inv.slots[i/2].item))
 		data[i+1] = toStringByte(byte(inv.slots[i/2].num))
 	}
 	return string(data)

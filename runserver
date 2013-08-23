@@ -1,19 +1,25 @@
 #!/bin/bash -e
 
 if go version; then
-    export GOPATH="`pwd`/../../"
-    export GOBIN="`pwd`/bin"
-    echo "Compiling server..."
+	export GOPATH="`pwd`/../../"
+
+	if [ ! -e "$GOPATH/src" ]; then
+		echo "WARN: Probably misconfigured GOPATH"
+		echo "(no src/ directory found at GOPATH root)"
+	fi
+
+	export GOBIN="`pwd`/bin"
+	echo "Compiling server..."
 	mkdir -p "$GOBIN"
-    go get buildblast/server
+	go get buildblast/server
 
-    cd client
-    echo "Starting server..."
-    ../bin/server
+	cd client
+	echo "Starting server..."
+	../bin/server
 
-    exit 0
+	exit 0
 else
-    echo "ERROR: Go must be installed to compile the server."
-    echo "Get it from http://www.golang.org"
-    exit 1
+	echo "ERROR: Go must be installed to compile the server."
+	echo "Get it from http://www.golang.org"
+	exit 1
 fi
