@@ -21,7 +21,7 @@ function Clock(conn) {
 		var curNow = now();
 		var dt = curNow - prevNow;
 		var doff = offset - appliedOffset;
-		appliedOffset += min(abs(dt*0.5), abs(doff)) * signum(doff);
+		appliedOffset += min(abs(dt*0.1), abs(doff)) * signum(doff);
 
 		curTime = appliedOffset + curNow;
 		prevNow = curNow;
