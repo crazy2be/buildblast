@@ -3,7 +3,7 @@
 //greedy mesher about 20% faster (even with the preprocessing).
 function preprocessBlocks(blocks) {
 	for (var index = 0; index < blocks.length; index++) {
-		if (Block.isEmpty(blocks[index])) {
+		if (Block.isInvisible(blocks[index])) {
 			blocks[index] = Block.AIR;
 		}
 	}

@@ -117,7 +117,7 @@ Item.placeAction = function (world, camera, blockType) {
 
 	//Likely means the chunk has not been loaded.
 	if(!block) return;
-	if(!block.empty()) return;
+	if(!block.tangible()) return;
 
 	world.changeBlock(bc.x, bc.y, bc.z, blockType);
 };

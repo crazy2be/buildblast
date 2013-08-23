@@ -14,17 +14,17 @@ const (
 	BLOCK_MINEABLE = 0x80000000
 
 	// Subtypes
-	BLOCK_EMPTY = 0x1 << 0
-	BLOCK_SOLID = 0x1 << 1
+	BLOCK_INVISIBLE		= 0x1 << 0
+	BLOCK_TANGIBLE		= 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** NIL    */ 0,
-	/** AIR    */ BLOCK_EMPTY,
-	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** AIR    */ BLOCK_INVISIBLE,
+	/** DIRT   */ BLOCK_TANGIBLE | BLOCK_MINEABLE,
+	/** STONE  */ BLOCK_TANGIBLE | BLOCK_MINEABLE,
 }
 
-func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b]&BLOCK_SOLID > 0
+func (b Block) Tangible() bool {
+	return BLOCK_PROPERTIES[b]&BLOCK_TANGIBLE > 0
 }

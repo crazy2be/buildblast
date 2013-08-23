@@ -88,7 +88,7 @@ function Box(p, halfExtents, centerOffset) {
 		function blockHere(x, y, z) {
 			var block = world.blockAt(x, y, z);
 			if (!block) return true;
-			else return !block.empty();
+			else return block.tangible();
 		}
 		return bboxEach(blockHere, logicalOr);
 	}

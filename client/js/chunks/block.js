@@ -4,8 +4,11 @@ function Block(type) {
 Block.prototype.mineable = function () {
 	return Block.isMineable(this.type);
 };
-Block.prototype.empty = function () {
-	return Block.isEmpty(this.type);
+Block.prototype.invisible = function () {
+	return Block.isInvisible(this.type);
+};
+Block.prototype.tangible = function () {
+	return Block.isTangible(this.type);
 };
 
 //Block Types
@@ -20,16 +23,14 @@ Block.STONE = 0x3;
 Block.MINEABLE	= 0x80000000;
 
 //Subtypes
-//The mesher's assume anything that is empty is not drawn, and
-//anything which is not empty (solid is not used) is drawn fully.
-//This makes transparent blocks impossible, although it would be easy to change.
-Block.EMPTY = 0x1;
+Block.INVISIBLE = 0x1; //Essentially means it has no colors, so Block.getColours will fail (and it so it cannot be drawn).
+Block.TANGIBLE = 0x2;  //Means it can be collided with, and cannot so entities cannot occupy the same square as it.
 
 Block.PROPERTIES = [
 	/** NIL	*/ 0,
-	/** AIR	*/ Block.EMPTY,
-	/** DIRT   */ Block.MINEABLE,
-	/** STONE  */ Block.MINEABLE,
+	/** AIR	*/ Block.INVISIBLE,
+	/** DIRT   */ Block.TANGIBLE | Block.MINEABLE,
+	/** STONE  */ Block.TANGIBLE | Block.MINEABLE,
 ];
 
 Block.getColours = function (blockType, face) {
@@ -66,8 +67,12 @@ Block.isMineable = function (block) {
 	return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
 };
 
-Block.isEmpty = function (block) {
-	return Block.inSubtype(block, Block.EMPTY);
+Block.isInvisible = function (block) {
+	return Block.inSubtype(block, Block.INVISIBLE);
+};
+
+Block.isTangible = function (block) {
+	return Block.inSubtype(block, Block.TANGIBLE);
 };
 
 Block.inSubtype = function (block, subtype) {

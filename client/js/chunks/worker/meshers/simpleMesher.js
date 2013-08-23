@@ -111,7 +111,7 @@ function simpleMesh(blocks, quality, cc, manager) {
 		var maxBlock = -1;
 		var maxValue = -1;
 		for (var key in count) {
-			if (count[key] > maxValue && !Block.isEmpty(parseInt(key))) {
+			if (count[key] > maxValue && !Block.isInvisible(parseInt(key))) {
 				maxBlock = key;
 				maxValue = count[key];
 			}
@@ -201,7 +201,7 @@ function simpleMesh(blocks, quality, cc, manager) {
 			for (var x = 0; x < w; x++) {
 				for (var y = 0; y < h; y++) {
 					for (var z = 0; z < d; z++) {
-						if (Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
+						if (Block.isInvisible(blockTypeAt(ox + x, oy + y, oz + z))) {
 							return true;
 						}
 					}
@@ -214,7 +214,7 @@ function simpleMesh(blocks, quality, cc, manager) {
 			for (var x = 0; x < r; x++) {
 				for (var y = 0; y < r; y++) {
 					for (var z = 0; z < r; z++) {
-						if (!Block.isEmpty(blockTypeAt(ox + x, oy + y, oz + z))) {
+						if (!Block.isInvisible(blockTypeAt(ox + x, oy + y, oz + z))) {
 							return false;
 						}
 					}
@@ -225,7 +225,7 @@ function simpleMesh(blocks, quality, cc, manager) {
 
 		function empty(ox, oy, oz) {
 			if (r === 1) {
-				return Block.isEmpty(blockTypeAt(ox, oy, oz));
+				return Block.isInvisible(blockTypeAt(ox, oy, oz));
 			}
 
 			if (ox < 0 || ox >= cw) {
