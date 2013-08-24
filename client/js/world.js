@@ -1,4 +1,4 @@
-function World(scene, container) {
+function World(scene, conn, clock, container, chunkManager) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -9,18 +9,11 @@ function World(scene, container) {
 		scene.remove(mesh);
 	};
 
-	var playerName = localStorage.playerName;
-	while (!playerName) {
-		playerName = prompt("Please enter your name.","Unknown");
-		localStorage.playerName = playerName;
-	}
-	var conn = new Conn(getWSURI("main/" + playerName));
 	var controls = new Controls(container);
-	var player = new Player(playerName, self, conn, controls);
+	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var chunkManager = new ChunkManager(scene, player);
-	var entityManager = new EntityManager(scene, conn, player);
+	var entityManager = new EntityManager(scene, conn);
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
@@ -36,7 +29,7 @@ function World(scene, container) {
 
 	self.update = function (dt) {
 		player.update(dt);
-		chunkManager.update(dt);
+		chunkManager.update(dt, player.pos());
 		chat.update(dt);
 	};
 

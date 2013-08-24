@@ -1,28 +1,27 @@
-function ChunkManager(scene, player) {
+function ChunkManager(scene, clientID) {
 	var self = this;
 
 	var chunks = {};
 	var geometryWorker = new Worker('js/chunks/worker/main.js');
-	startChunkConn(player.name());
+	startChunkConn(clientID);
 
 	self.chunk = function (cc) {
 		return chunks[ccStr(cc)];
 	};
 
 	var accumulatedTime = 0;
-	self.update = function (dt) {
+	self.update = function (dt, playerPos) {
 		accumulatedTime += dt;
-		if (accumulatedTime > 1) {
-			accumulatedTime -= 1;
-			var p = player.pos();
-			geometryWorker.postMessage({
-				'kind': 'player-position',
-				'payload': {
-					'pos': {x: p.x, y: p.y, z: p.z},
-				},
-			});
-		}
+		if (accumulatedTime < 1000 /*ms*/) return;
 
+		accumulatedTime -= 1000;
+		var p = playerPos;
+		geometryWorker.postMessage({
+			'kind': 'player-position',
+			'payload': {
+				'pos': {x: p.x, y: p.y, z: p.z},
+			},
+		});
 	};
 
 	self.queueBlockChange = function (wx, wy, wz, newType) {

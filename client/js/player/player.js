@@ -12,7 +12,7 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(name, world, conn, controls) {
+function Player(world, conn, clock, controls) {
 	var self = this;
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
@@ -22,7 +22,7 @@ function Player(name, world, conn, controls) {
 	window.testExposure.players[name].camera = camera;
 
 	var inventory = new Inventory(world, camera, conn, controls);
-	var prediction = new PlayerPrediction(world, conn, camera.position);
+	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	self.resize = function () {
 		camera.aspect = window.innerWidth / window.innerHeight;
@@ -34,19 +34,11 @@ function Player(name, world, conn, controls) {
 		return camera.position.clone();
 	};
 
-	self.name = function () {
-		return name;
-	};
-
-	self.id = function() {
-		return "player-" + name;
-	};
-
 	self.render = function (renderer, scene) {
 		renderer.render(scene, camera);
 	};
 
-	self.update = function (dt) {
+	self.update = function () {
 		var c = controls.sample();
 
 		var p = prediction.update(c);

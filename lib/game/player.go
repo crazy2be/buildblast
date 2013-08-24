@@ -69,7 +69,7 @@ func (p *Player) Pos() coords.World {
 }
 
 func (p *Player) ID() string {
-	return "player-" + p.name
+	return p.name
 }
 
 func (p *Player) Inventory() *Inventory {
@@ -79,6 +79,12 @@ func (p *Player) Inventory() *Inventory {
 func (p *Player) Tick(w *World) {}
 
 func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
+	// First frame
+	if p.controls.Timestamp == 0 {
+		p.controls = controls
+		return p.pos, 0.0, p.hp, nil
+	}
+
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {

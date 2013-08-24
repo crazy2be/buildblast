@@ -1,68 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>BuildBlast</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-        <link rel="stylesheet" href="css/main.css" />
-        <link rel="stylesheet" href="css/inventory.css" />
-        <link rel="stylesheet" href="css/chat.css" />
-        <link rel="stylesheet" href="css/health.css" />
-        <link rel="stylesheet" href="css/splash.css" />
-    </head>
-    <body class="no-select">
-        <div id="container">
-            <div id="opengl"></div>
-            <div id="splash">
-                <div class="contents">
-                    <h1>Loading...</h1>
-                    <br />
-                    <table class="controls">
-                        <tr><td>WASD:</td><td>Move</td></tr>
-                        <tr><td>Enter:</td><td>Chat</td></tr>
-                        <tr><td>Q/E:</td><td>Quick Inventory</td></tr>
-                        <tr><td>C:</td><td>Inventory</td></tr>
-                        <tr><td>Mouse:</td><td>Look, build, blast!</td></tr>
-                    </table>
-                    <br />
-                    <p>Press F11 to go fullscreen for maximum performance.</p>
-                </div>
-            </div>
-            <div id="hud">
-                <div id="info"></div>
-                <div id="health">
-                    <img src="/img/health.png" alt="Health" height="32" width="32">
-                    <div id="health-bar">
-                        <div id="health-value"></div>
-                    </div>
-                </div>
-                <div id="crosshair"></div>
-                <div class="bottom">
-                    <div id="chat">
-                        <div class="messages"></div>
-                        <input type="text" class="input" />
-                    </div>
-                    <div id="inventory">
-                        <div id="bag"></div>
-                        <div class="left">
-                            <div id="leftReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
-                            <div id="leftPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
-                        </div>
-                        <div class="right">
-                            <div id="rightPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
-                            <div id="rightReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+	<head>
+		<title>BuildBlast</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="stylesheet" href="css/main.css" />
+		<link rel="stylesheet" href="css/inventory.css" />
+		<link rel="stylesheet" href="css/chat.css" />
+		<link rel="stylesheet" href="css/health.css" />
+		<link rel="stylesheet" href="css/splash.css" />
+	</head>
+	<body class="no-select">
+		<div id="container">
+			<div id="opengl"></div>
+			<div id="splash">
+				<div class="contents">
+					<h1>Loading...</h1>
+					<br />
+					<table class="controls">
+						<tr><td>WASD:</td><td>Move</td></tr>
+						<tr><td>Enter:</td><td>Chat</td></tr>
+						<tr><td>Q/E:</td><td>Quick Inventory</td></tr>
+						<tr><td>C:</td><td>Inventory</td></tr>
+						<tr><td>Mouse:</td><td>Look, build, blast!</td></tr>
+					</table>
+					<br />
+					<p>Press F11 to go fullscreen for maximum performance.</p>
+				</div>
+			</div>
+			<div id="hud">
+				<div id="info"></div>
+				<div id="health">
+					<img src="/img/health.png" alt="Health" height="32" width="32">
+					<div id="health-bar">
+						<div id="health-value"></div>
+					</div>
+				</div>
+				<div id="crosshair"></div>
+				<div class="bottom">
+					<div id="chat">
+						<div class="messages"></div>
+						<input type="text" class="input" />
+					</div>
+					<div id="inventory">
+						<div id="bag"></div>
+						<div class="left">
+							<div id="leftReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+							<div id="leftPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+						</div>
+						<div class="right">
+							<div id="rightPrimary" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+							<div id="rightReserve" class="slot equip"><div class="helper"><span class="stack"></span></div></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <script src="lib/three.min.js"></script>
-        <script src="lib/jquery.min.js"></script>
-        <script src="lib/jquery-ui.min.js"></script>
-        <script src="lib/jquery.waitforimages.min.js"></script>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/jquery.min.js"></script>
+		<script src="lib/jquery-ui.min.js"></script>
+		<script src="lib/jquery.waitforimages.min.js"></script>
+		<script src="lib/async.js"></script>
 
-        <script src="js/includes.js"></script>
+		<script src="js/includes.js"></script>
         <script src="js/main.js"></script>
-    </body>
+	</body>
 </html>

@@ -14,7 +14,9 @@
 }([
 	'js/./box.js',
 	'js/./chat.js',
+	'js/./clock.js',
 	'js/./conn.js',
+	'js/./controls.js',
 	'js/./featureTester.js',
 	'js/./models.js',
 	'js/./world.js',
@@ -32,7 +34,6 @@
 	'js/./entities/entity.js',
 	'js/./entities/manager.js',
 	'js/./perf/chart.js',
-	'js/./player/clock.js',
 	'js/./player/controls.js',
 	'js/./player/inventory.js',
 	'js/./player/items.js',
