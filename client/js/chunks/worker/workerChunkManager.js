@@ -31,23 +31,23 @@ function WorkerChunkManager() {
 		}
 	}
 
-	self.chunkAt = function (cx, cy, cz) {
-		return self.get({x: cx, y: cy, z: cz});
+	self.chunkAt = function (ccx, ccy, ccz) {
+		return self.get({x: ccx, y: ccy, z: ccz});
 	}
 
 	self.refreshNeighbouring = function (cc) {
-		var cx = cc.x;
-		var cy = cc.y;
-		var cz = cc.z;
-		function r(cx, cy, cz) {
-			var chunk = self.get({x: cx, y: cy, z: cz});
+		var ccx = cc.x;
+		var ccy = cc.y;
+		var ccz = cc.z;
+		function r(ccx, ccy, ccz) {
+			var chunk = self.get({x: ccx, y: ccy, z: ccz});
 			if (chunk) chunk.changed = true;
 		};
-		r(cx + 1, cy, cz);
-		r(cx - 1, cy, cz);
-		r(cx, cy + 1, cz);
-		r(cx, cy - 1, cz);
-		r(cx, cy, cz + 1);
-		r(cx, cy, cz - 1);
+		r(ccx + 1, ccy, ccz);
+		r(ccx - 1, ccy, ccz);
+		r(ccx, ccy + 1, ccz);
+		r(ccx, ccy - 1, ccz);
+		r(ccx, ccy, ccz + 1);
+		r(ccx, ccy, ccz - 1);
 	}
 }

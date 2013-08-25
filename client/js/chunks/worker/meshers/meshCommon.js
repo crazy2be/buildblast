@@ -11,15 +11,14 @@ function preprocessBlocks(blocks) {
 
 //The order is important here! It makes sure the normals line up with the 'face numbers' given
 //by Block.getColors.
-
 var LOOP_CUBEFACES_DATA = [
 //Face direction, (parallel axis), perpendicular axis
-	[1, 1, 2, 0],
-	[-1, 1, 2, 0],
-	[1, 2, 0, 1],
-	[-1, 2, 0, 1],
-	[1, 0, 1, 2],
-	[-1, 0, 1, 2],
+	{faceDirection: 1,  compX: 1, compY: 2, compZ: 0},
+    {faceDirection: -1, compX: 1, compY: 2, compZ: 0},
+    {faceDirection: 1,  compX: 2, compY: 0, compZ: 1},
+    {faceDirection: -1, compX: 2, compY: 0, compZ: 1},
+    {faceDirection: 1,  compX: 0, compY: 1, compZ: 2},
+    {faceDirection: -1, compX: 0, compY: 1, compZ: 2}
 ];
 
 function noiseFunc(bcX, bcY, bcZ, inverseQuality) {
@@ -33,6 +32,14 @@ function noiseFunc(bcX, bcY, bcZ, inverseQuality) {
 }
 
 function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, inverseQuality, blocks) {
+    if(inverseQuality == 1) {
+        return blocks[
+				    ocXStart * CHUNK_WIDTH * CHUNK_HEIGHT +
+				    ocYStart * CHUNK_WIDTH +
+				    ocZStart
+			    ];
+    }
+
 	//Ugh... have to sample to find the block
 	var blockCounts = [];
 

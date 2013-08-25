@@ -5,6 +5,31 @@ function random(min, max) {
 	return ~~(Math.random() * (max - min)) + min;
 }
 
+function logRandom(min, max) {
+    //Skewed to low numbers, approximately exponential?
+    var range = max - min;
+    var maxRangeBit = Math.ceil(Math.log(range) / Math.log(2));
+    var maxBit = ~~(consistentRandom() * (maxRangeBit + 1));
+
+    var realRange = Math.min(pow(2, maxBit), range);
+
+    return ~~(consistentRandom() * realRange + min);
+}
+
+//From http://en.wikipedia.org/wiki/Random_number_generation
+var randomZ = 59825525;
+var randomW = 239876364;
+function seedRandom(z, w) {
+    randomZ = z;
+    randomW = w;
+}
+function consistentRandom() {
+    //Might not entirely work with Javascipt Numbers
+    randomZ = 36969 * (randomZ & 65535) + (randomZ >> 16);
+    randomW = 18000 * (randomW & 65535) + (randomW >> 16);
+    return (~~((randomZ << 16) + randomW) & (-(1 << 31) - 1)) / -(1 << 31);
+}
+
 function generateRandomBlockArray() {
 	var blocks = new Float32Array(CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH);
 
@@ -53,16 +78,21 @@ function generateRandomBlockGeometryArray() {
 	//Rect3 = { start: Vector3, size: Vector3 };
 	var Rect3s = [];
 
-	var rect3Count = 60;
+	var rect3Count = 150;
 
 	while (rect3Count-- > 0) {
-		var xs = random(0, CHUNK_WIDTH);
-		var ys = random(0, CHUNK_HEIGHT);
-		var zs = random(0, CHUNK_DEPTH);
+	    var xs = logRandom(0, CHUNK_WIDTH);
+	    var ys = logRandom(0, CHUNK_HEIGHT);
+	    var zs = logRandom(0, CHUNK_DEPTH);
 
-		var dx = random(1, 6);
-		var dy = random(1, 6);
-		var dz = random(1, 6);
+	    var dx = logRandom(0, CHUNK_WIDTH);
+	    var dy = logRandom(0, CHUNK_HEIGHT);
+	    var dz = logRandom(0, CHUNK_DEPTH);
+
+	    dx = min(dx, CHUNK_WIDTH - xs);
+	    dy = min(dy, CHUNK_WIDTH - ys);
+	    dz = min(dz, CHUNK_WIDTH - zs);
+
 		Rect3s.push({ start: { x: xs, y: ys, z: zs }, size: { x:dx, y:dy, z:dz } });
 	}
 
@@ -129,8 +159,9 @@ function test_largeChunkMesh() {
 		{ name: "simpleMesh2" }
 	];
 
-	var loops = 20;
+	var loops = 100;
 	for (var i = 0; i < loops; i++) {
+	    seedRandom(59825525, 239876364);
 		LOOP.For3D(
 			new THREE.Vector3(0, 0, 0),
 			new THREE.Vector3(maxChunk, maxChunk, maxChunk),

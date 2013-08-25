@@ -25,13 +25,11 @@ function simpleMesh2(blocks, quality, cc, manager) {
 
 		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
 
-		//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
-
 		for(var iFace = 0; iFace < 6; iFace++) {
-			var faceDirection = LOOP_CUBEFACES_DATA[iFace][0];
-			var compX = LOOP_CUBEFACES_DATA[iFace][1]; //'x' (see above)
-			var compY = LOOP_CUBEFACES_DATA[iFace][2]; //'y' (see above)
-			var compZ = LOOP_CUBEFACES_DATA[iFace][3]; //'z' (see above)
+			var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDireciton;
+			var compX = LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
+			var compY = LOOP_CUBEFACES_DATA[iFace].compy; 
+			var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 			var oAdjArr = [ocX, ocY, ocZ];
 			oAdjArr[compZ] += faceDirection * inverseQuality;
@@ -46,15 +44,7 @@ function simpleMesh2(blocks, quality, cc, manager) {
 										adjacentBlocks, compZ, inverseQuality);
 				}
 			} else {
-				if(inverseQuality === 1) {
-					adjacentBlock = blocks[
-						oAdjArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
-						oAdjArr[1] * CHUNK_WIDTH +
-						oAdjArr[2]
-					];
-				} else {
-					adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], inverseQuality, blocks);
-				}
+				adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], inverseQuality, blocks);
 			}
 			if(adjacentBlock == Block.AIR) {
 				addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, inverseQuality, inverseQuality, compZ, faceDirection, inverseQuality, verts);

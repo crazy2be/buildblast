@@ -3,9 +3,9 @@ function simpleMesh(blocks, quality, cc, manager) {
 	var cd = CHUNK_DEPTH;
 	var ch = CHUNK_HEIGHT;
 
-	var cx = cc.x;
-	var cy = cc.y;
-	var cz = cc.z;
+	var ccx = cc.x;
+	var ccy = cc.y;
+	var ccz = cc.z;
 
 	// Neighbouring chunks (for blockTypeAt)
 	var nxc, pxc, nyc, pyc, nzc, pzc;
@@ -21,10 +21,10 @@ function simpleMesh(blocks, quality, cc, manager) {
 
 	//Pick blocks in increments based on the quality (like sampling), later code will look through the
 	//area and decide what type the block should really be.
-	for (var ox = 0; ox < cw * quality; ox++) {
-		for (var oy = 0; oy < ch * quality; oy++) {
-			for (var oz = 0; oz < cd * quality; oz++) {
-				addBlockGeometry(verts, index, color, ox / quality, oy / quality, oz / quality, quality);
+	for (var ocx = 0; ocx < cw * quality; ocx++) {
+		for (var ocy = 0; ocy < ch * quality; ocy++) {
+			for (var ocz = 0; ocz < cd * quality; ocz++) {
+				addBlockGeometry(verts, index, color, ocx / quality, ocy / quality, ocz / quality, quality);
 			}
 		}
 	}
@@ -76,29 +76,29 @@ function simpleMesh(blocks, quality, cc, manager) {
 	//Everything after here is just helper functions.
 
 	//Can get blocks from up to 1 chunk away from out current chunk
-	function blockTypeAt(ox, oy, oz) {
-		if (ox < 0) {
-			return nxc ? nxc.block(cw - 1, oy, oz) : null;
-		} else if (ox >= cw) {
-			return pxc ? pxc.block(0, oy, oz) : null;
-		} else if (oy < 0) {
-			return nyc ? nyc.block(ox, ch - 1, oz) : null;
-		} else if (oy >= ch) {
-			return pyc ? pyc.block(ox, 0, oz) : null;
-		} else if (oz < 0) {
-			return nzc ? nzc.block(ox, oy, cd - 1) : null;
-		} else if (oz >= cd) {
-			return pzc ? pzc.block(ox, oy, 0) : null;
+	function blockTypeAt(ocx, ocy, ocz) {
+		if (ocx < 0) {
+			return nxc ? nxc.block(cw - 1, ocy, ocz) : null;
+		} else if (ocx >= cw) {
+			return pxc ? pxc.block(0, ocy, ocz) : null;
+		} else if (ocy < 0) {
+			return nyc ? nyc.block(ocx, ch - 1, ocz) : null;
+		} else if (ocy >= ch) {
+			return pyc ? pyc.block(ocx, 0, ocz) : null;
+		} else if (ocz < 0) {
+			return nzc ? nzc.block(ocx, ocy, cd - 1) : null;
+		} else if (ocz >= cd) {
+			return pzc ? pzc.block(ocx, ocy, 0) : null;
 		} else {
-			return blocks[ox*cw*ch + oy*cw + oz];
+			return blocks[ocx*cw*ch + ocy*cw + ocz];
 		}
 	}
 
-	function mostCommonBlock(ox, oy, oz, r) {
+	function mostCommonBlock(ocx, ocy, ocz, r) {
 		var count = {};
-		for (var x = ox; x < ox + r; x++) {
-			for (var y = oy; y < oy + r; y++) {
-				for (var z = oz; z < oz + r; z++) {
+		for (var x = ocx; x < ocx + r; x++) {
+			for (var y = ocy; y < ocy + r; y++) {
+				for (var z = ocz; z < ocz + r; z++) {
 					var tempBlock = blockTypeAt(x, y, z);
 					if (!(tempBlock in count)) {
 						count[tempBlock] = 1;
@@ -119,29 +119,29 @@ function simpleMesh(blocks, quality, cc, manager) {
 		return parseInt(maxBlock);
 	}
 
-	function addBlockGeometry(verts, index, color, ox, oy, oz, quality) {
+	function addBlockGeometry(verts, index, color, ocx, ocy, ocz, quality) {
 		var r = 1 / quality;
 		var noise = [];
-		if (empty(ox, oy, oz)) return;
+		if (empty(ocx, ocy, ocz)) return;
 
 		//py = positive y, as in above the cube.
 		//We only draw faces when there is no cube blocking it.
-		var px = empty(ox + r, oy, oz);
-		var nx = empty(ox - r, oy, oz);
-		var py = empty(ox, oy + r, oz);
-		var ny = empty(ox, oy - r, oz);
-		var pz = empty(ox, oy, oz + r);
-		var nz = empty(ox, oy, oz - r);
+		var px = empty(ocx + r, ocy, ocz);
+		var nx = empty(ocx - r, ocy, ocz);
+		var py = empty(ocx, ocy + r, ocz);
+		var ny = empty(ocx, ocy - r, ocz);
+		var pz = empty(ocx, ocy, ocz + r);
+		var nz = empty(ocx, ocy, ocz - r);
 
-		var wx = ox + cx*cw;
-		var wy = oy + cy*ch;
-		var wz = oz + cz*cd;
+		var wx = ocx + ccx*cw;
+		var wy = ocy + ccy*ch;
+		var wz = ocz + ccz*cd;
 
 		var blockType = Block.DIRT;
 		if (r === 1) {
-			blockType = blockTypeAt(ox, oy, oz);
+			blockType = blockTypeAt(ocx, ocy, ocz);
 		} else {
-			blockType = mostCommonBlock(ox, oy, oz, r);
+			blockType = mostCommonBlock(ocx, ocy, ocz, r);
 		}
 		if (blockType < 0) return;
 
@@ -197,11 +197,11 @@ function simpleMesh(blocks, quality, cc, manager) {
 			}
 		}
 
-		function anyEmpty(ox, oy, oz, w, h, d) {
+		function anyEmpty(ocx, ocy, ocz, w, h, d) {
 			for (var x = 0; x < w; x++) {
 				for (var y = 0; y < h; y++) {
 					for (var z = 0; z < d; z++) {
-						if (Block.isInvisible(blockTypeAt(ox + x, oy + y, oz + z))) {
+						if (Block.isInvisible(blockTypeAt(ocx + x, ocy + y, ocz + z))) {
 							return true;
 						}
 					}
@@ -210,11 +210,11 @@ function simpleMesh(blocks, quality, cc, manager) {
 			return false;
 		}
 
-		function allEmpty(ox, oy, oz, w, h, d) {
+		function allEmpty(ocx, ocy, ocz, w, h, d) {
 			for (var x = 0; x < r; x++) {
 				for (var y = 0; y < r; y++) {
 					for (var z = 0; z < r; z++) {
-						if (!Block.isInvisible(blockTypeAt(ox + x, oy + y, oz + z))) {
+						if (!Block.isInvisible(blockTypeAt(ocx + x, ocy + y, ocz + z))) {
 							return false;
 						}
 					}
@@ -223,19 +223,19 @@ function simpleMesh(blocks, quality, cc, manager) {
 			return true;
 		}
 
-		function empty(ox, oy, oz) {
+		function empty(ocx, ocy, ocz) {
 			if (r === 1) {
-				return Block.isInvisible(blockTypeAt(ox, oy, oz));
+				return Block.isInvisible(blockTypeAt(ocx, ocy, ocz));
 			}
 
-			if (ox < 0 || ox >= cw) {
-				return anyEmpty(ox, oy, oz, 1, r, r);
-			} else if (oy < 0 || oy >= ch) {
-				return anyEmpty(ox, oy, oz, r, 1, r);
-			} else if (oz < 0 || oz >= cd) {
-				return anyEmpty(ox, oy, oz, r, r, 1);
+			if (ocx < 0 || ocx >= cw) {
+				return anyEmpty(ocx, ocy, ocz, 1, r, r);
+			} else if (ocy < 0 || ocy >= ch) {
+				return anyEmpty(ocx, ocy, ocz, r, 1, r);
+			} else if (ocz < 0 || ocz >= cd) {
+				return anyEmpty(ocx, ocy, ocz, r, r, 1);
 			} else {
-				return allEmpty(ox, oy, oz, r, r, r);
+				return allEmpty(ocx, ocy, ocz, r, r, r);
 			}
 		}
 
@@ -292,11 +292,11 @@ function simpleMesh(blocks, quality, cc, manager) {
 	}
 
 	function updateNeighbours() {
-		pxc = manager.chunkAt(cx + 1, cy, cz);
-		nxc = manager.chunkAt(cx - 1, cy, cz);
-		pyc = manager.chunkAt(cx, cy + 1, cz);
-		nyc = manager.chunkAt(cx, cy - 1, cz);
-		pzc = manager.chunkAt(cx, cy, cz + 1);
-		nzc = manager.chunkAt(cx, cy, cz - 1);
+		pxc = manager.chunkAt(ccx + 1, ccy, ccz);
+		nxc = manager.chunkAt(ccx - 1, ccy, ccz);
+		pyc = manager.chunkAt(ccx, ccy + 1, ccz);
+		nyc = manager.chunkAt(ccx, ccy - 1, ccz);
+		pzc = manager.chunkAt(ccx, ccy, ccz + 1);
+		nzc = manager.chunkAt(ccx, ccy, ccz - 1);
 	}
 }

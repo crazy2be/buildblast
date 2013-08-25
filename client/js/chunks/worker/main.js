@@ -2,7 +2,6 @@
 // a lot more sense anyway.
 var parent = self;
 
-//Most of our required files are above us unfortunately...
 importScripts(
 	'../block.js',
 	'../common.js',

@@ -30,10 +30,10 @@ function greedyMesher(blocks, quality, cc, manager) {
 	//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
 
 	for (var iFace = 0; iFace < 6; iFace++) {
-		var faceDirection = LOOP_CUBEFACES_DATA[iFace][0];
-		var compX = LOOP_CUBEFACES_DATA[iFace][1];
-		var compY = LOOP_CUBEFACES_DATA[iFace][2]; 
-		var compZ = LOOP_CUBEFACES_DATA[iFace][3];
+		var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDirection;
+		var compX = LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
+		var compY = LOOP_CUBEFACES_DATA[iFace].compY; 
+		var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 		var inverseQuality = 1 / quality;
 
@@ -42,6 +42,8 @@ function greedyMesher(blocks, quality, cc, manager) {
 		var pcDepth = chunkDims[compZ];
 
 		//array of block types.
+		//We only allocate as much as we will need for our inverseQuality level. When we
+        //access the planes we have to scale the coordinates down to account for this.
 		var planeSize = pcWidth * pcHeight / inverseQuality / inverseQuality;
 		var adjacentPlane = new Float32Array(planeSize);
 		var curPlane = new Float32Array(planeSize);
@@ -67,7 +69,7 @@ function greedyMesher(blocks, quality, cc, manager) {
 			for (var pcX = 0; pcX < pcWidth; pcX += inverseQuality) {
 				for (var pcY = 0; pcY < pcHeight; pcY += inverseQuality) {
 					//Handles the rotation from the plane coords to block coords
-					var ocArr = [0, 0, 0];
+					ocArr = [0, 0, 0];
 					ocArr[compX] = pcX;
 					ocArr[compY] = pcY;
 					ocArr[compZ] = pcZAdj;
@@ -104,15 +106,7 @@ function greedyMesher(blocks, quality, cc, manager) {
 						ocArr[compZ] = pcZValue;
 
 						var planeBlock;
-						if (inverseQuality == 1) {
-							planeBlock = blocks[
-								ocArr[0] * CHUNK_WIDTH * CHUNK_HEIGHT +
-								ocArr[1] * CHUNK_WIDTH +
-								ocArr[2]
-							];
-						} else {
-							planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, blocks);
-						}
+						planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], inverseQuality, blocks);
 
 						plane[(pcX * pcWidth / inverseQuality + pcY) / inverseQuality] = planeBlock;
 					}
