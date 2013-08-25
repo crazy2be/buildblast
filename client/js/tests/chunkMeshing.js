@@ -49,18 +49,7 @@ function generateRandomBlockArray() {
 }
 
 function getCurrentChunkBlockArray() {
-	var playerCount = 0;
-	var aPlayer = null;
-	for (var player in testExposure.players) {
-		aPlayer = player;
-		playerCount++;
-	}
-
-	if (playerCount != 1) {
-		console.warn("Multiple players, testing on chunk of first player: " + aPlayer);
-	}
-
-	var cameraPos = window.testExposure.players[aPlayer].camera.position.clone();
+	var cameraPos = window.testExposure.player.pos();
 
 	var cords = worldToChunk(cameraPos.x, cameraPos.y, cameraPos.z);
 	var oc = cords.o;

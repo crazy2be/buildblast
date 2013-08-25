@@ -17,10 +17,6 @@ function Player(world, conn, clock, controls) {
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
-	window.testExposure.players = window.testExposure.players || {};
-	window.testExposure.players[name] = {};
-	window.testExposure.players[name].camera = camera;
-
 	var inventory = new Inventory(world, camera, conn, controls);
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
