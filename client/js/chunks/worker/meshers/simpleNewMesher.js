@@ -24,7 +24,7 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
 
 		for(var iFace = 0; iFace < 6; iFace++) {
-			var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDireciton;
+			var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDirection;
 			var compX = LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
 			var compY = LOOP_CUBEFACES_DATA[iFace].compy; 
 			var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
