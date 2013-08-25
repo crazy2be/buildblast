@@ -1,6 +1,6 @@
 //cc is just a vector giving the chunk coords.
 //blocks is the raw block array, filled with block types.
-//quality is a value describing the 'voxelization', lower values mean more voxelization.
+//voxelization is a value describing the 'voxelization', lower values mean more voxelization.
 
 //This is basically just POD, the meshers do all the heavy lifting.
 function ChunkGeometry(cc, blocks, manager, chunkMesher) {
@@ -16,17 +16,17 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 	self.shown = true;
 	self.changed = true;
 	self.loaded = false;
-	self.quality = 1;
+	self.voxelization = 1;
 	self.chunkMesher = chunkMesher;
 
 	self.calculateGeometries = function () {
 		var geometries = [];
 		var transferables = [];
 
-		CHUNK_QUALITIES.forEach(function (quality) {
+		CHUNK_VOXELIZATIONS.forEach(function (voxelization) {
 			var geometry = { };
 
-			var res = self.chunkMesher(self.blocks, quality, self.cc, manager);
+			var res = self.chunkMesher(self.blocks, voxelization, self.cc, manager);
 
 			geometry.attributes = res.attributes;
 			geometry.offsets = res.offsets;

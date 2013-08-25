@@ -15,16 +15,16 @@ const (
 
 	// Subtypes
 	BLOCK_INVISIBLE		= 0x1 << 0
-	BLOCK_TANGIBLE		= 0x1 << 1
+	BLOCK_SOLID			= 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** NIL    */ 0,
 	/** AIR    */ BLOCK_INVISIBLE,
-	/** DIRT   */ BLOCK_TANGIBLE | BLOCK_MINEABLE,
-	/** STONE  */ BLOCK_TANGIBLE | BLOCK_MINEABLE,
+	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
 }
 
-func (b Block) Tangible() bool {
-	return BLOCK_PROPERTIES[b]&BLOCK_TANGIBLE > 0
+func (b Block) Solid() bool {
+	return BLOCK_PROPERTIES[b]&BLOCK_SOLID > 0
 }

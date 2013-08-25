@@ -1,4 +1,4 @@
-function simpleMesh(blocks, quality, cc, manager) {
+function simpleMesh(blocks, voxelization, cc, manager) {
 	var cw = CHUNK_WIDTH;
 	var cd = CHUNK_DEPTH;
 	var ch = CHUNK_HEIGHT;
@@ -14,17 +14,17 @@ function simpleMesh(blocks, quality, cc, manager) {
 	var index = [];
 	var color = [];
 
-	var quality = quality;
+	var voxelization = voxelization;
 	var blocks = blocks;
 
 	updateNeighbours();
 
-	//Pick blocks in increments based on the quality (like sampling), later code will look through the
+	//Pick blocks in increments based on the voxelization (like sampling), later code will look through the
 	//area and decide what type the block should really be.
-	for (var ocx = 0; ocx < cw * quality; ocx++) {
-		for (var ocy = 0; ocy < ch * quality; ocy++) {
-			for (var ocz = 0; ocz < cd * quality; ocz++) {
-				addBlockGeometry(verts, index, color, ocx / quality, ocy / quality, ocz / quality, quality);
+	for (var ocx = 0; ocx < cw; ocx += voxelization) {
+		for (var ocy = 0; ocy < ch; ocy += voxelization) {
+			for (var ocz = 0; ocz < cd; ocz += voxelization) {
+				addBlockGeometry(verts, index, color, ocx, ocy, ocz, voxelization);
 			}
 		}
 	}
@@ -119,8 +119,8 @@ function simpleMesh(blocks, quality, cc, manager) {
 		return parseInt(maxBlock);
 	}
 
-	function addBlockGeometry(verts, index, color, ocx, ocy, ocz, quality) {
-		var r = 1 / quality;
+	function addBlockGeometry(verts, index, color, ocx, ocy, ocz, voxelization) {
+		var r = voxelization;
 		var noise = [];
 		if (empty(ocx, ocy, ocz)) return;
 

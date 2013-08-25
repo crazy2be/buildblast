@@ -7,8 +7,8 @@ Block.prototype.mineable = function () {
 Block.prototype.invisible = function () {
 	return Block.isInvisible(this.type);
 };
-Block.prototype.tangible = function () {
-	return Block.isTangible(this.type);
+Block.prototype.solid = function () {
+	return Block.isSolid(this.type);
 };
 
 //Block Types
@@ -24,13 +24,13 @@ Block.MINEABLE	= 0x80000000;
 
 //Subtypes
 Block.INVISIBLE = 0x1; //Essentially means it has no colors, so Block.getColours will fail (and it so it cannot be drawn).
-Block.TANGIBLE = 0x2;  //Means it can be collided with, and cannot so entities cannot occupy the same square as it.
+Block.SOLID = 0x2;  //Means it can be collided with, and cannot so entities cannot occupy the same square as it.
 
 Block.PROPERTIES = [
 	/** NIL	*/ 0,
 	/** AIR	*/ Block.INVISIBLE,
-	/** DIRT   */ Block.TANGIBLE | Block.MINEABLE,
-	/** STONE  */ Block.TANGIBLE | Block.MINEABLE,
+	/** DIRT   */ Block.SOLID | Block.MINEABLE,
+	/** STONE  */ Block.SOLID | Block.MINEABLE,
 ];
 
 Block.getColours = function (blockType, face) {
@@ -71,8 +71,8 @@ Block.isInvisible = function (block) {
 	return Block.inSubtype(block, Block.INVISIBLE);
 };
 
-Block.isTangible = function (block) {
-	return Block.inSubtype(block, Block.TANGIBLE);
+Block.isSolid = function (block) {
+	return Block.inSubtype(block, Block.SOLID);
 };
 
 Block.inSubtype = function (block, subtype) {

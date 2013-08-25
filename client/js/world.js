@@ -67,7 +67,7 @@ function World(scene, conn, clock, container, chunkManager) {
 			return false;
 		}
 		var block = chunk.block(oc);
-		if (!block.tangible()) {
+		if (!block.solid()) {
 			// Try and find ground below
 			while (true) {
 				oc.y--;
@@ -80,11 +80,11 @@ function World(scene, conn, clock, container, chunkManager) {
 					}
 				}
 				block = chunk.block(oc);
-				if (block && block.tangible()) {
+				if (block && block.solid()) {
 					return oc.y + cc.y * CHUNK_HEIGHT + 1;
 				}
 			}
-		} else if (block.tangible()) {
+		} else if (block.solid()) {
 			// Try and find air above
 			while (true) {
 				oc.y++;
@@ -97,7 +97,7 @@ function World(scene, conn, clock, container, chunkManager) {
 					}
 				}
 				block = chunk.block(oc);
-				if (block && !block.tangible()) {
+				if (block && !block.solid()) {
 					return oc.y + cc.y * CHUNK_HEIGHT;
 				}
 			}
@@ -139,7 +139,7 @@ function World(scene, conn, clock, container, chunkManager) {
 	function findSolidBlockIntersection(camera, precision) {
 		function blockAt(wx, wy, wz) {
 			var block = self.blockAt(wx, wy, wz);
-			return block && block.tangible();
+			return block && block.solid();
 		}
 		return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
 	};

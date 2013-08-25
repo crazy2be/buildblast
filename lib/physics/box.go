@@ -87,7 +87,7 @@ func (b *Box) Contains(position coords.World) bool {
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
 	solid := func(x, y, z float64) bool {
 		block := world.Block(coords.World{x, y, z}.Block())
-		return block.Tangible()
+		return block.Solid()
 	}
 
 	xs := b.xs

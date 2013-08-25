@@ -48,8 +48,8 @@ function ChunkManager(scene, clientID) {
 		var payload = e.data.payload;
 		if (kind === 'chunk') {
 			processChunk(payload);
-		} else if (kind === 'chunk-quality-change') {
-			processQualityChange(payload);
+		} else if (kind === 'chunk-voxelization-change') {
+			processVoxelizationChange(payload);
 		} else if (kind === 'log') {
 			var args = ["Geometry worker:"].concat(payload.message);
 			console[payload.type || 'log'].apply(console, args);
@@ -62,7 +62,7 @@ function ChunkManager(scene, clientID) {
 	function processChunk(payload) {
 		var pg = payload.geometries;
 		var geometries = [];
-		//Geometry for each quality (as in, far away, medium, close, etc... we
+		//Geometry for each voxelization (as in, far away, medium, close, etc... we
 		//'voxelize' cubes that are far away).
 		for (var i = 0; i < pg.length; i++) {
 			var geometry = new THREE.BufferGeometry();
@@ -76,20 +76,20 @@ function ChunkManager(scene, clientID) {
 		var chunk = self.chunk(cc);
 		if (chunk) chunk.remove();
 
-		chunk = new Chunk(payload.blocks, geometries, scene, payload.quality);
+		chunk = new Chunk(payload.blocks, geometries, scene, payload.voxelization);
 		chunk.add();
 		chunks[ccStr(cc)] = chunk;
 
 		console.log("Added chunk at ", cc);
 	}
 
-	function processQualityChange(payload) {
+	function processVoxelizationChange(payload) {
 		var chunk = self.chunk(payload.ccpos);
 		if (!chunk) {
 			console.warn("Got qred change command for chunk that is not loaded. Likely server bug.");
 			return;
 		}
 
-		chunk.setQuality(payload.quality);
+		chunk.setVoxelization(payload.voxelization);
 	}
 }

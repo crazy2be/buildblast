@@ -2,32 +2,31 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 	vertexColors: true,
 });
 
-function Chunk(blocks, geometries, scene, quality) {
+function Chunk(blocks, geometries, scene, voxelization) {
 	var self = this;
-	var cq = CHUNK_QUALITIES;
 
 	var meshes = {};
-	for (var i = 0; i < CHUNK_QUALITIES.length; i++) {
+	for (var i = 0; i < CHUNK_VOXELIZATIONS.length; i++) {
 		var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-		meshes[cq[i]] = mesh;
+		meshes[CHUNK_VOXELIZATIONS[i]] = mesh;
 	}
 
 	self.remove = function () {
-		scene.remove(meshes[quality]);
+		scene.remove(meshes[voxelization]);
 	};
 
 	self.add = function () {
-		scene.add(meshes[quality]);
+		scene.add(meshes[voxelization]);
 	};
 
-	self.setQuality = function (newQuality) {
+	self.setVoxelization = function (newPixelization) {
 		self.remove();
-		quality = newQuality;
+		voxelization = newPixelization;
 		self.add();
 	};
 
-	self.getQuality = function() {
-		return quality;
+	self.getVoxelization = function() {
+		return voxelization;
 	}
 
 	self.block = function (oc) {

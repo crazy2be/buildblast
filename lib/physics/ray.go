@@ -38,7 +38,7 @@ func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coor
 			return &pos, i
 		}
 
-		if blocks.Block(pos.Block()).Tangible() {
+		if blocks.Block(pos.Block()).Solid() {
 			return &pos, -1
 		}
 	}

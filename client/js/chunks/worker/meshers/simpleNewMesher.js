@@ -1,4 +1,4 @@
-function simpleMesh2(blocks, quality, cc, manager) {
+function simpleMesh2(blocks, voxelization, cc, manager) {
 	var cw = CHUNK_WIDTH;
 	var ch = CHUNK_HEIGHT;
 	var cd = CHUNK_DEPTH;
@@ -16,11 +16,9 @@ function simpleMesh2(blocks, quality, cc, manager) {
 	var faceNumbers = []; //same a blockTypes in size
 	var indexes = []; //indexes for triangles of points in verts
 
-	var inverseQuality = 1 / quality;
-
-	function addBlockGeometry(ocX, ocY, ocZ, inverseQuality) {
+	function addBlockGeometry(ocX, ocY, ocZ, voxelization) {
 		var noise = [];
-		var ourBlockType = getVoxelatedBlockType(ocX, ocY, ocZ, inverseQuality, blocks);
+		var ourBlockType = getVoxelatedBlockType(ocX, ocY, ocZ, voxelization, blocks);
 		if (ourBlockType == Block.AIR) return;
 
 		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
@@ -32,7 +30,7 @@ function simpleMesh2(blocks, quality, cc, manager) {
 			var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 			var oAdjArr = [ocX, ocY, ocZ];
-			oAdjArr[compZ] += faceDirection * inverseQuality;
+			oAdjArr[compZ] += faceDirection * voxelization;
 
 			var adjacentBlocks = getBlockData(manager, blocks, ccArr, oAdjArr, compZ);
 
@@ -41,28 +39,28 @@ function simpleMesh2(blocks, quality, cc, manager) {
 			if (adjacentBlocks != blocks) {
 				if (adjacentBlocks) {
 					adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
-										adjacentBlocks, compZ, inverseQuality);
+										adjacentBlocks, compZ, voxelization);
 				}
 			} else {
-				adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], inverseQuality, blocks);
+				adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], voxelization, blocks);
 			}
 			if(adjacentBlock == Block.AIR) {
-				addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, inverseQuality, inverseQuality, compZ, faceDirection, inverseQuality, verts);
+				addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, voxelization, voxelization, compZ, faceDirection, voxelization, verts);
 				blockTypes.push(ourBlockType);
 				faceNumbers.push(iFace);
 			}
 		}
 	}
 
-	//Pick blocks in increments based on the quality (like sampling), later code will look through the
+	//Pick blocks in increments based on the voxelization (like sampling), later code will look through the
 	//area and decide what type the block should really be.
-	for (var ocX = 0; ocX < cw; ocX += inverseQuality) {
-		for (var ocY = 0; ocY < ch; ocY += inverseQuality) {
-			for (var ocZ = 0; ocZ < cd; ocZ += inverseQuality) {
-				addBlockGeometry(ocX, ocY, ocZ, inverseQuality);
+	for (var ocX = 0; ocX < cw; ocX += voxelization) {
+		for (var ocY = 0; ocY < ch; ocY += voxelization) {
+			for (var ocZ = 0; ocZ < cd; ocZ += voxelization) {
+				addBlockGeometry(ocX, ocY, ocZ, voxelization);
 			}
 		}
 	}
 
-	return generateGeometry(verts, blockTypes, faceNumbers, indexes, inverseQuality);
+	return generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
 }

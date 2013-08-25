@@ -39,7 +39,7 @@ function sendChunk() {
 			blocks: chunk.blocks,
 			ccpos: chunk.cc,
 			geometries: res.geometries,
-			quality: chunk.quality,
+			voxelization: chunk.voxelization,
 		}
 	}, res.transferables);
 	chunk.loaded = true;
@@ -163,21 +163,21 @@ function unique(arr) {
 function processPlayerPosition(payload) {
 	var p = payload.pos;
 	var coords = worldToChunk(p.x, p.y, p.z);
-	var cq = CHUNK_QUALITIES;
+	var cv = CHUNK_VOXELIZATIONS;
 
 	manager.each(function (chunk) {
 		var d = dist(coords.c, chunk.cc);
 
-		var quality = cq[clamp(Math.floor(d/2), 0, cq.length - 1)];
+		var voxelization = cv[clamp(Math.floor(d/2), 0, cv.length - 1)];
 
-		if (chunk.quality === quality || !chunk.loaded) return;
+		if (chunk.voxelization === voxelization || !chunk.loaded) return;
 
-		chunk.quality = quality;
+		chunk.voxelization = voxelization;
 		parent.postMessage({
-			'kind': 'chunk-quality-change',
+			'kind': 'chunk-voxelization-change',
 			'payload': {
 				'ccpos': chunk.cc,
-				'quality': quality,
+				'voxelization': voxelization,
 			},
 		});
 	});
