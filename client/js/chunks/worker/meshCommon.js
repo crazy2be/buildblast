@@ -1,24 +1,6 @@
-//IMPORTANT! Before you call any of these functions, run this function on your blocks array!
-//This makes it so all empty blocks become AIR, I found this makes the
-//greedy mesher about 20% faster (even with the preprocessing).
-function preprocessBlocks(blocks) {
-	for (var index = 0; index < blocks.length; index++) {
-		if (Block.isInvisible(blocks[index])) {
-			blocks[index] = Block.AIR;
-		}
-	}
-}
+//Must be in the directory above the meshers, so this is guaranteed to be loaded before them.
 
-//The order is important here! It makes sure the normals line up with the 'face numbers' given
-//by Block.getColors.
-var LOOP_CUBEFACES_DATA = [
-    {faceDirection: 1,  compX: 1, compY: 2, compZ: 0},
-    {faceDirection: -1, compX: 1, compY: 2, compZ: 0},
-    {faceDirection: 1,  compX: 2, compY: 0, compZ: 1},
-    {faceDirection: -1, compX: 2, compY: 0, compZ: 1},
-    {faceDirection: 1,  compX: 0, compY: 1, compZ: 2},
-    {faceDirection: -1, compX: 0, compY: 1, compZ: 2}
-];
+getMeshCommon = function () {
 
 function noiseFunc(bcX, bcY, bcZ, voxelization) {
 	function n(q) {
@@ -30,7 +12,32 @@ function noiseFunc(bcX, bcY, bcZ, voxelization) {
 	return clamp(val / 2 + 0.5, 0.0, 1.0);
 }
 
-function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, voxelization, blocks) {
+var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+
+return {
+//IMPORTANT! Before you call any of these functions, run this function on your blocks array!
+//This makes it so all empty blocks become AIR, I found this makes the
+//greedy mesher about 20% faster (even with the preprocessing).
+preprocessBlocks : function (blocks) {
+	for (var index = 0; index < blocks.length; index++) {
+		if (Block.isInvisible(blocks[index])) {
+			blocks[index] = Block.AIR;
+		}
+	}
+},
+
+//The order is important here! It makes sure the normals line up with the 'face numbers' given
+//by Block.getColors.
+LOOP_CUBEFACES_DATA : [
+    {faceDirection: 1,  compX: 1, compY: 2, compZ: 0},
+    {faceDirection: -1, compX: 1, compY: 2, compZ: 0},
+    {faceDirection: 1,  compX: 2, compY: 0, compZ: 1},
+    {faceDirection: -1, compX: 2, compY: 0, compZ: 1},
+    {faceDirection: 1,  compX: 0, compY: 1, compZ: 2},
+    {faceDirection: -1, compX: 0, compY: 1, compZ: 2}
+],
+
+getVoxelatedBlockType : function(ocXStart, ocYStart, ocZStart, voxelization, blocks) {
     if(voxelization == 1) {
         return blocks[
 				    ocXStart * CHUNK_WIDTH * CHUNK_HEIGHT +
@@ -81,9 +88,9 @@ function getVoxelatedBlockType(ocXStart, ocYStart, ocZStart, voxelization, block
 	}
 
 	return planeBlock;
-}
+},
 
-function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourComp, voxelization) {
+getNeighbourBlockType : function (ocXStart, ocYStart, ocZStart, blocks, neighbourComp, voxelization) {
 	var sampleSizeArr = [voxelization, voxelization, voxelization];
 	sampleSizeArr[neighbourComp] = 1;
 	for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
@@ -100,15 +107,14 @@ function getNeighbourBlockType(ocXStart, ocYStart, ocZStart, blocks, neighbourCo
 		}
 	}
 	return Block.DIRT; //Any solid would do
-}
+},
 
 //ocArr is an in/out, if it is beyond the bounds of the cc chunk, a neighbour chunk's data
 //  is returned and oc is modified to be relative to that.
 //compZ is the dimension in ocArr we should check.
 //Assumes ocArr is only 1 off, which makes it easier for greedyMesher.
 //Returns null if the chunk does not exist
-var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-function getBlockData(manager, blocks, ccArr, ocArr, compZ) {
+getBlockData : function (manager, blocks, ccArr, ocArr, compZ) {
 	var ccDirection = 0;
 	if (ocArr[compZ] < 0) {
 		ocArr[compZ] = chunkDims[compZ] - 1;
@@ -128,9 +134,9 @@ function getBlockData(manager, blocks, ccArr, ocArr, compZ) {
 	if(!neighbourChunk) return null;
 
 	return neighbourChunk.blocks;
-}
+},
 
-function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, voxelization, verts) {
+addQuad : function (bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, voxelization, verts) {
 	//The face direction is always right-hand rule, so we place the vertices accordingly
 	var counterClockwise = [
 			[0, 0],
@@ -165,7 +171,7 @@ function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, vox
 		bcVerts[(compZ + 1) % 3] -= quadWidth * offsets[0];
 		bcVerts[(compZ + 2) % 3] -= quadHeight * offsets[1];
 	}
-}
+},
 
 //This is the function which most meshers should call to create their return structure.
 
@@ -174,7 +180,7 @@ function addQuad(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, vox
 //var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
 //var faceNumbers = []; //same a blockTypes in size
 //var indexes = []; //indexes for triangles of points in verts
-function generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization) {
+generateGeometry : function (verts, blockTypes, faceNumbers, indexes, voxelization) {
 	function copy(src, dst) {
 		for (var i = 0; i < src.length; i++) {
 			dst[i] = src[i];
@@ -252,4 +258,7 @@ function generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization)
 		offsets: offsets,
 		transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 	};
+},
+
+};
 }

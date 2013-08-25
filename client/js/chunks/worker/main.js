@@ -5,7 +5,7 @@ var parent = self;
 importScripts(
 	'../block.js',
 	'../common.js',
-	'meshers/meshCommon.js',
+	'meshCommon.js',
 	'meshers/simpleMesher.js',
 	'meshers/simpleNewMesher.js',
 	'meshers/greedyMesher.js',

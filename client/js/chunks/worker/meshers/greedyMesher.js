@@ -1,3 +1,5 @@
+var meshCommon = getMeshCommon();
+
 //Returns same as simpleMesh
 //From http://0fps.wordpress.com/2012/06/30/meshing-in-a-minecraft-game/
 //Fairly simple, first we decompose the chunk into faces, and that loop over faces
@@ -14,7 +16,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 	var ccArr = [cc.x, cc.y, cc.z];
 
 	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
-	preprocessBlocks(blocks);
+	meshCommon.preprocessBlocks(blocks);
 
 	var bcxStart = CHUNK_WIDTH * cc.x;
 	var bcyStart = CHUNK_HEIGHT * cc.y;
@@ -30,10 +32,10 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 	//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
 
 	for (var iFace = 0; iFace < 6; iFace++) {
-		var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDirection;
-		var compX = LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
-		var compY = LOOP_CUBEFACES_DATA[iFace].compY; 
-		var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
+		var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;
+		var compX = meshCommon.LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
+		var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compY;
+		var compZ = meshCommon.LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 		var pcWidth = chunkDims[compX];
 		var pcHeight = chunkDims[compY];
@@ -52,7 +54,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 		var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
 		ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
-		var adjacentBlocks = getBlockData(manager, blocks, ccArr, ocArr, compZ);
+		var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, ocArr, compZ);
 
 		var pcZAdj = ocArr[compZ];
 
@@ -72,7 +74,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 					ocArr[compY] = pcY;
 					ocArr[compZ] = pcZAdj;
 
-					var planeBlock = getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, voxelization);
+					var planeBlock = meshCommon.getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, voxelization);
 
 					adjacentPlane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
 				}
@@ -104,7 +106,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 						ocArr[compZ] = pcZValue;
 
 						var planeBlock;
-						planeBlock = getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], voxelization, blocks);
+						planeBlock = meshCommon.getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], voxelization, blocks);
 
 						plane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
 					}
@@ -171,7 +173,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 						rotArr[compX] = pcX;
 						rotArr[compY] = pcY;
 						rotArr[compZ] = pcZCur;
-						addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, voxelization, verts);
+						meshCommon.addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, voxelization, verts);
 						blockTypes.push(baseBlock);
 						faceNumbers.push(iFace);
 
@@ -198,5 +200,5 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 		}
 	}
 
-	return generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
+	return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
 }

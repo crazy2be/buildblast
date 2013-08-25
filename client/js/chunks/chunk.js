@@ -25,7 +25,7 @@ function Chunk(blocks, geometries, scene, voxelization) {
 		self.add();
 	};
 
-	self.getVoxelization = function() {
+	self.voxelization = function() {
 		return voxelization;
 	}
 

@@ -1,9 +1,11 @@
+var meshCommon = getMeshCommon();
+
 function simpleMesh2(blocks, voxelization, cc, manager) {
 	var cw = CHUNK_WIDTH;
 	var ch = CHUNK_HEIGHT;
 	var cd = CHUNK_DEPTH;
 
-	preprocessBlocks(blocks);
+	meshCommon.preprocessBlocks(blocks);
 
 	var ccArr = [cc.x, cc.y, cc.z];
 
@@ -18,34 +20,34 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 
 	function addBlockGeometry(ocX, ocY, ocZ, voxelization) {
 		var noise = [];
-		var ourBlockType = getVoxelatedBlockType(ocX, ocY, ocZ, voxelization, blocks);
+		var ourBlockType = meshCommon.getVoxelatedBlockType(ocX, ocY, ocZ, voxelization, blocks);
 		if (ourBlockType == Block.AIR) return;
 
 		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
 
 		for(var iFace = 0; iFace < 6; iFace++) {
-			var faceDirection = LOOP_CUBEFACES_DATA[iFace].faceDirection;
-			var compX = LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
-			var compY = LOOP_CUBEFACES_DATA[iFace].compy; 
-			var compZ = LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
+			var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;
+			var compX = meshCommon.LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
+			var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compy; 
+			var compZ = meshCommon.LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 			var oAdjArr = [ocX, ocY, ocZ];
 			oAdjArr[compZ] += faceDirection * voxelization;
 
-			var adjacentBlocks = getBlockData(manager, blocks, ccArr, oAdjArr, compZ);
+			var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, oAdjArr, compZ);
 
 			//We assume it's dirt if we cannot access an adjacent chunk
 			var adjacentBlock = Block.DIRT;
 			if (adjacentBlocks != blocks) {
 				if (adjacentBlocks) {
-					adjacentBlock = getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
+					adjacentBlock = meshCommon.getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
 										adjacentBlocks, compZ, voxelization);
 				}
 			} else {
-				adjacentBlock = getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], voxelization, blocks);
+				adjacentBlock = meshCommon.getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], voxelization, blocks);
 			}
 			if(adjacentBlock == Block.AIR) {
-				addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, voxelization, voxelization, compZ, faceDirection, voxelization, verts);
+				meshCommon.addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, voxelization, voxelization, compZ, faceDirection, voxelization, verts);
 				blockTypes.push(ourBlockType);
 				faceNumbers.push(iFace);
 			}
@@ -62,5 +64,5 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 		}
 	}
 
-	return generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
+	return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
 }
