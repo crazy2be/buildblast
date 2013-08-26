@@ -35,11 +35,7 @@ Rendering
 ----------------------------
 We use THREE.js (http://en.wikipedia.org/wiki/Threejs) to do our rendering, which uses WebGL.
 
-Our render call looks like:
-
-```JavaScript
-renderer.render(scene, camera);
-```
+Our render call looks like `renderer.render(scene, camera);` where:
 
 - Renderer is a THREE.WebGLRenderer which owns rendered.domElement which is placed in the DOM.
 - Scene is a THREE.Scene which is populated with everything which needs to be drawn.
