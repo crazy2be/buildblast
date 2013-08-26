@@ -31,6 +31,57 @@ In map generation and geometry code, which is particularly concerned with the ex
 - **oc**: Offset coordinates. Like block coordinates, but refer to a block at a specified offset *within* a chunk, rather than just within the world. Used mostly just in map generation and geometry code. All components should be in the range [0...31].
 - **pc**: Plane coordinates. Like offset coordinates, but have a rotated frame of reference. This allows the code which creates different faces to be the same. In this model z is perpendicular to the face. compX, compY, etc refer to the mapping from pc to bc (compX = 1, means pcX represents bcY)
 
+Rendering
+----------------------------
+We use THREE.js (http://en.wikipedia.org/wiki/Threejs) to do our rendering, which uses WebGL.
+
+Our render call looks like:
+
+```JavaScript
+renderer.render(scene, camera);
+```
+
+- Renderer is a THREE.WebGLRenderer which owns rendered.domElement which is placed in the DOM.
+- Scene is a THREE.Scene which is populated with everything which needs to be drawn.
+- Camera is a THREE.PerspectiveCamera, or any Camera type.
+
+Scene Population
+------------------
+- Scene is populated by calling add on a THREE.Mesh.
+- Three.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
+- A geometry is simple an object with a .offsets and .attributes.
+- .offsets is in the form:
+
+```JavaScript
+[{
+	start: 0,
+	count: indexes.length,
+	index: 0,
+}]
+```
+
+This specifies the start, count and amount to add to each index for the indexes within .attributes.
+
+- .attributes is in the form:
+
+```JavaScript
+[{
+	position: {
+		itemSize: 3, 
+		array: vertsa,
+		numItems: vertsa.length
+	},
+	index: {
+		itemSize: 1,
+		array: indexa,
+		numItems: indexa.length
+	},
+	color: {
+	},
+}]
+```
+
+
 Bugs
 -------
 If you find any bugs, please report them in the issue tracker with your hardware specs, screenshot, and steps taken to trigger the issue.

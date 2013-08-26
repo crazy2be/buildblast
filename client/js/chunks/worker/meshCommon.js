@@ -229,7 +229,7 @@ var meshCommon = function() {
 			position: { //x, y, z (triangles)
 				itemSize: 3,
 				array: vertsa,
-				numItems: vertsa.length,
+				numItems: vertsa.length / 3,
 			},
 			index: {    //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
 				itemSize: 1,
@@ -240,7 +240,7 @@ var meshCommon = function() {
 						//(possibly a built in one) to color the faces based on these.
 				itemSize: 3,
 				array: colora,
-				numItems: colora.length,
+				numItems: colora.length / 3,
 			},
 		};
 		var offsets = [{ //Just states the indexes used, you could theoretically have multiple of these?
