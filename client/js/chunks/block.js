@@ -67,7 +67,6 @@ Block.isMineable = function (block) {
 	return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
 };
 
-//Don't use this, use isVisible (this only exists for legacy reasons).
 Block.isInvisible = function (block) {
 	return Block.inSubtype(block, Block.INVISIBLE);
 };
