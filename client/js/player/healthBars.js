@@ -22,7 +22,7 @@ function HealthBars(world, camera, conn, controls) {
 	}
 
 	self.update = function (playerPosition, controlState) {
-		curMeshes.forEach(world.RemoveFromScene);
+		curMeshes.forEach(world.removeFromScene);
 
 		function makeAndAdd(info) { curMeshes.push(makeHPMesh(info)); }
 

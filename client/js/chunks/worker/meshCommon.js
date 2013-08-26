@@ -225,19 +225,19 @@ var meshCommon = function() {
 		var colora = new Float32Array(color.length);
 		copy(color, colora);
 
+		//See the readme for documentation.
 		var attributes = {
-			position: { //x, y, z (triangles)
+			position: {
 				itemSize: 3,
 				array: vertsa,
 				numItems: vertsa.length / 3,
 			},
-			color: {    //colors of positions (vertices), we use a vertex shader
-						//(possibly a built in one) to color the faces based on these.
+			color: {
 				itemSize: 3,
 				array: colora,
 				numItems: colora.length / 3,
 			},
-			index: {    //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
+			index: {
 				itemSize: 1,
 				array: indexa,
 				numItems: indexa.length,

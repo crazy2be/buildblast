@@ -73,7 +73,9 @@ This specifies the start, count and amount to add to each index for the indexes 
 		array: colora, //Float32Array
 		numItems: colora.length / 3
 	},
-	index: { //Groups of 3. Each index refers to an index within position, and each group of 3 is a triangle.
+	index: {	//Groups of 3. Each index refers to an index within position, and each group of 3 is a triangle.
+				//The index of the position is the number in this array * 3, as there are 3 values per point.
+				//So if index.array[q] is 10, it refers to position {x: position.array[30], y: position.array[31], z: position.array[32]}
 		itemSize: 1,
 		array: indexa,
 		numItems: indexa.length //Uint16Array
