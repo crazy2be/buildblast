@@ -1,14 +1,6 @@
 function World(scene, conn, clock, container, chunkManager) {
 	var self = this;
 
-	self.addToScene = function (mesh) {
-		scene.add(mesh);
-	};
-
-	self.removeFromScene = function (mesh) {
-		scene.remove(mesh);
-	};
-
 	var controls = new Controls(container);
 	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
@@ -44,6 +36,14 @@ function World(scene, conn, clock, container, chunkManager) {
 		var cube = new THREE.Mesh( smallCube, smallCubeMat );
 		cube.position = position;
 		scene.add(cube);
+	};
+
+	self.addToScene = function (mesh) {
+		scene.add(mesh);
+	};
+
+	self.removeFromScene = function (mesh) {
+		scene.remove(mesh);
 	};
 
 	self.blockAt = function (wx, wy, wz) {
@@ -107,7 +107,6 @@ function World(scene, conn, clock, container, chunkManager) {
 		}
 	};
 
-	var projector = new THREE.Projector();
 	function findIntersection(point, look, criteriaFnc, precision, maxDist) {
 		precision = precision || 0.01;
 		maxDist = maxDist || 100;
@@ -137,14 +136,7 @@ function World(scene, conn, clock, container, chunkManager) {
 		return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
 	};
 
-	function findSolidBlockIntersection(camera, precision) {
-		function blockAt(wx, wy, wz) {
-			var block = self.blockAt(wx, wy, wz);
-			return block && block.solid();
-		}
-		return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
-	};
-
+	var projector = new THREE.Projector();
 	function getLookedAtDirection(camera) {
 		var look = new THREE.Vector3(0, 0, 1);
 		// http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
@@ -152,28 +144,35 @@ function World(scene, conn, clock, container, chunkManager) {
 		return look.sub(camera.position);
 	}
 
-	//wantSolidBlock is true or false, and describes whether a solid block is requested,
-	//  or the block right before the solid block (so for example and air block right before the solid block).
-	//return a THREE.Vector3 which is the position of the block.
-	self.getLookedAtBlock = function(camera, wantSolidBlock) {
-		//Very important, without specifying this we cannot accurately backup to find
-		//a block before a solid block!
+	// Traces a vector from the camera's position, along the look vector,
+	// until hitting a solid block. If dontWantSolidBlock is true, it then
+	// backs up one step, until the block immediately before the solid
+	// block. Returns the position of the block.
+	// BUG(yeerkkiller1): (literal) corner case is not handled correctly: 
+	// http://awwapp.com/s/e3/4f/fe.png
+	self.getLookedAtBlock = function(camera, dontWantSolidBlock) {
 		var precision = 0.1;
+		var pos = camera.position;
+		var dir = getLookedAtDirection(camera);
 
-		var intersect = findSolidBlockIntersection(camera, precision);
+		function solidBlockAt(wx, wy, wz) {
+			var block = self.blockAt(wx, wy, wz);
+			return block && block.solid();
+		}
+		
+		var intersect = findIntersection(pos, dir, solidBlockAt, precision);
 		if (!intersect) {
 			console.log("You aren't looking at anything!");
 			return;
 		}
-		var p = intersect.point;
 
-		if(!wantSolidBlock) {
+		if (dontWantSolidBlock) {
 			//We backup to the last point, so should be the block directly before a solid.
-			var cameraDirection = getLookedAtDirection(camera).setLength(precision);
-			p.sub(cameraDirection);
+			var cameraDirection = dir.setLength(precision);
+			intersect.point.sub(cameraDirection);
 		}
 
-		return p;
+		return intersect.point;
 	};
 
 	self.changeBlock = function(wx, wy, wz, newType) {
