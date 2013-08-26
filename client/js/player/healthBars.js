@@ -12,13 +12,6 @@ function HealthBars(world, camera, conn, controls) {
 
 	var curMeshes = [];
 	function makeHPMesh(info) {
-		var bodyGeometry = new THREE.CubeGeometry(1, 1, 1);
-		var bodyMesh = new THREE.Mesh(bodyGeometry, BAR_MATERIAL);
-
-		bodyMesh.position.set(info.pos.x, info.pos.y, info.pos.z);
-
-		//return bodyMesh;
-
 		function copy(src, dst) {
 			for (var i = 0; i < src.length; i++) {
 				dst[i] = src[i];
@@ -77,7 +70,11 @@ function HealthBars(world, camera, conn, controls) {
 				needsUpdate: true
 			}
 		};
-		return new THREE.Mesh(geometry, BAR_MATERIAL);
+		var mesh = new THREE.Mesh(geometry, BAR_MATERIAL);
+
+		mesh.rotation.y = 0.1;
+
+		return mesh;
 	}
 
 	self.update = function (playerPosition, controlState) {
