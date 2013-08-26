@@ -46,8 +46,8 @@ function World(scene, conn, clock, container, chunkManager) {
 		scene.remove(mesh);
 	};
 
-	self.blockAt = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.blockAt = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var oc = cords.o;
 		var cc = cords.c;
 
@@ -155,8 +155,8 @@ function World(scene, conn, clock, container, chunkManager) {
 		var pos = camera.position;
 		var dir = getLookedAtDirection(camera);
 
-		function solidBlockAt(wx, wy, wz) {
-			var block = self.blockAt(wx, wy, wz);
+		function solidBlockAt(wcX, wcY, wcZ) {
+			var block = self.blockAt(wcX, wcY, wcZ);
 			return block && block.solid();
 		}
 		
