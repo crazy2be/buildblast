@@ -71,8 +71,14 @@ function HealthBars(world, camera, conn, controls) {
 			}
 		};
 		var mesh = new THREE.Mesh(geometry, BAR_MATERIAL);
+		//https://github.com/mrdoob/three.js/issues/910
+		mesh.rotation.set(Math.PI/2, Math.PI/4, Math.PI/4); // Set initial rotation
+		mesh.matrix.setRotationFromEuler(mesh.rotation); // Apply rotation to the object's matrix
 
-		mesh.rotation.y = 0.1;
+		rotation_matrix = new THREE.Matrix4().setRotationX(.01); // Animated rotation will be in .01 radians along object's X axis
+		// Update the object's rotation & apply it
+		rotation_matrix.multiplySelf(mesh.matrix);
+		mesh.rotation.setRotationFromMatrix(rotation_matrix);
 
 		return mesh;
 	}
