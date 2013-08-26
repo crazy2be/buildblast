@@ -4,7 +4,6 @@ function Block(type) {
 Block.prototype.mineable = function () {
 	return Block.isMineable(this.type);
 };
-//Don't use this function, use visible instead (this only exists for legacy reasons).
 Block.prototype.invisible = function () {
 	return Block.isInvisible(this.type);
 };

@@ -37,15 +37,16 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 			var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, oAdjArr, compZ);
 
 			//We assume it's dirt if we cannot access an adjacent chunk
-			var adjacentBlock = Block.DIRT;
-			if (adjacentBlocks != blocks) {
-				if (adjacentBlocks) {
-					adjacentBlock = meshCommon.getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
-										adjacentBlocks, compZ, voxelization);
-				}
-			} else {
+			var adjacentBlock;
+			if(!adjacentBlocks) { //Not loaded
+				adjacentBlock = Block.DIRT;
+			} else if(adjacentBlocks != blocks) { //Neighbour
+				adjacentBlock = meshCommon.getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
+					adjacentBlocks, compZ, voxelization);
+			} else { //In current chunk
 				adjacentBlock = meshCommon.getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], voxelization, blocks);
 			}
+
 			if(adjacentBlock == Block.AIR) {
 				meshCommon.addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, voxelization, voxelization, compZ, faceDirection, voxelization, verts);
 				blockTypes.push(ourBlockType);
@@ -54,8 +55,6 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 		}
 	}
 
-	//Pick blocks in increments based on the voxelization (like sampling), later code will look through the
-	//area and decide what type the block should really be.
 	for (var ocX = 0; ocX < cw; ocX += voxelization) {
 		for (var ocY = 0; ocY < ch; ocY += voxelization) {
 			for (var ocZ = 0; ocZ < cd; ocZ += voxelization) {
