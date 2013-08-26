@@ -12,17 +12,67 @@ function HealthBars(world, camera, conn, controls) {
 
 	var curMeshes = [];
 	function makeHPMesh(info) {
-		var attributes = {};
+		function copy(src, dst) {
+			for (var i = 0; i < src.length; i++) {
+				dst[i] = src[i];
+			}
+		}
 
-		var verts = []
+		var verts = [];
+		//verts.push(info.pos.x, info.pos.y, info.pos.z);
+		//verts.push(info.pos.x + 1, info.pos.y, info.pos.z);
+		//verts.push(info.pos.x + 0.5, info.pos.y + 1, info.pos.z);
 
+		verts.push(-100, -100, -100);
+		verts.push(100, 100, 100);
+		verts.push(100, 100, -100);
 
-		var geometry = {};
-		var mesh;
+		var color = [];
+		color.push(120, 120, 120);
+		color.push(120, 120, 120);
+		color.push(120, 120, 120);
+
+		var index = [];
+		index.push(0, 1, 2);
+		index.push(2, 1, 0);
+
+		var vertsa = new Float32Array(verts.length);
+		var colora = new Float32Array(color.length);
+		var indexa = new Float32Array(index.length);
+		copy(verts, vertsa);
+		copy(color, colora);
+		copy(index, indexa);
+
+		var geometry = new THREE.BufferGeometry();
+
+		geometry.offsets = {
+			start: 0,
+			count: indexa.length,
+			index: 0
+		};
+		geometry.attributes = {
+			position: {
+				itemSize: 3, 
+				array: vertsa,
+				numItems: vertsa.length / 3
+			},
+			color: {
+				itemSize: 3,
+				array: colora,
+				numItems: colora.length / 3
+			},
+			index: {
+				itemSize: 1,
+				array: indexa,
+				numItems: indexa.length
+			}
+		};
+		return new THREE.Mesh(geometry, BAR_MATERIAL);
 	}
 
 	self.update = function (playerPosition, controlState) {
 		curMeshes.forEach(world.removeFromScene);
+		curMeshes = [];
 
 		function makeAndAdd(info) { curMeshes.push(makeHPMesh(info)); }
 

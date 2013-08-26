@@ -45,7 +45,7 @@ Scene Population
 ------------------
 - Scene is populated by calling add on a THREE.Mesh(geometry, CHUNK_MATERIAL).
 - THREE.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
-- A geometry is simple an object with a .offsets and .attributes.
+- A geometry is a THREE.BufferGeometry, which just has its attributes and offsets set.
 - .offsets is in the form:
 
 ```JavaScript
@@ -69,6 +69,7 @@ This specifies the start, count and amount to add to each index for the indexes 
 	},
 	color: {	//Colors of position (so parallel to position). The vertex 
 				//shader interpolates these points to color the faces.
+				//Each color is composed of 3 numbers, r, g, b.
 		itemSize: 3,
 		array: colora, //Float32Array
 		numItems: colora.length / 3
