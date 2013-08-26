@@ -75,7 +75,7 @@ function HealthBars(world, camera, conn, controls) {
 		mesh.rotation.set(Math.PI/2, Math.PI/4, Math.PI/4); // Set initial rotation
 		mesh.matrix.setRotationFromEuler(mesh.rotation); // Apply rotation to the object's matrix
 
-		rotation_matrix = new THREE.Matrix4().setRotationX(.01); // Animated rotation will be in .01 radians along object's X axis
+		rotation_matrix = new THREE.Matrix4().makeRotationX(.01); // Animated rotation will be in .01 radians along object's X axis
 		// Update the object's rotation & apply it
 		rotation_matrix.multiplySelf(mesh.matrix);
 		mesh.rotation.setRotationFromMatrix(rotation_matrix);
