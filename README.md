@@ -46,7 +46,7 @@ Scene Population
 - Scene is populated by calling add on a THREE.Mesh(geometry, CHUNK_MATERIAL).
 - THREE.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
 - A geometry is a THREE.BufferGeometry, which just has its attributes and offsets set.
-- .offsets is in the form:
+- .offsets is in the form (DON'T FORGET THE ARRAY, IT'S OBJECTS WITHIN AN ARRAY):
 
 ```JavaScript
 [{
@@ -61,7 +61,7 @@ This specifies the start, count and amount to add to each index for the indexes 
 - .attributes is in the form:
 
 ```JavaScript
-[{
+{
 	position: { //Each position is composed of 3 numbers, x, y, z.
 		itemSize: 3, 
 		array: vertsa, //Float32Array
@@ -81,7 +81,7 @@ This specifies the start, count and amount to add to each index for the indexes 
 		array: indexa,
 		numItems: indexa.length //Uint16Array
 	},
-}]
+}
 ```
 
 
