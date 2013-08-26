@@ -46,8 +46,8 @@ function World(scene, conn, clock, container, chunkManager) {
 		scene.add(cube);
 	};
 
-	self.blockAt = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.blockAt = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var oc = cords.o;
 		var cc = cords.c;
 
@@ -58,8 +58,8 @@ function World(scene, conn, clock, container, chunkManager) {
 		else return block;
 	};
 
-	self.findClosestGround = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.findClosestGround = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var cc = cords.c;
 		var oc = cords.o;
 
@@ -131,15 +131,15 @@ function World(scene, conn, clock, container, chunkManager) {
 	}
 
 	self.findPlayerIntersection = function (camera, precision) {
-		function entityAt(wx, wy, wz) {
-			return entityManager.entityAt(wx, wy, wz);
+		function entityAt(wcX, wcY, wcZ) {
+			return entityManager.entityAt(wcX, wcY, wcZ);
 		}
 		return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
 	};
 
 	function findSolidBlockIntersection(camera, precision) {
-		function blockAt(wx, wy, wz) {
-			var block = self.blockAt(wx, wy, wz);
+		function blockAt(wcX, wcY, wcZ) {
+			var block = self.blockAt(wcX, wcY, wcZ);
 			return block && block.solid();
 		}
 		return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
@@ -176,15 +176,15 @@ function World(scene, conn, clock, container, chunkManager) {
 		return p;
 	};
 
-	self.changeBlock = function(wx, wy, wz, newType) {
+	self.changeBlock = function(wcX, wcY, wcZ, newType) {
 		conn.queue('block', {
 			Pos: {
-				X: Math.floor(wx),
-				Y: Math.floor(wy),
-				Z: Math.floor(wz),
+				X: Math.floor(wcX),
+				Y: Math.floor(wcY),
+				Z: Math.floor(wcZ),
 			},
 			Type: newType,
 		});
-		chunkManager.queueBlockChange(wx, wy, wz, newType);
+		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 }

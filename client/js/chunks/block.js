@@ -8,9 +8,6 @@ Block.prototype.mineable = function () {
 Block.prototype.invisible = function () {
 	return Block.isInvisible(this.type);
 };
-Block.prototype.visible = function () {
-	return Block.isVisible(this.type);
-};
 Block.prototype.solid = function () {
 	return Block.isSolid(this.type);
 };
@@ -74,10 +71,6 @@ Block.isMineable = function (block) {
 //Don't use this, use isVisible (this only exists for legacy reasons).
 Block.isInvisible = function (block) {
 	return Block.inSubtype(block, Block.INVISIBLE);
-};
-
-Block.isVisible = function (block) {
-	return !Block.inSubtype(block, Block.INVISIBLE);
 };
 
 Block.isSolid = function (block) {

@@ -15,20 +15,20 @@ function clamp(n, a, b) {
 	return Math.min(Math.max(n, a), b);
 }
 
-function worldToChunk(wx, wy, wz) {
-	if (wz === undefined) {
+function worldToChunk(wcX, wcY, wcZ) {
+	if (wcZ === undefined) {
 		throw "worldToChunk expects three paremeters!";
 	}
 	return {
 		c: {
-			x: Math.floor(wx / CHUNK_WIDTH),
-			y: Math.floor(wy / CHUNK_HEIGHT),
-			z: Math.floor(wz / CHUNK_DEPTH),
+			x: Math.floor(wcX / CHUNK_WIDTH),
+			y: Math.floor(wcY / CHUNK_HEIGHT),
+			z: Math.floor(wcZ / CHUNK_DEPTH),
 		},
 		o: {
-			x: mod(Math.floor(wx), CHUNK_WIDTH),
-			y: mod(Math.floor(wy), CHUNK_HEIGHT),
-			z: mod(Math.floor(wz), CHUNK_DEPTH),
+			x: mod(Math.floor(wcX), CHUNK_WIDTH),
+			y: mod(Math.floor(wcY), CHUNK_HEIGHT),
+			z: mod(Math.floor(wcZ), CHUNK_DEPTH),
 		}
 	};
 }

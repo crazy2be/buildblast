@@ -15,7 +15,7 @@ const (
 
 	// Subtypes
 	BLOCK_INVISIBLE		= 0x1 << 0
-	BLOCK_SOLID			= 0x1 << 1
+	BLOCK_SOLID		= 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{

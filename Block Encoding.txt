@@ -5,5 +5,5 @@ Properties: [31]->[28] (0xA0000000)
     [31] = MINEABLE
 
 SubTypes:   [3]->[0] (0x0000000A)
-    VISIBLE  = 1;
-    SOLID    = 2;
+    INVISIBLE  = 1;
+    SOLID    	= 2;

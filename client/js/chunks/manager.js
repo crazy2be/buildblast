@@ -24,11 +24,11 @@ function ChunkManager(scene, clientID) {
 		});
 	};
 
-	self.queueBlockChange = function (wx, wy, wz, newType) {
+	self.queueBlockChange = function (wcX, wcY, wcZ, newType) {
 		geometryWorker.postMessage({
 			'kind': 'block-change',
 			'payload': {
-				'Pos': {X: wx, Y: wy, Z: wz},
+				'Pos': {X: wcX, Y: wcY, Z: wcZ},
 				'Type': newType,
 			}
 		});

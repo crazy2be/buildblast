@@ -133,9 +133,9 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 		var pz = empty(ocx, ocy, ocz + r);
 		var nz = empty(ocx, ocy, ocz - r);
 
-		var wx = ocx + ccx*cw;
-		var wy = ocy + ccy*ch;
-		var wz = ocz + ccz*cd;
+		var wcX = ocx + ccx*cw;
+		var wcY = ocy + ccy*ch;
+		var wcZ = ocz + ccz*cd;
 
 		var blockType = Block.DIRT;
 		if (r === 1) {
@@ -240,51 +240,51 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 		}
 
 		if (px) {
-			v(wx + r, wy    , wz    );
-			v(wx + r, wy + r, wz    );
-			v(wx + r, wy + r, wz + r);
-			v(wx + r, wy    , wz + r);
-			v(wx + r, wy + r/2, wz + r/2);
+			v(wcX + r, wcY    , wcZ    );
+			v(wcX + r, wcY + r, wcZ    );
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX + r, wcY    , wcZ + r);
+			v(wcX + r, wcY + r/2, wcZ + r/2);
 			f(0, blockType);
 		}
 		if (py) {
-			v(wx    , wy + r, wz + r);
-			v(wx + r, wy + r, wz + r);
-			v(wx + r, wy + r, wz    );
-			v(wx    , wy + r, wz    );
-			v(wx + r/2, wy + r, wz + r/2);
+			v(wcX    , wcY + r, wcZ + r);
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX + r, wcY + r, wcZ    );
+			v(wcX    , wcY + r, wcZ    );
+			v(wcX + r/2, wcY + r, wcZ + r/2);
 			f(2, blockType);
 		}
 		if (pz) {
-			v(wx    , wy    , wz + r);
-			v(wx + r, wy    , wz + r);
-			v(wx + r, wy + r, wz + r);
-			v(wx    , wy + r, wz + r);
-			v(wx + r/2, wy + r/2, wz + r);
+			v(wcX    , wcY    , wcZ + r);
+			v(wcX + r, wcY    , wcZ + r);
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX    , wcY + r, wcZ + r);
+			v(wcX + r/2, wcY + r/2, wcZ + r);
 			f(4, blockType);
 		}
 		if (nx) {
-			v(wx, wy    , wz + r);
-			v(wx, wy + r, wz + r);
-			v(wx, wy + r, wz    );
-			v(wx, wy    , wz    );
-			v(wx, wy + r/2, wz + r/2);
+			v(wcX, wcY    , wcZ + r);
+			v(wcX, wcY + r, wcZ + r);
+			v(wcX, wcY + r, wcZ    );
+			v(wcX, wcY    , wcZ    );
+			v(wcX, wcY + r/2, wcZ + r/2);
 			f(1, blockType);
 		}
 		if (ny) {
-			v(wx    , wy, wz    );
-			v(wx + r, wy, wz    );
-			v(wx + r, wy, wz + r);
-			v(wx    , wy, wz + r);
-			v(wx + r/2, wy, wz + r/2);
+			v(wcX    , wcY, wcZ    );
+			v(wcX + r, wcY, wcZ    );
+			v(wcX + r, wcY, wcZ + r);
+			v(wcX    , wcY, wcZ + r);
+			v(wcX + r/2, wcY, wcZ + r/2);
 			f(3, blockType);
 		}
 		if (nz) {
-			v(wx    , wy + r, wz);
-			v(wx + r, wy + r, wz);
-			v(wx + r, wy    , wz);
-			v(wx    , wy    , wz);
-			v(wx + r/2, wy + r/2, wz);
+			v(wcX    , wcY + r, wcZ);
+			v(wcX + r, wcY + r, wcZ);
+			v(wcX + r, wcY    , wcZ);
+			v(wcX    , wcY    , wcZ);
+			v(wcX + r/2, wcY + r/2, wcZ);
 			f(5, blockType);
 		}
 
