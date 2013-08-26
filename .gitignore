@@ -6,7 +6,6 @@ buildshoot-server
 buildshoot-server.exe
 .project
 .settings
-localSettings.js
 bin
 pkg
 github.com
