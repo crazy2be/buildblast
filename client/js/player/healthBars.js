@@ -7,11 +7,18 @@ function HealthBars(world, camera, conn, controls) {
 	var self = this;
 
 	var BAR_MATERIAL = new THREE.MeshBasicMaterial({
-		vertexColors: true,
+		vertexColors: true
 	});
 
 	var curMeshes = [];
 	function makeHPMesh(info) {
+		var bodyGeometry = new THREE.CubeGeometry(1, 1, 1);
+		var bodyMesh = new THREE.Mesh(bodyGeometry, BAR_MATERIAL);
+
+		bodyMesh.position.set(info.pos.x, info.pos.y, info.pos.z);
+
+		//return bodyMesh;
+
 		function copy(src, dst) {
 			for (var i = 0; i < src.length; i++) {
 				dst[i] = src[i];
@@ -19,18 +26,18 @@ function HealthBars(world, camera, conn, controls) {
 		}
 
 		var verts = [];
-		//verts.push(info.pos.x, info.pos.y, info.pos.z);
-		//verts.push(info.pos.x + 1, info.pos.y, info.pos.z);
-		//verts.push(info.pos.x + 0.5, info.pos.y + 1, info.pos.z);
+		verts.push(info.pos.x, info.pos.y, info.pos.z);
+		verts.push(info.pos.x + 1, info.pos.y, info.pos.z);
+		verts.push(info.pos.x + 0.5, info.pos.y + 1, info.pos.z);
 
-		verts.push(-100, -100, -100);
-		verts.push(100, 100, 100);
-		verts.push(100, 100, -100);
+		//verts.push(-100, -100, -100);
+		//verts.push(100, 100, 100);
+		//verts.push(100, 100, -100);
 
 		var color = [];
-		color.push(120, 120, 120);
-		color.push(120, 120, 120);
-		color.push(120, 120, 120);
+		color.push(0.5, 0.5, 0.5);
+		color.push(0.5, 0.5, 0.5);
+		color.push(0.5, 0.5, 0.5);
 
 		var index = [];
 		index.push(0, 1, 2);
@@ -38,33 +45,36 @@ function HealthBars(world, camera, conn, controls) {
 
 		var vertsa = new Float32Array(verts.length);
 		var colora = new Float32Array(color.length);
-		var indexa = new Float32Array(index.length);
+		var indexa = new Uint16Array(index.length);
 		copy(verts, vertsa);
 		copy(color, colora);
 		copy(index, indexa);
 
 		var geometry = new THREE.BufferGeometry();
 
-		geometry.offsets = {
+		geometry.offsets = [{
 			start: 0,
 			count: indexa.length,
 			index: 0
-		};
+		}];
 		geometry.attributes = {
 			position: {
 				itemSize: 3, 
 				array: vertsa,
-				numItems: vertsa.length / 3
+				numItems: vertsa.length,
+				needsUpdate: true
 			},
 			color: {
 				itemSize: 3,
 				array: colora,
-				numItems: colora.length / 3
+				numItems: colora.length,
+				needsUpdate: true
 			},
 			index: {
 				itemSize: 1,
 				array: indexa,
-				numItems: indexa.length
+				numItems: indexa.length,
+				needsUpdate: true
 			}
 		};
 		return new THREE.Mesh(geometry, BAR_MATERIAL);

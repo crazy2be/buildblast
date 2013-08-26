@@ -39,6 +39,9 @@ function Entity(id) {
 	};
 
 	self.pos = function () {
+		if(!pos) {
+			return new THREE.Vector3(0, 0, 0);
+		}
 		return pos.clone();
 	}
 

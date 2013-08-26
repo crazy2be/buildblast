@@ -69,7 +69,7 @@ This specifies the start, count and amount to add to each index for the indexes 
 	},
 	color: {	//Colors of position (so parallel to position). The vertex 
 				//shader interpolates these points to color the faces.
-				//Each color is composed of 3 numbers, r, g, b.
+				//Each color is composed of 3 numbers, r, g, b, each between 0 and 1.
 		itemSize: 3,
 		array: colora, //Float32Array
 		numItems: colora.length / 3
