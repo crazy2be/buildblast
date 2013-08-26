@@ -66,17 +66,21 @@ This specifies the start, count and amount to add to each index for the indexes 
 
 ```JavaScript
 [{
-	position: {
+	position: { //Each position is composed of 3 numbers, x, y, z.
 		itemSize: 3, 
 		array: vertsa,
-		numItems: vertsa.length
+		numItems: vertsa.length / 3
 	},
-	index: {
+	color: {	//Colors of position (so parallel to position). The vertex 
+				//shader interpolates these points to color the faces.
+		itemSize: 3,
+		array: colora,
+		numItems: colora.length / 3
+	},
+	index: { //Groups of 3. Each index refers to an index within position, and each group of 3 is a triangle.
 		itemSize: 1,
 		array: indexa,
 		numItems: indexa.length
-	},
-	color: {
 	},
 }]
 ```
