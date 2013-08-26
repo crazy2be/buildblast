@@ -18,12 +18,14 @@ function Player(world, conn, clock, controls) {
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
 	var inventory = new Inventory(world, camera, conn, controls);
+	var healthBars = new HealthBars(world, camera, conn, controls);
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	self.resize = function () {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 		inventory.resize();
+		healthBars.resize();
 	};
 
 	self.pos = function () {
@@ -35,13 +37,15 @@ function Player(world, conn, clock, controls) {
 	};
 
 	self.update = function () {
-		var c = controls.sample();
+		var controlState = controls.sample();
 
-		var p = prediction.update(c);
+		var playerPos = prediction.update(controlState);
+		var p = playerPos;
 		camera.position.set(p.x, p.y, p.z);
 
-		doLook(camera, camera.position, c);
-		inventory.update(p, c);
+		doLook(camera, camera.position, controlState);
+		inventory.update(playerPos, controlState);
+		healthBars.update(playerPos, controlState);
 	};
 
 	function doLook(camera, p, c) {

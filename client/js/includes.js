@@ -34,6 +34,7 @@
 	'js/./entities/entity.js',
 	'js/./entities/manager.js',
 	'js/./perf/chart.js',
+	'js/./player/healthBars.js',
 	'js/./player/inventory.js',
 	'js/./player/item.js',
 	'js/./player/player.js',

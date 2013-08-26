@@ -14,6 +14,8 @@ function World(scene, conn, clock, container, chunkManager) {
 	var chat = new Chat(controls, conn, container);
 
 	var entityManager = new EntityManager(scene, conn);
+	self.getEntityInfos = entityManager.getEntityInfos;
+
 	window.testExposure.player = player;
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;

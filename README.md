@@ -43,8 +43,8 @@ Our render call looks like `renderer.render(scene, camera);` where:
 
 Scene Population
 ------------------
-- Scene is populated by calling add on a THREE.Mesh.
-- Three.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
+- Scene is populated by calling add on a THREE.Mesh(geometry, CHUNK_MATERIAL).
+- THREE.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
 - A geometry is simple an object with a .offsets and .attributes.
 - .offsets is in the form:
 
@@ -64,19 +64,19 @@ This specifies the start, count and amount to add to each index for the indexes 
 [{
 	position: { //Each position is composed of 3 numbers, x, y, z.
 		itemSize: 3, 
-		array: vertsa,
+		array: vertsa, //Float32Array
 		numItems: vertsa.length / 3
 	},
 	color: {	//Colors of position (so parallel to position). The vertex 
 				//shader interpolates these points to color the faces.
 		itemSize: 3,
-		array: colora,
+		array: colora, //Float32Array
 		numItems: colora.length / 3
 	},
 	index: { //Groups of 3. Each index refers to an index within position, and each group of 3 is a triangle.
 		itemSize: 1,
 		array: indexa,
-		numItems: indexa.length
+		numItems: indexa.length //Uint16Array
 	},
 }]
 ```

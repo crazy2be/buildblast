@@ -38,6 +38,10 @@ function Entity(id) {
 		return self;
 	};
 
+	self.pos = function () {
+		return pos.clone();
+	}
+
 	self.contains = function (x, y, z) {
 		if (!pos) return;
 		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);

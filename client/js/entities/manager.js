@@ -51,4 +51,19 @@ function EntityManager(scene, conn) {
 			}
 		}
 	};
+
+	//Eventually this should probably be more directly exposed
+	//Returns [{pos, hp, maxHP}]
+	self.getEntityInfos = function () {
+		var infos = [];
+		for (var id in entities) {
+			var entity = entities[id];
+			infos.push({
+				pos: entity.pos(),
+				hp: 50,
+				maxHP: 100
+			});
+		}
+		return infos;
+	}
 }
