@@ -39,6 +39,6 @@
 	'js/./player/player.js',
 	'js/./player/playerPrediction.js',
 	'js/./player/stack.js',
-	'js/./tests/chunkMeshing.js',
 	'js/./tests/testCommon.js',
+	'js/./tests/testMesh.js',
 ]));

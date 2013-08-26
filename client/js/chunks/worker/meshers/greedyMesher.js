@@ -1,4 +1,4 @@
-var meshCommon = getMeshCommon();
+//meshCommon
 
 //Returns same as simpleMesh
 //From http://0fps.wordpress.com/2012/06/30/meshing-in-a-minecraft-game/

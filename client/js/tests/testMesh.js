@@ -1,7 +1,9 @@
-//Causes the fake data to be created instead of live data (fake data is more consistent)
-//localStorage.fakeData
+var testMesh = function () {
+	var testMesh = {};
 
-getTestMesh = function () {
+	//Causes the fake data to be created instead of live data (fake data is more consistent)
+	//localStorage.fakeData
+
 	function random(min, max) {
 		return ~ ~(Math.random() * (max - min)) + min;
 	}
@@ -35,16 +37,16 @@ getTestMesh = function () {
 		var blocks = new Float32Array(CHUNK_WIDTH * CHUNK_HEIGHT * CHUNK_DEPTH);
 
 		LOOP.For3D(
-		new THREE.Vector3(0, 0, 0),
-		new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH),
-		function (blockPos) {
-			blocks[
-				blockPos.x * CHUNK_WIDTH * CHUNK_HEIGHT +
-				blockPos.y * CHUNK_WIDTH +
-				blockPos.z
-			] = random(1, 3);
-		}
-	);
+			new THREE.Vector3(0, 0, 0),
+			new THREE.Vector3(CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH),
+			function (blockPos) {
+				blocks[
+					blockPos.x * CHUNK_WIDTH * CHUNK_HEIGHT +
+					blockPos.y * CHUNK_WIDTH +
+					blockPos.z
+				] = random(1, 3);
+			}
+		);
 
 		return blocks;
 	}
@@ -112,8 +114,7 @@ getTestMesh = function () {
 		return blocks;
 	}
 
-	return {
-	large : function() {
+	testMesh.large = function () {
 		var manager = new WorkerChunkManager();
 
 		function loadChunk(cc) {
@@ -130,36 +131,36 @@ getTestMesh = function () {
 			var totalVerts = 0;
 			for (var ix = 0; ix < 1; ix++) {
 				LOOP.For3D(
-					new THREE.Vector3(0, 0, 0),
-					new THREE.Vector3(maxChunk, maxChunk, maxChunk),
-					function (chunkPos) {
-						manager.get(chunkPos).chunkMesher = chunkMesher;
-						var geometries = manager.get(chunkPos).calculateGeometries().geometries;
-						for (var ig = 0; ig < geometries.length; ig++) {
-							totalVerts += geometries[ig].attributes.position.numItems;
-						}
+				new THREE.Vector3(0, 0, 0),
+				new THREE.Vector3(maxChunk, maxChunk, maxChunk),
+				function (chunkPos) {
+					manager.get(chunkPos).chunkMesher = chunkMesher;
+					var geometries = manager.get(chunkPos).calculateGeometries().geometries;
+					for (var ig = 0; ig < geometries.length; ig++) {
+						totalVerts += geometries[ig].attributes.position.numItems;
 					}
-				);
+				}
+			);
 			}
 			return totalVerts;
 		}
 
 		var tests = [
-			{ name: "greedyMesher" },
-			{ name: "simpleMesh" },
-			{ name: "simpleMesh2" }
-		];
+		{ name: "greedyMesher" },
+		{ name: "simpleMesh" },
+		{ name: "simpleMesh2" }
+	];
 
 		var loops = 100;
 		for (var i = 0; i < loops; i++) {
 			seedRandom(59825525, 239876364);
 			LOOP.For3D(
-				new THREE.Vector3(0, 0, 0),
-				new THREE.Vector3(maxChunk, maxChunk, maxChunk),
-				function (chunkPos) {
-					loadChunk(chunkPos);
-				}
-			);
+			new THREE.Vector3(0, 0, 0),
+			new THREE.Vector3(maxChunk, maxChunk, maxChunk),
+			function (chunkPos) {
+				loadChunk(chunkPos);
+			}
+		);
 
 			for (var ix = 0; ix < tests.length; ix++) {
 				var time = new Date().getTime();
@@ -182,5 +183,6 @@ getTestMesh = function () {
 			console.log(tests[ix].name + " time: " + tests[ix].time + " with: " + tests[ix].verts + " verts");
 		}
 	}
-	};
-}
+
+	return testMesh;
+} ();

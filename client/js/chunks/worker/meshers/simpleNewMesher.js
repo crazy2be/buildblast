@@ -1,4 +1,4 @@
-var meshCommon = getMeshCommon();
+//meshCommon
 
 function simpleMesh2(blocks, voxelization, cc, manager) {
 	var cw = CHUNK_WIDTH;
