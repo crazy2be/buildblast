@@ -15,18 +15,18 @@ func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
 
 	spawns := make([]coords.World, 0)
 	blocks := make([][][]Block, cw)
-	for ox := 0; ox < cw; ox++ {
-		blocks[ox] = make([][]Block, ch)
-		for oy := 0; oy < ch; oy++ {
-			blocks[ox][oy] = make([]Block, cd)
-			for oz := 0; oz < cd; oz++ {
+	for ocX := 0; ocX < cw; ocX++ {
+		blocks[ocX] = make([][]Block, ch)
+		for ocY := 0; ocY < ch; ocY++ {
+			blocks[ocX][ocY] = make([]Block, cd)
+			for ocZ := 0; ocZ < cd; ocZ++ {
 				bc := coords.Block{
-					X: ox + cc.X*cw,
-					Y: oy + cc.Y*ch,
-					Z: oz + cc.Z*cd,
+					X: ocX + cc.X*cw,
+					Y: ocY + cc.Y*ch,
+					Z: ocZ + cc.Z*cd,
 				}
 				block, isSpawn := bg.Block(bc)
-				blocks[ox][oy][oz] = block
+				blocks[ocX][ocY][ocZ] = block
 				if isSpawn {
 					spawns = append(spawns, bc.Center())
 				}
@@ -61,16 +61,16 @@ func (c Chunk) Flatten() string {
 	ch := coords.ChunkHeight
 	cd := coords.ChunkDepth
 	data := make([]byte, cw*ch*cd)
-	for ox := 0; ox < cw; ox++ {
-		for oy := 0; oy < ch; oy++ {
-			for oz := 0; oz < cd; oz++ {
+	for ocX := 0; ocX < cw; ocX++ {
+		for ocY := 0; ocY < ch; ocY++ {
+			for ocZ := 0; ocZ < cd; ocZ++ {
 				// 32: Space charater. Control charaters
 				// are not allowed in JSON strings.
-				value := byte(c[ox][oy][oz] + 32)
+				value := byte(c[ocX][ocY][ocZ] + 32)
 				if value >= 127 || value < 32 {
 					panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
 				}
-				data[ox*cw*ch+oy*cw+oz] = value
+				data[ocX*cw*ch+ocY*cw+ocZ] = value
 			}
 		}
 	}
@@ -83,12 +83,12 @@ func (c Chunk) Clone() Chunk {
 	cd := coords.ChunkDepth
 
 	blocks := make([][][]Block, cw)
-	for ox := 0; ox < cw; ox++ {
-		blocks[ox] = make([][]Block, ch)
-		for oy := 0; oy < ch; oy++ {
-			blocks[ox][oy] = make([]Block, cd)
-			for oz := 0; oz < cd; oz++ {
-				blocks[ox][oy][oz] = c[ox][oy][oz]
+	for ocX := 0; ocX < cw; ocX++ {
+		blocks[ocX] = make([][]Block, ch)
+		for ocY := 0; ocY < ch; ocY++ {
+			blocks[ocX][ocY] = make([]Block, cd)
+			for ocZ := 0; ocZ < cd; ocZ++ {
+				blocks[ocX][ocY][ocZ] = c[ocX][ocY][ocZ]
 			}
 		}
 	}
