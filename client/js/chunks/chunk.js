@@ -19,9 +19,9 @@ function Chunk(blocks, geometries, scene, voxelization) {
 		scene.add(meshes[voxelization]);
 	};
 
-	self.setVoxelization = function (newPixelization) {
+	self.setVoxelization = function (newVoxelization) {
 		self.remove();
-		voxelization = newPixelization;
+		voxelization = newVoxelization;
 		self.add();
 	};
 
