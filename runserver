@@ -4,8 +4,11 @@ if go version; then
 	export GOPATH="`pwd`/../../"
 
 	if [ ! -e "$GOPATH/src" ]; then
-		echo "ERROR: Your git directory must be in a dir called src."
-		echo "This means it should be src/buildblast/.git"
+		echo "WARN: Probably misconfigured GOPATH"
+		echo "(no src/ directory found at GOPATH root)"
+		echo "Your buildblast repository must be at <anything>/src/buildblast/"
+		echo "as this is a requirement of the go compiler toolchain."
+		echo "if <anything> == GOPATH, then the go tools will work as well."
 	fi
 
 	export GOBIN="`pwd`/bin"
