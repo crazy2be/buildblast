@@ -33,10 +33,10 @@ function worldToChunk(wcX, wcY, wcZ) {
 	};
 }
 
-function validChunkOffset(ocx, ocy, ocz) {
-	return ocx >= 0 && ocx < CHUNK_WIDTH &&
-		ocy >= 0 && ocy < CHUNK_HEIGHT &&
-		ocz >= 0 && ocz < CHUNK_DEPTH;
+function validChunkOffset(ocX, ocY, ocZ) {
+	return ocX >= 0 && ocX < CHUNK_WIDTH &&
+		ocY >= 0 && ocY < CHUNK_HEIGHT &&
+		ocZ >= 0 && ocZ < CHUNK_DEPTH;
 }
 
 function ccStr(cc) {

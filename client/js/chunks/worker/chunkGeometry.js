@@ -41,18 +41,18 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 		};
 	}
 
-	self.block = function block(ocx, ocy, ocz) {
-		if (validChunkOffset(ocx, ocy, ocz)) {
-			return blocks[ocx*cw*ch + ocy*cw + ocz];
+	self.block = function block(ocX, ocY, ocZ) {
+		if (validChunkOffset(ocX, ocY, ocZ)) {
+			return blocks[ocX*cw*ch + ocY*cw + ocZ];
 		} else {
 			throw "Invalid offset coords!";
 		}
 	};
 
 	//Call .block before this to insure the block coords.
-	self.setBlock = function setBlock(ocx, ocy, ocz, type) {
-		if (validChunkOffset(ocx, ocy, ocz)) {
-			blocks[ocx*cw*ch + ocy*cw + ocz] = type;
+	self.setBlock = function setBlock(ocX, ocY, ocZ, type) {
+		if (validChunkOffset(ocX, ocY, ocZ)) {
+			blocks[ocX*cw*ch + ocY*cw + ocZ] = type;
 		} else {
 			throw "Invalid offset coords!";
 		}
