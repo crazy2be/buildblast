@@ -20,6 +20,8 @@ type ClientConn struct {
 	sendLossyQueue chan Message
 
 	recvQueue chan Message
+	
+	closeQueue chan bool
 }
 
 func NewClientConn(name string) *ClientConn {
@@ -30,6 +32,8 @@ func NewClientConn(name string) *ClientConn {
 	c.sendLossyQueue = make(chan Message, 5)
 
 	c.recvQueue = make(chan Message, 100)
+	
+	c.closeQueue = make(chan bool, 1)
 
 	c.Errors = make(chan error, 10)
 
@@ -41,7 +45,8 @@ func NewClientConn(name string) *ClientConn {
 // Do not call this twice, strange things will happen.
 func (c *ClientConn) Run(conn *Conn) {
 	go c.runSend(conn)
-	c.runRecv(conn)
+	go c.runRecv(conn)
+	c.runClose(conn)
 }
 
 func (c *ClientConn) runSend(conn *Conn) {
@@ -75,6 +80,11 @@ func (c *ClientConn) runRecv(conn *Conn) {
 	}
 }
 
+func (c *ClientConn) runClose(conn *Conn) {
+	<-c.closeQueue
+	conn.Close()
+}
+
 // Send will queue a message to be sent to a client. If there is
 // an error transmitting the message, an error will be sent back
 // on the Errors channel.
@@ -96,5 +106,14 @@ func (c *ClientConn) SendLossy(m Message) {
 	select {
 	case c.sendLossyQueue <- m:
 	default:
+	}
+}
+
+// Close will queue the closure of this connection.
+func (c *ClientConn) Close() {
+	select {
+	case c.closeQueue <- true:
+	default:
+	// It's already in the process of closings
 	}
 }

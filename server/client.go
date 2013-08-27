@@ -146,6 +146,7 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
 	w.RemoveEntityListener(c)
+	c.ClientConn.Close()
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {

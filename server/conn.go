@@ -65,3 +65,7 @@ func (c *Conn) Recv() (Message, error) {
 
 	return m, nil
 }
+
+func (c *Conn) Close() error {
+	return c.ws.Close()
+}

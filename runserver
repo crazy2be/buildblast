@@ -14,7 +14,7 @@ if go version; then
 	export GOBIN="`pwd`/bin"
 	echo "Compiling server..."
 	mkdir -p "$GOBIN"
-	go get buildblast/server
+	go get -race buildblast/server
 
 	cd client
 	echo "Starting server..."

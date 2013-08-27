@@ -136,11 +136,11 @@ func promptLoop(quit chan bool, state *liner.State) {
 }
 
 func main() {
-	setupPrompt()
+// 	setupPrompt()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
-	// 	go doProfile()
+// 	go doProfile()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
