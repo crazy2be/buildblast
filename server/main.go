@@ -32,11 +32,24 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	conn := NewConn(ws)
+	clientChan := make(chan *Client)
+	go func() {
+		clientChan <- doHandshake(conn)
+	}()
+	
+	select {
+	case client := <-clientChan:
+		client.Run(conn)
+	case <-time.After(time.Second):
+		fatalExitChan <- "Client connection timeout."
+	}
+}
 
+func doHandshake(conn *Conn) *Client {
 	msg, err := conn.Recv()
 	if err != nil {
 		log.Println("Error connecting client, unable to read handshake message: ", err)
-		return
+		return nil
 	}
 
 	baseName := msg.(*MsgHandshakeInit).DesiredName
@@ -61,8 +74,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ServerTime: float64(time.Now().UnixNano()) / 1e6,
 		ClientID:   name,
 	})
-
-	client.Run(conn)
+	return client
 }
 
 func chunkSocketHandler(ws *websocket.Conn) {
@@ -135,7 +147,16 @@ func promptLoop(quit chan bool, state *liner.State) {
 	}
 }
 
+func fatalExit() {
+	reason := <- fatalExitChan
+	panic(reason)
+}
+
+var fatalExitChan chan string
+
 func main() {
+	fatalExitChan = make(chan string)
+	go fatalExit()
 // 	setupPrompt()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
