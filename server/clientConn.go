@@ -14,14 +14,14 @@ import (
 type ClientConn struct {
 	name string
 
-	Errors chan error
-
 	sendQueue      chan Message
 	sendLossyQueue chan Message
 
 	recvQueue chan Message
 	
 	closeQueue chan bool
+
+	errorQueue chan error
 }
 
 func NewClientConn(name string) *ClientConn {
@@ -35,7 +35,7 @@ func NewClientConn(name string) *ClientConn {
 	
 	c.closeQueue = make(chan bool, 1)
 
-	c.Errors = make(chan error, 10)
+	c.errorQueue = make(chan error, 10)
 
 	return c
 }
@@ -59,7 +59,7 @@ func (c *ClientConn) runSend(conn *Conn) {
 
 		err := conn.Send(m)
 		if err != nil {
-			c.Errors <- err
+			c.Error(err)
 		}
 	}
 }
@@ -68,7 +68,7 @@ func (c *ClientConn) runRecv(conn *Conn) {
 	for {
 		m, err := conn.Recv()
 		if err != nil {
-			c.Errors <- err
+			c.Error(err)
 			return
 		}
 		if mntp, ok := m.(*MsgNtpSync); ok {
@@ -92,7 +92,7 @@ func (c *ClientConn) Send(m Message) {
 	select {
 	case c.sendQueue <- m:
 	default:
-		c.Errors <- fmt.Errorf("unable to send message %v to player %s", m, c.name)
+		c.Error(fmt.Errorf("unable to send message %v to player %s", m, c.name))
 	}
 }
 
@@ -114,6 +114,22 @@ func (c *ClientConn) Close() {
 	select {
 	case c.closeQueue <- true:
 	default:
-	// It's already in the process of closings
+	// It's already in the process of closing,
+	// no need to send any more messages, so it's
+	// safe to just drop it on the floor.
+	}
+}
+
+// Trigger an error. Non-blocking (drops the error
+// on the floor if it can't handle it immediately).
+func (c *ClientConn) Error(err error) {
+	select {
+	case c.errorQueue <- err:
+	default:
+	// The errors channel is full. We could print
+	// a log message or something, but it's likely to
+	// just result in lots of useless output, since there's
+	// already a whole queue of errors to be handled. So,
+	// we just ignore it.
 	}
 }

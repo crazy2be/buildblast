@@ -12,7 +12,7 @@ import (
 )
 
 type Client struct {
-	*ClientConn
+	conn *ClientConn
 
 	name string
 
@@ -26,7 +26,7 @@ type Client struct {
 
 func NewClient(name string) *Client {
 	c := new(Client)
-	c.ClientConn = NewClientConn(name)
+	c.conn = NewClientConn(name)
 
 	c.name = name
 
@@ -39,7 +39,7 @@ func NewClient(name string) *Client {
 func (c *Client) Tick(g *Game, w *game.World) {
 	for {
 		select {
-		case m := <-c.recvQueue:
+		case m := <-c.conn.recvQueue:
 			c.handleMessage(g, w, m)
 		default:
 			return
@@ -74,7 +74,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		})
 
 	default:
-		c.Errors <- fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m))
+		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m)))
 	}
 }
 
@@ -146,7 +146,19 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
 	w.RemoveEntityListener(c)
-	c.ClientConn.Close()
+	c.conn.Close()
+}
+
+func (c *Client) Send(m Message) {
+	c.conn.Send(m)
+}
+
+func (c *Client) SendLossy(m Message) {
+	c.conn.SendLossy(m)
+}
+
+func (c *Client) Run(conn *Conn) {
+	c.conn.Run(conn)
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
@@ -191,7 +203,7 @@ func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
 	select {
 	case c.blockSendQueue <- m:
 	default:
-		c.Errors <- fmt.Errorf("unable to send block update to player %s (server overloaded?)", c.name)
+		c.conn.Error(fmt.Errorf("unable to send block update to player %s (server overloaded?)", c.name))
 	}
 }
 
