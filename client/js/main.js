@@ -59,8 +59,6 @@ window.onload = function () {
 
 		window.addEventListener('resize', onWindowResize, false);
 
-		animate();
-
 		function onWindowResize() {
 			world.resize();
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -72,6 +70,7 @@ window.onload = function () {
 			var newTime = clock.time();
 			var dt = newTime - previousTime;
 			previousTime = newTime;
+			
 			conn.update();
 			world.update(dt);
 			world.render(renderer, scene);
@@ -80,6 +79,8 @@ window.onload = function () {
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
 		}
+
+		animate();
 	}
 };
 
