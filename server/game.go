@@ -139,11 +139,6 @@ func (g *Game) Tick() {
 	g.world.Tick()
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
-		select {
-		case e := <-c.conn.errorQueue:
-			g.disconnect(c.name, e.Error())
-		default:
-		}
 	}
 }
 

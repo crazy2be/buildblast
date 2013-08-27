@@ -41,6 +41,9 @@ func (c *Client) Tick(g *Game, w *game.World) {
 		select {
 		case m := <-c.conn.recvQueue:
 			c.handleMessage(g, w, m)
+		case e := <-c.conn.errorQueue:
+			g.disconnect(c.name, e.Error())
+			return
 		default:
 			return
 		}
