@@ -150,7 +150,7 @@ function World(scene, conn, clock, container, chunkManager) {
 	// block. Returns the position of the block.
 	// BUG(yeerkkiller1): (literal) corner case is not handled correctly: 
 	// http://awwapp.com/s/e3/4f/fe.png
-	self.getLookedAtBlock = function(camera, dontWantSolidBlock) {
+	self.findLookedAtBlock = function(camera, dontWantSolidBlock) {
 		var precision = 0.1;
 		var pos = camera.position;
 		var dir = getLookedAtDirection(camera);

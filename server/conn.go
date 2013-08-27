@@ -60,7 +60,7 @@ func (c *Conn) Recv() (Message, error) {
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
 		log.Println(cm.Payload)
-		return nil, fmt.Errorf("unmarshalling websocket message: %s", err)
+		return nil, fmt.Errorf("unmarshalling websocket message of kind %s: %s (value: %s)", cm.Kind, err, string(cm.Payload))
 	}
 
 	return m, nil
