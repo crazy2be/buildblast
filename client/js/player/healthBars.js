@@ -14,6 +14,41 @@ function HealthBars(world, camera, conn, controls) {
 
 	var curMeshes = [];
 	function makeHPMesh(info, controlState) {
+		// create a canvas element
+		var canvas1 = document.createElement('canvas');
+		canvas1.width = 2;
+		canvas1.height = 1;
+		var context1 = canvas1.getContext('2d');
+		context1.font = "Bold 50px Arial";
+		context1.fillStyle = "rgba(255,0,0,0.95)";
+		//context1.fillText('Hello, world!', 0, 50);
+		context1.fillRect(0, 0, 2, 1);
+
+		// canvas contents will be used for a texture
+		var texture1 = new THREE.Texture(canvas1);
+		texture1.needsUpdate = true;
+
+		var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+		material1.transparent = true;
+
+		var mesh1 = new THREE.Mesh(
+			new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+			material1
+		);
+		var p = info.pos;
+		mesh1.position.set(p.x, p.y, p.z);
+
+		var rotVec = {};
+		rotVec.x = -info.pos.x + camera.position.x;
+		rotVec.y = -info.pos.z + camera.position.z;
+
+		var dirRadian = Math.atan2(rotVec.x, rotVec.y);
+
+		mesh1.rotation.y = dirRadian;
+		//mesh1.rotation.x = 0.5;//Math.sin(dirRadian);
+		return mesh1;
+
+
 		function copy(src, dst) {
 			for (var i = 0; i < src.length; i++) {
 				dst[i] = src[i];

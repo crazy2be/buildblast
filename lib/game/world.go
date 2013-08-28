@@ -92,6 +92,8 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
+	index := rand.Intn(l)
+	index = index + 1
 	return w.spawns[0]
 }
 
