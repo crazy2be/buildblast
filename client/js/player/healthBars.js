@@ -16,13 +16,30 @@ function HealthBars(world, camera, conn, controls) {
 	function makeHPMesh(info, controlState) {
 		// create a canvas element
 		var canvas1 = document.createElement('canvas');
-		canvas1.width = 2;
-		canvas1.height = 1;
-		var context1 = canvas1.getContext('2d');
-		context1.font = "Bold 50px Arial";
-		context1.fillStyle = "rgba(255,0,0,0.95)";
-		//context1.fillText('Hello, world!', 0, 50);
-		context1.fillRect(0, 0, 2, 1);
+		canvas1.width = 300;
+		canvas1.height = 60;
+		var ctx = canvas1.getContext('2d');
+
+		//Background
+		ctx.fillStyle = "rgba(87, 87, 87, 0.6)"; //grey
+		ctx.fillRect(0, 10, 300, 40);
+
+		//Username
+		ctx.fillStyle = "white";
+		ctx.font = "20px Verdana";
+		ctx.fillText(info.id, 20, 36);
+
+		//HP bar and fill
+		ctx.fillStyle = "rgba(135, 206, 46, 1)";//green
+		var hpPercent = (info.hp / info.maxHP);
+		ctx.fillRect(90, 20, 200 * hpPercent, 20);
+
+		//HP bar surrounding
+		ctx.lineWidth = 2;
+		ctx.strokeStyle = "white";
+		ctx.beginPath();
+		ctx.rect(90, 19, 200, 22);
+		ctx.stroke();
 
 		// canvas contents will be used for a texture
 		var texture1 = new THREE.Texture(canvas1);
@@ -36,7 +53,10 @@ function HealthBars(world, camera, conn, controls) {
 			material1
 		);
 		var p = info.pos;
-		mesh1.position.set(p.x, p.y, p.z);
+		mesh1.position.set(p.x, p.y + 0.4, p.z);
+		mesh1.scale.x = 1/100;
+		mesh1.scale.y = 1/100;
+		mesh1.scale.z = 1/100;
 
 		var rotVec = {};
 		rotVec.x = -info.pos.x + camera.position.x;

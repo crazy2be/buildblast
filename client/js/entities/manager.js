@@ -60,6 +60,7 @@ function EntityManager(scene, conn) {
 			var entity = entities[id];
 			infos.push({
 				pos: entity.pos(),
+				id: entity.id(),
 				hp: 50,
 				maxHP: 100
 			});
