@@ -216,9 +216,10 @@ function Inventory(world, camera, conn, controls) {
 		model.lookAt(target);
 	}
 
-	function positionItem(model, playerPos, c) {
+	function positionItem(model, playerPos, controlState) {
 		var pp = playerPos;
 		var ip = model.position;
+		var c = controlState;
 
 		// http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
 		var theta = c.lat - 0.5;
@@ -299,8 +300,8 @@ function Inventory(world, camera, conn, controls) {
 			var itemModel = stack.model;
 
 			if (itemModel !== null) {
-				pointItem(itemModel, c);
-				positionItem(itemModel, p, c);
+				pointItem(itemModel, controlState);
+				positionItem(itemModel, p, controlState);
 				postitionPerspective(itemModel, pos);
 				addJitter(itemModel, offset);
 			}

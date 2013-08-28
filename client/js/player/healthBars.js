@@ -6,35 +6,81 @@
 function HealthBars(world, camera, conn, controls) {
 	var self = this;
 
+	var throttle = 0;
+
 	var BAR_MATERIAL = new THREE.MeshBasicMaterial({
 		vertexColors: true
 	});
 
 	var curMeshes = [];
-	function makeHPMesh(info) {
+	function makeHPMesh(info, controlState) {
 		function copy(src, dst) {
 			for (var i = 0; i < src.length; i++) {
 				dst[i] = src[i];
 			}
 		}
 
+		//2D rotation:
+		function setRotationAroundOrigin(point, radian) {
+			var curRotation = Math.atan2(point.x, point.y);
+			var newRotation = curRotation + radian;
+
+			var xFactor = Math.cos(newRotation);
+			var yFactor = Math.sin(newRotation);
+
+			var curMag = Math.sqrt(point.x * point.x + point.y * point.y);
+
+			point.x = curMag * xFactor;
+			point.y = curMag * yFactor;
+		}
+
 		var verts = [];
-		verts.push(info.pos.x, info.pos.y, info.pos.z);
-		verts.push(info.pos.x + 1, info.pos.y, info.pos.z);
-		verts.push(info.pos.x + 0.5, info.pos.y + 1, info.pos.z);
+		verts.push(-1, -1, 0);
+		verts.push(+1, -1, 0);
+		verts.push(+1, +1, 0);
+
+		verts.push(+1, +1, 0);
+		verts.push(-1, +1, 0);
+		verts.push(-1, -1, 0);
+
+		//var cameraDirectionVec = camera.rotation.clone();
+		//Not pointing where the camera is pointing, but pointing
+		//to the actual camera!
+		var rotVec = {};
+		rotVec.x = -info.pos.x + camera.position.x;
+		rotVec.y = -info.pos.z + camera.position.z;
+
+		var dirRadian = Math.atan2(rotVec.y, rotVec.x);
+
+		if(throttle++ % 1001 == 0) {
+			console.log(dirRadian);
+		}
+		for(var ix = 0; ix < verts.length; ix += 3){
+			var p = {x: verts[ix], y: verts[ix + 2]};
+			setRotationAroundOrigin(p, dirRadian);
+			verts[ix] = p.x;
+			verts[ix + 2] = p.y;
+
+			verts[ix] += info.pos.x;
+			verts[ix + 1] += info.pos.y;
+			verts[ix + 2] += info.pos.z;
+		}
 
 		//verts.push(-100, -100, -100);
 		//verts.push(100, 100, 100);
 		//verts.push(100, 100, -100);
 
 		var color = [];
-		color.push(0.5, 0.5, 0.5);
-		color.push(0.5, 0.5, 0.5);
-		color.push(0.5, 0.5, 0.5);
+		for(var ix = 0; ix < verts.length; ix++) {
+			color[ix] =  (1 + ix) * 17 % 19 / 19;
+		}
 
 		var index = [];
-		index.push(0, 1, 2);
-		index.push(2, 1, 0);
+		for(var i = 0; i < verts.length; i += 9) {
+			var ix = i / 3;
+			index.push(ix, ix + 1, ix + 2);
+			index.push(ix + 2, ix + 1, ix);
+		}
 
 		var vertsa = new Float32Array(verts.length);
 		var colora = new Float32Array(color.length);
@@ -71,14 +117,6 @@ function HealthBars(world, camera, conn, controls) {
 			}
 		};
 		var mesh = new THREE.Mesh(geometry, BAR_MATERIAL);
-		//https://github.com/mrdoob/three.js/issues/910
-		mesh.rotation.set(Math.PI/2, Math.PI/4, Math.PI/4); // Set initial rotation
-		mesh.matrix.setRotationFromEuler(mesh.rotation); // Apply rotation to the object's matrix
-
-		rotation_matrix = new THREE.Matrix4().makeRotationX(.01); // Animated rotation will be in .01 radians along object's X axis
-		// Update the object's rotation & apply it
-		rotation_matrix.multiplySelf(mesh.matrix);
-		mesh.rotation.setRotationFromMatrix(rotation_matrix);
 
 		return mesh;
 	}
@@ -87,7 +125,7 @@ function HealthBars(world, camera, conn, controls) {
 		curMeshes.forEach(world.removeFromScene);
 		curMeshes = [];
 
-		function makeAndAdd(info) { curMeshes.push(makeHPMesh(info)); }
+		function makeAndAdd(info) { curMeshes.push(makeHPMesh(info, controlState)); }
 
 		world.getEntityInfos().forEach(makeAndAdd);
 
