@@ -33,7 +33,7 @@ function HealthBars(world, camera, conn, controls) {
 		userNameLbl.color("white");
 		userNameLbl.font("Verdana");
 		userNameLbl.wrap(true);
-		userNameLbl.maxFontSize(35);
+		userNameLbl.maxFontSize(50);
 		userNameLbl.align("center");
 		userNameLbl.lineSpacing(1);
 		//userNameLbl.optimalWidth(40);
