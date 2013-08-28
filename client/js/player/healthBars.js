@@ -16,29 +16,41 @@ function HealthBars(world, camera, conn, controls) {
 	function makeHPMesh(info, controlState) {
 		// create a canvas element
 		var canvas1 = document.createElement('canvas');
-		canvas1.width = 300;
-		canvas1.height = 60;
+		canvas1.width = 600;
+		canvas1.height = 120;
 		var ctx = canvas1.getContext('2d');
 
 		//Background
 		ctx.fillStyle = "rgba(87, 87, 87, 0.6)"; //grey
-		ctx.fillRect(0, 10, 300, 40);
+		ctx.fillRect(0, 20, 600, 80);
 
 		//Username
-		ctx.fillStyle = "white";
-		ctx.font = "20px Verdana";
-		ctx.fillText(info.id, 20, 36);
+		//ctx.fillStyle = "white";
+		//ctx.font = "20px Verdana";
+		//ctx.fillText(info.id, 20, 36);
+		var userNameLbl = new Text();
+		userNameLbl.text(info.id);
+		userNameLbl.color("white");
+		userNameLbl.font("Verdana");
+		userNameLbl.wrap(true);
+		userNameLbl.maxFontSize(35);
+		userNameLbl.align("center");
+		userNameLbl.lineSpacing(1);
+		//userNameLbl.optimalWidth(40);
+		//userNameLbl.optimalHeight(28);
+		userNameLbl.resize(new Rect(20, 25, 190, 70));
+		userNameLbl.draw(ctx);
 
 		//HP bar and fill
 		ctx.fillStyle = "rgba(135, 206, 46, 1)";//green
 		var hpPercent = (info.hp / info.maxHP);
-		ctx.fillRect(90, 20, 200 * hpPercent, 20);
+		ctx.fillRect(230, 40, 350 * hpPercent, 40);
 
 		//HP bar surrounding
-		ctx.lineWidth = 2;
+		ctx.lineWidth = 4;
 		ctx.strokeStyle = "white";
 		ctx.beginPath();
-		ctx.rect(90, 19, 200, 22);
+		ctx.rect(230, 38, 350, 44);
 		ctx.stroke();
 
 		// canvas contents will be used for a texture
@@ -54,9 +66,9 @@ function HealthBars(world, camera, conn, controls) {
 		);
 		var p = info.pos;
 		mesh1.position.set(p.x, p.y + 0.4, p.z);
-		mesh1.scale.x = 1/100;
-		mesh1.scale.y = 1/100;
-		mesh1.scale.z = 1/100;
+		mesh1.scale.x = 1/200;
+		mesh1.scale.y = 1/200;
+		mesh1.scale.z = 1/200;
 
 		var rotVec = {};
 		rotVec.x = -info.pos.x + camera.position.x;
