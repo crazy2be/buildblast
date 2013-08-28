@@ -92,7 +92,7 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	return w.spawns[rand.Intn(l)]
+	return w.spawns[0]
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
