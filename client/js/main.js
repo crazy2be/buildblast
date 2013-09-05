@@ -8,6 +8,9 @@ window.onload = function () {
 		return;
 	}
 
+	//We use this to expose certain variables for test code.
+	window.testExposure = { };
+
 	var conn = new Conn(getWSURI("main/"));
 	var clock = new Clock(conn);
 	var clientID;
@@ -40,6 +43,7 @@ window.onload = function () {
 		var scene = new THREE.Scene();
 		var chunkManager = new ChunkManager(scene, clientID);
 		var world = new World(scene, conn, clock, container, chunkManager);
+		window.testExposure.world = world;
 		world.resize();
 
 		var renderer = new THREE.WebGLRenderer();
