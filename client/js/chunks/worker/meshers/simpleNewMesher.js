@@ -20,7 +20,7 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 
 	function addBlockGeometry(ocX, ocY, ocZ, voxelization) {
 		var noise = [];
-		var ourBlockType = meshCommon.getVoxelatedBlockType(ocX, ocY, ocZ, voxelization, blocks);
+		var ourBlockType = meshCommon.getVoxelatedBlockType(ocX, ocY, ocZ, blocks, voxelization);
 		if (ourBlockType == Block.AIR) return;
 
 		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
@@ -44,7 +44,7 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 				adjacentBlock = meshCommon.getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
 					adjacentBlocks, compZ, voxelization);
 			} else { //In current chunk
-				adjacentBlock = meshCommon.getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], voxelization, blocks);
+				adjacentBlock = meshCommon.getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], blocks, voxelization);
 			}
 
 			if(adjacentBlock == Block.AIR) {

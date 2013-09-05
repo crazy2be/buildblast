@@ -49,7 +49,6 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 		}
 	};
 
-	//Call .block before this to insure the block coords.
 	self.setBlock = function setBlock(ocX, ocY, ocZ, type) {
 		if (validChunkOffset(ocX, ocY, ocZ)) {
 			blocks[ocX*cw*ch + ocY*cw + ocZ] = type;

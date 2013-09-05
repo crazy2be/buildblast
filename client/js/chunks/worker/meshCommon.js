@@ -32,7 +32,7 @@ var meshCommon = function() {
 		return clamp(val / 2 + 0.5, 0.0, 1.0);
 	}
 
-	meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, voxelization, blocks) {
+	meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, blocks, voxelization) {
 		if(voxelization == 1) {
 			return blocks[
 						ocXStart * CHUNK_WIDTH * CHUNK_HEIGHT +

@@ -128,9 +128,8 @@ function processBlockChange(payload) {
 	var changedChunks = [];
 	changedChunks.push(cc);
 
-	//Takes block coords
-	function invalidate(x, y, z) {
-		coords = worldToChunk(x, y, z);
+	function invalidate(bcX, bcY, bcZ) {
+		coords = worldToChunk(bcX, bcY, bcZ);
 		changedChunks.push(coords.c);
 	}
 

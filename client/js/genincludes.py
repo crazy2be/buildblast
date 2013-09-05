@@ -12,11 +12,11 @@ includes.write("""
 // subdirectories)
 
 (function include(names) {
-    for (var i = 0; i < names.length; i++) {
-        var script = document.createElement('script');
-        script.src = names[i];
-        document.body.appendChild(script);
-    }
+	for (var i = 0; i < names.length; i++) {
+		var script = document.createElement('script');
+		script.src = names[i];
+		document.body.appendChild(script);
+	}
 }([
 """)
 

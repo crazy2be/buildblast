@@ -106,7 +106,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 						ocArr[compZ] = pcZValue;
 
 						var planeBlock;
-						planeBlock = meshCommon.getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], voxelization, blocks);
+						planeBlock = meshCommon.getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], blocks, voxelization);
 
 						plane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
 					}
