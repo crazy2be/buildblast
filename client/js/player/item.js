@@ -64,7 +64,7 @@ Item.realInit = function () {
 	},{
 		name: 'shovel',
 		model: Models.shovel(),
-		action: superShovelAction,
+		action: throttle(shovelAction),
 		icon: 3,
 	},{
 		name: 'pistol',
