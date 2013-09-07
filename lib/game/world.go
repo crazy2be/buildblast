@@ -95,9 +95,8 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	index := rand.Intn(l)
-	index = index + 1
-	return w.spawns[0]
+	//TODO: Stop hardcoding the spawn.
+	return w.spawns[0] //return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
