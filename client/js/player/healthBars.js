@@ -38,7 +38,7 @@ function HealthBars(world, camera, conn, controls) {
 		userNameLbl.lineSpacing(1);
 		//userNameLbl.optimalWidth(40);
 		//userNameLbl.optimalHeight(28);
-		userNameLbl.resize(new Rect(20, 25, 190, 70));
+		userNameLbl.resize(new Rect(20, 25, 170, 70));
 		userNameLbl.draw(ctx);
 
 		//HP bar and fill

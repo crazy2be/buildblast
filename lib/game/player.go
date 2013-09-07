@@ -197,6 +197,10 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
+func (p *Player) Health() int {
+	return p.hp;
+}
+
 func (p *Player) Damage(amount int) {
 	p.hp -= amount
 }

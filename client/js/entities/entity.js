@@ -2,6 +2,7 @@ function Entity(id) {
 	var self = this;
 
 	var pos;
+	var health;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -55,6 +56,14 @@ function Entity(id) {
 		headMesh.rotation.set(newRot.x, newRot.y, newRot.z);
 		var br = bodyMesh.rotation;
 		br.y = newRot.y;
+	};
+
+	self.setHealth = function(newHealth) {
+		health = newHealth;
+	};
+
+	self.health = function() {
+		return health;
 	};
 
 	self.addTo = function (scene) {

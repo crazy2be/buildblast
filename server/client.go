@@ -161,13 +161,14 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityMoved(id string, pos coords.World) {
+func (c *Client) EntityUpdate(id string, pos coords.World, health int) {
 	if id == c.name {
 		return
 	}
 	c.SendLossy(&MsgEntityPosition{
 		ID:  id,
 		Pos: pos,
+		Health: health,
 	})
 }
 

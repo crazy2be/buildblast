@@ -21,6 +21,8 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-position message for entity which does not exist!", id);
 			return;
 		}
+		//Hopefully this can eventually be directly loaded, and then every tick a simple
+		//entity.Update() can be called.
 		entity.setPos(new THREE.Vector3(
 			payload.Pos.X,
 			payload.Pos.Y,
@@ -31,6 +33,7 @@ function EntityManager(scene, conn) {
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
+		entity.setHealth(payload.Health);
 	});
 
 	conn.on('entity-remove', function (payload) {
@@ -61,8 +64,8 @@ function EntityManager(scene, conn) {
 			infos.push({
 				pos: entity.pos(),
 				id: entity.id(),
-				hp: 50,
-				maxHP: 100
+				hp: entity.health(),
+				maxHP: 100 //TODO: Don't hardcode this...
 			});
 		}
 		return infos;

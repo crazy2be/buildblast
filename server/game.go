@@ -152,5 +152,5 @@ func (g *Game) EntityDied(id string, killer string) {
 }
 
 func (g *Game) EntityCreated(id string)                 {}
-func (g *Game) EntityMoved(id string, pos coords.World) {}
+func (g *Game) EntityUpdate(id string, pos coords.World, health int) {}
 func (g *Game) EntityRemoved(id string)                 {}

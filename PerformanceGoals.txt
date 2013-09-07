@@ -2,6 +2,7 @@ PlayerMovement - Player presses controls -> Player's character/view moves
 	1) Speed
 	2) Accuracy
 	3) Smoothness
+(Move > Correct > Smooth)
 
 Speed is the most important for the player, they will "feel" any lag and it will directly correspond to their	gaming experience. Ex, Source engine games feel extremely snappy, and FPSes also feel as if there is almost 0 delay between pressing a button and seeing your player move. A constant delay is important too, but hopefully the delay should be so minor they won't notice if occasionally the game takes 20 milliseconds to respond instead of 10, as it is so incredibly fast anyway.
 
@@ -12,6 +13,7 @@ NonPlayerMovement - Player on other computer presses a button -> Their entity mo
 	1) Accuracy
 	2) Smoothness
 	3) Speed*
+(Correct > Smooth > Move)
 
 "Accuracy" is the most important here. In reality we will put entities in positions in the past, and then furthermore, the server will compensate for this PLUS the delay in sending the commands to the server when it is calculating if we hit anything. The result is if you shoot someone on your client, it should actually shoot them. This means by accuracy I mean client side accuracy, the position of entities on your machine is actually going to be "pretty far" (like 150 milliseconds?) off.
 

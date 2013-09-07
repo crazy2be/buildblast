@@ -9,8 +9,10 @@ import (
 	"buildblast/lib/physics"
 )
 
+//Interface implemented by Player
 type Entity interface {
 	Tick(w *World)
+	Health() int
 	Damage(amount int)
 	Dead() bool
 	Respawn(pos coords.World)
@@ -21,7 +23,7 @@ type Entity interface {
 
 type EntityListener interface {
 	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World)
+	EntityUpdate(id string, pos coords.World, health int)
 	EntityDied(id string, killer string)
 	EntityRemoved(id string)
 }
@@ -62,10 +64,11 @@ func (w *World) Tick() {
 		e.Tick(w)
 		id := e.ID()
 		pos := e.Pos()
+		health := e.Health()
 		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos)
+			listener.EntityUpdate(id, pos, health)
 		}
 	}
 }
