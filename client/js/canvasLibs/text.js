@@ -148,10 +148,10 @@ function Text() {
 		rect = newRect;
 		curFontSize = fontSize;
 
-		if (!shrink) return fitText(newRect.clone());
+		if (!shrink) return measureText(newRect.clone());
 
 		while (true) {
-			var fittedRect = fitText(newRect.clone());
+			var fittedRect = measureText(newRect.clone());
 			if (fittedRect.w <= newRect.w && fittedRect.h <= newRect.h) {
 				usedHeight = fittedRect.h;
 				return;
@@ -166,7 +166,7 @@ function Text() {
 	self.optimalHeight = function (width) {
 		var rect = new Rect(0, 0, width, 0);
 		curFontSize = fontSize;
-		rect = fitText(rect);
+		rect = measureText(rect);
 		return rect.h;
 	}
 
@@ -188,18 +188,23 @@ function Text() {
 		return measuredRect.width + 1;
 	}
 
-	function fitText (rect) {
+	function measureText (rect) {
 		c.font = makeFont();
 		if (wrap) {
+			//TODO: Stop messing up our internal state here...
 			lines = getLines(c, text, rect.w);
+
 			rect.h = lineHeight() * lines.length;
+			rect.w = 0;
+			lines.forEach(function (line) {
+				rect.w = Math.max(rect.w, c.measureText(line).width);
+			});
 			return rect;
 		} else {
 			rect.h = lineHeight();
 			rect.w = c.measureText(text).width;
 			return rect;
 		}
-
 	}
 
 	var curFont = "Verdana";
