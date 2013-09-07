@@ -41,10 +41,15 @@ window.onload = function () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var chunkManager = new ChunkManager(scene, clientID);
-		var world = new World(scene, conn, clock, container, chunkManager);
+		var world = new World(scene, conn, clock, container, clientID);
+
+		var controls = new Controls(container);
+		var player = new Player(world, conn, clock, controls);
+		var chat = new Chat(controls, conn, container);
+
+		window.testExposure.player = player;
 		window.testExposure.world = world;
-		world.resize();
+		player.resize();
 
 		var renderer = new THREE.WebGLRenderer();
 		renderer.setSize(window.innerWidth, window.innerHeight);
@@ -76,9 +81,13 @@ window.onload = function () {
 			var newTime = clock.time();
 			var dt = newTime - previousTime;
 			previousTime = newTime;
+
 			conn.update();
-			world.update(dt);
-			world.render(renderer, scene);
+			world.update(dt, player);
+			player.update(dt);
+			chat.update(dt);
+
+			player.render(renderer, scene);
 			speed.addDataPoint(dt);
 
 			if (fatalErrorTriggered) return;

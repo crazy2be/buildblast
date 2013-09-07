@@ -1,4 +1,4 @@
-function World(scene, conn, clock, container, chunkManager) {
+function World(scene, conn, clock, container, clientID) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -9,14 +9,10 @@ function World(scene, conn, clock, container, chunkManager) {
 		scene.remove(mesh);
 	};
 
-	var controls = new Controls(container);
-	var player = new Player(self, conn, clock, controls);
-	var chat = new Chat(controls, conn, container);
-
+	var chunkManager = new ChunkManager(scene, clientID);
 	var entityManager = new EntityManager(scene, conn);
 	self.getEntityInfos = entityManager.getEntityInfos;
 
-	window.testExposure.player = player;
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
@@ -30,14 +26,9 @@ function World(scene, conn, clock, container, chunkManager) {
 		self.addSmallCube(pos);
 	}
 
-	self.update = function (dt) {
-		player.update(dt);
+	self.update = function (dt, player) {
 		chunkManager.update(dt, player.pos());
-		chat.update(dt);
 	};
-
-	self.render = player.render;
-	self.resize = player.resize;
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
 	var smallCubeMat = new THREE.MeshNormalMaterial();
