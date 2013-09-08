@@ -25,9 +25,6 @@ function HealthBars(world, camera, conn, controls) {
 		ctx.fillRect(0, 20, 600, 80);
 
 		//Username
-		//ctx.fillStyle = "white";
-		//ctx.font = "20px Verdana";
-		//ctx.fillText(info.id, 20, 36);
 		var userNameLbl = new Text();
 		userNameLbl.text(info.id);
 		userNameLbl.color("white");
@@ -36,8 +33,6 @@ function HealthBars(world, camera, conn, controls) {
 		userNameLbl.maxFontSize(50);
 		userNameLbl.align("center");
 		userNameLbl.lineSpacing(1);
-		//userNameLbl.optimalWidth(40);
-		//userNameLbl.optimalHeight(28);
 		userNameLbl.resize(new Rect(20, 25, 170, 70));
 		userNameLbl.draw(ctx);
 
