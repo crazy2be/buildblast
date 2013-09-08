@@ -159,9 +159,6 @@ func (c *Client) EntityCreated(id string) {
 }
 
 func (c *Client) EntityUpdate(id string, pos coords.World, health int) {
-	if id == c.name {
-		return
-	}
 	c.SendLossy(&MsgEntityPosition{
 		ID:  id,
 		Pos: pos,
@@ -172,9 +169,6 @@ func (c *Client) EntityUpdate(id string, pos coords.World, health int) {
 func (c *Client) EntityDied(id string, killer string) {}
 
 func (c *Client) EntityRemoved(id string) {
-	if id == c.name {
-		return
-	}
 	c.Send(&MsgEntityRemove{
 		ID: id,
 	})
