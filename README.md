@@ -20,6 +20,17 @@ To play,
 	./runserver
 	google-chrome http://localhost:8080
 
+Architecture (client side)
+---------------
+The architecture is based on a few fairly simple structures, which communicate through a few objects (similar to http://yuml.me/d5f4fb7b). Specifically:
+- **container**: Just a div in the html, we use this to hook up the actual rendering. There are some hardcoded elements in this, which we hook up to to give THREE.js a place to render (amoung other things).
+- **Conn**: A wrapper for a WebSocket, used to communicate to the server.
+- **Scene**: A THREE.Scene, this holds all the meshes and models which THREE.js will render.
+- **ChunkManager**: Manages the chunks (of blocks), and handles adding and removing them from the THREE.Scene.
+- **EntityManager**: Manages the entities (players for now, in the future hopefully more) and add/removes them from the THREE.Scene.
+- **World**: Holds both the ChunkManager and EntityManager and provides useful logic to interface with them. Can directly expose blocks but also provides most of the helper functions you should need.
+- **Player**: Should probably be called _UserInterface_. Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
+
 Coordinate Systems
 ----------------------------
 We use two main coordinates systems in the code:
