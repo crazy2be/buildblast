@@ -60,6 +60,9 @@ func NewWorld(seed float64) *World {
 
 func (w *World) Tick() {
 	w.generationTick()
+	//For all entities, send as message to all entityListeners.
+	//This is the core of the whole scaling problem with any multiplayer game,
+	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
 		id := e.ID()

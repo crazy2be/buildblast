@@ -68,21 +68,32 @@ function Player(world, conn, clock, container) {
 		var controlState = controls.sample();
 
 		var playerPos = prediction.update(controlState);
-		var p = playerPos;
-		camera.position.set(p.x, p.y, p.z);
 
-		doLook(camera, camera.position, controlState);
+		var camPos = playerPos;
+		if(localStorage.thirdPerson) {
+			var target = getTarget(camPos, controlState);
+			var look = target.clone().sub(camPos);
+			look.setLength(3);
+			camPos.sub(look);
+		}
+		camera.position.set(camPos.x, camPos.y, camPos.z);
+
+		doLook(camera, camPos, controlState);
 		inventory.update(playerPos, controlState);
 		healthBars.update(playerPos, controlState);
 
 		speed.addDataPoint(dt);
 	};
 
-	function doLook(camera, p, c) {
+	function getTarget(p, c) {
 		var target = new THREE.Vector3();
 		target.x = p.x + sin(c.lat) * cos(c.lon);
 		target.y = p.y + cos(c.lat);
 		target.z = p.z + sin(c.lat) * sin(c.lon);
-		camera.lookAt(target);
+		return target;
+	}
+
+	function doLook(camera, p, c) {
+		camera.lookAt(getTarget(p, c));
 	}
 };

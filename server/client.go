@@ -126,15 +126,16 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
+	//Tell the client about all the other entities
 	for _, id := range w.GetEntityIDs() {
-		c.Send(&MsgEntityCreate{
-			ID: id,
-		})
+		c.EntityCreated(id);
 	}
 
-	w.AddEntity(p)
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
+
+	//After AddEntityListener, so they get the entity create of their own entity
+	w.AddEntity(p)
 
 	c.player = p
 	c.Send(&MsgInventoryState{
