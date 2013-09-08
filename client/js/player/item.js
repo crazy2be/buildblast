@@ -52,13 +52,13 @@ Item.realInit = function () {
 	},{
 		name: 'dirt',
 		model: Models.block(),
-		action: throttle(blockAction, Block.DIRT),
+		action: throttle(blockAction(Block.DIRT)),
 		stackable: true,
 		icon: 1,
 	},{
 		name: 'stone',
 		model: Models.stone(),
-		action: throttle(blockAction, Block.STONE),
+		action: throttle(blockAction(Block.STONE)),
 		stackable: true,
 		icon: 2,
 	},{
@@ -74,12 +74,12 @@ Item.realInit = function () {
 	}
 	];
 
-	function throttle(func, param) {
+	function throttle(func) {
 		var t = Date.now();
 		return function (world, camera) {
 			var t2 = Date.now();
 			if (t2 - t > 200) {
-				func(world, camera, param);
+				func(world, camera);
 				t = t2;
 			}
 		};
@@ -95,14 +95,25 @@ Item.realInit = function () {
 	}
 
 	function shovelAction(world, camera) {
-		var bc = world.getLookedAtBlock(camera);
+		var bc = world.findLookedAtBlock(camera);
 		if (!bc) return;
 		world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 	}
-
-	function blockAction(world, camera, block) {
-		var bc = world.getLookedAtBlock(camera, true);
-		if (!bc) return;
-		world.changeBlock(bc.x, bc.y, bc.z, block);
+	
+	function superShovelAction(world, camera) {
+		var center = world.findLookedAtBlock(camera);
+		for (var x = 0; x < 10; x++) {
+			for (var y = 0; y < 10; y++) {
+				for (var z = 0; z < 10; z++) {
+					world.changeBlock(center.x + x, center.y + y, center.z + z, Block.AIR);
+				}
+			}
+		}
+	}
+	
+	function blockAction(block) {
+		return function (world, camera) {
+			world.addLookedAtBlock(camera, block);
+		};
 	}
 }
