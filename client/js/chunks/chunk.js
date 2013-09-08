@@ -1,29 +1,33 @@
 var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
-	vertexColors: THREE.VertexColors,
+	vertexColors: true,
 });
 
-function Chunk(blocks, geometries, scene, quality) {
+function Chunk(blocks, geometries, scene, voxelization) {
 	var self = this;
-	var cq = CHUNK_QUALITIES;
+
 	var meshes = {};
-	for (var i = 0; i < CHUNK_QUALITIES.length; i++) {
+	for (var i = 0; i < CHUNK_VOXELIZATIONS.length; i++) {
 		var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-		meshes[cq[i]] = mesh;
+		meshes[CHUNK_VOXELIZATIONS[i]] = mesh;
 	}
 
 	self.remove = function () {
-		scene.remove(meshes[quality]);
+		scene.remove(meshes[voxelization]);
 	};
 
 	self.add = function () {
-		scene.add(meshes[quality]);
+		scene.add(meshes[voxelization]);
 	};
 
-	self.setQuality = function (newQuality) {
+	self.setVoxelization = function (newVoxelization) {
 		self.remove();
-		quality = newQuality;
+		voxelization = newVoxelization;
 		self.add();
 	};
+
+	self.voxelization = function() {
+		return voxelization;
+	}
 
 	self.block = function (oc) {
 		if (validChunkOffset(oc.x, oc.y, oc.z)) {
@@ -39,5 +43,9 @@ function Chunk(blocks, geometries, scene, quality) {
 		} else {
 			throw "block coords out of bounds: " + oc;
 		}
+	};
+
+	self.testExposure = {
+		blocks: blocks
 	};
 }

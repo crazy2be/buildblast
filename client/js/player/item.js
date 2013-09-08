@@ -95,10 +95,14 @@ Item.realInit = function () {
 	}
 
 	function shovelAction(world, camera) {
-		world.removeLookedAtBlock(camera);
+		var bc = world.getLookedAtBlock(camera);
+		if (!bc) return;
+		world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 	}
 
 	function blockAction(world, camera, block) {
-		world.addLookedAtBlock(camera, block);
+		var bc = world.getLookedAtBlock(camera, true);
+		if (!bc) return;
+		world.changeBlock(bc.x, bc.y, bc.z, block);
 	}
 }

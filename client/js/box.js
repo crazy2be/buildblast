@@ -85,12 +85,12 @@ function Box(p, halfExtents, centerOffset) {
 	}
 
 	function inSolid(world) {
-		function solid(x, y, z) {
+		function solidHere(x, y, z) {
 			var block = world.blockAt(x, y, z);
 			if (!block) return true;
 			else return block.solid();
 		}
-		return bboxEach(solid, logicalOr);
+		return bboxEach(solidHere, logicalOr);
 	}
 
 	function groundHeight(world) {
