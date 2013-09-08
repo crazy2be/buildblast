@@ -6,8 +6,6 @@
 function HealthBars(world, camera, conn, controls) {
 	var self = this;
 
-	var throttle = 0;
-
 	var BAR_MATERIAL = new THREE.MeshBasicMaterial({
 		vertexColors: true
 	});

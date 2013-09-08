@@ -96,6 +96,8 @@ func (w *World) findSpawn() coords.World {
 		}
 	}
 	//TODO: Stop hardcoding the spawn.
+	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
+	index = index + 1
 	return w.spawns[0] //return w.spawns[rand.Intn(l)];
 }
 
