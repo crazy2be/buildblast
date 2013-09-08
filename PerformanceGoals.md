@@ -72,3 +72,8 @@ Player mines a block -> They see the block be remove / Other people see the bloc
 	2. Wait until data it received
 	3. Wait until changes are drawn
 - Speed for other (same, but place/remove block(s) on other user)
+
+Refs
+----
+- https://developer.valvesoftware.com/wiki/Lag_compensation
+- https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
