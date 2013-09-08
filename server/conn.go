@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"time"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -31,16 +30,9 @@ func (c *Conn) Send(m Message) error {
 		return fmt.Errorf("marshalling websocket message: %s", err)
 	}
 
-	start := time.Now().UnixNano() / 1e6
-
 	err = websocket.JSON.Send(c.ws, cm)
 	if err != nil {
 		return fmt.Errorf("sending websocket message: %s", err)
-	}
-
-	end := time.Now().UnixNano()/1e6 - start
-	if end > 10 {
-		log.Println("That took", end, "ms to send")
 	}
 
 	return nil
@@ -60,8 +52,12 @@ func (c *Conn) Recv() (Message, error) {
 	err = json.Unmarshal(cm.Payload, &m)
 	if err != nil {
 		log.Println(cm.Payload)
-		return nil, fmt.Errorf("unmarshalling websocket message: %s", err)
+		return nil, fmt.Errorf("unmarshalling websocket message of kind %s: %s (value: %s)", cm.Kind, err, string(cm.Payload))
 	}
 
 	return m, nil
+}
+
+func (c *Conn) Close() error {
+	return c.ws.Close()
 }
