@@ -1,4 +1,4 @@
-function World(scene, conn, clock, container, clientID) {
+function World(scene, conn, clientID) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -16,9 +16,6 @@ function World(scene, conn, clock, container, clientID) {
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
-	var ambientLight = new THREE.AmbientLight(0xffffff);
-	scene.add(ambientLight);
-
 	conn.on('debug-ray', processRay);
 
 	function processRay(payload) {
@@ -26,8 +23,8 @@ function World(scene, conn, clock, container, clientID) {
 		self.addSmallCube(pos);
 	}
 
-	self.update = function (dt, player) {
-		chunkManager.update(dt, player.pos());
+	self.update = function (dt, playerPos) {
+		chunkManager.update(dt, playerPos);
 	};
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);

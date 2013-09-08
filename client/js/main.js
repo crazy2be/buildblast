@@ -11,6 +11,7 @@ window.onload = function () {
 	//We use this to expose certain variables for test code.
 	window.testExposure = { };
 
+	//Connect to server and shake our hands.
 	var conn = new Conn(getWSURI("main/"));
 	var clock = new Clock(conn);
 	var clientID;
@@ -41,41 +42,18 @@ window.onload = function () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var world = new World(scene, conn, clock, container, clientID);
+		var ambientLight = new THREE.AmbientLight(0xffffff);
+		scene.add(ambientLight);
 
-		var controls = new Controls(container);
-		var player = new Player(world, conn, clock, controls);
-		var chat = new Chat(controls, conn, container);
+		var world = new World(scene, conn, clientID);
+
+		var player = new Player(world, conn, clock, container);
 
 		window.testExposure.player = player;
 		window.testExposure.world = world;
-		player.resize();
-
-		var renderer = new THREE.WebGLRenderer();
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
-		container.querySelector('#opengl').appendChild(renderer.domElement);
-		document.querySelector('#splash h1').innerHTML = 'Click to play!';
-
-		var speed = new PerfChart({
-			title: ' render',
-			maxValue: 50,
-		});
-		speed.elm.style.position = 'absolute';
-		speed.elm.style.top = '74px';
-		speed.elm.style.right = '0px';
-		container.appendChild(speed.elm);
-
-		window.addEventListener('resize', onWindowResize, false);
-
-		animate();
-
-		function onWindowResize() {
-			world.resize();
-			renderer.setSize(window.innerWidth, window.innerHeight);
-		}
 
 		var previousTime = clock.time();
+		animate();
 		function animate() {
 			clock.update();
 			var newTime = clock.time();
@@ -83,12 +61,13 @@ window.onload = function () {
 			previousTime = newTime;
 
 			conn.update();
-			world.update(dt, player);
-			player.update(dt);
-			chat.update(dt);
+			//Unfortunately this means our data relies partially on having a Player.
+			//Think of this as an optimization, if our data focuses on where our Player is looking,
+			//it can more efficiently handle queries.
+			world.update(dt, player.pos());
 
-			player.render(renderer, scene);
-			speed.addDataPoint(dt);
+			player.update(dt);
+			player.render(scene);
 
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
