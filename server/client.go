@@ -153,9 +153,6 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 }
 
 func (c *Client) EntityCreated(id string) {
-	if id == c.name {
-		return
-	}
 	c.Send(&MsgEntityCreate{
 		ID: id,
 	})
