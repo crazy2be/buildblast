@@ -11,7 +11,7 @@ function Inventory(world, camera, conn, controls) {
 	var rightIsPrimary = true;
 
 	function getEquippedSlot(isLeft, isPrimary) {
-		index = BAG_SIZE;
+		var index = BAG_SIZE;
 		if (!isLeft) index += 2;
 		if (!isPrimary) index += 1;
 		return index;
@@ -46,13 +46,14 @@ function Inventory(world, camera, conn, controls) {
 			slots[i / 2] = new Stack(new Item(items[i]), items[i + 1]);
 		}
 
-		updateEquipped(oldLeft, oldRight);
+		updateModels();
 		updateHtmlItemIcons();
 	});
 
 	function bagHtmlInit() {
 		var html = "";
 		var classList;
+		// TODO: This should probably be a table.
 		for (var y = 0; y < 5; y++) {
 			for (var x = 0; x < 5; x++) {
 				classList = "slot";
@@ -150,22 +151,9 @@ function Inventory(world, camera, conn, controls) {
 		}
 	}
 
-
-	function updateEquipped(oldLeft, oldRight) {
-		if (slots.length === 0) return;
-
-		if (oldLeft !== null) {
-			leftInventoryModel.setModel(leftStack().model);
-		}
-
-		if (oldRight !== null) {
-			rightInventoryModel.setModel(rightStack().model);
-		}
-
-		conn.queue('inventory-state', {
-			ItemLeft: getEquippedSlot(true, leftIsPrimary),
-			ItemRight: getEquippedSlot(false, rightIsPrimary),
-		});
+	function updateModels() {
+		leftInventoryModel.setModel(leftStack().model);
+		rightInventoryModel.setModel(rightStack().model);
 	}
 
 	function updateBagVisibility() {
@@ -220,23 +208,24 @@ function Inventory(world, camera, conn, controls) {
 			var side = isLeft ? "Left" : "Right";
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
-			var stack = isLeft ? leftStack() : rightStack();
 
 			var swapDown = c[swapTrigger];
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
-				updateEquipped(isLeft ? stack : null,
-							   isLeft ? null : stack);
+				updateModels();
+				conn.queue('inventory-state', {
+					ItemLeft: getEquippedSlot(true, leftIsPrimary),
+					ItemRight: getEquippedSlot(false, rightIsPrimary),
+				});
 				updateHtmlEquipChanged(isLeft);
-				stack = isLeft ? leftStack() : rightStack();
 			}
 			
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
 			invModel.update(playerPosition, c.lat, c.lon);
 
 			if (c[activateTrigger]) {
-				activateStack(stack);
+				activateStack(isLeft ? leftStack() : rightStack());
 			}
 
 			return swapDown;
@@ -244,7 +233,8 @@ function Inventory(world, camera, conn, controls) {
 	};
 }
 
-// side: 1 for left; -1 for right.
+// Represents a 3d model (corresponding to some inventory item).
+// leftward: 1 for left; -1 for right.
 function InventoryModel(world, model, leftward) {
 	var self = this;
 	self.update = function (playerPos, lat, lon) {
