@@ -146,18 +146,17 @@ function Inventory(world, camera, conn, controls) {
 		for (var i = 0; i < NUM_SLOTS; i++) {
 			var stack = slots[i];
 			var stackElm = $(".slot[index="+i+"]").children("div");
-			stackElm.css("background-position", stack.item.icon()*-64 + "px 0");
-			updateStackSize(stack, stackElm);
+			updateIcon(stackElm, stack.item.icon());
+			updateStackSize(stackElm, stack.item.stackable());
+		}
+		function updateIcon(stackElm, icon) {
+			stackElm.css("background-position", icon*-64 + "px 0");
+		}
+		function updateStackSize(stackElm, stackable) {
+			stackElm.children(".stack-size").text(stackable ? stack.num : "");
 		}
 	}
 
-	function updateStackSize(stack, $elm) {
-		if (stack.item.stackable()) {
-			$elm.children(".stack-size").text(stack.num);
-		} else {
-			$elm.children(".stack-size").text("");
-		}
-	}
 
 	function updateEquipped(oldLeft, oldRight) {
 		if (slots.length === 0) return;
@@ -199,34 +198,33 @@ function Inventory(world, camera, conn, controls) {
 		return oldStack.type === newStack.type;
 	}
 
-	function pointItem(model, c) {
+	function pointItem(model, lat, lon) {
 		var p = model.position;
 		var target = new THREE.Vector3();
-		target.x = p.x + sin(c.lat) * cos(c.lon);
-		target.y = p.y + cos(c.lat);
-		target.z = p.z + sin(c.lat) * sin(c.lon);
+		target.x = p.x + sin(lat) * cos(lon);
+		target.y = p.y + cos(lat);
+		target.z = p.z + sin(lat) * sin(lon);
 		model.lookAt(target);
 	}
 
-	function positionItem(model, playerPos, c) {
-		var pp = playerPos;
-		var ip = model.position;
-
+	function positionItem(model, playerPos, lat, lon) {
 		// http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-		var theta = c.lat - 0.5;
-		var phi = c.lon;
 		var r = 0.15;
+		var theta = lat - 0.5;
+		var phi = lon;
 		var offset = sphericalToCartesian(r, theta, phi);
-		ip.copy(pp).add(offset);
+		
+		model.position.copy(playerPos).add(offset);
+		
+		function sphericalToCartesian(r, theta, phi) {
+			return new THREE.Vector3(
+				r*sin(theta)*cos(phi),
+				r*cos(theta),
+				r*sin(theta)*sin(phi)
+			);
+		}
 	}
 
-	function sphericalToCartesian(r, theta, phi) {
-		return new THREE.Vector3(
-			r*sin(theta)*cos(phi),
-			r*cos(theta),
-			r*sin(theta)*sin(phi)
-		);
-	}
 
 	function postitionPerspective(model, leftward) {
 		var p = model.position;
@@ -242,8 +240,8 @@ function Inventory(world, camera, conn, controls) {
 		p.add(mov);
 	}
 
-	var leftOffset = { x: Math.random(), z: Math.random() };
-	var rightOffset = { x: Math.random(), z: Math.random() };
+	var leftOffset = new THREE.Vector3(Math.random(), 0, Math.random());
+	var rightOffset = new THREE.Vector3(Math.random(), 0, Math.random());
 	function addJitter(model, values) {
 		values.x += Math.random() / 30;
 		values.z += Math.random() / 30;
@@ -290,13 +288,6 @@ function Inventory(world, camera, conn, controls) {
 			var stack = isLeft ? leftStack() : rightStack();
 			var itemModel = stack.model;
 
-			if (itemModel !== null) {
-				pointItem(itemModel, c);
-				positionItem(itemModel, p, c);
-				postitionPerspective(itemModel, pos);
-				addJitter(itemModel, offset);
-			}
-
 			var swapDown = c[swapTrigger];
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
@@ -304,6 +295,13 @@ function Inventory(world, camera, conn, controls) {
 				updateEquipped((isLeft ? stack : null),
 							   (isLeft ? null : stack));
 				updateHtmlEquipChanged(isLeft);
+			}
+
+			if (itemModel !== null) {
+				pointItem(itemModel, c.lat, c.lon);
+				positionItem(itemModel, p, c.lat, c.lon);
+				postitionPerspective(itemModel, pos);
+				addJitter(itemModel, offset);
 			}
 
 			if (c[activateTrigger]) {
