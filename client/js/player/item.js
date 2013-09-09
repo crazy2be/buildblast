@@ -113,7 +113,9 @@ Item.realInit = function () {
 	
 	function blockAction(block) {
 		return function (world, camera) {
-			world.addLookedAtBlock(camera, block);
+			var bc = world.findLookedAtBlock(camera, true);
+			if (!bc) return;
+			world.changeBlock(bc.x, bc.y, bc.z, block);
 		};
 	}
 }
