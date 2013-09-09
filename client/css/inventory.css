@@ -12,13 +12,19 @@
 	width: 338px;
 	height: 338px;
 }
-#inventory div.slot {
+#inventory .slot {
 	position: relative;
 	display: inline-block;
 	width: 70px;
 	height: 70px;
 	background: rgba(255, 255, 255, 0.4);
 	border: 3px solid rgba(50, 50, 50, 1);
+}
+#inventory .slot.has-left-sibling {
+	margin-left: -3px;
+}
+#inventory .slot.has-top-sibling {
+	margin-top: -3px;
 }
 span.stack-size {
 	position: absolute;
@@ -34,12 +40,6 @@ div.helper {
 	background-position: 0px 0;
 	width: 64px;
 	height: 64px;
-}
-#inventory #bag div.has-left-sibling {
-	margin-left: -3px;
-}
-#inventory #bag div.has-top-sibling {
-	margin-top: -3px;
 }
 #inventory div.left {
 	float: left;

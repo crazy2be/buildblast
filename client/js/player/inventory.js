@@ -32,30 +32,23 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(false);
 
 	conn.on('inventory-state', function (payload) {
-		// Decode from the string
 		var items = new Uint8Array(payload.Items.length);
 		for (var i = 0; i < items.length; i++) {
 			items[i] = payload.Items.charCodeAt(i) - 32;
 		}
 
-		// Create the item array, track if it changed
 		var oldLeft = leftStack();
 		var oldRight = rightStack();
 
 		slots = [];
 		for (var i = 0; i < items.length; i += 2) {
+			// Data is packed as NUM_SLOTS*(itemID, itemStackSize) tuples.
 			slots[i / 2] = new Stack(new Item(items[i]), items[i + 1]);
 		}
 
 		updateEquipped(oldLeft, oldRight);
 		updateHtmlItemIcons();
 	});
-
-	var aspectRatio = 1.0;
-
-	self.resize = function () {
-		aspectRatio = window.innerWidth / window.innerHeight;
-	};
 
 	function bagHtmlInit() {
 		var html = "";
@@ -162,11 +155,11 @@ function Inventory(world, camera, conn, controls) {
 		if (slots.length === 0) return;
 
 		if (oldLeft !== null) {
-			swapModels(oldLeft, leftStack());
+			leftInventoryModel.setModel(leftStack().model);
 		}
 
 		if (oldRight !== null) {
-			swapModels(oldRight, rightStack());
+			rightInventoryModel.setModel(rightStack().model);
 		}
 
 		conn.queue('inventory-state', {
@@ -186,72 +179,16 @@ function Inventory(world, camera, conn, controls) {
 		}
 	}
 
-	function swapModels(oldStack, newStack) {
-		if (oldStack.model !== null) {
-			world.removeFromScene(oldStack.model);
-		}
-		var model = newStack.model;
-		if (model !== null) {
-			model.scale.set(1/16, 1/16, 1/16);
-			world.addToScene(model);
-		}
-		return oldStack.type === newStack.type;
-	}
-
-	function pointItem(model, lat, lon) {
-		var p = model.position;
-		var target = new THREE.Vector3();
-		target.x = p.x + sin(lat) * cos(lon);
-		target.y = p.y + cos(lat);
-		target.z = p.z + sin(lat) * sin(lon);
-		model.lookAt(target);
-	}
-
-	function positionItem(model, playerPos, lat, lon) {
-		// http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
-		var r = 0.15;
-		var theta = lat - 0.5;
-		var phi = lon;
-		var offset = sphericalToCartesian(r, theta, phi);
-		
-		model.position.copy(playerPos).add(offset);
-		
-		function sphericalToCartesian(r, theta, phi) {
-			return new THREE.Vector3(
-				r*sin(theta)*cos(phi),
-				r*cos(theta),
-				r*sin(theta)*sin(phi)
-			);
-		}
-	}
-
-
-	function postitionPerspective(model, leftward) {
-		var p = model.position;
-		var r = new THREE.Matrix4();
-		r.setRotationFromEuler(model.rotation, model.eulerOrder);
-
-		var amount = leftward * aspectRatio * 0.05;
-
-		// Move left / right
-		var mov = new THREE.Vector3(amount, 0, 0);
-		mov.applyMatrix3(r);
-
-		p.add(mov);
-	}
-
-	var leftOffset = new THREE.Vector3(Math.random(), 0, Math.random());
-	var rightOffset = new THREE.Vector3(Math.random(), 0, Math.random());
-	function addJitter(model, values) {
-		values.x += Math.random() / 30;
-		values.z += Math.random() / 30;
-		model.position.x += Math.sin(values.x) / 400;
-		model.position.z += Math.sin(values.z) / 400;
-	}
+	self.resize = function () {
+		leftInventoryModel.resize();
+		rightInventoryModel.resize();
+	};
 
 	var swapLeftWasDown = false;
 	var swapRightWasDown = false;
 	var toggleBagWasDown = false;
+	var leftInventoryModel = new InventoryModel(world, null, 1);
+	var rightInventoryModel = new InventoryModel(world, null, -1);
 	self.update = function (playerPosition, controlState) {
 		if (slots.length === 0) return;
 		var p = playerPosition;
@@ -279,8 +216,6 @@ function Inventory(world, camera, conn, controls) {
 		}
 
 		function updateSide(isLeft) {
-			var pos = isLeft ? 1 : -1;
-			var offset = isLeft ? leftOffset : rightOffset;
 			var swapWasDown = isLeft ? swapLeftWasDown : swapRightWasDown;
 			var side = isLeft ? "Left" : "Right";
 			var swapTrigger = "swap" + side;
@@ -296,14 +231,9 @@ function Inventory(world, camera, conn, controls) {
 				updateHtmlEquipChanged(isLeft);
 				stack = isLeft ? leftStack() : rightStack();
 			}
-
-			var itemModel = stack.model;
-			if (itemModel !== null) {
-				pointItem(itemModel, c.lat, c.lon);
-				positionItem(itemModel, p, c.lat, c.lon);
-				postitionPerspective(itemModel, pos);
-				addJitter(itemModel, offset);
-			}
+			
+			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
+			invModel.update(playerPosition, c.lat, c.lon);
 
 			if (c[activateTrigger]) {
 				activateStack(stack);
@@ -312,6 +242,81 @@ function Inventory(world, camera, conn, controls) {
 			return swapDown;
 		};
 	};
+}
+
+// side: 1 for left; -1 for right.
+function InventoryModel(world, model, leftward) {
+	var self = this;
+	self.update = function (playerPos, lat, lon) {
+		pointItem(lat, lon);
+		positionItem(playerPos, lat, lon);
+		postitionPerspective();
+		addJitter();
+	}
+	
+	self.setModel = function (newModel) {
+		if (model !== null) {
+			world.removeFromScene(model);
+		}
+		if (newModel === null) return;
+		newModel.scale.set(1/16, 1/16, 1/16);
+		world.addToScene(newModel);
+		model = newModel;
+	}
+	
+	function pointItem(lat, lon) {
+		var p = model.position;
+		var target = new THREE.Vector3();
+		target.x = p.x + sin(lat) * cos(lon);
+		target.y = p.y + cos(lat);
+		target.z = p.z + sin(lat) * sin(lon);
+		model.lookAt(target);
+	}
+
+	function positionItem(playerPos, lat, lon) {
+		// http://www.vias.org/comp_geometry/math_coord_convert_3d.htm
+		var r = 0.15;
+		var theta = lat - 0.5;
+		var phi = lon;
+		var offset = sphericalToCartesian(r, theta, phi);
+		
+		model.position.copy(playerPos).add(offset);
+		
+		function sphericalToCartesian(r, theta, phi) {
+			return new THREE.Vector3(
+				r*sin(theta)*cos(phi),
+				r*cos(theta),
+				r*sin(theta)*sin(phi)
+			);
+		}
+	}
+
+	var aspectRatio = 1.0;
+	self.resize = function () {
+		aspectRatio = window.innerWidth / window.innerHeight;
+	};
+	function postitionPerspective() {
+		var p = model.position;
+		var r = new THREE.Matrix4();
+		r.setRotationFromEuler(model.rotation, model.eulerOrder);
+
+		var amount = leftward * aspectRatio * 0.05;
+
+		// Move left / right
+		var mov = new THREE.Vector3(amount, 0, 0);
+		mov.applyMatrix3(r);
+
+		p.add(mov);
+	}
+
+	var offset = new THREE.Vector3(Math.random(), 0, Math.random());
+	function addJitter() {
+		offset.x += Math.random() / 30;
+		offset.z += Math.random() / 30;
+		model.position.x += Math.sin(offset.x) / 400;
+		model.position.z += Math.sin(offset.z) / 400;
+	}
+
 }
 
 // jQuery UI hack
