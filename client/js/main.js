@@ -47,7 +47,7 @@ window.onload = function () {
 
 		var world = new World(scene, conn, clientID);
 
-		var player = new Player(world, conn, clock, container);
+		var player = new Player(world, conn, clock, container, clientID);
 
 		window.testExposure.player = player;
 		window.testExposure.world = world;

@@ -55,6 +55,11 @@ function EntityManager(scene, conn) {
 		}
 	};
 
+	//I am pretty sure this is okay to have.
+	self.getEntityByID = function (entityID) {
+		return entities[entityID];
+	};
+
 	//Eventually this should probably be more directly exposed
 	//Returns [{pos, hp, maxHP}]
 	self.getEntityInfos = function () {

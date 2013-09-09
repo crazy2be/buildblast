@@ -177,4 +177,9 @@ function World(scene, conn, clientID) {
 		});
 		chunkManager.queueBlockChange(wx, wy, wz, newType);
 	}
+
+	//Not sure if this is okay to have, but it certainly makes things easier for the Player
+	self.getEntityByID = function(entityID) {
+		return entityManager.getEntityByID(entityID);
+	};
 }
