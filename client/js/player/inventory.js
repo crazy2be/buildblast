@@ -286,17 +286,18 @@ function Inventory(world, camera, conn, controls) {
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
 			var stack = isLeft ? leftStack() : rightStack();
-			var itemModel = stack.model;
 
 			var swapDown = c[swapTrigger];
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
-				updateEquipped((isLeft ? stack : null),
-							   (isLeft ? null : stack));
+				updateEquipped(isLeft ? stack : null,
+							   isLeft ? null : stack);
 				updateHtmlEquipChanged(isLeft);
+				stack = isLeft ? leftStack() : rightStack();
 			}
 
+			var itemModel = stack.model;
 			if (itemModel !== null) {
 				pointItem(itemModel, c.lat, c.lon);
 				positionItem(itemModel, p, c.lat, c.lon);
