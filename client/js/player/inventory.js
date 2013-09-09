@@ -1,6 +1,10 @@
 function Inventory(world, camera, conn, controls) {
 	var self = this;
 	var BAG_SIZE = 25;
+	
+	// Including left/right quick inventories.
+	var NUM_SLOTS = BAG_SIZE + 4; 
+	
 	var slots = [];
 
 	var leftIsPrimary = true;
@@ -62,7 +66,7 @@ function Inventory(world, camera, conn, controls) {
 				if (x !== 0) classList += " has-left-sibling";
 				if (y !== 0) classList += " has-top-sibling";
 				html += '<div id="bag' + (y*5 + x) + '" class="' + classList + '" index="' + (y*5 + x) + '">'
-					+ '<div class="helper"><span class="stack"></span></div></div>';
+					+ '<div class="helper"><span class="stack-size"></span></div></div>';
 			}
 		}
 		updateBagVisibility();
@@ -111,8 +115,8 @@ function Inventory(world, camera, conn, controls) {
 
 				ui.draggable.css("visibility", "visible");
 
-				var $fromSpan = ui.draggable.children("span");
-				var $toSpan = $(this).children("div").children("span");
+				var $fromSpan = ui.draggable.children(".stack-size");
+				var $toSpan = $(this).children("div").children(".stack-size");
 				var fromText = $fromSpan.text();
 				$fromSpan.text($toSpan.text());
 				$toSpan.text(fromText);
@@ -139,31 +143,19 @@ function Inventory(world, camera, conn, controls) {
 	}
 
 	function updateHtmlItemIcons() {
-		for (var y = 0; y < 5; y++) {
-			for (var x = 0; x < 5; x++) {
-				var index = y*5 + x;
-				var stack = slots[index];
-				$("#bag" + index + " > div").css("background-position", stack.item.icon() * -64 + "px 0");
-				updateStackSize(stack, $("#bag" + index));
-			}
+		for (var i = 0; i < NUM_SLOTS; i++) {
+			var stack = slots[i];
+			var stackElm = $(".slot[index="+i+"]").children("div");
+			stackElm.css("background-position", stack.item.icon()*-64 + "px 0");
+			updateStackSize(stack, stackElm);
 		}
-
-		// TODO: Fix this shit.
-		$("#leftPrimary > div").css("background-position", slots[BAG_SIZE].item.icon() * -64 + "px 0");
-		$("#leftReserve > div").css("background-position", slots[BAG_SIZE + 1].item.icon() * -64 + "px 0");
-		$("#rightPrimary > div").css("background-position", slots[BAG_SIZE + 2].item.icon() * -64 + "px 0");
-		$("#rightReserve > div").css("background-position", slots[BAG_SIZE + 3].item.icon() * -64 + "px 0");
-		updateStackSize(slots[BAG_SIZE], $("#leftPrimary"));
-		updateStackSize(slots[BAG_SIZE + 1], $("#leftReserve"));
-		updateStackSize(slots[BAG_SIZE + 2], $("#rightPrimary"));
-		updateStackSize(slots[BAG_SIZE + 3], $("#rightReserve"));
 	}
 
 	function updateStackSize(stack, $elm) {
 		if (stack.item.stackable()) {
-			$elm.children("div").children("span").text(stack.num);
+			$elm.children(".stack-size").text(stack.num);
 		} else {
-			$elm.children("div").children("span").text("");
+			$elm.children(".stack-size").text("");
 		}
 	}
 
