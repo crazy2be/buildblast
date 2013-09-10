@@ -3,11 +3,16 @@
 var parent = self;
 
 importScripts(
-	'block.js',
-	'common.js',
-	'geometry.js',
+	'../block.js',
+	'../common.js',
+	'meshCommon.js',
+	'meshers/simpleMesher.js',
+	'meshers/simpleNewMesher.js',
+	'meshers/greedyMesher.js',
+	'chunkGeometry.js',
 	'noise.js',
-	'../conn.js'
+	'../../conn.js',
+	'workerChunkManager.js'
 );
 
 console = {};
@@ -34,13 +39,14 @@ function sendChunk() {
 			blocks: chunk.blocks,
 			ccpos: chunk.cc,
 			geometries: res.geometries,
-			quality: chunk.quality,
+			voxelization: chunk.voxelization,
 		}
 	}, res.transferables);
 	chunk.loaded = true;
 	chunk.changed = false;
 }
 
+//This means we only update added and removed chunks 1000 / this rate per second.
 setInterval(sendChunk, 50);
 
 parent.onmessage = function (e) {
@@ -61,7 +67,7 @@ function initConn(payload) {
 	conn.on('block', processBlockChange);
 }
 
-var manager = new ChunkManager();
+var manager = new WorkerChunkManager();
 
 function processChunk(payload) {
 	var size = payload.Size;
@@ -79,6 +85,9 @@ function processChunk(payload) {
 	};
 	var data = payload.Data;
 
+	//Blocks are Block Types (see block.js)
+	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
+	//into indices in this array.
 	var blocks = new Uint8Array(data.length);
 	for (var i = 0; i < blocks.length; i++) {
 		// 32 - Space character. Control characters
@@ -89,7 +98,7 @@ function processChunk(payload) {
 	var chunk = manager.get(cc);
 	if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
-	chunk = new ChunkGeometry(cc, blocks, manager);
+	chunk = new ChunkGeometry(cc, blocks, manager, greedyMesher);
 	manager.set(cc, chunk);
 	manager.refreshNeighbouring(cc);
 }
@@ -104,7 +113,7 @@ function processBlockChange(payload) {
 
 	var chunk = manager.get(cc);
 	if (!chunk) {
-		console.error("Server Error: Got block change for chunk which is not loaded.");
+		console.warn("Got block change request for (", x, y, z, ") whose chunk which is not loaded. Ignoring.");
 		return;
 	}
 
@@ -119,11 +128,13 @@ function processBlockChange(payload) {
 	var changedChunks = [];
 	changedChunks.push(cc);
 
-	function invalidate(x, y, z) {
-		coords = worldToChunk(x, y, z);
+	function invalidate(bcX, bcY, bcZ) {
+		coords = worldToChunk(bcX, bcY, bcZ);
 		changedChunks.push(coords.c);
 	}
 
+	//Invalidate the chunks of a bunch of blocks.
+	//If they don't exist we ignore them later.
 	invalidate(x + 1, y, z);
 	invalidate(x - 1, y, z);
 	invalidate(x, y + 1, z);
@@ -151,84 +162,30 @@ function unique(arr) {
 function processPlayerPosition(payload) {
 	var p = payload.pos;
 	var coords = worldToChunk(p.x, p.y, p.z);
-	var cq = CHUNK_QUALITIES;
+	var cv = CHUNK_VOXELIZATIONS;
 
 	manager.each(function (chunk) {
 		var d = dist(coords.c, chunk.cc);
 
-		var quality = cq[clamp(Math.floor(d/2), 0, cq.length - 1)];
+		var voxelization = cv[clamp(Math.floor(d/2), 0, cv.length - 1)];
 
-		if (chunk.quality === quality || !chunk.loaded) return;
+		if (chunk.voxelization === voxelization || !chunk.loaded) return;
 
-		chunk.quality = quality;
+		chunk.voxelization = voxelization;
 		parent.postMessage({
-			'kind': 'chunk-quality-change',
+			'kind': 'chunk-voxelization-change',
 			'payload': {
 				'ccpos': chunk.cc,
-				'quality': quality,
+				'voxelization': voxelization,
 			},
 		});
 	});
-}
-
-function clamp(n, a, b) {
-	return Math.min(Math.max(n, a), b);
 }
 
 function dist(p1, p2) {
 	return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
 }
 
-function ChunkManager() {
-	var self = this;
-	var chunkList = {};
-
-	self.get = function (cc) {
-		return chunkList[ccStr(cc)];
-	};
-
-	self.set = function (cc, item) {
-		chunkList[ccStr(cc)] = item;
-	};
-
-	self.top = function () {
-		var highest = -1000;
-		var key = "";
-		for (var k in chunkList) {
-			var item = chunkList[k];
-			if (item.priority > highest
-				&& item.shown && item.changed
-			) {
-				highest = item.priority;
-				key = k;
-			}
-		}
-		return chunkList[key];
-	};
-
-	self.each = function (cb) {
-		for (var k in chunkList) {
-			cb(chunkList[k]);
-		}
-	};
-
-	self.chunkAt = function (cx, cy, cz) {
-		return self.get({x: cx, y: cy, z: cz});
-	};
-
-	self.refreshNeighbouring = function (cc) {
-		var cx = cc.x;
-		var cy = cc.y;
-		var cz = cc.z;
-		function r(cx, cy, cz) {
-			var chunk = self.get({x: cx, y: cy, z: cz});
-			if (chunk) chunk.changed = true;
-		};
-		r(cx + 1, cy, cz);
-		r(cx - 1, cy, cz);
-		r(cx, cy + 1, cz);
-		r(cx, cy - 1, cz);
-		r(cx, cy, cz + 1);
-		r(cx, cy, cz - 1);
-	};
+function clamp(n, a, b) {
+	return Math.min(Math.max(n, a), b);
 }

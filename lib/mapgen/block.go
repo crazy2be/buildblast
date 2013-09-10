@@ -14,13 +14,13 @@ const (
 	BLOCK_MINEABLE = 0x80000000
 
 	// Subtypes
-	BLOCK_EMPTY = 0x1 << 0
-	BLOCK_SOLID = 0x1 << 1
+	BLOCK_INVISIBLE = 0x1 << 0
+	BLOCK_SOLID     = 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** NIL    */ 0,
-	/** AIR    */ BLOCK_EMPTY,
+	/** AIR    */ BLOCK_INVISIBLE,
 	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
 	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
 }

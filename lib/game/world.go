@@ -182,6 +182,17 @@ func (w *World) AddEntityListener(listener EntityListener) {
 	w.entityListeners = append(w.entityListeners, listener)
 }
 
+func (w *World) RemoveEntityListener(listener EntityListener) {
+	for i, other := range w.entityListeners {
+		if other == listener {
+			w.entityListeners[i] = w.entityListeners[len(w.entityListeners)-1]
+			w.entityListeners = w.entityListeners[:len(w.entityListeners)-1]
+			return
+		}
+	}
+	log.Println("WARN: Attempt to remove entity listener which does not exist.")
+}
+
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
 	boxes := make([]*physics.Box, len(w.entities))
 	for i, other := range w.entities {

@@ -1,26 +1,14 @@
-function World(scene, container) {
+function World(scene, conn, clock, container, chunkManager) {
 	var self = this;
 
-	self.addToScene = function (mesh) {
-		scene.add(mesh);
-	};
-
-	self.removeFromScene = function (mesh) {
-		scene.remove(mesh);
-	};
-
-	var playerName = localStorage.playerName;
-	while (!playerName) {
-		playerName = prompt("Please enter your name.","Unknown");
-		localStorage.playerName = playerName;
-	}
-	var conn = new Conn(getWSURI("main/" + playerName));
 	var controls = new Controls(container);
-	var player = new Player(playerName, self, conn, controls);
+	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var chunkManager = new ChunkManager(scene, player);
-	var entityManager = new EntityManager(scene, conn, player);
+	var entityManager = new EntityManager(scene, conn);
+	window.testExposure.player = player;
+	window.testExposure.chunkManager = chunkManager;
+	window.testExposure.entityManager = entityManager;
 
 	var ambientLight = new THREE.AmbientLight(0xffffff);
 	scene.add(ambientLight);
@@ -34,7 +22,7 @@ function World(scene, container) {
 
 	self.update = function (dt) {
 		player.update(dt);
-		chunkManager.update(dt);
+		chunkManager.update(dt, player.pos());
 		entityManager.update(dt);
 		chat.update(dt);
 	};
@@ -51,8 +39,16 @@ function World(scene, container) {
 		scene.add(cube);
 	};
 
-	self.blockAt = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.addToScene = function (mesh) {
+		scene.add(mesh);
+	};
+
+	self.removeFromScene = function (mesh) {
+		scene.remove(mesh);
+	};
+
+	self.blockAt = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var oc = cords.o;
 		var cc = cords.c;
 
@@ -63,8 +59,8 @@ function World(scene, container) {
 		else return block;
 	};
 
-	self.findClosestGround = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.findClosestGround = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var cc = cords.c;
 		var oc = cords.o;
 
@@ -73,7 +69,7 @@ function World(scene, container) {
 			return false;
 		}
 		var block = chunk.block(oc);
-		if (block.empty()) {
+		if (!block.solid()) {
 			// Try and find ground below
 			while (true) {
 				oc.y--;
@@ -103,7 +99,7 @@ function World(scene, container) {
 					}
 				}
 				block = chunk.block(oc);
-				if (block && block.empty()) {
+				if (block && !block.solid()) {
 					return oc.y + cc.y * CHUNK_HEIGHT;
 				}
 			}
@@ -112,21 +108,18 @@ function World(scene, container) {
 		}
 	};
 
-	var projector = new THREE.Projector();
-	function findIntersection(camera, cb, precision, maxDist) {
+	function findIntersection(point, look, criteriaFnc, precision, maxDist) {
 		precision = precision || 0.01;
 		maxDist = maxDist || 100;
-		var look = new THREE.Vector3(0, 0, 1);
-		// http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
-		projector.unprojectVector(look, camera);
 
-		var pos = camera.position;
-		look.sub(pos).setLength(precision);
+		point = point.clone();
 
-		var point = pos.clone();
+		look = look.clone();
+		look.setLength(precision);
+
 		for (var dist = 0; dist < maxDist; dist += precision) {
 			point.add(look);
-			var collision = cb(point.x, point.y, point.z);
+			var collision = criteriaFnc(point.x, point.y, point.z);
 			if (collision) {
 				return {
 					point: point,
@@ -137,98 +130,61 @@ function World(scene, container) {
 		}
 	}
 
-	self.findPlayerIntersection = function (camera) {
-		function entityAt(wx, wy, wz) {
-			return entityManager.entityAt(wx, wy, wz);
+	self.findPlayerIntersection = function (camera, precision) {
+		function entityAt(wcX, wcY, wcZ) {
+			return entityManager.entityAt(wcX, wcY, wcZ);
 		}
-		return findIntersection(camera, entityAt, 0.1);
+		return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
 	};
 
-	self.findBlockIntersection = function (camera) {
-		function blockAt(wx, wy, wz) {
-			var block = self.blockAt(wx, wy, wz);
-			return block && block.mineable();
-		}
-		return findIntersection(camera, blockAt);
-	};
+	var projector = new THREE.Projector();
+	function getLookedAtDirection(camera) {
+		var look = new THREE.Vector3(0, 0, 1);
+		// http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
+		projector.unprojectVector(look, camera);
+		return look.sub(camera.position);
+	}
 
-	function doLookedAtBlockAction(camera, cmp, action) {
-		var intersect = self.findBlockIntersection(camera);
+	// Traces a vector from the camera's position, along the look vector,
+	// until hitting a solid block. If dontWantSolidBlock is true, it then
+	// backs up one step, until the block immediately before the solid
+	// block. Returns the position of the block.
+	// BUG(yeerkkiller1): (literal) corner case is not handled correctly: 
+	// http://awwapp.com/s/e3/4f/fe.png
+	self.findLookedAtBlock = function(camera, dontWantSolidBlock) {
+		var precision = 0.1;
+		var pos = camera.position;
+		var dir = getLookedAtDirection(camera);
+
+		function solidBlockAt(wcX, wcY, wcZ) {
+			var block = self.blockAt(wcX, wcY, wcZ);
+			return block && block.solid();
+		}
+		
+		var intersect = findIntersection(pos, dir, solidBlockAt, precision);
 		if (!intersect) {
 			console.log("You aren't looking at anything!");
 			return;
 		}
-		var p = intersect.point;
 
-		function onFace(n) {
-			if (abs(n % 1) < 0.01 || abs(n % 1 - 1) < 0.01 || abs(n % 1 + 1) < 0.01) return true;
-			else return false;
+		if (dontWantSolidBlock) {
+			//We backup to the last point, so should be the block directly before a solid.
+			var cameraDirection = dir.setLength(precision);
+			intersect.point.sub(cameraDirection);
 		}
 
-		function abs(n) {
-			return Math.abs(n);
-		}
-
-		var x = p.x;
-		var y = p.y;
-		var z = p.z;
-
-		if (onFace(x)) {
-			if (cmp(x + 0.5, y, z)) {
-				action(x + 0.5, y, z);
-			} else {
-				action(x - 0.5, y, z);
-			}
-		} else if (onFace(y)) {
-			if (cmp(x, y + 0.5, z)) {
-				action(x, y + 0.5, z);
-			} else {
-				action(x, y - 0.5, z);
-			}
-		} else if (onFace(z)) {
-			if (cmp(x, y, z + 0.5)) {
-				action(x, y, z + 0.5);
-			} else {
-				action(x, y, z - 0.5);
-			}
-		} else {
-			console.log("Could not find looked at block!");
-		}
-	}
-
-	self.removeLookedAtBlock = function (camera) {
-		function mineable(x, y, z) {
-			var block = self.blockAt(x, y, z);
-			if (block) return block.mineable();
-			else return false;
-		}
-		function removeBlock(wx, wy, wz) {
-			changeBlock(wx, wy, wz, Block.AIR);
-		}
-		doLookedAtBlockAction(camera, mineable, removeBlock);
+		return intersect.point;
 	};
 
-	self.addLookedAtBlock = function (camera, blockType) {
-		function empty(x, y, z) {
-			var block = self.blockAt(x, y, z);
-			if (block) return block.empty();
-			else return false;
-		}
-		function addBlock(wx, wy, wz) {
-			changeBlock(wx, wy, wz, blockType);
-		}
-		doLookedAtBlockAction(camera, empty, addBlock);
-	};
-
-	function changeBlock(wx, wy, wz, newType) {
+	self.changeBlock = function(wcX, wcY, wcZ, newType) {
 		conn.queue('block', {
 			Pos: {
-				X: Math.floor(wx),
-				Y: Math.floor(wy),
-				Z: Math.floor(wz),
+				X: Math.floor(wcX),
+				Y: Math.floor(wcY),
+				Z: Math.floor(wcZ),
 			},
 			Type: newType,
 		});
-		chunkManager.queueBlockChange(wx, wy, wz, newType);
+		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 }

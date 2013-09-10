@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"time"
 
 	"buildblast/lib/coords"
@@ -11,20 +12,21 @@ import (
 )
 
 type Client struct {
-	*ClientConn
+	conn *ClientConn
 
 	name string
 
 	// Send the client the right chunks.
 	cm             *ChunkManager
 	blockSendQueue chan *MsgBlock
+	chunksOnce     sync.Once
 
 	player *game.Player
 }
 
 func NewClient(name string) *Client {
 	c := new(Client)
-	c.ClientConn = NewClientConn(name)
+	c.conn = NewClientConn(name)
 
 	c.name = name
 
@@ -37,8 +39,11 @@ func NewClient(name string) *Client {
 func (c *Client) Tick(g *Game, w *game.World) {
 	for {
 		select {
-		case m := <-c.recvQueue:
+		case m := <-c.conn.recvQueue:
 			c.handleMessage(g, w, m)
+		case e := <-c.conn.errorQueue:
+			g.disconnect(c.name, e.Error())
+			return
 		default:
 			return
 		}
@@ -72,7 +77,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		})
 
 	default:
-		c.Errors <- fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m))
+		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m)))
 	}
 }
 
@@ -94,7 +99,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
 		inv.AddItem(item)
-		w.ChangeBlock(m.Pos, m.Type)
+		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
 	c.Send(&MsgInventoryState{
@@ -132,6 +137,8 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddEntity(p)
 	w.AddBlockListener(c)
+	w.AddEntityListener(c)
+
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
@@ -141,10 +148,54 @@ func (c *Client) Connected(g *Game, w *game.World) {
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
+	w.RemoveEntityListener(c)
+	c.conn.Close()
+}
+
+func (c *Client) Send(m Message) {
+	c.conn.Send(m)
+}
+
+func (c *Client) SendLossy(m Message) {
+	c.conn.SendLossy(m)
+}
+
+func (c *Client) Run(conn *Conn) {
+	c.conn.Run(conn)
 }
 
 func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block) {
 	c.sendBlockChanged(bc, new)
+}
+
+func (c *Client) EntityCreated(id string) {
+	if id == c.name {
+		return
+	}
+	c.Send(&MsgEntityCreate{
+		ID: id,
+	})
+}
+
+func (c *Client) EntityMoved(id string, pos coords.World) {
+	if id == c.name {
+		return
+	}
+	c.SendLossy(&MsgEntityPosition{
+		ID:  id,
+		Pos: pos,
+	})
+}
+
+func (c *Client) EntityDied(id string, killer string) {}
+
+func (c *Client) EntityRemoved(id string) {
+	if id == c.name {
+		return
+	}
+	c.Send(&MsgEntityRemove{
+		ID: id,
+	})
 }
 
 func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
@@ -155,13 +206,23 @@ func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
 	select {
 	case c.blockSendQueue <- m:
 	default:
-		c.Errors <- fmt.Errorf("unable to send block update to player %s (server overloaded?)", c.name)
+		c.conn.Error(fmt.Errorf("unable to send block update to player %s (server overloaded?)", c.name))
 	}
 }
 
 // WARNING: This runs on a seperate thread from everything
 // else in client!
 func (c *Client) RunChunks(conn *Conn) {
+	// This prevents multiple clients from attempting to connect to
+	// the same client's RunChunks, which could cause strange
+	// race conditions and other problems.
+	action := func() {
+		c.internalRunChunks(conn)
+	}
+	c.chunksOnce.Do(action)
+}
+
+func (c *Client) internalRunChunks(conn *Conn) {
 	for {
 		select {
 		case m := <-c.blockSendQueue:

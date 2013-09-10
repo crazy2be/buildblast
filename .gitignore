@@ -1,9 +1,9 @@
 *~
 *.kate-swp
+*.kateproject.d
 *.swp
 buildshoot-server
 buildshoot-server.exe
-.kateconfig
 .project
 .settings
 bin
@@ -11,3 +11,7 @@ pkg
 github.com
 code.google.com
 *.blend[0-9]*
+*.orig
+.git/info/attributes
+*.idea
+*.DS_Store

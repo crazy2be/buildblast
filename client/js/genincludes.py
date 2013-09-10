@@ -21,15 +21,19 @@ includes.write("""
 """)
 
 for dirpath, dirnames, filenames in os.walk('.'):
+	# Ensure ordering in consistent across systems
+	# to avoid superfulous changes.
+	dirnames.sort()
+	filenames.sort()
 	for filename in filenames:
 		if not re.match(r'.+\.js$', filename):
 			continue
-		if re.match(r'^worker.js$', filename):
+		if re.match(r'^main.js$', filename):
 			continue
 		if re.match(r'^includes.js$', filename):
 			continue
-		path = os.path.join('js/', dirpath, filename)
-		includes.write("\t'{0}',\n".format(path))
+		path = os.path.join('js/', dirpath, filename).replace('\\', '/')
+		includes.write("\t'{0}',\n".format(path.replace("\\", "/")))
 
 includes.write("""]));
 """)

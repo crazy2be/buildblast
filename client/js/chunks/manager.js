@@ -1,58 +1,38 @@
-function ChunkManager(scene, player) {
+function ChunkManager(scene, clientID) {
 	var self = this;
 
 	var chunks = {};
-	var geometryWorker = new Worker('js/chunks/worker.js');
-	startChunkConn(player.name());
+	var geometryWorker = new Worker('js/chunks/worker/main.js');
+	startChunkConn(clientID);
 
 	self.chunk = function (cc) {
 		return chunks[ccStr(cc)];
 	};
 
 	var accumulatedTime = 0;
-	self.update = function (dt) {
+	self.update = function (dt, playerPos) {
 		accumulatedTime += dt;
-		if (accumulatedTime > 1) {
-			accumulatedTime -= 1;
-			var p = player.pos();
-			geometryWorker.postMessage({
-				'kind': 'player-position',
-				'payload': {
-					'pos': {x: p.x, y: p.y, z: p.z},
-				},
-			});
-		}
+		if (accumulatedTime < 1000 /*ms*/) return;
 
+		accumulatedTime -= 1000;
+		var p = playerPos;
+		geometryWorker.postMessage({
+			'kind': 'player-position',
+			'payload': {
+				'pos': {x: p.x, y: p.y, z: p.z},
+			},
+		});
 	};
 
-	self.queueBlockChange = function (wx, wy, wz, newType) {
+	self.queueBlockChange = function (wcX, wcY, wcZ, newType) {
 		geometryWorker.postMessage({
 			'kind': 'block-change',
 			'payload': {
-				'Pos': {X: wx, Y: wy, Z: wz},
+				'Pos': {X: wcX, Y: wcY, Z: wcZ},
 				'Type': newType,
 			}
 		});
 	};
-
-	geometryWorker.onmessage = function (e) {
-		var kind = e.data.kind;
-		var payload = e.data.payload;
-		if (kind === 'chunk') {
-			processChunk(payload);
-		} else if (kind === 'show-chunk') {
-			processShowChunk(payload);
-		} else if (kind === 'hide-chunk') {
-			processHideChunk(payload);
-		} else if (kind === 'chunk-quality-change') {
-			processQualityChange(payload);
-		} else if (kind === 'log') {
-			var args = ["Geometry worker:"].concat(payload.message);
-			console[payload.type || 'log'].apply(console, args);
-		}
-	};
-
-	geometryWorker.onerror = fatalError;
 
 	function startChunkConn(name) {
 		geometryWorker.postMessage({
@@ -63,9 +43,27 @@ function ChunkManager(scene, player) {
 		});
 	}
 
+	geometryWorker.onmessage = function (e) {
+		var kind = e.data.kind;
+		var payload = e.data.payload;
+		if (kind === 'chunk') {
+			processChunk(payload);
+		} else if (kind === 'chunk-voxelization-change') {
+			processVoxelizationChange(payload);
+		} else if (kind === 'log') {
+			var args = ["Geometry worker:"].concat(payload.message);
+			console[payload.type || 'log'].apply(console, args);
+		}
+	};
+
+	geometryWorker.onerror = fatalError;
+
+	//Payload contains vertices creates by the mesher.
 	function processChunk(payload) {
 		var pg = payload.geometries;
 		var geometries = [];
+		//Geometry for each voxelization (as in, far away, medium, close, etc... we
+		//'voxelize' cubes that are far away).
 		for (var i = 0; i < pg.length; i++) {
 			var geometry = new THREE.BufferGeometry();
 			geometry.attributes = pg[i].attributes;
@@ -78,20 +76,20 @@ function ChunkManager(scene, player) {
 		var chunk = self.chunk(cc);
 		if (chunk) chunk.remove();
 
-		chunk = new Chunk(payload.blocks, geometries, scene, payload.quality);
+		chunk = new Chunk(payload.blocks, geometries, scene, payload.voxelization);
 		chunk.add();
 		chunks[ccStr(cc)] = chunk;
 
 		console.log("Added chunk at ", cc);
 	}
 
-	function processQualityChange(payload) {
+	function processVoxelizationChange(payload) {
 		var chunk = self.chunk(payload.ccpos);
 		if (!chunk) {
 			console.warn("Got qred change command for chunk that is not loaded. Likely server bug.");
 			return;
 		}
 
-		chunk.setQuality(payload.quality);
+		chunk.setVoxelization(payload.voxelization);
 	}
 }

@@ -8,12 +8,22 @@ import (
 	"buildblast/lib/game"
 )
 
-type Game struct {
-	clients           map[string]*Client
-	connectingClients chan *Client
+type clientResponse struct {
+	client *Client
+	isNew  bool
+}
 
-	clientRequests  chan string
-	clientResponses chan *Client
+type disconnectingClient struct {
+	id     string
+	reason string
+}
+
+type Game struct {
+	clients map[string]*Client
+
+	clientRequests       chan string
+	clientResponses      chan clientResponse
+	disconnectingClients chan disconnectingClient
 
 	world *game.World
 }
@@ -23,56 +33,70 @@ func NewGame() *Game {
 
 	g.clients = make(map[string]*Client, 0)
 
-	g.connectingClients = make(chan *Client, 10)
-
 	g.clientRequests = make(chan string)
-	g.clientResponses = make(chan *Client)
+	g.clientResponses = make(chan clientResponse)
+	g.disconnectingClients = make(chan disconnectingClient)
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
-	g.world.AddEntityListener(g)
 
 	return g
 }
 
-// Thread safe
-func (g *Game) Connect(c *Client) {
-	g.connectingClients <- c
+// Thread safe, blocking
+// Returns a client with the given ID. If there is no client with the given
+// id, creates a new client with the given ID, and adds it to the game.
+func (g *Game) clientWithID(id string) (client *Client, isNew bool) {
+	g.clientRequests <- id
+	resp := <-g.clientResponses
+	return resp.client, resp.isNew
 }
 
-// Not thread safe (This better be called on the Games main thread)
-func (g *Game) handleConnectingClients() {
-	for {
-		select {
-		case c := <-g.connectingClients:
-			id := c.name
-			if g.clients[id] != nil {
-				log.Println("[WARN] Attempt to connect client with id", id, "who is already playing in this world!")
-				c.Send(&MsgChat{
-					DisplayName: "SERVER",
-					Message:     "Player with name " + id + " already playing on this world!",
-				})
-				return
-			}
-
-			g.clients[id] = c
-			c.Connected(g, g.world)
+func (g *Game) handleClientRequests() {
+	select {
+	case id := <-g.clientRequests:
+		client := g.clients[id]
+		isNew := false
+		if client == nil {
+			client = NewClient(id)
+			g.clients[id] = client
+			client.Connected(g, g.world)
 			g.Announce(id + " has joined the game!")
-		default:
-			return
+			isNew = true
 		}
+		g.clientResponses <- clientResponse{
+			client: client,
+			isNew:  isNew,
+		}
+	default:
+		return
+	}
+}
+
+// Thread safe
+func (g *Game) Disconnect(id, reason string) {
+	g.disconnectingClients <- disconnectingClient{
+		id:     id,
+		reason: reason,
+	}
+}
+
+func (g *Game) handleDisconnectingClients() {
+	select {
+	case disconnecting := <-g.disconnectingClients:
+		g.disconnect(disconnecting.id, disconnecting.reason)
 	}
 }
 
 // Not thread safe
-func (g *Game) Disconnect(c *Client, reason string) {
-	id := c.name
-	if g.clients[id] == nil {
-		log.Println("[WARN] Attempt to disconnect user who is not connected.")
+func (g *Game) disconnect(id, reason string) {
+	client := g.clients[id]
+	if client == nil {
+		log.Println("[WARN] Attempt to disconnect client who is not connected.")
 		return
 	}
 	delete(g.clients, id)
 
-	c.Disconnected(g, g.world)
+	client.Disconnected(g, g.world)
 
 	g.Announce(id + " has left the game: " + reason)
 }
@@ -101,22 +125,6 @@ func (g *Game) BroadcastLossy(m Message) {
 	}
 }
 
-func (g *Game) clientWithID(id string) *Client {
-	g.clientRequests <- id
-	return <-g.clientResponses
-}
-
-func (g *Game) handleClientRequests() {
-	for {
-		select {
-		case id := <-g.clientRequests:
-			g.clientResponses <- g.clients[id]
-		default:
-			return
-		}
-	}
-}
-
 func (g *Game) Run() {
 	updateTicker := time.Tick(time.Second / 60)
 	for {
@@ -126,41 +134,18 @@ func (g *Game) Run() {
 }
 
 func (g *Game) Tick() {
-	g.handleConnectingClients()
 	g.handleClientRequests()
 
 	g.world.Tick()
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
-		select {
-		case e := <-c.Errors:
-			g.Disconnect(c, e.Error())
-		default:
-		}
 	}
-}
-
-func (g *Game) EntityCreated(id string) {
-	g.Broadcast(&MsgEntityCreate{
-		ID: id,
-	})
-}
-
-func (g *Game) EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64) {
-	g.BroadcastLossy(&MsgEntityPosition{
-		ID:  id,
-		Pos: pos,
-		Rot: rot,
-		Vy:  vy,
-	})
 }
 
 func (g *Game) EntityDied(id string, killer string) {
 	g.Announce(killer + " killed " + id)
 }
 
-func (g *Game) EntityRemoved(id string) {
-	g.Broadcast(&MsgEntityRemove{
-		ID: id,
-	})
-}
+func (g *Game) EntityCreated(id string) {}
+func (g *Game) EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64) {}
+func (g *Game) EntityRemoved(id string) {}
