@@ -99,7 +99,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
 		inv.AddItem(item)
-		w.ChangeBlock(m.Pos, m.Type)
+		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
 	c.Send(&MsgInventoryState{
