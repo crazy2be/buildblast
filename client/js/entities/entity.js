@@ -1,8 +1,8 @@
 function Entity(id) {
 	var self = this;
 
-	var pos;
-	var health;
+	var pos = new THREE.Vector3(0, 0, 0);
+	var health = 0;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -24,6 +24,14 @@ function Entity(id) {
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
 	var headMesh = new THREE.Mesh(headGeometry, material);
 
+	var healthBar;
+
+	self.init = function() {
+		healthBar = new HealthBar(self);
+
+		return self;
+	}
+
 	self.setPos = function (newPos) {
 		pos = newPos;
 		var c = new THREE.Vector3(
@@ -36,6 +44,9 @@ function Entity(id) {
 		bodyMesh.position.set(c.x, c.y - (h - bh)/2, c.z);
 		headMesh.position.set(c.x, c.y + bh/2, c.z);
 		hitboxMesh.position.set(c.x, c.y, c.z);
+
+		healthBar.updatePos(newPos, camera);
+
 		return self;
 	};
 
@@ -59,6 +70,8 @@ function Entity(id) {
 	};
 
 	self.setHealth = function(newHealth) {
+		healthBar.updateHP(newHealth, camera);
+
 		health = newHealth;
 	};
 
@@ -66,17 +79,28 @@ function Entity(id) {
 		return health;
 	};
 
+	self.maxHealth = function() {
+		return 100;
+	}
+
 	self.addTo = function (scene) {
 		scene.add(bodyMesh);
 		scene.add(headMesh);
 		scene.add(hitboxMesh);
+		scene.add(healthBar.mesh());
 	};
 
 	self.removeFrom = function (scene) {
 		scene.remove(bodyMesh);
 		scene.remove(headMesh);
 		scene.remove(hitboxMesh);
+		scene.remove(healthBar.mesh());
 	};
+
+	var camera;
+	self.update = function(newCamera) {
+		camera = newCamera;
+	}
 
 	self.id = function () {
 		return id;

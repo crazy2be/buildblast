@@ -9,7 +9,7 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id);
+		var entity = new Entity(id).init();
 		entity.addTo(scene);
 		entities[id] = entity;
 	});
@@ -74,5 +74,11 @@ function EntityManager(scene, conn) {
 			});
 		}
 		return infos;
+	}
+
+	self.update = function(camera) {
+		for(var id in entities) {
+			entities[id].update(camera);
+		}
 	}
 }

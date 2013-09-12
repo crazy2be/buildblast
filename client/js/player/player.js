@@ -21,7 +21,6 @@ function Player(world, conn, clock, container, clientID) {
 	var chat = new Chat(controls, conn, container);
 
 	var inventory = new Inventory(world, camera, conn, controls);
-	var healthBars = new HealthBars(world, camera, conn, controls);
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	var speed;
@@ -53,7 +52,6 @@ function Player(world, conn, clock, container, clientID) {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 		inventory.resize();
-		healthBars.resize();
 	}
 
 	self.pos = function () {
@@ -90,7 +88,6 @@ function Player(world, conn, clock, container, clientID) {
 
 		doLook(camera, camPos, controlState);
 		inventory.update(playerPos, controlState);
-		healthBars.update(playerPos, controlState);
 
 		speed.addDataPoint(dt);
 	};
@@ -105,5 +102,10 @@ function Player(world, conn, clock, container, clientID) {
 
 	function doLook(camera, p, c) {
 		camera.lookAt(getTarget(p, c));
+	}
+
+	//Hmm... this is no good
+	self.camera = function () {
+		return camera;
 	}
 };

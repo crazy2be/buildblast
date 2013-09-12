@@ -1,4 +1,4 @@
-function World(scene, conn, clientID) {
+function World(scene, conn, clientID, camera) {
 	var self = this;
 
 	self.addToScene = function (mesh) {
@@ -23,8 +23,9 @@ function World(scene, conn, clientID) {
 		self.addSmallCube(pos);
 	}
 
-	self.update = function (dt, playerPos) {
+	self.update = function (dt, playerPos, camera) {
 		chunkManager.update(dt, playerPos);
+		entityManager.update(camera);
 	};
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);

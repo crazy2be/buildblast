@@ -64,7 +64,7 @@ window.onload = function () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is looking,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos());
+			world.update(dt, player.pos(), player.camera());
 
 			player.update(dt);
 			player.render(scene);
