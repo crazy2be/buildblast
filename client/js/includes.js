@@ -20,7 +20,6 @@
 	'js/./featureTester.js',
 	'js/./models.js',
 	'js/./world.js',
-	'js/./canvasLibs/label.js',
 	'js/./canvasLibs/rect.js',
 	'js/./canvasLibs/text.js',
 	'js/./chunks/block.js',
@@ -36,6 +35,7 @@
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
 	'js/./entities/entity.js',
 	'js/./entities/manager.js',
+	'js/./entities/vector3HistoryBuffer.js',
 	'js/./perf/chart.js',
 	'js/./player/healthBars.js',
 	'js/./player/inventory.js',
@@ -45,4 +45,5 @@
 	'js/./player/stack.js',
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
+	'js/./tests/testSystem.js',
 ]));
