@@ -27,7 +27,7 @@ function Entity(id) {
 	var healthBar;
 
 	self.init = function() {
-		healthBar = new HealthBar(self);
+		//healthBar = new HealthBar(self);
 
 		return self;
 	}
@@ -45,7 +45,7 @@ function Entity(id) {
 		headMesh.position.set(c.x, c.y + bh/2, c.z);
 		hitboxMesh.position.set(c.x, c.y, c.z);
 
-		healthBar.updatePos(newPos, camera);
+		//healthBar.updatePos(newPos, camera);
 
 		return self;
 	};
@@ -70,7 +70,7 @@ function Entity(id) {
 	};
 
 	self.setHealth = function(newHealth) {
-		healthBar.updateHP(newHealth, camera);
+		//healthBar.updateHP(newHealth, camera);
 
 		health = newHealth;
 	};
@@ -87,14 +87,14 @@ function Entity(id) {
 		scene.add(bodyMesh);
 		scene.add(headMesh);
 		scene.add(hitboxMesh);
-		scene.add(healthBar.mesh());
+		//scene.add(healthBar.mesh());
 	};
 
 	self.removeFrom = function (scene) {
 		scene.remove(bodyMesh);
 		scene.remove(headMesh);
 		scene.remove(hitboxMesh);
-		scene.remove(healthBar.mesh());
+		//scene.remove(healthBar.mesh());
 	};
 
 	var camera;

@@ -67,7 +67,7 @@
 
 		var rotVec = {};
 		rotVec.x = -entity.pos().x;
-		rotVec.y = -entity.pos().z;
+		rotVec.y = -entity.pos().z + 3;
 
 		//I fell like this is wrong is some manner... not sure why though.
 		var dirRadian = Math.atan2(rotVec.x, rotVec.y);

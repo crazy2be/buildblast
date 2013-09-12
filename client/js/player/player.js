@@ -47,6 +47,7 @@ function Player(world, conn, clock, container, clientID) {
 
 	window.addEventListener('resize', onWindowResize, false);
 	function onWindowResize() {
+		renderer.autoClear = true;
 		renderer.setSize(window.innerWidth, window.innerHeight);
 
 		camera.aspect = window.innerWidth / window.innerHeight;
