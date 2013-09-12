@@ -112,20 +112,7 @@
 	var curPos = entity.pos();
 	self.updatePos = function(pos, camera, hpChanged) {
 		if(!camera) return;
-		//if(pos == curPos && !hpChanged) return;
-
-		/*
-		texture1 = new THREE.Texture(canvas1);
-		texture1.needsUpdate = true;
-
-		material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
-		material1.transparent = true;
-
-		mesh1 = new THREE.Mesh(
-			new THREE.PlaneGeometry(canvas1.width, canvas1.height),
-			material1
-		);
-		*/
+		curPos = pos;
 
 		var p = curPos;
 		mesh1.position.set(p.x, p.y + 0.4, p.z);
@@ -133,14 +120,10 @@
 		mesh1.scale.y = 1/200;
 		mesh1.scale.z = 1/200;
 
-		var rotVec = {};
-		rotVec.x = -curPos.x + camera.position.x;
-		rotVec.y = -curPos.z + camera.position.z;
-
-		//I fell like this is wrong is some manner... not sure why though.
-		var dirRadian = Math.atan2(rotVec.x, rotVec.y);
-		mesh1.rotation.y = dirRadian;
-		mesh1.needsUpdate = true;
+		mesh1.rotation.y = camera.rotation.y;
+		//It appears to work without out this, and so either this does
+		//nothing, or does stuff we don't need.
+		//mesh1.needsUpdate = true;
 	}
 
 	self.mesh = function() {
