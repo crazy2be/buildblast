@@ -73,28 +73,29 @@ function Entity(id) {
 	bodyParts.add(rightArm);
 
 	var totalTime = 0;
-	var jumpArms = 0;
-	var hPi = 4 * Math.PI / 5;
+	var armAngle = 0;
+	var maxAngle = 4 * Math.PI / 5;
 	self.update = function (dt) {
 		if (vy > 0) {
-			if (jumpArms < hPi) {
-				jumpArms += (dt / 0.3) * hPi;
+			if (armAngle < maxAngle) {
+				armAngle += (dt / 300) * maxAngle;
 			}
 		} else {
-			if (jumpArms < 0) {
-				jumpArms = 0;
-			} else if (jumpArms > 0) {
-				jumpArms -= (dt / 0.3) * hPi;
+			if (armAngle < 0) {
+				armAngle = 0;
+			} else if (armAngle > 0) {
+				armAngle -= (dt / 300) * maxAngle;
 			}
 		}
-		rightArm.rotation.z = -jumpArms;
-		leftArm.rotation.z = jumpArms;
+		rightArm.rotation.z = -armAngle;
+		leftArm.rotation.z = armAngle;
 
 		if (!isMoving) return;
 		totalTime += dt;
-		var angle = (Math.PI / 2) * sin(totalTime * 2*Math.PI)
+		var angle = (Math.PI / 2) * sin(totalTime / 1000 * 2*Math.PI)
 		if (angle > -0.1 && angle < 0.1) {
 			isMoving = false;
+			totalTime = 0;
 			angle = 0;
 		}
 		rightArm.rotation.x = angle;
