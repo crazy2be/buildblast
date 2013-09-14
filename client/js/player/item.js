@@ -86,11 +86,13 @@ Item.realInit = function () {
 	}
 
 	function pistolAction(world, camera) {
-		var intersect = world.findPlayerIntersection(camera);
-		if (intersect) {
-			console.log("Hit!!", intersect, intersect.item);
-		} else {
-			console.log("miss!!");
+		if(localStorage.pistolDebug) {
+			var intersect = world.findPlayerIntersection(camera);
+			if (intersect) {
+				console.log("Hit!!", intersect, intersect.item);
+			} else {
+				console.log("miss!!");
+			}
 		}
 	}
 
