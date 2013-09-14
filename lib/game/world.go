@@ -9,8 +9,10 @@ import (
 	"buildblast/lib/physics"
 )
 
+//Interface implemented by Player
 type Entity interface {
 	Tick(w *World)
+	Health() int
 	Damage(amount int)
 	Dead() bool
 	Respawn(pos coords.World)
@@ -21,7 +23,7 @@ type Entity interface {
 
 type EntityListener interface {
 	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World)
+	EntityUpdate(id string, pos coords.World, health int)
 	EntityDied(id string, killer string)
 	EntityRemoved(id string)
 }
@@ -58,14 +60,18 @@ func NewWorld(seed float64) *World {
 
 func (w *World) Tick() {
 	w.generationTick()
+	//For all entities, send as message to all entityListeners.
+	//This is the core of the whole scaling problem with any multiplayer game,
+	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
 		id := e.ID()
 		pos := e.Pos()
+		health := e.Health()
 		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos)
+			listener.EntityUpdate(id, pos, health)
 		}
 	}
 }
@@ -92,7 +98,10 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	return w.spawns[rand.Intn(l)]
+	//TODO: Stop hardcoding the spawn.
+	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
+	index = index + 1
+	return w.spawns[0] //return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {

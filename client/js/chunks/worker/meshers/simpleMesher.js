@@ -44,6 +44,7 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 	var colora = new Float32Array(color.length);
 	copy(color, colora);
 
+	//See the readme for documentation.
 	var attributes = {
 		position: {
 			itemSize: 3,

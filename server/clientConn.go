@@ -100,9 +100,6 @@ func (c *ClientConn) Send(m Message) {
 // but if it cannot, it will simply do nothing. The message's failure
 // to send will not result in an error.
 func (c *ClientConn) SendLossy(m Message) {
-	if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
-		return
-	}
 	select {
 	case c.sendLossyQueue <- m:
 	default:

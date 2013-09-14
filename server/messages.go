@@ -114,6 +114,7 @@ type MsgEntityPosition struct {
 	Pos coords.World
 	Rot coords.Vec3
 	ID  string
+	Health int
 }
 
 type MsgEntityRemove struct {

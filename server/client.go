@@ -129,15 +129,16 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
+	//Tell the client about all the other entities
 	for _, id := range w.GetEntityIDs() {
-		c.Send(&MsgEntityCreate{
-			ID: id,
-		})
+		c.EntityCreated(id);
 	}
 
-	w.AddEntity(p)
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
+
+	//After AddEntityListener, so they get the entity create of their own entity
+	w.AddEntity(p)
 
 	c.player = p
 	c.Send(&MsgInventoryState{
@@ -169,30 +170,22 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 }
 
 func (c *Client) EntityCreated(id string) {
-	if id == c.name {
-		return
-	}
 	c.Send(&MsgEntityCreate{
 		ID: id,
 	})
 }
 
-func (c *Client) EntityMoved(id string, pos coords.World) {
-	if id == c.name {
-		return
-	}
+func (c *Client) EntityUpdate(id string, pos coords.World, health int) {
 	c.SendLossy(&MsgEntityPosition{
 		ID:  id,
 		Pos: pos,
+		Health: health,
 	})
 }
 
 func (c *Client) EntityDied(id string, killer string) {}
 
 func (c *Client) EntityRemoved(id string) {
-	if id == c.name {
-		return
-	}
 	c.Send(&MsgEntityRemove{
 		ID: id,
 	})

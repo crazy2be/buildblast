@@ -246,22 +246,22 @@ var meshCommon = function() {
 		var colora = new Float32Array(color.length);
 		copy(color, colora);
 
+		//See the readme for documentation.
 		var attributes = {
-			position: { //x, y, z (triangles)
+			position: {
 				itemSize: 3,
 				array: vertsa,
-				numItems: verts.length,
+				numItems: vertsa.length / 3,
 			},
-			index: {    //triangle indices inside position (so *3 for real index), every 3 make up a triangle.
-				itemSize: 1,
-				array: indexa,
-				numItems: indexes.length,
-			},
-			color: {    //colors of positions (vertices), we use a vertex shader
-						//(possibly a built in one) to color the faces based on these.
+			color: {
 				itemSize: 3,
 				array: colora,
-				numItems: color.length,
+				numItems: colora.length / 3,
+			},
+			index: {
+				itemSize: 1,
+				array: indexa,
+				numItems: indexa.length,
 			},
 		};
 		var offsets = [{ //Just states the indexes used, you could theoretically have multiple of these?

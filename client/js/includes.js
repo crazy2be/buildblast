@@ -6,11 +6,11 @@
 // subdirectories)
 
 (function include(names) {
-    for (var i = 0; i < names.length; i++) {
-        var script = document.createElement('script');
-        script.src = names[i];
-        document.body.appendChild(script);
-    }
+	for (var i = 0; i < names.length; i++) {
+		var script = document.createElement('script');
+		script.src = names[i];
+		document.body.appendChild(script);
+	}
 }([
 	'js/./box.js',
 	'js/./chat.js',
@@ -20,6 +20,8 @@
 	'js/./featureTester.js',
 	'js/./models.js',
 	'js/./world.js',
+	'js/./canvasLibs/rect.js',
+	'js/./canvasLibs/text.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',
 	'js/./chunks/common.js',
@@ -32,6 +34,7 @@
 	'js/./chunks/worker/meshers/simpleMesher.js',
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
 	'js/./entities/entity.js',
+	'js/./entities/healthBars.js',
 	'js/./entities/manager.js',
 	'js/./perf/chart.js',
 	'js/./player/inventory.js',
