@@ -32,7 +32,7 @@ var meshCommon = function() {
 		return clamp(val / 2 + 0.5, 0.0, 1.0);
 	}
 
-	meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, voxelization, blocks) {
+	meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, blocks, voxelization) {
 		if(voxelization == 1) {
 			return blocks[
 						ocXStart * CHUNK_WIDTH * CHUNK_HEIGHT +
@@ -132,22 +132,24 @@ var meshCommon = function() {
 		return neighbourChunk.blocks;
 	}
 
+	var VERTS_PER_FACE = 4;
 	meshCommon.addQuad = function(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, voxelization, verts) {
 		//The face direction is always right-hand rule, so we place the vertices accordingly
 		var counterClockwise = [
 				[0, 0],
 				[1, 0],
 				[1, 1],
-				[0, 1],
-				[0.5, 0.5]
+				[0, 1]
 			];
 		var clockwise = [
 				[0, 0],
 				[0, 1],
 				[1, 1],
-				[1, 0],
-				[0.5, 0.5]
+				[1, 0]
 			];
+		if(counterClockwise.length != VERTS_PER_FACE || clockwise.length != VERTS_PER_FACE) {
+			throw "Update VERTS_PER_FACE...";
+		}
 		var offsetArray = faceDirection == 1 ? counterClockwise : clockwise;
 
 		var bcVerts = [bcX, bcY, bcZ];
@@ -156,16 +158,33 @@ var meshCommon = function() {
 			bcVerts[compZ] += voxelization;
 		}
 
+		//The amount we make vertices overlap to prevent rounding problems.
+		var quadBufferPercent = 0.0005;
+
 		for (var iVertex = 0; iVertex < offsetArray.length; iVertex++) {
 			var offsets = offsetArray[iVertex];
 
-			bcVerts[(compZ + 1) % 3] += quadWidth * offsets[0];
-			bcVerts[(compZ + 2) % 3] += quadHeight * offsets[1];
+			var curWidth;
+			var curHeight;
+
+			if(offsets[0]) {
+				curWidth = quadWidth * offsets[0] * (1 + quadBufferPercent);
+			} else {
+				curWidth = quadWidth * -quadBufferPercent;
+			}
+			if(offsets[1]) {
+				curHeight = quadHeight * offsets[1] * (1 + quadBufferPercent);
+			} else {
+				curHeight = quadHeight * -quadBufferPercent;
+			}
+
+			bcVerts[(compZ + 1) % 3] += curWidth;
+			bcVerts[(compZ + 2) % 3] += curHeight;
 
 			verts.push(bcVerts[0], bcVerts[1], bcVerts[2]);
 
-			bcVerts[(compZ + 1) % 3] -= quadWidth * offsets[0];
-			bcVerts[(compZ + 2) % 3] -= quadHeight * offsets[1];
+			bcVerts[(compZ + 1) % 3] -= curWidth;
+			bcVerts[(compZ + 2) % 3] -= curHeight;
 		}
 	}
 
@@ -173,7 +192,7 @@ var meshCommon = function() {
 
 	//Takes:
 	//var verts = []; //Each vertice is made of 3 integers (3D point)
-	//var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
+	//var blockTypes = []; //1 per face, which is has VERTS_PER_FACE points, so 3 * VERTS_PER_FACE verts
 	//var faceNumbers = []; //same a blockTypes in size
 	//var indexes = []; //indexes for triangles of points in verts
 	meshCommon.generateGeometry = function(verts, blockTypes, faceNumbers, indexes, voxelization) {
@@ -188,17 +207,21 @@ var meshCommon = function() {
 
 		//Bunch of squares, point in each corner and one in the middle
 		//Each point is made up of 3 numbers
-		for(var iVert = 0; iVert < verts.length / 3; iVert += 5) {
-			indexes.push(iVert, iVert + 1, iVert + 4);
-			indexes.push(iVert + 1, iVert + 2, iVert + 4);
-			indexes.push(iVert + 2, iVert + 3, iVert + 4);
-			indexes.push(iVert + 3, iVert, iVert + 4);
+		for(var iVert = 0; iVert < verts.length / 3; iVert += VERTS_PER_FACE) {
+			//2 triangle faces
+			indexes.push(iVert, iVert + 1, iVert + 2);
+			indexes.push(iVert + 2, iVert + 3, iVert);
+			//Code for 4 triangle faces:
+			//indexes.push(iVert, iVert + 1, iVert + 4);
+			//indexes.push(iVert + 1, iVert + 2, iVert + 4);
+			//indexes.push(iVert + 2, iVert + 3, iVert + 4);
+			//indexes.push(iVert + 3, iVert, iVert + 4);
 		}
 
 		var color = [];
 
-		for(var iFace = 0; iFace < verts.length / 15; iFace++) {
-			var iVertexStart = iFace * 15;
+		for(var iFace = 0; iFace < verts.length / (3 * VERTS_PER_FACE); iFace++) {
+			var iVertexStart = iFace * 3 * VERTS_PER_FACE;
 			var blockType = blockTypes[iFace];
 			var faceNumber = faceNumbers[iFace];
 
@@ -206,16 +229,14 @@ var meshCommon = function() {
 			var c = colours.light;
 			var c2 = colours.dark;
 
-			for(var iVertex = 0; iVertex < 5; iVertex++) {
-				var iVS = iVertexStart;
+			for(var iVertex = 0; iVertex < VERTS_PER_FACE; iVertex++) {
+				var iVS = iVertexStart + iVertex * 3;
 				var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2], voxelization);
 
 				var r = c.r*noise + c2.r*(1 - noise);
 				var g = c.g*noise + c2.g*(1 - noise);
 				var b = c.b*noise + c2.b*(1 - noise);
 				color.push(r/255, g/255, b/255);
-
-				iVertexStart += 3;
 			}
 		}
 

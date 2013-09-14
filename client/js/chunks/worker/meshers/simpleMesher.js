@@ -3,9 +3,9 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 	var cd = CHUNK_DEPTH;
 	var ch = CHUNK_HEIGHT;
 
-	var ccx = cc.x;
-	var ccy = cc.y;
-	var ccz = cc.z;
+	var ccX = cc.x;
+	var ccY = cc.y;
+	var ccZ = cc.z;
 
 	// Neighbouring chunks (for blockTypeAt)
 	var nxc, pxc, nyc, pyc, nzc, pzc;
@@ -21,10 +21,10 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 
 	//Pick blocks in increments based on the voxelization (like sampling), later code will look through the
 	//area and decide what type the block should really be.
-	for (var ocx = 0; ocx < cw; ocx += voxelization) {
-		for (var ocy = 0; ocy < ch; ocy += voxelization) {
-			for (var ocz = 0; ocz < cd; ocz += voxelization) {
-				addBlockGeometry(verts, index, color, ocx, ocy, ocz, voxelization);
+	for (var ocX = 0; ocX < cw; ocX += voxelization) {
+		for (var ocY = 0; ocY < ch; ocY += voxelization) {
+			for (var ocZ = 0; ocZ < cd; ocZ += voxelization) {
+				addBlockGeometry(verts, index, color, ocX, ocY, ocZ, voxelization);
 			}
 		}
 	}
@@ -77,29 +77,29 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 	//Everything after here is just helper functions.
 
 	//Can get blocks from up to 1 chunk away from out current chunk
-	function blockTypeAt(ocx, ocy, ocz) {
-		if (ocx < 0) {
-			return nxc ? nxc.block(cw - 1, ocy, ocz) : null;
-		} else if (ocx >= cw) {
-			return pxc ? pxc.block(0, ocy, ocz) : null;
-		} else if (ocy < 0) {
-			return nyc ? nyc.block(ocx, ch - 1, ocz) : null;
-		} else if (ocy >= ch) {
-			return pyc ? pyc.block(ocx, 0, ocz) : null;
-		} else if (ocz < 0) {
-			return nzc ? nzc.block(ocx, ocy, cd - 1) : null;
-		} else if (ocz >= cd) {
-			return pzc ? pzc.block(ocx, ocy, 0) : null;
+	function blockTypeAt(ocX, ocY, ocZ) {
+		if (ocX < 0) {
+			return nxc ? nxc.block(cw - 1, ocY, ocZ) : null;
+		} else if (ocX >= cw) {
+			return pxc ? pxc.block(0, ocY, ocZ) : null;
+		} else if (ocY < 0) {
+			return nyc ? nyc.block(ocX, ch - 1, ocZ) : null;
+		} else if (ocY >= ch) {
+			return pyc ? pyc.block(ocX, 0, ocZ) : null;
+		} else if (ocZ < 0) {
+			return nzc ? nzc.block(ocX, ocY, cd - 1) : null;
+		} else if (ocZ >= cd) {
+			return pzc ? pzc.block(ocX, ocY, 0) : null;
 		} else {
-			return blocks[ocx*cw*ch + ocy*cw + ocz];
+			return blocks[ocX*cw*ch + ocY*cw + ocZ];
 		}
 	}
 
-	function mostCommonBlock(ocx, ocy, ocz, r) {
+	function mostCommonBlock(ocX, ocY, ocZ, r) {
 		var count = {};
-		for (var x = ocx; x < ocx + r; x++) {
-			for (var y = ocy; y < ocy + r; y++) {
-				for (var z = ocz; z < ocz + r; z++) {
+		for (var x = ocX; x < ocX + r; x++) {
+			for (var y = ocY; y < ocY + r; y++) {
+				for (var z = ocZ; z < ocZ + r; z++) {
 					var tempBlock = blockTypeAt(x, y, z);
 					if (!(tempBlock in count)) {
 						count[tempBlock] = 1;
@@ -120,29 +120,29 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 		return parseInt(maxBlock);
 	}
 
-	function addBlockGeometry(verts, index, color, ocx, ocy, ocz, voxelization) {
+	function addBlockGeometry(verts, index, color, ocX, ocY, ocZ, voxelization) {
 		var r = voxelization;
 		var noise = [];
-		if (empty(ocx, ocy, ocz)) return;
+		if (empty(ocX, ocY, ocZ)) return;
 
 		//py = positive y, as in above the cube.
 		//We only draw faces when there is no cube blocking it.
-		var px = empty(ocx + r, ocy, ocz);
-		var nx = empty(ocx - r, ocy, ocz);
-		var py = empty(ocx, ocy + r, ocz);
-		var ny = empty(ocx, ocy - r, ocz);
-		var pz = empty(ocx, ocy, ocz + r);
-		var nz = empty(ocx, ocy, ocz - r);
+		var px = empty(ocX + r, ocY, ocZ);
+		var nx = empty(ocX - r, ocY, ocZ);
+		var py = empty(ocX, ocY + r, ocZ);
+		var ny = empty(ocX, ocY - r, ocZ);
+		var pz = empty(ocX, ocY, ocZ + r);
+		var nz = empty(ocX, ocY, ocZ - r);
 
-		var wx = ocx + ccx*cw;
-		var wy = ocy + ccy*ch;
-		var wz = ocz + ccz*cd;
+		var wcX = ocX + ccX*cw;
+		var wcY = ocY + ccY*ch;
+		var wcZ = ocZ + ccZ*cd;
 
 		var blockType = Block.DIRT;
 		if (r === 1) {
-			blockType = blockTypeAt(ocx, ocy, ocz);
+			blockType = blockTypeAt(ocX, ocY, ocZ);
 		} else {
-			blockType = mostCommonBlock(ocx, ocy, ocz, r);
+			blockType = mostCommonBlock(ocX, ocY, ocZ, r);
 		}
 		if (blockType < 0) return;
 
@@ -198,11 +198,11 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 			}
 		}
 
-		function anyEmpty(ocx, ocy, ocz, w, h, d) {
+		function anyEmpty(ocX, ocY, ocZ, w, h, d) {
 			for (var x = 0; x < w; x++) {
 				for (var y = 0; y < h; y++) {
 					for (var z = 0; z < d; z++) {
-						if (Block.isInvisible(blockTypeAt(ocx + x, ocy + y, ocz + z))) {
+						if (Block.isInvisible(blockTypeAt(ocX + x, ocY + y, ocZ + z))) {
 							return true;
 						}
 					}
@@ -211,11 +211,11 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 			return false;
 		}
 
-		function allEmpty(ocx, ocy, ocz, w, h, d) {
+		function allEmpty(ocX, ocY, ocZ, w, h, d) {
 			for (var x = 0; x < r; x++) {
 				for (var y = 0; y < r; y++) {
 					for (var z = 0; z < r; z++) {
-						if (!Block.isInvisible(blockTypeAt(ocx + x, ocy + y, ocz + z))) {
+						if (!Block.isInvisible(blockTypeAt(ocX + x, ocY + y, ocZ + z))) {
 							return false;
 						}
 					}
@@ -224,68 +224,68 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 			return true;
 		}
 
-		function empty(ocx, ocy, ocz) {
+		function empty(ocX, ocY, ocZ) {
 			if (r === 1) {
-				return Block.isInvisible(blockTypeAt(ocx, ocy, ocz));
+				return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 			}
 
-			if (ocx < 0 || ocx >= cw) {
-				return anyEmpty(ocx, ocy, ocz, 1, r, r);
-			} else if (ocy < 0 || ocy >= ch) {
-				return anyEmpty(ocx, ocy, ocz, r, 1, r);
-			} else if (ocz < 0 || ocz >= cd) {
-				return anyEmpty(ocx, ocy, ocz, r, r, 1);
+			if (ocX < 0 || ocX >= cw) {
+				return anyEmpty(ocX, ocY, ocZ, 1, r, r);
+			} else if (ocY < 0 || ocY >= ch) {
+				return anyEmpty(ocX, ocY, ocZ, r, 1, r);
+			} else if (ocZ < 0 || ocZ >= cd) {
+				return anyEmpty(ocX, ocY, ocZ, r, r, 1);
 			} else {
-				return allEmpty(ocx, ocy, ocz, r, r, r);
+				return allEmpty(ocX, ocY, ocZ, r, r, r);
 			}
 		}
 
 		if (px) {
-			v(wx + r, wy    , wz    );
-			v(wx + r, wy + r, wz    );
-			v(wx + r, wy + r, wz + r);
-			v(wx + r, wy    , wz + r);
-			v(wx + r, wy + r/2, wz + r/2);
+			v(wcX + r, wcY    , wcZ    );
+			v(wcX + r, wcY + r, wcZ    );
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX + r, wcY    , wcZ + r);
+			v(wcX + r, wcY + r/2, wcZ + r/2);
 			f(0, blockType);
 		}
 		if (py) {
-			v(wx    , wy + r, wz + r);
-			v(wx + r, wy + r, wz + r);
-			v(wx + r, wy + r, wz    );
-			v(wx    , wy + r, wz    );
-			v(wx + r/2, wy + r, wz + r/2);
+			v(wcX    , wcY + r, wcZ + r);
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX + r, wcY + r, wcZ    );
+			v(wcX    , wcY + r, wcZ    );
+			v(wcX + r/2, wcY + r, wcZ + r/2);
 			f(2, blockType);
 		}
 		if (pz) {
-			v(wx    , wy    , wz + r);
-			v(wx + r, wy    , wz + r);
-			v(wx + r, wy + r, wz + r);
-			v(wx    , wy + r, wz + r);
-			v(wx + r/2, wy + r/2, wz + r);
+			v(wcX    , wcY    , wcZ + r);
+			v(wcX + r, wcY    , wcZ + r);
+			v(wcX + r, wcY + r, wcZ + r);
+			v(wcX    , wcY + r, wcZ + r);
+			v(wcX + r/2, wcY + r/2, wcZ + r);
 			f(4, blockType);
 		}
 		if (nx) {
-			v(wx, wy    , wz + r);
-			v(wx, wy + r, wz + r);
-			v(wx, wy + r, wz    );
-			v(wx, wy    , wz    );
-			v(wx, wy + r/2, wz + r/2);
+			v(wcX, wcY    , wcZ + r);
+			v(wcX, wcY + r, wcZ + r);
+			v(wcX, wcY + r, wcZ    );
+			v(wcX, wcY    , wcZ    );
+			v(wcX, wcY + r/2, wcZ + r/2);
 			f(1, blockType);
 		}
 		if (ny) {
-			v(wx    , wy, wz    );
-			v(wx + r, wy, wz    );
-			v(wx + r, wy, wz + r);
-			v(wx    , wy, wz + r);
-			v(wx + r/2, wy, wz + r/2);
+			v(wcX    , wcY, wcZ    );
+			v(wcX + r, wcY, wcZ    );
+			v(wcX + r, wcY, wcZ + r);
+			v(wcX    , wcY, wcZ + r);
+			v(wcX + r/2, wcY, wcZ + r/2);
 			f(3, blockType);
 		}
 		if (nz) {
-			v(wx    , wy + r, wz);
-			v(wx + r, wy + r, wz);
-			v(wx + r, wy    , wz);
-			v(wx    , wy    , wz);
-			v(wx + r/2, wy + r/2, wz);
+			v(wcX    , wcY + r, wcZ);
+			v(wcX + r, wcY + r, wcZ);
+			v(wcX + r, wcY    , wcZ);
+			v(wcX    , wcY    , wcZ);
+			v(wcX + r/2, wcY + r/2, wcZ);
 			f(5, blockType);
 		}
 
@@ -293,11 +293,11 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 	}
 
 	function updateNeighbours() {
-		pxc = manager.chunkAt(ccx + 1, ccy, ccz);
-		nxc = manager.chunkAt(ccx - 1, ccy, ccz);
-		pyc = manager.chunkAt(ccx, ccy + 1, ccz);
-		nyc = manager.chunkAt(ccx, ccy - 1, ccz);
-		pzc = manager.chunkAt(ccx, ccy, ccz + 1);
-		nzc = manager.chunkAt(ccx, ccy, ccz - 1);
+		pxc = manager.chunkAt(ccX + 1, ccY, ccZ);
+		nxc = manager.chunkAt(ccX - 1, ccY, ccZ);
+		pyc = manager.chunkAt(ccX, ccY + 1, ccZ);
+		nyc = manager.chunkAt(ccX, ccY - 1, ccZ);
+		pzc = manager.chunkAt(ccX, ccY, ccZ + 1);
+		nzc = manager.chunkAt(ccX, ccY, ccZ - 1);
 	}
 }

@@ -46,10 +46,10 @@ function EntityManager(scene, conn) {
 		delete entities[id];
 	});
 
-	self.entityAt = function (wx, wy, wz) {
+	self.entityAt = function (wcX, wcY, wcZ) {
 		for (var id in entities) {
 			var entity = entities[id];
-			if (entity.contains(wx, wy, wz)) {
+			if (entity.contains(wcX, wcY, wcZ)) {
 				return entity;
 			}
 		}

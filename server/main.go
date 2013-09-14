@@ -36,7 +36,7 @@ func getClientName(config *websocket.Config) string {
 
 func mainSocketHandler(ws *websocket.Conn) {
 	conn := NewConn(ws)
-
+	
 	msg, err := conn.Recv()
 	if err != nil {
 		log.Println("Error connecting client, unable to read handshake message: ", err)
@@ -65,7 +65,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ServerTime: float64(time.Now().UnixNano()) / 1e6,
 		ClientID:   name,
 	})
-
+	
 	client.Run(conn)
 }
 
@@ -140,11 +140,11 @@ func promptLoop(quit chan bool, state *liner.State) {
 }
 
 func main() {
-	setupPrompt()
+// 	setupPrompt()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
-	// 	go doProfile()
+// 	go doProfile()
 
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))

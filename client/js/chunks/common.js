@@ -15,28 +15,28 @@ function clamp(n, a, b) {
 	return Math.min(Math.max(n, a), b);
 }
 
-function worldToChunk(wx, wy, wz) {
-	if (wz === undefined) {
+function worldToChunk(wcX, wcY, wcZ) {
+	if (wcZ === undefined) {
 		throw "worldToChunk expects three paremeters!";
 	}
 	return {
 		c: {
-			x: Math.floor(wx / CHUNK_WIDTH),
-			y: Math.floor(wy / CHUNK_HEIGHT),
-			z: Math.floor(wz / CHUNK_DEPTH),
+			x: Math.floor(wcX / CHUNK_WIDTH),
+			y: Math.floor(wcY / CHUNK_HEIGHT),
+			z: Math.floor(wcZ / CHUNK_DEPTH),
 		},
 		o: {
-			x: mod(Math.floor(wx), CHUNK_WIDTH),
-			y: mod(Math.floor(wy), CHUNK_HEIGHT),
-			z: mod(Math.floor(wz), CHUNK_DEPTH),
+			x: mod(Math.floor(wcX), CHUNK_WIDTH),
+			y: mod(Math.floor(wcY), CHUNK_HEIGHT),
+			z: mod(Math.floor(wcZ), CHUNK_DEPTH),
 		}
 	};
 }
 
-function validChunkOffset(ocx, ocy, ocz) {
-	return ocx >= 0 && ocx < CHUNK_WIDTH &&
-		ocy >= 0 && ocy < CHUNK_HEIGHT &&
-		ocz >= 0 && ocz < CHUNK_DEPTH;
+function validChunkOffset(ocX, ocY, ocZ) {
+	return ocX >= 0 && ocX < CHUNK_WIDTH &&
+		ocY >= 0 && ocY < CHUNK_HEIGHT &&
+		ocZ >= 0 && ocZ < CHUNK_DEPTH;
 }
 
 function ccStr(cc) {

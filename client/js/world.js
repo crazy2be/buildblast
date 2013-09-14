@@ -1,14 +1,6 @@
 function World(scene, conn, clientID, camera) {
 	var self = this;
 
-	self.addToScene = function (mesh) {
-		scene.add(mesh);
-	};
-
-	self.removeFromScene = function (mesh) {
-		scene.remove(mesh);
-	};
-
 	var chunkManager = new ChunkManager(scene, clientID);
 	var entityManager = new EntityManager(scene, conn);
 	self.getEntityInfos = entityManager.getEntityInfos;
@@ -37,8 +29,16 @@ function World(scene, conn, clientID, camera) {
 		scene.add(cube);
 	};
 
-	self.blockAt = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.addToScene = function (mesh) {
+		scene.add(mesh);
+	};
+
+	self.removeFromScene = function (mesh) {
+		scene.remove(mesh);
+	};
+
+	self.blockAt = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var oc = cords.o;
 		var cc = cords.c;
 
@@ -49,8 +49,8 @@ function World(scene, conn, clientID, camera) {
 		else return block;
 	};
 
-	self.findClosestGround = function (wx, wy, wz) {
-		var cords = worldToChunk(wx, wy, wz);
+	self.findClosestGround = function (wcX, wcY, wcZ) {
+		var cords = worldToChunk(wcX, wcY, wcZ);
 		var cc = cords.c;
 		var oc = cords.o;
 
@@ -98,7 +98,6 @@ function World(scene, conn, clientID, camera) {
 		}
 	};
 
-	var projector = new THREE.Projector();
 	function findIntersection(point, look, criteriaFnc, precision, maxDist) {
 		precision = precision || 0.01;
 		maxDist = maxDist || 100;
@@ -122,20 +121,13 @@ function World(scene, conn, clientID, camera) {
 	}
 
 	self.findPlayerIntersection = function (camera, precision) {
-		function entityAt(wx, wy, wz) {
-			return entityManager.entityAt(wx, wy, wz);
+		function entityAt(wcX, wcY, wcZ) {
+			return entityManager.entityAt(wcX, wcY, wcZ);
 		}
 		return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
 	};
 
-	function findSolidBlockIntersection(camera, precision) {
-		function blockAt(wx, wy, wz) {
-			var block = self.blockAt(wx, wy, wz);
-			return block && block.solid();
-		}
-		return findIntersection(camera.position, getLookedAtDirection(camera), blockAt, precision);
-	};
-
+	var projector = new THREE.Projector();
 	function getLookedAtDirection(camera) {
 		var look = new THREE.Vector3(0, 0, 1);
 		// http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
@@ -143,40 +135,47 @@ function World(scene, conn, clientID, camera) {
 		return look.sub(camera.position);
 	}
 
-	//wantSolidBlock is true or false, and describes whether a solid block is requested,
-	//  or the block right before the solid block (so for example and air block right before the solid block).
-	//return a THREE.Vector3 which is the position of the block.
-	self.getLookedAtBlock = function(camera, wantSolidBlock) {
-		//Very important, without specifying this we cannot accurately backup to find
-		//a block before a solid block!
+	// Traces a vector from the camera's position, along the look vector,
+	// until hitting a solid block. If dontWantSolidBlock is true, it then
+	// backs up one step, until the block immediately before the solid
+	// block. Returns the position of the block.
+	// BUG(yeerkkiller1): (literal) corner case is not handled correctly: 
+	// http://awwapp.com/s/e3/4f/fe.png
+	self.findLookedAtBlock = function(camera, dontWantSolidBlock) {
 		var precision = 0.1;
+		var pos = camera.position;
+		var dir = getLookedAtDirection(camera);
 
-		var intersect = findSolidBlockIntersection(camera, precision);
+		function solidBlockAt(wcX, wcY, wcZ) {
+			var block = self.blockAt(wcX, wcY, wcZ);
+			return block && block.solid();
+		}
+		
+		var intersect = findIntersection(pos, dir, solidBlockAt, precision);
 		if (!intersect) {
 			console.log("You aren't looking at anything!");
 			return;
 		}
-		var p = intersect.point;
 
-		if(!wantSolidBlock) {
+		if (dontWantSolidBlock) {
 			//We backup to the last point, so should be the block directly before a solid.
-			var cameraDirection = getLookedAtDirection(camera).setLength(precision);
-			p.sub(cameraDirection);
+			var cameraDirection = dir.setLength(precision);
+			intersect.point.sub(cameraDirection);
 		}
 
-		return p;
+		return intersect.point;
 	};
 
-	self.changeBlock = function(wx, wy, wz, newType) {
+	self.changeBlock = function(wcX, wcY, wcZ, newType) {
 		conn.queue('block', {
 			Pos: {
-				X: Math.floor(wx),
-				Y: Math.floor(wy),
-				Z: Math.floor(wz),
+				X: Math.floor(wcX),
+				Y: Math.floor(wcY),
+				Z: Math.floor(wcZ),
 			},
 			Type: newType,
 		});
-		chunkManager.queueBlockChange(wx, wy, wz, newType);
+		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 
 	//Not sure if this is okay to have, but it certainly makes things easier for the Player

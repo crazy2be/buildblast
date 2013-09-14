@@ -113,7 +113,7 @@ function processBlockChange(payload) {
 
 	var chunk = manager.get(cc);
 	if (!chunk) {
-		console.error("Server Error: Got block change for chunk which is not loaded.");
+		console.warn("Got block change request for (", x, y, z, ") whose chunk which is not loaded. Ignoring.");
 		return;
 	}
 
@@ -128,9 +128,8 @@ function processBlockChange(payload) {
 	var changedChunks = [];
 	changedChunks.push(cc);
 
-	//Takes block coords
-	function invalidate(x, y, z) {
-		coords = worldToChunk(x, y, z);
+	function invalidate(bcX, bcY, bcZ) {
+		coords = worldToChunk(bcX, bcY, bcZ);
 		changedChunks.push(coords.c);
 	}
 
