@@ -67,12 +67,10 @@
 
 		var rotVec = {};
 		rotVec.x = -entity.pos().x;
-		rotVec.y = -entity.pos().z + 3;
+		rotVec.z = -entity.pos().z;
 
-		//I fell like this is wrong is some manner... not sure why though.
-		var dirRadian = Math.atan2(rotVec.x, rotVec.y);
+		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
 		mesh1.rotation.y = dirRadian;
-		//mesh1.rotation.x = 0.5;//Math.sin(dirRadian);
 		return mesh1;
 	}
 
@@ -124,17 +122,9 @@
 		rotVec.x = -pos.x + camera.position.x;
 		rotVec.z = -pos.z + camera.position.z;
 
-		//I fell like this is wrong is some manner... not sure why though.
+		//I feel like this is wrong is some manner... not sure why though.
 		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
 		mesh1.rotation.y = dirRadian;
-
-		//mesh1.rotation.y = camera.position.y;
-		//if(camera.position.y > Math.PI) mesh1.rotation.y *= -1;
-
-		//mesh1.rotation.y = camera.rotation.y;
-		//It appears to work without out this, and so either this does
-		//nothing, or does stuff we don't need.
-		//mesh1.needsUpdate = true;
 	}
 
 	self.mesh = function() {
