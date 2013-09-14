@@ -9,7 +9,7 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id).init();
+		var entity = new Entity(id);
 		entity.addTo(scene);
 		entities[id] = entity;
 	});
@@ -21,8 +21,6 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-position message for entity which does not exist!", id);
 			return;
 		}
-		//Hopefully this can eventually be directly loaded, and then every tick a simple
-		//entity.Update() can be called.
 		entity.setPos(new THREE.Vector3(
 			payload.Pos.X,
 			payload.Pos.Y,
@@ -33,7 +31,6 @@ function EntityManager(scene, conn) {
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
-		entity.setHealth(payload.Health);
 	});
 
 	conn.on('entity-remove', function (payload) {
@@ -54,31 +51,4 @@ function EntityManager(scene, conn) {
 			}
 		}
 	};
-
-	//I am pretty sure this is okay to have.
-	self.getEntityByID = function (entityID) {
-		return entities[entityID];
-	};
-
-	//Eventually this should probably be more directly exposed
-	//Returns [{pos, hp, maxHP}]
-	self.getEntityInfos = function () {
-		var infos = [];
-		for (var id in entities) {
-			var entity = entities[id];
-			infos.push({
-				pos: entity.pos(),
-				id: entity.id(),
-				hp: entity.health(),
-				maxHP: 100 //TODO: Don't hardcode this...
-			});
-		}
-		return infos;
-	}
-
-	self.update = function(camera) {
-		for(var id in entities) {
-			entities[id].update(camera);
-		}
-	}
 }
