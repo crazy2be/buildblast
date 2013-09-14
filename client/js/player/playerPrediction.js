@@ -1,3 +1,10 @@
+//We only move every tick, and we move for the duration of the tick.
+//We queue up a list of the keyStates of every tick, and tell the server that we wish to move
+//at those tick times.
+//We then apply those movements to the player's position, to move it beyond our last confirmed position
+//When the server gives us a response, we use this to update our last confirmed position (whether it
+//matches of not), and reapply all our queued keyStates (which should be only 1, or even none).
+
 function PlayerPrediction(world, conn, clock, position) {
 	var self = this;
 
@@ -7,12 +14,12 @@ function PlayerPrediction(world, conn, clock, position) {
 	};
 
 	function sendControlsToNetwork(c) {
-		var userCommand = {
+		var controlState = {
 			Controls: c,
 			Timestamp: clock.time(),
 		};
-		conn.queue('controls-state', userCommand);
-		userCommands.push(userCommand);
+		conn.queue('controls-state', controlState);
+		controlStates.push(controlState);
 	}
 
 	var lastConfirmedPrediction = {
@@ -22,10 +29,10 @@ function PlayerPrediction(world, conn, clock, position) {
 		Hp: 100,
 	};
 
-	var userCommands = [];
+	var controlStates = [];
 	conn.on('player-state', function (payload) {
-		var cmd = userCommands.shift();
-		if (cmd.Timestamp !== payload.Timestamp) {
+		var controlState = controlStates.shift();
+		if (controlState.Timestamp !== payload.Timestamp) {
 			// We should probably handle this more gracefully.
 			throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
 		}
@@ -41,20 +48,20 @@ function PlayerPrediction(world, conn, clock, position) {
 		var pos = confirmed.Pos.clone();
 		var vy = confirmed.VelocityY;
 		var t = confirmed.Timestamp;
-		for (var i = 0; i < userCommands.length; i++) {
-			var uc = userCommands[i];
-			var c = uc.Controls;
-			var dt = (uc.Timestamp - t) / 1000;
+		for (var i = 0; i < controlStates.length; i++) {
+			var controlState = controlStates[i];
+			var controls = controlState.Controls;
+			var dt = (controlState.Timestamp - t) / 1000;
 			if (dt > 1.0) {
 				// TODO: Log levels, because this is so fucking annoying.
 				//console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
 				dt = 1.0;
 			}
-			t = uc.Timestamp;
-			vy = applyUserCommand(pos, c, vy, dt);
+			t = controlState.Timestamp;
+			vy = applyControlState(pos, controls, vy, dt);
 		}
 
-		var latest = userCommands[userCommands.length - 1];
+		var latest = controlStates[controlStates.length - 1];
 		var lag = latest.Timestamp - confirmed.Timestamp;
 		updateLagStats(lag);
 		updateHealthBar(confirmed.Hp);
@@ -63,7 +70,7 @@ function PlayerPrediction(world, conn, clock, position) {
 	}
 
 	var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-	function applyUserCommand(pos, c, vy, dt) {
+	function applyControlState(pos, c, vy, dt) {
 		vy += dt * -9.81;
 
 		var dist = 10 * dt;
