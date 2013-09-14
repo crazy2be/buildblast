@@ -26,8 +26,9 @@ function Entity(id) {
 
 	var healthBar;
 
+	//Healthbar needs some info from us, so we can't fully set it up until we are setup.
 	self.init = function() {
-		healthBar = new HealthBar(self);
+		healthBar = new HealthBar(self); //Has to be called after 
 
 		return self;
 	}
