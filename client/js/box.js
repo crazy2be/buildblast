@@ -6,37 +6,18 @@ function Box(p, halfExtents, centerOffset) {
 	var self = this;
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
+	var moveSim = window.moveSim();
+
+	var pos = p.clone();
+	var p = pos; //Just used as an alias for pos
+
 	self.setPos = function (newPos) {
-		p = newPos;
+		pos.x = newPos.x;
+		pos.y = newPos.y;
+		pos.z = newPos.z;
 	};
 
-	self.attemptMove = function (world, move) {
-		if (inSolid(world)) {
-			var gh = groundHeight(world);
-			move.y = p.y - gh;
-			p.y = gh;
-		}
-
-		p.x += move.x;
-		if (inSolid(world)) {
-			p.x -= move.x;
-			move.x = 0;
-		}
-
-		p.y += move.y;
-		if (inSolid(world)) {
-			p.y -= move.y;
-			move.y = 0;
-		}
-
-		p.z += move.z;
-		if (inSolid(world)) {
-			p.z -= move.z;
-			move.z = 0;
-		}
-
-		return p;
-	};
+	self.attemptMove = moveSim.attemptMove.bind(null, pos, inSolid);
 
 	self.contains = function (x, y, z) {
 		var he = halfExtents;
@@ -50,7 +31,7 @@ function Box(p, halfExtents, centerOffset) {
 			zs < z && ze > z;
 	};
 
-	function bboxEach(fn, reduce) {
+	function bboxEach(p, fn, reduce) {
 		var he = halfExtents;
 		var co = centerOffset;
 		var xs = p.x + co.x - he.x, xe = p.x + co.x + he.x;
@@ -84,17 +65,12 @@ function Box(p, halfExtents, centerOffset) {
 		return false;
 	}
 
-	function inSolid(world) {
+	function inSolid(world, pos) {
 		function solidHere(x, y, z) {
 			var block = world.blockAt(x, y, z);
 			if (!block) return true;
 			else return block.solid();
 		}
-		return bboxEach(solidHere, logicalOr);
-	}
-
-	function groundHeight(world) {
-		var cg = world.findClosestGround;
-		return bboxEach(cg, Math.max) + halfExtents.y - centerOffset.y;
+		return bboxEach(pos, solidHere, logicalOr);
 	}
 }
