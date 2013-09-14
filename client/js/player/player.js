@@ -12,10 +12,8 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, clock, container, clientID) {
+function Player(world, conn, clock, container, camera) {
 	var self = this;
-
-	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
 	var controls = new Controls(container);
 	var chat = new Chat(controls, conn, container);
@@ -24,8 +22,6 @@ function Player(world, conn, clock, container, clientID) {
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	var speed;
-
-	var ourEntity = null;
 
 	var renderer = new THREE.WebGLRenderer();
 	initializeRenderer();
@@ -66,14 +62,6 @@ function Player(world, conn, clock, container, clientID) {
 	self.update = function (dt) {
 		chat.update(dt);
 
-		//Keep trying to latch onto the player we are supposed to represent
-		if(!ourEntity) {
-			ourEntity = world.getEntityByID(clientID);
-		}
-
-		//Easier to just wait until we get our entity
-		if(!ourEntity) return;
-
 		var controlState = controls.sample();
 
 		var playerPos = prediction.update(controlState);
@@ -103,10 +91,5 @@ function Player(world, conn, clock, container, clientID) {
 
 	function doLook(camera, p, c) {
 		camera.lookAt(getTarget(p, c));
-	}
-
-	//Hmm... this is no good
-	self.camera = function () {
-		return camera;
 	}
 };

@@ -45,9 +45,10 @@ window.onload = function () {
 		var ambientLight = new THREE.AmbientLight(0xffffff);
 		scene.add(ambientLight);
 
-		var world = new World(scene, conn, clientID);
+		var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
+		var world = new World(scene, conn, camera, clientID);
+		var player = new Player(world, conn, clock, container, camera);
 
-		var player = new Player(world, conn, clock, container, clientID);
 		window.testExposure.player = player;
 		window.testExposure.world = world;
 
@@ -63,7 +64,7 @@ window.onload = function () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is looking,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos(), player.camera());
+			world.update(dt, player.pos());
 
 			player.update(dt);
 			player.render(scene);

@@ -32,7 +32,7 @@ function Entity(id) {
 		return self;
 	}
 
-	self.setPos = function (newPos) {
+	self.setPos = function (newPos, camera) {
 		pos = newPos;
 		var c = new THREE.Vector3(
 			pos.x + co.x,
@@ -69,7 +69,7 @@ function Entity(id) {
 		br.y = newRot.y;
 	};
 
-	self.setHealth = function(newHealth) {
+	self.setHealth = function(newHealth, camera) {
 		healthBar.updateHP(newHealth, camera);
 
 		health = newHealth;
@@ -96,11 +96,6 @@ function Entity(id) {
 		scene.remove(hitboxMesh);
 		scene.remove(healthBar.mesh());
 	};
-
-	var camera;
-	self.update = function(newCamera) {
-		camera = newCamera;
-	}
 
 	self.id = function () {
 		return id;

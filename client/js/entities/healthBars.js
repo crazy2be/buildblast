@@ -78,7 +78,6 @@
 
 	var curHP = entity.health();
 	self.updateHP = function(newHP, camera) {
-		if(!camera) return;
 		//if(curHP == newHP) return;
 		curHP = newHP;
 
@@ -111,7 +110,6 @@
 
 	var curPos = entity.pos();
 	self.updatePos = function(pos, camera, hpChanged) {
-		if(!camera) return;
 		curPos = pos;
 
 		var p = curPos;

@@ -1,4 +1,4 @@
-function EntityManager(scene, conn) {
+function EntityManager(scene, conn, camera) {
 	var self = this;
 
 	var entities = {};
@@ -9,7 +9,7 @@ function EntityManager(scene, conn) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id);
+		var entity = new Entity(id).init();
 		entity.addTo(scene);
 		entities[id] = entity;
 	});
@@ -25,12 +25,13 @@ function EntityManager(scene, conn) {
 			payload.Pos.X,
 			payload.Pos.Y,
 			payload.Pos.Z
-		));
+		), camera);
 		entity.setRot(new THREE.Vector3(
 			payload.Rot.X,
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
+		entity.setHealth(payload.Health, camera);
 	});
 
 	conn.on('entity-remove', function (payload) {
