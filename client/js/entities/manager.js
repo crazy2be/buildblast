@@ -30,10 +30,10 @@ function EntityManager(scene, conn) {
 			payload.Pos.Y,
 			payload.Pos.Z
 		));
-		entity.setRot(new THREE.Vector3(
-			payload.Rot.X,
-			payload.Rot.Y,
-			payload.Rot.Z
+		entity.setLook(new THREE.Vector3(
+			payload.Look.X,
+			payload.Look.Y,
+			payload.Look.Z
 		));
 		entity.setVy(payload.Vy);
 	});

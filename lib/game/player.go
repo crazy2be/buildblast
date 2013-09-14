@@ -68,7 +68,7 @@ func (p *Player) Vy() float64 {
 	return p.vy
 }
 
-func (p *Player) Rot() coords.Direction {
+func (p *Player) Look() coords.Direction {
 	return p.look
 }
 

@@ -17,13 +17,13 @@ type Entity interface {
 	BoxAt(t float64) *physics.Box
 	Vy() float64
 	Pos() coords.World
-	Rot() coords.Direction
+	Look() coords.Direction
 	ID() string
 }
 
 type EntityListener interface {
 	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64)
+	EntityMoved(id string, pos coords.World, look coords.Direction, vy float64)
 	EntityDied(id string, killer string)
 	EntityRemoved(id string)
 }
@@ -64,12 +64,12 @@ func (w *World) Tick() {
 		e.Tick(w)
 		id := e.ID()
 		pos := e.Pos()
-		rot := e.Rot()
+		look := e.Look()
 		vy := e.Vy()
 		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos, rot, vy)
+			listener.EntityMoved(id, pos, look, vy)
 		}
 	}
 }

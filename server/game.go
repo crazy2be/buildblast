@@ -147,5 +147,5 @@ func (g *Game) EntityDied(id string, killer string) {
 }
 
 func (g *Game) EntityCreated(id string) {}
-func (g *Game) EntityMoved(id string, pos coords.World, rot coords.Direction, vy float64) {}
+func (g *Game) EntityMoved(id string, pos coords.World, look coords.Direction, vy float64) {}
 func (g *Game) EntityRemoved(id string) {}
