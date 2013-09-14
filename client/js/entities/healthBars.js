@@ -59,19 +59,8 @@
 			new THREE.PlaneGeometry(canvas1.width, canvas1.height),
 			material1
 		);
-		var p = entity.pos();
-		mesh1.position.set(p.x, p.y + 0.4, p.z);
-		mesh1.scale.x = 1/200;
-		mesh1.scale.y = 1/200;
-		mesh1.scale.z = 1/200;
-
-		var rotVec = {};
-		rotVec.x = -entity.pos().x;
-		rotVec.z = -entity.pos().z;
-
-		//I fell like this is wrong is some manner... not sure why though.
-		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
-		mesh1.rotation.y = dirRadian;
+		//Don't bother setting the mesh position as we can't determine it's
+		//orientation anyway. Besides, it will be recalculated right away.
 		return mesh1;
 	}
 
@@ -122,8 +111,8 @@
 		//I don't know, I tried, but I don't know why this works,
 		//or how to do it any better.
 		var rotVec = {};
-		rotVec.x = -pos.x + camera.position.x;
-		rotVec.z = -pos.z + camera.position.z;
+		rotVec.x = camera.position.x - pos.x;
+		rotVec.z = camera.position.z - pos.z;
 
 		//I fell like this is wrong is some manner... not sure why though.
 		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
