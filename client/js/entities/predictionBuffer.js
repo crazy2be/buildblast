@@ -3,9 +3,9 @@
 function PredictionBuffer(predictFnc) {
 	var self = this;
 
-	var dataHistory = new HistoryBuffer(30);
+	var dataHistory = new HistoryBuffer(5);
 	//Every aux should have a datum, but not necessarily the otherway around.
-	var auxDataHistory = new HistoryBuffer(30);
+	var auxDataHistory = new HistoryBuffer(5);
 
 	self.addPrediction = function (time, auxData) {
 		var indexBefore = dataHistory.getIndexBefore(time);
@@ -26,21 +26,21 @@ function PredictionBuffer(predictFnc) {
 	//Also recalculates the predictions for every aux data after this time, and
 	//removes the aux data associated with this time.
 	self.addConfirmed = function (time, pos) {
-		var dataIndex = dataHistory.setValue(time, pos)
+		var dataIndex = dataHistory.setValue(time, pos);
 
-		var curAuxData = auxDataHistory.getIndexOf(time);
-		if (curAuxData !== null) {
-			auxDataHistory.removeAtIndex(nextAuxIndex);
+		var curAuxIndex = auxDataHistory.getIndexOf(time);
+		if (curAuxIndex !== null) {
+			auxDataHistory.removeAtIndex(curAuxIndex);
 		}
 
-		var nextAuxIndex = auxDataHistory.getIndexAfter(time);
+		curAuxIndex = auxDataHistory.getIndexAfter(time);
 
 		//No aux indexes to simulate
-		if (nextAuxIndex === null) return;
+		if (curAuxIndex === null) return;
 
-		while (nextAuxIndex <= auxDataHistory.lastPos()) {
-			var auxTime = auxDataHistory.historyTimes[nextAuxIndex];
-			var auxData = auxDataHistory.historyValues[nextAuxIndex];
+		while (curAuxIndex <= auxDataHistory.lastPos()) {
+			var auxTime = auxDataHistory.historyTimes[curAuxIndex];
+			var auxData = auxDataHistory.historyValues[curAuxIndex];
 
 			//We want to give this aux the more recent prevData,
 			//which may not be our confirmed (this could happen
@@ -57,8 +57,7 @@ function PredictionBuffer(predictFnc) {
 
 			var predictedDatum = predictFnc(prevDatum, auxData, dt);
 			dataHistory.setValue(auxTime, predictedDatum);
-			dataIndex++;
-			nextAuxIndex++;
+			curAuxIndex++;
 		}
 	};
 

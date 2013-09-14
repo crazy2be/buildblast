@@ -8,7 +8,7 @@ function HistoryBuffer(maxHistory) {
 	var self = this;
 
 	//Exposing our internals makes people using this a lot more efficient.
-	var historyMax = maxHistory;
+	var historyMax = maxHistory - 1;
 	var lastPos = -1;
 	var historyValues = [];
 	var historyTimes = [];
@@ -34,7 +34,7 @@ function HistoryBuffer(maxHistory) {
 			historyTimes.push(time);
 			historyValues.push(newValue);
 			lastPos++;
-			return lastPos;
+			return lastPos - 1;
 		}
 		else if (historyTimes[insertIndex] == time) { //Replace
 			historyTimes[insertIndex] = time;
@@ -45,7 +45,7 @@ function HistoryBuffer(maxHistory) {
 			historyTimes.splice(insertIndex, 0, time);
 			historyValues.splice(insertIndex, 0, newValue);
 			lastPos++;
-			return lastPos;
+			return lastPos - 1;
 		}
 	}
 
@@ -109,9 +109,11 @@ function HistoryBuffer(maxHistory) {
 		if (lastPos == -1) return 0;
 
 		var lastTime = historyTimes[lastPos];
-		if (time >= lastTime) {
+		if (time > lastTime) {
 			//Adding to the end, very likely
 			return lastPos + 1;
+		} else if (time == lastTime) {
+			return lastPos;
 		}
 
 		//Binary search to find the insertion point,
