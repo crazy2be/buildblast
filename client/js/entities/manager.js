@@ -1,4 +1,4 @@
-function EntityManager(scene, conn, camera) {
+function EntityManager(scene, conn) {
 	var self = this;
 
 	var entities = {};
@@ -9,7 +9,7 @@ function EntityManager(scene, conn, camera) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id, camera).init();
+		var entity = new Entity(id).init();
 		entity.addTo(scene);
 		entities[id] = entity;
 	});
@@ -31,7 +31,6 @@ function EntityManager(scene, conn, camera) {
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
-		entity.setHealth(payload.Health, camera);
 	});
 
 	conn.on('entity-remove', function (payload) {

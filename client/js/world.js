@@ -5,7 +5,7 @@ function World(scene, conn, clock, container, chunkManager) {
 	var player = new Player(self, conn, clock, controls);
 	var chat = new Chat(controls, conn, container);
 
-	var entityManager = new EntityManager(scene, conn, player.camera());
+	var entityManager = new EntityManager(scene, conn);
 	window.testExposure.player = player;
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
