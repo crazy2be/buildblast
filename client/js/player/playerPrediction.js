@@ -8,87 +8,45 @@
 function PlayerPrediction(world, conn, clock, position) {
 	var self = this;
 
-	self.update = function (controls) {
-		sendControlsToNetwork(controls);
-		return applyRemainingClientPredictions();
-	};
+	var moveSim = window.moveSim();
 
-	function sendControlsToNetwork(c) {
+	var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+
+	// predictFnc(lastDatum, auxData, dt) : newDatum
+	var posBuffer = new PredictionBuffer(
+		moveSim.simulateMovement.bind(null, {
+			inSolid: box.inSolid, 
+			world: world
+		})
+	);
+
+	posBuffer.addConfirmed(0, new THREE.Vector3(0, 0, 0));
+
+	self.update = function (controls) {
 		var controlState = {
-			Controls: c,
+			Controls: controls,
 			Timestamp: clock.time(),
 		};
 		conn.queue('controls-state', controlState);
-		controlStates.push(controlState);
-	}
+		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 
-	var lastConfirmedPrediction = {
-		Pos: new THREE.Vector3(0.0, 0.0, 0.0),
-		Timestamp: 0.0,
-		VelocityY: 0.0,
-		Hp: 100,
-	};
-
-	var controlStates = [];
-	conn.on('player-state', function (payload) {
-		var controlState = controlStates.shift();
-		if (controlState.Timestamp !== payload.Timestamp) {
-			// We should probably handle this more gracefully.
-			throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
-		}
-		var prevhp = lastConfirmedPrediction.Hp;
-		var p = payload.Pos;
-		payload.Pos = new THREE.Vector3(p.X, p.Y, p.Z);
-		lastConfirmedPrediction = payload;
-
-	});
-
-	function applyRemainingClientPredictions() {
-		var confirmed = lastConfirmedPrediction;
-		var pos = confirmed.Pos.clone();
-		var vy = confirmed.VelocityY;
-		var t = confirmed.Timestamp;
-		for (var i = 0; i < controlStates.length; i++) {
-			var controlState = controlStates[i];
-			var controls = controlState.Controls;
-			var dt = (controlState.Timestamp - t) / 1000;
-			if (dt > 1.0) {
-				// TODO: Log levels, because this is so fucking annoying.
-				//console.warn("WARN: Attempting to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s");
-				dt = 1.0;
-			}
-			t = controlState.Timestamp;
-			vy = applyControlState(pos, controls, vy, dt);
-		}
-
-		var latest = controlStates[controlStates.length - 1];
+		/* TODO: Do this stuff somewhere
 		var lag = latest.Timestamp - confirmed.Timestamp;
 		updateLagStats(lag);
 		updateHealthBar(confirmed.Hp);
 		updatePositionText(pos, vy);
-		return pos;
-	}
+		*/
 
-	var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-	function applyControlState(pos, c, vy, dt) {
-		vy += dt * -9.81;
+		return posBuffer.getLastValue();
+	};
 
-		var dist = 10 * dt;
-		var fw = dist*(c.forward ? 1 : c.back ? -1 : 0);
-		var rt = dist*(c.right ? 1 : c.left ? -1 : 0);
-		var move = {
-			x: -cos(c.lon) * fw + sin(c.lon) * rt,
-			y: vy * dt,
-			z: -sin(c.lon) * fw - cos(c.lon) * rt,
-		};
-
-		box.setPos(pos);
-		box.attemptMove(world, move);
-		if (move.y === 0) {
-			vy = c.jump ? 6 : 0;
-		}
-		return vy;
-	}
+	conn.on('player-state', function (payload) {
+		//TODO: Fix this!
+		payload.Pos.x = payload.Pos.X;
+		payload.Pos.y = payload.Pos.Y;
+		payload.Pos.z = payload.Pos.Z;
+		posBuffer.addConfirmed(payload.Timestamp, payload.Pos);
+	});
 
 	var prevhp = -1;
 	function updateHealthBar(hp) {

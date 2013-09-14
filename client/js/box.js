@@ -73,4 +73,6 @@ function Box(p, halfExtents, centerOffset) {
 		}
 		return bboxEach(pos, solidHere, logicalOr);
 	}
+
+	self.inSolid = inSolid;
 }

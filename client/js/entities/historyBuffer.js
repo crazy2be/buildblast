@@ -4,29 +4,114 @@
 
 //Can also be given uncertain future values, which are
 //cleared if they are not confirmed by pos values with an equivalent time.
-function historyBuffer(initialPos, initialTime, maxHistory) {
+function HistoryBuffer(maxHistory) {
 	var self = this;
 
-	//This will probably be a bottleneck
+	//Exposing our internals makes people using this a lot more efficient.
 	var historyMax = maxHistory;
-	var lastPos = 0;
-	var historyValues = [initialPos];
-	var historyTimes = [initialTime];
+	var lastPos = -1;
+	var historyValues = [];
+	var historyTimes = [];
 
-	self.setValue = function (newValue, time) {
+	self.lastPos = function () { return lastPos; }
+	self.historyValues = historyValues;
+	self.historyTimes = historyTimes;
+
+	self.setValue = function (time, newValue) {
 		if (lastPos == historyMax) {
 			//Buffer is full
+			//If they set values way in the past, this will "extend" the past,
+			//this is okay I guess? But if they start inserting in the future again,
+			//their will lose their past values.
 			historyValues.shift();
 			historyTimes.shift();
 			lastPos--;
 		}
 
+		var insertIndex = getInsertIndex(time);
+
+		if (insertIndex > lastPos) { //Push to end
+			historyTimes.push(time);
+			historyValues.push(newValue);
+			lastPos++;
+			return lastPos;
+		}
+		else if (historyTimes[insertIndex] == time) { //Replace
+			historyTimes[insertIndex] = time;
+			historyValues[insertIndex] = newValue;
+			return insertIndex;
+
+		} else { //:( have to splice in middle.
+			historyTimes.splice(insertIndex, 0, time);
+			historyValues.splice(insertIndex, 0, newValue);
+			lastPos++;
+			return lastPos;
+		}
+	}
+
+	//If time is < all times, we return the first value,
+	//and if it is > all times we return the last value.
+	self.getValue = function (time) {
+		if (lastPos == -1) return null;
+
+		var insertIndex = getInsertIndex(time);
+		if (insertIndex > lastPos) insertIndex = lastPos;
+		return historyValues[time];
+	}
+
+	//Same restrictions as getValue
+	//(this is slightly inefficient, as they will likely call getValue with this time).
+	self.getIndexBefore = function (time) {
+		if (lastPos == -1) return null;
+
+		var insertIndex = getInsertIndex(time);
+
+		if (insertIndex > lastPos) return lastPos;
+
+		//The time actually exists
+		if (historyTimes[insertIndex] == time) {
+			return insertIndex - 1;
+		}
+
+		return insertIndex;
+	}
+
+	self.getIndexAfter = function (time) {
+		if (lastPos == -1) return null;
+
+		var insertIndex = getInsertIndex(time);
+
+		//If there is nothing after it we indicate this with null
+		if (insertIndex > lastPos) return null;
+
+		//The time actually exists
+		if (historyTimes[insertIndex] == time) {
+			return insertIndex + 1;
+		}
+
+		return insertIndex;
+	}
+
+	self.getIndexOf = function (time) {
+		var insertIndex = getInsertIndex(time);
+		if (insertIndex > lastPos) return null;
+		if (historyTimes[insertIndex] != time) return null;
+		return insertIndex;
+	}
+
+	self.removeAtIndex = function (index) {
+		self.historyValues.splice(index, 1);
+		self.historyTimes.splice(index, 1);
+		lastPos--;
+	}
+
+	function getInsertIndex(time) {
+		if (lastPos == -1) return 0;
+
 		var lastTime = historyTimes[lastPos];
 		if (time >= lastTime) {
 			//Adding to the end, very likely
-			historyValues.push(newValue);
-			historyTimes.push(time);
-			return;
+			return lastPos + 1;
 		}
 
 		//Binary search to find the insertion point,
@@ -37,42 +122,12 @@ function historyBuffer(initialPos, initialTime, maxHistory) {
 		var maxTime = lastTime;
 		var maxIndex = lastPos; //We already checked the last one, so it is > time
 
-		var insertIndex = binarySearch(minTime, minIndex, maxTime, maxIndex, historyTimes);
-
-		historyTimes[insertIndex] = time;
-		historyValues[insertIndex] = newValue;
+		return binarySearch(time, minTime, minIndex, maxTime, maxIndex, historyTimes);
 	}
 
-	self.getValue = function (time) {
-		if (lastPos == historyMax) {
-			//Buffer is full
-			historyValues.shift();
-			historyTimes.shift();
-			lastPos--;
-		}
-
-		var lastTime = historyTimes[lastPos];
-		if (time >= lastTime) {
-			return historyValues[lastPos];
-		}
-
-		//Binary search to find the insertion point,
-		//might be changed to use a hash map instead
-		var minVal = historyTimes[0];
-		var minIndex = 0;
-		//Max is always > time
-		var maxVal = lastTime;
-		var maxIndex = lastPos; //We already checked the last one, so it is > time
-
-		var index = binarySearch(minTime, minIndex, maxTime, maxIndex, historyTimes);
-		if (index > lastPos) index = lastPos;
-
-		return historyValues[index];
-	}
-
-	function binarySearch(minVal, minIndex, maxVal, maxIndex, array) {
+	function binarySearch(time, minVal, minIndex, maxVal, maxIndex, array) {
 		while (minIndex < maxIndex) {
-			var curIndex = (minIndex + maxIndex) / 2;
+			var curIndex = ~~((minIndex + maxIndex) / 2);
 			var curVal = array[curIndex];
 
 			if (curVal < time) {
