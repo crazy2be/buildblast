@@ -3,9 +3,9 @@
 function PredictionBuffer(predictFnc) {
 	var self = this;
 
-	var dataHistory = new HistoryBuffer(5);
+	var dataHistory = new HistoryBuffer(30);
 	//Every aux should have a datum, but not necessarily the otherway around.
-	var auxDataHistory = new HistoryBuffer(5);
+	var auxDataHistory = new HistoryBuffer(30);
 
 	self.addPrediction = function (time, auxData) {
 		var indexBefore = dataHistory.getIndexBefore(time);

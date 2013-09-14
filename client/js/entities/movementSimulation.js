@@ -34,6 +34,8 @@
 
 		var newRay = {};
 
+		lastRay.dy = lastRay.dy || 0;
+
 		//We probably want to reduce 'gravity' a bit here
 		newRay.dy = lastRay.dy + dt * -9.81;
 

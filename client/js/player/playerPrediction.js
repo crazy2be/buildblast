@@ -41,7 +41,7 @@ function PlayerPrediction(world, conn, clock, position) {
 	};
 
 	conn.on('player-state', function (payload) {
-		//TODO: Fix this!
+		//TODO: Stop this mapping or do it properly.
 		payload.Pos.x = payload.Pos.X;
 		payload.Pos.y = payload.Pos.Y;
 		payload.Pos.z = payload.Pos.Z;
