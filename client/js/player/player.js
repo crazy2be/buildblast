@@ -44,6 +44,10 @@ function Player(world, conn, clock, controls) {
 		inventory.update(p, c);
 	};
 
+	self.camera = function () {
+		return camera;
+	}
+
 	function doLook(camera, p, c) {
 		var target = new THREE.Vector3();
 		target.x = p.x + sin(c.lat) * cos(c.lon);

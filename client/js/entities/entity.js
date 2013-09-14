@@ -1,4 +1,4 @@
-function Entity(id) {
+function Entity(id, camera) {
 	var self = this;
 
 	var pos = new THREE.Vector3(0, 0, 0);
