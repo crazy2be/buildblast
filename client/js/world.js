@@ -1,12 +1,17 @@
-function World(scene, conn, clientID, camera) {
+function World(scene, conn, clock, container, chunkManager) {
 	var self = this;
 
-	var chunkManager = new ChunkManager(scene, clientID);
-	var entityManager = new EntityManager(scene, conn);
-	self.getEntityInfos = entityManager.getEntityInfos;
+	var controls = new Controls(container);
+	var player = new Player(self, conn, clock, controls);
+	var chat = new Chat(controls, conn, container);
 
+	var entityManager = new EntityManager(scene, conn);
+	window.testExposure.player = player;
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
+
+	var ambientLight = new THREE.AmbientLight(0xffffff);
+	scene.add(ambientLight);
 
 	conn.on('debug-ray', processRay);
 
@@ -15,10 +20,14 @@ function World(scene, conn, clientID, camera) {
 		self.addSmallCube(pos);
 	}
 
-	self.update = function (dt, playerPos, camera) {
-		chunkManager.update(dt, playerPos);
-		entityManager.update(camera);
+	self.update = function (dt) {
+		player.update(dt);
+		chunkManager.update(dt, player.pos());
+		chat.update(dt);
 	};
+
+	self.render = player.render;
+	self.resize = player.resize;
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
 	var smallCubeMat = new THREE.MeshNormalMaterial();
@@ -177,9 +186,4 @@ function World(scene, conn, clientID, camera) {
 		});
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
-
-	//Not sure if this is okay to have, but it certainly makes things easier for the Player
-	self.getEntityByID = function(entityID) {
-		return entityManager.getEntityByID(entityID);
-	};
 }

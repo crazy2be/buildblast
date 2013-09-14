@@ -1,83 +1,0 @@
-[1mdiff --git a/client/js/entities/manager.js b/client/js/entities/manager.js[m
-[1mindex b22fa52..3d56ca7 100644[m
-[1m--- a/client/js/entities/manager.js[m
-[1m+++ b/client/js/entities/manager.js[m
-[36m@@ -52,7 +52,12 @@[m [mfunction EntityManager(scene, conn) {[m
- 			if (entity.contains(wx, wy, wz)) {[m
- 				return entity;[m
- 			}[m
-[31m-		}[m
-[32m+[m		[32m}[m[41m[m
-[32m+[m	[32m};[m[41m[m
-[32m+[m[41m[m
-[32m+[m	[32m//I am pretty sure this is okay to have.[m[41m[m
-[32m+[m	[32mself.getEntityByID = function (entityID) {[m[41m[m
-[32m+[m		[32mreturn entities[entityID];[m[41m[m
- 	};[m
- [m
- 	//Eventually this should probably be more directly exposed[m
-[1mdiff --git a/client/js/main.js b/client/js/main.js[m
-[1mindex b4169d3..910ae90 100644[m
-[1m--- a/client/js/main.js[m
-[1m+++ b/client/js/main.js[m
-[36m@@ -47,7 +47,7 @@[m [mwindow.onload = function () {[m
- [m
- 		var world = new World(scene, conn, clientID);[m
- [m
-[31m-		var player = new Player(world, conn, clock, container);[m
-[32m+[m		[32mvar player = new Player(world, conn, clock, container, clientID);[m
- [m
- 		window.testExposure.player = player;[m
- 		window.testExposure.world = world;[m
-[1mdiff --git a/client/js/player/player.js b/client/js/player/player.js[m
-[1mindex 2584ea0..c4055c8 100644[m
-[1m--- a/client/js/player/player.js[m
-[1m+++ b/client/js/player/player.js[m
-[36m@@ -12,7 +12,7 @@[m [mvar PLAYER_CENTER_OFFSET = new THREE.Vector3([m
- 	0[m
- );[m
- [m
-[31m-function Player(world, conn, clock, container) {[m
-[32m+[m[32mfunction Player(world, conn, clock, container, clientID) {[m
- 	var self = this;[m
- [m
- 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);[m
-[36m@@ -26,6 +26,8 @@[m [mfunction Player(world, conn, clock, container) {[m
- [m
- 	var speed;[m
- [m
-[32m+[m	[32mvar ourEntity = null;[m[41m[m
-[32m+[m[41m[m
- 	var renderer = new THREE.WebGLRenderer();[m
- 	initializeRenderer();[m
- 	function initializeRenderer() {[m
-[36m@@ -65,6 +67,14 @@[m [mfunction Player(world, conn, clock, container) {[m
- 	self.update = function (dt) {[m
- 		chat.update(dt);[m
- [m
-[32m+[m		[32m//Keep trying to latch onto the player we are supposed to represent[m[41m[m
-[32m+[m		[32mif(!ourEntity) {[m[41m[m
-[32m+[m			[32mourEntity = world.getEntityByID(clientID);[m[41m[m
-[32m+[m		[32m}[m[41m[m
-[32m+[m[41m[m
-[32m+[m		[32m//Easier to just wait until we get our entity[m[41m[m
-[32m+[m		[32mif(!ourEntity) return;[m[41m[m
-[32m+[m[41m[m
- 		var controlState = controls.sample();[m
- [m
- 		var playerPos = prediction.update(controlState);[m
-[1mdiff --git a/client/js/world.js b/client/js/world.js[m
-[1mindex 9f8492c..6d65ffb 100644[m
-[1m--- a/client/js/world.js[m
-[1m+++ b/client/js/world.js[m
-[36m@@ -177,4 +177,9 @@[m [mfunction World(scene, conn, clientID) {[m
- 		});[m
- 		chunkManager.queueBlockChange(wx, wy, wz, newType);[m
- 	}[m
-[32m+[m
-[32m+[m	[32m//Not sure if this is okay to have, but it certainly makes things easier for the Player[m
-[32m+[m	[32mself.getEntityByID = function(entityID) {[m
-[32m+[m		[32mreturn entityManager.getEntityByID(entityID);[m
-[32m+[m	[32m};[m
- }[m
-\ No newline at end of file[m

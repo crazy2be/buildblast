@@ -12,101 +12,43 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, clock, container, clientID) {
+function Player(world, conn, clock, controls) {
 	var self = this;
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 
-	var controls = new Controls(container);
-	var chat = new Chat(controls, conn, container);
-
 	var inventory = new Inventory(world, camera, conn, controls);
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
-	var speed;
-
-	var ourEntity = null;
-
-	var renderer = new THREE.WebGLRenderer();
-	initializeRenderer();
-	function initializeRenderer() {
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
-		container.querySelector('#opengl').appendChild(renderer.domElement);
-		document.querySelector('#splash h1').innerHTML = 'Click to play!';
-
-		speed = new PerfChart({
-			title: ' render',
-			maxValue: 50,
-		});
-		speed.elm.style.position = 'absolute';
-		speed.elm.style.top = '74px';
-		speed.elm.style.right = '0px';
-		container.appendChild(speed.elm);
-	}
-
-	window.addEventListener('resize', onWindowResize, false);
-	function onWindowResize() {
-		renderer.autoClear = true;
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
+	self.resize = function () {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 		inventory.resize();
-	}
+	};
 
 	self.pos = function () {
 		return camera.position.clone();
 	};
 
-	self.render = function (scene) {
+	self.render = function (renderer, scene) {
 		renderer.render(scene, camera);
 	};
 
-	self.update = function (dt) {
-		chat.update(dt);
+	self.update = function () {
+		var c = controls.sample();
 
-		//Keep trying to latch onto the player we are supposed to represent
-		if(!ourEntity) {
-			ourEntity = world.getEntityByID(clientID);
-		}
+		var p = prediction.update(c);
+		camera.position.set(p.x, p.y, p.z);
 
-		//Easier to just wait until we get our entity
-		if(!ourEntity) return;
-
-		var controlState = controls.sample();
-
-		var playerPos = prediction.update(controlState);
-
-		var camPos = playerPos;
-		if(localStorage.thirdPerson) {
-			var target = getTarget(camPos, controlState);
-			var look = target.clone().sub(camPos);
-			look.setLength(3);
-			camPos.sub(look);
-		}
-		camera.position.set(camPos.x, camPos.y, camPos.z);
-
-		doLook(camera, camPos, controlState);
-		inventory.update(playerPos, controlState);
-
-		speed.addDataPoint(dt);
+		doLook(camera, camera.position, c);
+		inventory.update(p, c);
 	};
 
-	function getTarget(p, c) {
+	function doLook(camera, p, c) {
 		var target = new THREE.Vector3();
 		target.x = p.x + sin(c.lat) * cos(c.lon);
 		target.y = p.y + cos(c.lat);
 		target.z = p.z + sin(c.lat) * sin(c.lon);
-		return target;
-	}
-
-	function doLook(camera, p, c) {
-		camera.lookAt(getTarget(p, c));
-	}
-
-	//Hmm... this is no good
-	self.camera = function () {
-		return camera;
+		camera.lookAt(target);
 	}
 };

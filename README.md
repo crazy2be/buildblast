@@ -20,17 +20,6 @@ To play,
 	./runserver
 	google-chrome http://localhost:8080
 
-Architecture (client side)
----------------
-The architecture is based on a few fairly simple structures, which communicate through a few objects (similar to http://yuml.me/d5f4fb7b). Specifically:
-- **container**: Just a div in the html, we use this to hook up the actual rendering. There are some hardcoded elements in this, which we hook up to to give THREE.js a place to render (amoung other things).
-- **Conn**: A wrapper for a WebSocket, used to communicate to the server.
-- **Scene**: A THREE.Scene, this holds all the meshes and models which THREE.js will render.
-- **ChunkManager**: Manages the chunks (of blocks), and handles adding and removing them from the THREE.Scene.
-- **EntityManager**: Manages the entities (players for now, in the future hopefully more) and add/removes them from the THREE.Scene.
-- **World**: Holds both the ChunkManager and EntityManager and provides useful logic to interface with them. Can directly expose blocks but also provides most of the helper functions you should need.
-- **Player**: Should probably be called _UserInterface_. Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
-
 Coordinate Systems
 ----------------------------
 We use two main coordinates systems in the code:
@@ -41,60 +30,6 @@ In map generation and geometry code, which is particularly concerned with the ex
 - **cc**: Chunk coordinates. Essentially `floor(bc / 32)`. Gives the coordinate of a chunk, relative to other chunks. Multiply by 32 to get the position of the chunk in 3d space.
 - **oc**: Offset coordinates. Like block coordinates, but refer to a block at a specified offset *within* a chunk, rather than just within the world. Used mostly just in map generation and geometry code. All components should be in the range [0...31].
 - **pc**: Plane coordinates. Like offset coordinates, but have a rotated frame of reference. This allows the code which creates different faces to be the same. In this model z is perpendicular to the face. compX, compY, etc refer to the mapping from pc to bc (compX = 1, means pcX represents bcY)
-
-Rendering
-----------------------------
-We use THREE.js (http://en.wikipedia.org/wiki/Threejs) to do our rendering, which uses WebGL.
-
-Our render call looks like `renderer.render(scene, camera);` where:
-
-- Renderer is a THREE.WebGLRenderer which owns rendered.domElement which is placed in the DOM.
-- Scene is a THREE.Scene which is populated with everything which needs to be drawn.
-- Camera is a THREE.PerspectiveCamera, or any Camera type.
-
-Scene Population
-------------------
-- Scene is populated by calling add on a THREE.Mesh(geometry, CHUNK_MATERIAL).
-- THREE.Mesh is created with a geometry and a THREE.MeshBasicMaterial (or any Material type).
-- A geometry is a THREE.BufferGeometry, which just has its attributes and offsets set.
-- .offsets is in the form (DON'T FORGET THE ARRAY, IT'S OBJECTS WITHIN AN ARRAY):
-
-```JavaScript
-[{
-	start: 0,
-	count: indexes.length,
-	index: 0,
-}]
-```
-
-This specifies the start, count and amount to add to each index for the indexes within .attributes.
-
-- .attributes is in the form:
-
-```JavaScript
-{
-	position: { //Each position is composed of 3 numbers, x, y, z.
-		itemSize: 3, 
-		array: vertsa, //Float32Array
-		numItems: vertsa.length / 3
-	},
-	color: {	//Colors of position (so parallel to position). The vertex 
-				//shader interpolates these points to color the faces.
-				//Each color is composed of 3 numbers, r, g, b, each between 0 and 1.
-		itemSize: 3,
-		array: colora, //Float32Array
-		numItems: colora.length / 3
-	},
-	index: {	//Groups of 3. Each index refers to an index within position, and each group of 3 is a triangle.
-				//The index of the position is the number in this array * 3, as there are 3 values per point.
-				//So if index.array[q] is 10, it refers to position {x: position.array[30], y: position.array[31], z: position.array[32]}
-		itemSize: 1,
-		array: indexa,
-		numItems: indexa.length //Uint16Array
-	},
-}
-```
-
 
 Bugs
 -------
