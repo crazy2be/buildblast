@@ -130,6 +130,9 @@
 		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
 		mesh1.rotation.y = dirRadian;
 
+		//mesh1.rotation.y = camera.position.y;
+		//if(camera.position.y > Math.PI) mesh1.rotation.y *= -1;
+
 		//mesh1.rotation.y = camera.rotation.y;
 		//It appears to work without out this, and so either this does
 		//nothing, or does stuff we don't need.
