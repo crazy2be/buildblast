@@ -120,7 +120,17 @@
 		mesh1.scale.y = 1/200;
 		mesh1.scale.z = 1/200;
 
-		mesh1.rotation.y = camera.rotation.y;
+		//I don't know, I tried, but I don't know why this works,
+		//or how to do it any better.
+		var rotVec = {};
+		rotVec.x = -pos.x + camera.position.x;
+		rotVec.z = -pos.z + camera.position.z;
+
+		//I fell like this is wrong is some manner... not sure why though.
+		var dirRadian = Math.atan2(rotVec.x, rotVec.z);
+		mesh1.rotation.y = dirRadian;
+
+		//mesh1.rotation.y = camera.rotation.y;
 		//It appears to work without out this, and so either this does
 		//nothing, or does stuff we don't need.
 		//mesh1.needsUpdate = true;
