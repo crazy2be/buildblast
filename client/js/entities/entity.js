@@ -1,73 +1,11 @@
-function Entity(id) {
+function Entity() {
 	var self = this;
 
 	var pos;
 	var vy;
 	var isMoving = false;
+	
 	var bodyParts = new THREE.Object3D();
-
-	var material = new THREE.MeshBasicMaterial({
-		color: 0x0000ff,
-		wireframe: true
-	});
-	var headMat = new THREE.MeshBasicMaterial({
-		color: 0x0000ff
-	});
-	var faceMat = new THREE.MeshBasicMaterial({
-		color: 0x00ff00
-	});
-	var hitboxMaterial = new THREE.MeshBasicMaterial({
-		color: 0xff0000,
-		wireframe: true
-	});
-	var armMat = new THREE.MeshBasicMaterial({
-		color: 0xff0000,
-		wireframe: true
-	});
-
-	var he = PLAYER_HALF_EXTENTS;
-	var co = PLAYER_CENTER_OFFSET;
-	var ph = PLAYER_HEIGHT;
-	var pbh = PLAYER_BODY_HEIGHT;
-	var peh = PLAYER_EYE_HEIGHT;
-
-	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
-	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
-	//bodyParts.add(hitboxMesh);
-
-	function createHead() {
-		var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-		geometry.materials = [headMat, faceMat];
-		geometry.faces[0].materialIndex = 0;
-		geometry.faces[1].materialIndex = 0;
-		geometry.faces[2].materialIndex = 0;
-		geometry.faces[3].materialIndex = 0;
-		geometry.faces[4].materialIndex = 1;
-		geometry.faces[5].materialIndex = 0;
-		var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
-		mesh.position.y = peh - pbh / 2;
-		return mesh;
-	}
-
-	function createBody() {
-		var geometry = new THREE.CubeGeometry(0.6, pbh, 0.4);
-		var mesh = new THREE.Mesh(geometry, material);
-		mesh.position.y = 0;
-		return mesh;
-	}
-
-	function createArm(offset) {
-		var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);
-		var mesh = new THREE.Mesh(geometry, armMat);
-		mesh.position.y = -0.3;
-
-		var arm = new THREE.Object3D();
-		arm.add(mesh);
-		arm.position.x = offset * 0.4;
-		arm.position.y = pbh / 2;
-		return arm;
-	}
-
 	var headMesh = createHead();
 	bodyParts.add(headMesh);
 	var bodyMesh = createBody();
@@ -77,34 +15,30 @@ function Entity(id) {
 	var rightArm = createArm(-1);
 	bodyParts.add(rightArm);
 
-	var totalTime = 0;
-	var armAngle = 0;
-	var maxAngle = 4 * Math.PI / 5;
+	var jumpAngle = 0;
+	var maxJumpAngle = 4 * Math.PI / 5;
+	var jumpSpeed = maxJumpAngle / 300;
+	
+	var swingAngle = 0;
+	var maxSwingAngle = Math.PI / 2;
+	var swingSpeed = 2 * Math.PI / 1000;
+	var totalSwingTime = 0;
 	self.update = function (dt) {
-		if (vy > 0) {
-			if (armAngle < maxAngle) {
-				armAngle += (dt / 300) * maxAngle;
-			}
-		} else {
-			if (armAngle < 0) {
-				armAngle = 0;
-			} else if (armAngle > 0) {
-				armAngle -= (dt / 300) * maxAngle;
-			}
-		}
-		rightArm.rotation.z = -armAngle;
-		leftArm.rotation.z = armAngle;
+		// Jump animation
+		jumpAngle = clamp(jumpAngle + signum(vy)*dt*jumpSpeed, 0, maxJumpAngle);
+		leftArm.rotation.z = jumpAngle;
+		rightArm.rotation.z = -jumpAngle;
 
+		// Arm swinging animation (as you walk)
 		if (!isMoving) return;
-		totalTime += dt;
-		var angle = (Math.PI / 2) * sin(totalTime / 1000 * 2*Math.PI)
-		if (angle > -0.1 && angle < 0.1) {
+		totalSwingTime += dt;
+		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
+		if (swingAngle > -0.1 && swingAngle < 0.1) {
 			isMoving = false;
-			totalTime = 0;
-			angle = 0;
+			swingAngle = 0;
 		}
-		rightArm.rotation.x = angle;
-		leftArm.rotation.x = -1 * angle;
+		leftArm.rotation.x = -swingAngle;
+		rightArm.rotation.x = swingAngle;
 	}
 
 	self.setVy = function (newVy) {
@@ -113,6 +47,7 @@ function Entity(id) {
 
 	self.setPos = function (newPos) {
 		pos = newPos;
+		var co = PLAYER_CENTER_OFFSET;
 		var c = new THREE.Vector3(
 			pos.x + co.x,
 			pos.y + co.y,
@@ -154,8 +89,80 @@ function Entity(id) {
 	self.removeFrom = function (scene) {
 		scene.remove(bodyParts);
 	};
+	
+	// Model/geometry
+	function createHitbox() {
+		var hitboxMaterial = new THREE.MeshBasicMaterial({
+			color: 0xff0000,
+			wireframe: true
+		});
+		var he = PLAYER_HALF_EXTENTS;
+		var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
+		var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+		return hitboxMesh;
+	}
 
-	self.id = function () {
-		return id;
-	};
+	function createHead() {
+		var headMat = new THREE.MeshBasicMaterial({
+			color: 0x0000ff
+		});
+		var faceMat = new THREE.MeshBasicMaterial({
+			color: 0x00ff00
+		});
+		
+		var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
+		geometry.materials = [headMat, faceMat];
+		geometry.faces[0].materialIndex = 0;
+		geometry.faces[1].materialIndex = 0;
+		geometry.faces[2].materialIndex = 0;
+		geometry.faces[3].materialIndex = 0;
+		geometry.faces[4].materialIndex = 1;
+		geometry.faces[5].materialIndex = 0;
+		
+		var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
+		
+		var peh = PLAYER_EYE_HEIGHT;
+		var pbh = PLAYER_BODY_HEIGHT;
+		mesh.position.y = peh - pbh / 2;
+		
+		return mesh;
+	}
+
+	function createBody() {
+		var material = new THREE.MeshBasicMaterial({
+			color: 0x0000ff,
+			wireframe: true
+		});
+		var geometry = new THREE.CubeGeometry(0.6, PLAYER_BODY_HEIGHT, 0.4);
+		var mesh = new THREE.Mesh(geometry, material);
+		mesh.position.y = 0;
+		return mesh;
+	}
+
+	function createArm(offset) {
+		var armMat = new THREE.MeshBasicMaterial({
+			color: 0xff0000,
+			wireframe: true
+		});
+		var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);
+		var mesh = new THREE.Mesh(geometry, armMat);
+		mesh.position.y = -0.3;
+
+		var arm = new THREE.Object3D();
+		arm.add(mesh);
+		arm.position.x = offset * 0.4;
+		arm.position.y = PLAYER_BODY_HEIGHT / 2;
+		return arm;
+	}
+	
+	// Utils
+	// Clamp n between [a, b]. Behaviour is
+	// undefined if a > b.
+	function clamp(n, a, b) {
+		return n < a ? a : n > b ? b : n;
+	}
+	// Return the sign of n, -1, 1, or 0.
+	function signum(n) {
+		return n < 0 ? -1 : n > 0 ? 1 : 0;
+	}
 }
