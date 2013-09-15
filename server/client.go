@@ -175,12 +175,8 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityUpdate(id string, pos coords.World, health int) {
-	c.SendLossy(&MsgEntityPosition{
-		ID:  id,
-		Pos: pos,
-		Health: health,
-	})
+func (c *Client) EntityTick(tickData game.SynchronizedData) {
+	c.SendLossy(tickData)
 }
 
 func (c *Client) EntityDied(id string, killer string) {}

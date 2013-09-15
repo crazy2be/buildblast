@@ -15,8 +15,8 @@ const (
 	MSG_HANDSHAKE_INIT  = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
+	MSG_ENTITY_TICK		= MessageKind("entity-tick")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
-	MSG_ENTITY_POSITION = MessageKind("entity-position")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
@@ -33,10 +33,10 @@ func kindToType(kind MessageKind) Message {
 	switch kind {
 	case MSG_HANDSHAKE_INIT:
 		return &MsgHandshakeInit{}
+	case MSG_ENTITY_TICK:
+		return &game.TickData{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
-	case MSG_ENTITY_POSITION:
-		return &MsgEntityPosition{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
 	case MSG_BLOCK:
@@ -65,10 +65,10 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
+	case game.TickData:
+		return MSG_ENTITY_TICK
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE
-	case *MsgEntityPosition:
-		return MSG_ENTITY_POSITION
 	case *MsgEntityRemove:
 		return MSG_ENTITY_REMOVE
 	case *MsgChunk:
@@ -108,13 +108,6 @@ type MsgHandshakeError struct {
 
 type MsgEntityCreate struct {
 	ID string
-}
-
-type MsgEntityPosition struct {
-	Pos coords.World
-	Rot coords.Vec3
-	ID  string
-	Health int
 }
 
 type MsgEntityRemove struct {

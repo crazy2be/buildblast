@@ -14,7 +14,7 @@ function EntityManager(scene, conn, camera) {
 		entities[id] = entity;
 	});
 
-	conn.on('entity-position', function (payload) {
+	conn.on('entity-tick', function (payload) {
 		var id = payload.ID;
 		var entity = entities[id];
 		if (!entity) {
@@ -31,7 +31,7 @@ function EntityManager(scene, conn, camera) {
 			payload.Rot.Y,
 			payload.Rot.Z
 		));
-		entity.setHealth(payload.Health, camera);
+		entity.setHealth(payload.Hp, camera);
 	});
 
 	conn.on('entity-remove', function (payload) {

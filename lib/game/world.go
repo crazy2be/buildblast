@@ -9,25 +9,6 @@ import (
 	"buildblast/lib/physics"
 )
 
-//Interface implemented by Player
-type Entity interface {
-	Tick(w *World)
-	Health() int
-	Damage(amount int)
-	Dead() bool
-	Respawn(pos coords.World)
-	BoxAt(t float64) *physics.Box
-	Pos() coords.World
-	ID() string
-}
-
-type EntityListener interface {
-	EntityCreated(id string)
-	EntityUpdate(id string, pos coords.World, health int)
-	EntityDied(id string, killer string)
-	EntityRemoved(id string)
-}
-
 type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
@@ -65,13 +46,10 @@ func (w *World) Tick() {
 	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
-		id := e.ID()
-		pos := e.Pos()
-		health := e.Health()
-		w.chunkGenerator.QueueChunksNearby(pos)
+		w.chunkGenerator.QueueChunksNearby(e.Pos())
 
 		for _, listener := range w.entityListeners {
-			listener.EntityUpdate(id, pos, health)
+			listener.EntityTick(e.GetTickData())
 		}
 	}
 }
