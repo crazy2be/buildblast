@@ -182,10 +182,10 @@ func (c *Client) EntityMoved(id string, pos coords.World, look coords.Direction,
 		return
 	}
 	c.SendLossy(&MsgEntityPosition{
-		ID:  id,
-		Pos: pos,
+		ID:   id,
+		Pos:  pos,
 		Look: look,
-		Vy: vy,
+		Vy:   vy,
 	})
 }
 

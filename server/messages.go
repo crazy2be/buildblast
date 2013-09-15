@@ -111,10 +111,10 @@ type MsgEntityCreate struct {
 }
 
 type MsgEntityPosition struct {
-	Pos coords.World
+	Pos  coords.World
 	Look coords.Direction
-	Vy  float64
-	ID  string
+	Vy   float64
+	ID   string
 }
 
 type MsgEntityRemove struct {
