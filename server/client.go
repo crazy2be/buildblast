@@ -177,13 +177,15 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityMoved(id string, pos coords.World) {
+func (c *Client) EntityMoved(id string, pos coords.World, look coords.Direction, vy float64) {
 	if id == c.name {
 		return
 	}
 	c.SendLossy(&MsgEntityPosition{
-		ID:  id,
-		Pos: pos,
+		ID:   id,
+		Pos:  pos,
+		Look: look,
+		Vy:   vy,
 	})
 }
 

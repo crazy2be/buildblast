@@ -18,7 +18,7 @@ type ClientConn struct {
 	sendLossyQueue chan Message
 
 	recvQueue chan Message
-	
+
 	closeQueue chan bool
 
 	errorQueue chan error
@@ -32,7 +32,7 @@ func NewClientConn(name string) *ClientConn {
 	c.sendLossyQueue = make(chan Message, 5)
 
 	c.recvQueue = make(chan Message, 100)
-	
+
 	c.closeQueue = make(chan bool, 1)
 
 	c.errorQueue = make(chan error, 10)
@@ -114,9 +114,9 @@ func (c *ClientConn) Close() {
 	select {
 	case c.closeQueue <- true:
 	default:
-	// It's already in the process of closing,
-	// no need to send any more messages, so it's
-	// safe to just drop it on the floor.
+		// It's already in the process of closing,
+		// no need to send any more messages, so it's
+		// safe to just drop it on the floor.
 	}
 }
 
@@ -126,10 +126,10 @@ func (c *ClientConn) Error(err error) {
 	select {
 	case c.errorQueue <- err:
 	default:
-	// The errors channel is full. We could print
-	// a log message or something, but it's likely to
-	// just result in lots of useless output, since there's
-	// already a whole queue of errors to be handled. So,
-	// we just ignore it.
+		// The errors channel is full. We could print
+		// a log message or something, but it's likely to
+		// just result in lots of useless output, since there's
+		// already a whole queue of errors to be handled. So,
+		// we just ignore it.
 	}
 }

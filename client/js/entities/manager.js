@@ -3,6 +3,10 @@ function EntityManager(scene, conn) {
 
 	var entities = {};
 
+	self.update = function (dt) {
+		for (var id in entities) entities[id].update(dt);
+	};
+
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (entities[id]) {
@@ -26,11 +30,12 @@ function EntityManager(scene, conn) {
 			payload.Pos.Y,
 			payload.Pos.Z
 		));
-		entity.setRot(new THREE.Vector3(
-			payload.Rot.X,
-			payload.Rot.Y,
-			payload.Rot.Z
+		entity.setLook(new THREE.Vector3(
+			payload.Look.X,
+			payload.Look.Y,
+			payload.Look.Z
 		));
+		entity.setVy(payload.Vy);
 	});
 
 	conn.on('entity-remove', function (payload) {
