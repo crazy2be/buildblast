@@ -134,7 +134,7 @@ function Entity(id) {
 		return box.contains(x, y, z);
 	};
 
-	self.setLook = function (newRot) {
+	self.setLook = function (newLook) {
 		function lookAt(obj, x, y, z) {
 			var headTarget = new THREE.Vector3(
 				obj.position.x + x,
@@ -143,8 +143,8 @@ function Entity(id) {
 			);
 			obj.lookAt(headTarget);
 		}
-		lookAt(bodyParts, newRot.x, 0, newRot.z);
-		lookAt(headMesh, 0, newRot.y, 1);
+		lookAt(bodyParts, newLook.x, 0, newLook.z);
+		lookAt(headMesh, 0, newLook.y, 1);
 	};
 
 	self.addTo = function (scene) {
