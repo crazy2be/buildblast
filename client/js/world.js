@@ -23,6 +23,7 @@ function World(scene, conn, clock, container, chunkManager) {
 	self.update = function (dt) {
 		player.update(dt);
 		chunkManager.update(dt, player.pos());
+		entityManager.update(dt);
 		chat.update(dt);
 	};
 
