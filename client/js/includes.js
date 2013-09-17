@@ -15,11 +15,9 @@
 	'js/./box.js',
 	'js/./chat.js',
 	'js/./clock.js',
-	'js/./conn.js',
 	'js/./controls.js',
 	'js/./featureTester.js',
 	'js/./models.js',
-	'js/./world.js',
 	'js/./canvasLibs/rect.js',
 	'js/./canvasLibs/text.js',
 	'js/./chunks/block.js',
@@ -48,4 +46,6 @@
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
 	'js/./tests/testSystem.js',
+	'js/./world/conn.js',
+	'js/./world/world.js',
 ]));

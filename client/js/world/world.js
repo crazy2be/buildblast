@@ -1,8 +1,8 @@
-function World(scene, conn, camera, clientID) {
+function World(scene, conn, clientID) {
 	var self = this;
 
 	var chunkManager = new ChunkManager(scene, clientID);
-	var entityManager = new EntityManager(scene, conn, camera);
+	var entityManager = new EntityManager(scene, conn);
 	self.getEntityInfos = entityManager.getEntityInfos;
 
 	window.testExposure.chunkManager = chunkManager;
@@ -17,6 +17,7 @@ function World(scene, conn, camera, clientID) {
 
 	self.update = function (dt, playerPos) {
 		chunkManager.update(dt, playerPos);
+		entityManager.update(dt, playerPos);
 	};
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);

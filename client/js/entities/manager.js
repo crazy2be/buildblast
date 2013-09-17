@@ -1,4 +1,4 @@
-function EntityManager(scene, conn, camera) {
+function EntityManager(scene, conn) {
 	var self = this;
 
 	var entities = {};
@@ -21,17 +21,7 @@ function EntityManager(scene, conn, camera) {
 			console.warn("Got entity-position message for entity which does not exist!", id);
 			return;
 		}
-		entity.setPos(new THREE.Vector3(
-			payload.Pos.X,
-			payload.Pos.Y,
-			payload.Pos.Z
-		), camera);
-		entity.setRot(new THREE.Vector3(
-			payload.Rot.X,
-			payload.Rot.Y,
-			payload.Rot.Z
-		));
-		entity.setHealth(payload.Hp, camera);
+		entity.loadTickData(payload);
 	});
 
 	conn.on('entity-remove', function (payload) {
@@ -50,6 +40,13 @@ function EntityManager(scene, conn, camera) {
 			if (entity.contains(wcX, wcY, wcZ)) {
 				return entity;
 			}
+		}
+	};
+
+	self.update = function(dt, playerPos) {
+		for (var id in entities) {
+			var entity = entities[id];
+			entity.update(dt, playerPos);
 		}
 	};
 }

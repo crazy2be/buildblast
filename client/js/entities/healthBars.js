@@ -75,8 +75,8 @@
 	}
 
 	var curHP = entity.health();
-	self.updateHP = function(newHP, camera) {
-		//if(curHP == newHP) return;
+	self.updateHP = function(newHP, playerPos) {
+		if(curHP == newHP) return;
 		curHP = newHP;
 
 		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
@@ -103,11 +103,14 @@
 		// canvas contents will be used for a texture
 		texture1.needsUpdate = true;
 
-		self.updatePos(curPos, camera, true);
+		self.updatePos(curPos, playerPos, true);
 	}
 
 	var curPos = entity.pos();
-	self.updatePos = function(pos, camera, hpChanged) {
+	self.updatePos = function(pos, playerPos, hpChanged) {
+		if(!hpChanged
+			&& pos.x == curPos.x)
+
 		curPos = pos;
 
 		var p = curPos;
@@ -119,8 +122,8 @@
 		//I don't know, I tried, but I don't know why this works,
 		//or how to do it any better.
 		var rotVec = {};
-		rotVec.x = -pos.x + camera.position.x;
-		rotVec.z = -pos.z + camera.position.z;
+		rotVec.x = -pos.x + playerPos.x;
+		rotVec.z = -pos.z + playerPos.z;
 
 		//I feel like this is wrong is some manner... not sure why though.
 		var dirRadian = Math.atan2(rotVec.x, rotVec.z);

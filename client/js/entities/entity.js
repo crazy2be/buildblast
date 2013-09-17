@@ -2,7 +2,8 @@ function Entity(id) {
 	var self = this;
 
 	var pos = new THREE.Vector3(0, 0, 0);
-	var health = 0;
+	var rot = new THREE.Vector3(0, 0, 0);
+	var hp = 0;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -32,8 +33,13 @@ function Entity(id) {
 		return self;
 	}
 
-	self.setPos = function (newPos, camera) {
-		pos = newPos;
+	self.update = function(dt, playerPos) {
+		updatePos(playerPos);
+		updateRot();
+		updateHP(playerPos);
+	};
+
+	function updatePos(playerPos) {
 		var c = new THREE.Vector3(
 			pos.x + co.x,
 			pos.y + co.y,
@@ -45,15 +51,31 @@ function Entity(id) {
 		headMesh.position.set(c.x, c.y + bh/2, c.z);
 		hitboxMesh.position.set(c.x, c.y, c.z);
 
-		healthBar.updatePos(newPos, camera);
+		healthBar.updatePos(pos, playerPos);
 
 		return self;
-	};
+	}
 
-	self.pos = function () {
-		if(!pos) {
-			return new THREE.Vector3(0, 0, 0);
+	function updateRot() {
+		headMesh.rotation.set(rot.x, rot.y, rot.z);
+		var br = bodyMesh.rotation;
+		br.y = rot.y;
+	}
+
+	function updateHP(playerPos) {
+		healthBar.updateHP(hp, playerPos);
+	}
+
+	self.loadTickData = function(tickData) {
+		function makeVec3(obj) {
+			return new THREE.Vector3(obj.X, obj.Y, obj.Z);
 		}
+
+		pos = makeVec3(tickData.Pos);
+		rot = makeVec3(tickData.Rot);
+		hp = tickData.Hp;
+	}
+	self.pos = function () {
 		return pos.clone();
 	}
 
@@ -63,20 +85,8 @@ function Entity(id) {
 		return box.contains(x, y, z);
 	};
 
-	self.setRot = function (newRot) {
-		headMesh.rotation.set(newRot.x, newRot.y, newRot.z);
-		var br = bodyMesh.rotation;
-		br.y = newRot.y;
-	};
-
-	self.setHealth = function(newHealth, camera) {
-		healthBar.updateHP(newHealth, camera);
-
-		health = newHealth;
-	};
-
 	self.health = function() {
-		return health;
+		return hp;
 	};
 
 	self.maxHealth = function() {

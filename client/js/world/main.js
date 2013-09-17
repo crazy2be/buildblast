@@ -45,9 +45,8 @@ window.onload = function () {
 		var ambientLight = new THREE.AmbientLight(0xffffff);
 		scene.add(ambientLight);
 
-		var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
-		var world = new World(scene, conn, camera, clientID);
-		var player = new Player(world, conn, clock, container, camera);
+		var world = new World(scene, conn, clientID);
+		var player = new Player(world, conn, clock, container);
 
 		window.testExposure.player = player;
 		window.testExposure.world = world;

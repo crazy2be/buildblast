@@ -22,12 +22,7 @@ function PlayerPrediction(world, conn, clock, position) {
 
 	posBuffer.addConfirmed(0, new THREE.Vector3(0, 0, 0));
 
-	self.update = function (controls) {
-		var controlState = {
-			Controls: controls,
-			Timestamp: clock.time(),
-		};
-		conn.queue('controls-state', controlState);
+	self.update = function (controlState) {
 		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 
 		/* TODO: Do this stuff somewhere

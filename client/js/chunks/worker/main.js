@@ -11,7 +11,7 @@ importScripts(
 	'meshers/greedyMesher.js',
 	'chunkGeometry.js',
 	'noise.js',
-	'../../conn.js',
+	'../../world/conn.js',
 	'workerChunkManager.js'
 );
 

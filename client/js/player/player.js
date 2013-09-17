@@ -12,12 +12,13 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, clock, container, camera) {
+function Player(world, conn, clock, container) {
 	var self = this;
 
 	var controls = new Controls(container);
 	var chat = new Chat(controls, conn, container);
 
+	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
 	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
@@ -62,11 +63,15 @@ function Player(world, conn, clock, container, camera) {
 	self.update = function (dt) {
 		chat.update(dt);
 
-		var controlState = controls.sample();
+		var controlState = {
+			Controls: controls.sample(),
+			Timestamp: clock.time(),
+		};
+		conn.queue('controls-state', controlState);
 
 		var playerPos = prediction.update(controlState);
 
-		var camPos = playerPos;
+		var camPos = playerPos.clone();
 		if(localStorage.thirdPerson) {
 			var target = getTarget(camPos, controlState);
 			var look = target.clone().sub(camPos);

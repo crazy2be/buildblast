@@ -32,7 +32,7 @@
 	function simulateMovement(userConstants, lastRay, controlState, dt) {
 		var c = controlState;
 
-		var newRay = {};
+		var newRay = new THREE.Vector3(0, 0, 0);
 
 		lastRay.dy = lastRay.dy || 0;
 
