@@ -14,7 +14,6 @@
 }([
 	'js/./box.js',
 	'js/./chat.js',
-	'js/./clock.js',
 	'js/./controls.js',
 	'js/./featureTester.js',
 	'js/./models.js',
@@ -46,6 +45,7 @@
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
 	'js/./tests/testSystem.js',
+	'js/./world/clock.js',
 	'js/./world/conn.js',
 	'js/./world/world.js',
 ]));

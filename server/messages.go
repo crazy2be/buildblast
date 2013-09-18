@@ -65,7 +65,7 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
-	case game.TickData:
+	case *game.TickMessage:
 		return MSG_ENTITY_TICK
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE

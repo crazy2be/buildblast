@@ -175,7 +175,7 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityTick(tickData game.SynchronizedData) {
+func (c *Client) EntityTick(tickData *game.TickMessage) {
 	c.SendLossy(tickData)
 }
 

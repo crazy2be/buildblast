@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"math/rand"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
@@ -24,6 +25,11 @@ type World struct {
 	blockListeners  []BlockListener
 }
 
+type TickMessage struct {
+	SynchronizedData
+	TimeStamp			float64
+}
+
 func NewWorld(seed float64) *World {
 	w := new(World)
 	w.seed = seed
@@ -40,6 +46,8 @@ func NewWorld(seed float64) *World {
 }
 
 func (w *World) Tick() {
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	
 	w.generationTick()
 	//For all entities, send as message to all entityListeners.
 	//This is the core of the whole scaling problem with any multiplayer game,
@@ -49,7 +57,8 @@ func (w *World) Tick() {
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
 
 		for _, listener := range w.entityListeners {
-			listener.EntityTick(e.GetTickData())
+			tickMessage := &TickMessage{e.GetTickData(), curTime}
+			listener.EntityTick(tickMessage);
 		}
 	}
 }

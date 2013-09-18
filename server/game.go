@@ -145,7 +145,7 @@ func (g *Game) EntityDied(id string, killer string) {
 	g.Announce(killer + " killed " + id)
 }
 
-func (g *Game) EntityTick(tickData game.SynchronizedData) {}
+func (g *Game) EntityTick(tickData *game.TickMessage) {}
 
 func (g *Game) EntityCreated(id string)                 {}
 func (g *Game) EntityRemoved(id string)                 {}

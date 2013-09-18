@@ -23,7 +23,7 @@ type Entity interface {
 }
 
 type EntityListener interface {
-	EntityTick(tickData SynchronizedData)
+	EntityTick(tickData *TickMessage)
 	EntityCreated(id string)
 	EntityDied(id string, killer string)
 	EntityRemoved(id string)
