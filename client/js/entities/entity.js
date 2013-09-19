@@ -1,9 +1,18 @@
-function Entity(id) {
+function Entity(id, world) {
 	var self = this;
 
-	var pos = new THREE.Vector3(0, 0, 0);
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
+
+	var moveSim = window.moveSim();
+	var box = new Box(new THREE.Vector3(0, 0, 0), PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+	var posBuffer = new PredictionBuffer(
+		moveSim.simulateMovement.bind(null, {
+			inSolid: box.inSolid,
+			world: world
+		})
+	);
+	posBuffer.addConfirmed(0, new THREE.Vector3(0, 0, 0));
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -40,6 +49,7 @@ function Entity(id) {
 	};
 
 	function updatePos(playerPos) {
+		var pos = self.pos();
 		var c = new THREE.Vector3(
 			pos.x + co.x,
 			pos.y + co.y,
@@ -66,20 +76,27 @@ function Entity(id) {
 		healthBar.updateHP(hp, playerPos);
 	}
 
-	self.posMessage = function(tickData) {
-		function makeVec3(obj) {
-			return new THREE.Vector3(obj.X, obj.Y, obj.Z);
-		}
+	self.posMessage = function(payload) {
+		//TODO: Make the server just send us this structure,
+		//or handle the server structure directly.
+		var ray = {};
+		ray.x = payload.Pos.X;
+		ray.y = payload.Pos.Y;
+		ray.z = payload.Pos.Z;
+		ray.dy = payload.Vy;
+		posBuffer.addConfirmed(payload.Timestamp, ray);
 
-		pos = makeVec3(tickData.Pos);
+		var pos = posBuffer.getLastValue();
+		box.setPos(pos);
+
 		//rot = makeVec3(tickData.Rot);
 	}
 	self.pos = function () {
-		return pos.clone();
+		return posBuffer.getLastValue();
 	}
 
 	self.contains = function (x, y, z) {
-		if (!pos) return;
+		var pos = self.pos();
 		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 		return box.contains(x, y, z);
 	};

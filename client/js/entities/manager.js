@@ -1,18 +1,7 @@
-function EntityManager(scene, conn) {
+function EntityManager(scene, conn, world) {
 	var self = this;
 
 	var entities = {};
-
-	conn.on('entity-create', function (payload) {
-		var id = payload.ID;
-		if (entities[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
-			return;
-		}
-		var entity = new Entity(id).init();
-		entity.addTo(scene);
-		entities[id] = entity;
-	});
 
 	conn.on('entity-pos', function (payload) {
 		var id = payload.ID;
@@ -22,6 +11,17 @@ function EntityManager(scene, conn) {
 			return;
 		}
 		entity.posMessage(payload);
+	});
+
+	conn.on('entity-create', function (payload) {
+		var id = payload.ID;
+		if (entities[id]) {
+			console.warn("Got entity-create message for entity which already exists!", id);
+			return;
+		}
+		var entity = new Entity(id, world).init();
+		entity.addTo(scene);
+		entities[id] = entity;
 	});
 
 	conn.on('entity-remove', function (payload) {

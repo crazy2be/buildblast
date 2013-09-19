@@ -32,7 +32,10 @@ function PlayerPrediction(world, conn, clock, position) {
 		updatePositionText(pos, vy);
 		*/
 
-		return posBuffer.getLastValue();
+		var pos = posBuffer.getLastValue();
+		box.setPos(pos);
+
+		return pos;
 	};
 
 	conn.on('player-state', function (payload) {
@@ -44,6 +47,9 @@ function PlayerPrediction(world, conn, clock, position) {
 		ray.z = payload.Pos.Z;
 		ray.dy = payload.Vy;
 		posBuffer.addConfirmed(payload.Timestamp, ray);
+
+		var pos = posBuffer.getLastValue();
+		box.setPos(pos);
 	});
 
 	var prevhp = -1;
