@@ -66,14 +66,13 @@ function Entity(id) {
 		healthBar.updateHP(hp, playerPos);
 	}
 
-	self.loadTickData = function(tickData) {
+	self.posMessage = function(tickData) {
 		function makeVec3(obj) {
 			return new THREE.Vector3(obj.X, obj.Y, obj.Z);
 		}
 
 		pos = makeVec3(tickData.Pos);
-		rot = makeVec3(tickData.Rot);
-		hp = tickData.Hp;
+		//rot = makeVec3(tickData.Rot);
 	}
 	self.pos = function () {
 		return pos.clone();

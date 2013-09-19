@@ -112,10 +112,18 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 
 	c.cm.QueueChunksNearby(w, pos)
 
-	c.Send(&MsgPlayerState{
-		Pos:       pos,
-		VelocityY: vy,
+	g.Broadcast(&MsgEntityPos{
+		ID:        c.player.ID(),
 		Timestamp: m.Timestamp,
+		Pos:       pos,
+		Vy: 	   vy,
+		Rot:       coords.Vec3{0, 0, 0},
+	})
+
+	c.Send(&MsgPlayerState{
+		Timestamp: m.Timestamp,
+		Pos:       pos,
+		Vy: 	   vy,
 		Hp:        hp,
 	})
 
@@ -175,9 +183,7 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityTick(tickData *game.TickMessage) {
-	c.SendLossy(tickData)
-}
+func (c *Client) EntityTick() { }
 
 func (c *Client) EntityDied(id string, killer string) {}
 

@@ -14,14 +14,14 @@ function EntityManager(scene, conn) {
 		entities[id] = entity;
 	});
 
-	conn.on('entity-tick', function (payload) {
+	conn.on('entity-pos', function (payload) {
 		var id = payload.ID;
 		var entity = entities[id];
 		if (!entity) {
-			console.warn("Got entity-position message for entity which does not exist!", id);
+			console.warn("Got entity-pos message for entity which does not exist!", id);
 			return;
 		}
-		entity.loadTickData(payload);
+		entity.posMessage(payload);
 	});
 
 	conn.on('entity-remove', function (payload) {

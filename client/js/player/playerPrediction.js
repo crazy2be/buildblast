@@ -36,11 +36,14 @@ function PlayerPrediction(world, conn, clock, position) {
 	};
 
 	conn.on('player-state', function (payload) {
-		//TODO: Stop this mapping or do it properly.
-		payload.Pos.x = payload.Pos.X;
-		payload.Pos.y = payload.Pos.Y;
-		payload.Pos.z = payload.Pos.Z;
-		posBuffer.addConfirmed(payload.Timestamp, payload.Pos);
+		//TODO: Make the server just send us this structure,
+		//or handle the server structure directly.
+		var ray = {};
+		ray.x = payload.Pos.X;
+		ray.y = payload.Pos.Y;
+		ray.z = payload.Pos.Z;
+		ray.dy = payload.Vy;
+		posBuffer.addConfirmed(payload.Timestamp, ray);
 	});
 
 	var prevhp = -1;

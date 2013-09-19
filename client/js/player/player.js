@@ -80,7 +80,7 @@ function Player(world, conn, clock, container) {
 		}
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
-		doLook(camera, camPos, controlState);
+		doLook(camera, camPos, controlState.Controls);
 		inventory.update(playerPos, controlState);
 
 		speed.addDataPoint(dt);

@@ -39,15 +39,6 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 // Gameplay state defaults
 var PLAYER_MAX_HP = 100
 
-//Data which is sent to the client every tick.
-type TickData struct {
-	ID		 string
-	Hp		 int
-	Pos      coords.World
-	Vy       float64
-	Rot		 coords.Vec3
-}
-
 type Player struct {
 	look     coords.Direction
 	
@@ -60,7 +51,9 @@ type Player struct {
 	// Gameplay state
 	inventory *Inventory
 
-	tickData  TickData
+	hp		 int
+	pos      coords.World
+	vy       float64
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -69,16 +62,14 @@ func NewPlayer(world *World, name string) *Player {
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
-		tickData: TickData{
-			Hp: PLAYER_MAX_HP,
-		},
+		hp: PLAYER_MAX_HP,
 	}
 
 	return player;
 }
 
 func (p *Player) Pos() coords.World {
-	return p.tickData.Pos
+	return p.pos
 }
 
 func (p *Player) ID() string {
@@ -95,7 +86,7 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return p.tickData.Pos, 0.0, p.tickData.Hp, nil
+		return p.pos, 0.0, p.hp, nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -114,13 +105,13 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	p.simulateMovement(dt, controls)
 
 	p.controls = controls
-	p.history.Add(controls.Timestamp, p.tickData.Pos)
+	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.tickData.Pos, p.tickData.Vy, p.tickData.Hp, hitPos
+	return p.pos, p.vy, p.hp, hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
-	p.tickData.Vy += dt * -9.81
+	p.vy += dt * -9.81
 
 	fw := 0.0
 	if controls.Forward {
@@ -141,7 +132,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	move := coords.Vec3{
 		X: -cos(controls.Lon)*fw + sin(controls.Lon)*rt,
-		Y: p.tickData.Vy * dt,
+		Y: p.vy * dt,
 		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
 	}
 
@@ -151,15 +142,15 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	if move.Y == 0 {
 		if controls.Jump {
-			p.tickData.Vy = 6
+			p.vy = 6
 		} else {
-			p.tickData.Vy = 0
+			p.vy = 0
 		}
 	}
 
-	p.tickData.Pos.X += move.X
-	p.tickData.Pos.Y += move.Y
-	p.tickData.Pos.Z += move.Z
+	p.pos.X += move.X
+	p.pos.Y += move.Y
+	p.pos.Z += move.Z
 }
 
 func (p *Player) updateLook(controls ControlState) {
@@ -188,7 +179,7 @@ func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.Worl
 		return nil
 	}
 
-	ray := physics.NewRay(p.tickData.Pos, p.look)
+	ray := physics.NewRay(p.pos, p.look)
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
@@ -198,7 +189,7 @@ func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.Worl
 
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
-		p.tickData.Pos,
+		p.pos,
 		PLAYER_HALF_EXTENTS,
 		PLAYER_CENTER_OFFSET)
 }
@@ -211,24 +202,19 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 }
 
 func (p *Player) Health() int {
-	return p.tickData.Hp;
+	return p.hp;
 }
 
 func (p *Player) Damage(amount int) {
-	p.tickData.Hp -= amount
+	p.hp -= amount
 }
 
 func (p *Player) Dead() bool {
-	return p.tickData.Hp <= 0
+	return p.hp <= 0
 }
 
 func (p *Player) Respawn(pos coords.World) {
-	p.tickData.Pos = pos
-	p.tickData.Hp = PLAYER_MAX_HP
+	p.pos = pos
+	p.hp = PLAYER_MAX_HP
 	p.history.Clear()
-}
-
-func (p *Player) GetTickData() SynchronizedData {
-	p.tickData.ID = p.name;
-	return p.tickData
 }
