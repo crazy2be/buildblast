@@ -63,7 +63,7 @@ pr.project = function (rect) {
 // this function will normalize it to fit within the unit
 // rectangle, so that it can be projected onto a different
 // rectangle.
-p.norm = function (rect) {
+pr.norm = function (rect) {
 	this.x = (this.x - rect.x) / rect.w;
 	this.y = (this.y - rect.y) / rect.h;
 
