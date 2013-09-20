@@ -49,4 +49,8 @@ function EntityManager(scene, conn, world) {
 			entity.update(dt, playerPos);
 		}
 	};
+
+	self.getEntity = function(id) {
+		return entities[id];
+	}
 }

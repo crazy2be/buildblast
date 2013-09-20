@@ -12,7 +12,7 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, clock, container) {
+function Player(world, conn, clock, container, clientID) {
 	var self = this;
 
 	var controls = new Controls(container);
@@ -20,9 +20,16 @@ function Player(world, conn, clock, container) {
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
-	var prediction = new PlayerPrediction(world, conn, clock, camera.position);
 
 	var speed;
+
+	var _curEntity = null;
+	function curEntity() {
+		//TODO: Handle our entity being removed?
+		if(_curEntity) return _curEntity;
+		_curEntity = world.entityManager.getEntity(clientID);
+		return _curEntity;
+	}
 
 	var renderer = new THREE.WebGLRenderer();
 	initializeRenderer();
@@ -53,7 +60,11 @@ function Player(world, conn, clock, container) {
 	}
 
 	self.pos = function () {
-		return camera.position.clone();
+		if(curEntity()) {
+			return curEntity().pos();
+		} else {
+			return new THREE.Vector3(0, 0, 0);
+		}
 	};
 
 	self.render = function (scene) {
@@ -69,9 +80,14 @@ function Player(world, conn, clock, container) {
 		};
 		conn.queue('controls-state', controlState);
 
-		var playerPos = prediction.update(controlState);
+		if(curEntity()) {
+			curEntity().controlMessage(controlState);
+		}
 
-		var camPos = playerPos.clone();
+		//var playerPos = prediction.update(controlState);
+
+		var camPos = self.pos();
+
 		if(localStorage.thirdPerson) {
 			var target = getTarget(camPos, controlState);
 			var look = target.clone().sub(camPos);
@@ -81,7 +97,7 @@ function Player(world, conn, clock, container) {
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
 		doLook(camera, camPos, controlState.Controls);
-		inventory.update(playerPos, controlState);
+		inventory.update(self.pos(), controlState);
 
 		speed.addDataPoint(dt);
 	};

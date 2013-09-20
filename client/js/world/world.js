@@ -3,7 +3,8 @@ function World(scene, conn, clientID) {
 
 	var chunkManager = new ChunkManager(scene, clientID);
 	var entityManager = new EntityManager(scene, conn, self);
-	self.getEntityInfos = entityManager.getEntityInfos;
+
+	self.entityManager = entityManager;
 
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;

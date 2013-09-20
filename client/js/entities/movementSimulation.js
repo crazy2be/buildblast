@@ -1,29 +1,29 @@
 ﻿var moveSim = function () {
 
 	//Tries to apply an application of deltaMove to pos, without introducing intersections.
-	function attemptMove(pos, inSolid, world, deltaMove) {
+	function attemptMove(pos, collides, world, deltaMove) {
 		//This code should probably be put to use for partial application of all movement
 		//in the y direction, but if it is the server code must also be changed.
-		if (inSolid(world, pos)) {
+		if (collides(world, pos)) {
 			deltaMove.x = 0;
 			deltaMove.y = 1;
 			deltaMove.z = 0;
 		}
 
 		pos.x += deltaMove.x;
-		if (inSolid(world, pos)) {
+		if (collides(world, pos)) {
 			pos.x -= deltaMove.x;
 			deltaMove.x = 0;
 		}
 
-		p.y += deltaMove.y;
-		if (inSolid(world, pos)) {
+		pos.y += deltaMove.y;
+		if (collides(world, pos)) {
 			pos.y -= deltaMove.y;
 			deltaMove.y = 0;
 		}
 
 		pos.z += deltaMove.z;
-		if (inSolid(world, pos)) {
+		if (collides(world, pos)) {
 			pos.z -= deltaMove.z;
 			deltaMove.z = 0;
 		}
@@ -55,7 +55,7 @@
 		newRay.y = lastRay.y;
 		newRay.z = lastRay.z;
 
-		attemptMove(newRay, userConstants.inSolid, userConstants.world, move);
+		attemptMove(newRay, userConstants.collides, userConstants.world, move);
 
 		if (move.y === 0) {
 			newRay.dy = c.jump ? 6 : 0;

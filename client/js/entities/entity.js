@@ -5,10 +5,10 @@ function Entity(id, world) {
 	var hp = 0;
 
 	var moveSim = window.moveSim();
-	var box = new Box(new THREE.Vector3(0, 0, 0), PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 	var posBuffer = new PredictionBuffer(
 		moveSim.simulateMovement.bind(null, {
-			inSolid: box.inSolid,
+			collides: box.collides,
 			world: world
 		})
 	);
@@ -87,18 +87,21 @@ function Entity(id, world) {
 		posBuffer.addConfirmed(payload.Timestamp, ray);
 
 		var pos = posBuffer.getLastValue();
-		box.setPos(pos);
 
 		//rot = makeVec3(tickData.Rot);
+	}
+	self.controlMessage = function(controlState) {
+		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 	}
 	self.pos = function () {
 		return posBuffer.getLastValue();
 	}
 
 	self.contains = function (x, y, z) {
-		var pos = self.pos();
-		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-		return box.contains(x, y, z);
+		return pointCollides(
+			new THREE.Vector3(x, y, z),
+			box.boundingBox(self.pos())
+		);
 	};
 
 	self.health = function() {

@@ -10,34 +10,6 @@ function PlayerPrediction(world, conn, clock, position) {
 
 	var moveSim = window.moveSim();
 
-	var box = new Box(position, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-
-	// predictFnc(lastDatum, auxData, dt) : newDatum
-	var posBuffer = new PredictionBuffer(
-		moveSim.simulateMovement.bind(null, {
-			inSolid: box.inSolid, 
-			world: world
-		})
-	);
-
-	posBuffer.addConfirmed(0, new THREE.Vector3(0, 0, 0));
-
-	self.update = function (controlState) {
-		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
-
-		/* TODO: Do this stuff somewhere
-		var lag = latest.Timestamp - confirmed.Timestamp;
-		updateLagStats(lag);
-		updateHealthBar(confirmed.Hp);
-		updatePositionText(pos, vy);
-		*/
-
-		var pos = posBuffer.getLastValue();
-		box.setPos(pos);
-
-		return pos;
-	};
-
 	conn.on('player-state', function (payload) {
 		//TODO: Make the server just send us this structure,
 		//or handle the server structure directly.
