@@ -11,9 +11,9 @@ function Rect(x, y, w, h) {
 	this.uninvert();
 }
 
-var p = Rect.prototype;
+var pr = Rect.prototype;
 
-p.center = function (newCenter) {
+pr.center = function (newCenter) {
 	if (newCenter === undefined) {
 		return new THREE.Vector2(this.x + this.w / 2, this.y + this.h / 2);
 	}
@@ -25,7 +25,7 @@ p.center = function (newCenter) {
 //If we are inverted, flips us so we are not.
 //Meaning, if our w or h are negative, makes them
 //positive and moves our x or y over
-p.uninvert = function() {
+pr.uninvert = function() {
 	if (this.w < 0) {
 		this.x += this.w;
 		this.w = -this.w;
@@ -36,7 +36,7 @@ p.uninvert = function() {
 	}
 }
 
-p.clone = function () {
+pr.clone = function () {
 	return new Rect(this.x, this.y, this.w, this.h);
 };
 
@@ -49,7 +49,7 @@ p.clone = function () {
 // would give you rect(2, 0, 2, 2). Finally,
 //     rect(0, 0, 1, 1).project(rect(20, 75, 1, 1))
 // would give you rect(20, 75, 1, 1).
-p.project = function (rect) {
+pr.project = function (rect) {
 	this.x = rect.x + this.x * rect.w;
 	this.y = rect.y + this.y * rect.h;
 
@@ -76,12 +76,12 @@ p.norm = function (rect) {
 // Returns a rectangle represeting the largest square that
 // can fit inside this rectangle, centered inside the rectangle.
 // Very useful for laying out square objects in the gui.
-p.largestSquare = function () {
+pr.largestSquare = function () {
 	var size = this.w > this.h ? this.h : this.w;
 	return new Rect(0, 0, size, size).center(this.center());
 }
 
-p.origin = function (newOrigin) {
+pr.origin = function (newOrigin) {
 	if (newOrigin === undefined) {
 		return new THREE.Vector2(this.x, this.y);
 	}
@@ -90,13 +90,13 @@ p.origin = function (newOrigin) {
 	return this;
 }
 
-p.moveOrigin = function (delta) {
+pr.moveOrigin = function (delta) {
 	this.x += delta.x;
 	this.y += delta.y;
 	return this;
 }
 
-p.size = function (newSize) {
+pr.size = function (newSize) {
 	if (newSize === undefined) {
 		return new THREE.Vector2(this.w, this.h);
 	}
@@ -107,7 +107,7 @@ p.size = function (newSize) {
 
 // Shrinks a rectangle by amount in all directions.
 // used to add padding.
-p.shrink = function (amount) {
+pr.shrink = function (amount) {
 	this.x += amount;
 	this.y += amount;
 	this.w -= 2 * amount;
@@ -115,34 +115,34 @@ p.shrink = function (amount) {
 	return this;
 }
 
-p.str = function () {
+pr.str = function () {
 	return "Rectangle at (" + this.x + ", " + this.y + ")" + "with size (" + this.w + ", " + this.h + ")";
 }
 
 //Functions to allow our rectangle to exist in the left, top, right, bottom
 //paradigm. Very useful for UI code.
-p.left = function (newLeft) {
+pr.left = function (newLeft) {
 	if(newLeft === undefined) {
 		return this.x;
 	}
 	this.x = newLeft;
 	return this;
 }
-p.top = function (newTop) {
+pr.top = function (newTop) {
 	if(newTop === undefined) {
 		return this.y;
 	}
 	this.y = newTop;
 	return this;
 }
-p.right = function (newRight) {
+pr.right = function (newRight) {
 	if(newRight === undefined) {
 		return this.x + this.w;
 	}
 	this.x = newRight - this.w;
 	return this;
 }
-p.bottom = function (newBottom) {
+pr.bottom = function (newBottom) {
 	if(newBottom === undefined) {
 		return this.y + this.h;
 	}
@@ -150,7 +150,7 @@ p.bottom = function (newBottom) {
 	return this;
 }
 
-p.round = function() {
+pr.round = function() {
 	this.x = Math.round(this.x);
 	this.y = Math.round(this.y);
 	this.w = Math.round(this.w);
