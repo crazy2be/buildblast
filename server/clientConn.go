@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
+	"reflect"
 )
 
 // ClientConn is a generic, non-blocking, lossy over lag
@@ -92,7 +93,7 @@ func (c *ClientConn) Send(m Message) {
 	select {
 	case c.sendQueue <- m:
 	default:
-		c.Error(fmt.Errorf("unable to send message %v to player %s", m, c.name))
+		c.Error(fmt.Errorf("unable to send message %v (%s) to player %s", m, reflect.TypeOf(m).String(), c.name))
 	}
 }
 
