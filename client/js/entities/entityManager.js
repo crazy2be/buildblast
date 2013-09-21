@@ -31,7 +31,7 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id, world, clock).init();
+		var entity = new Entity(id, world, clock).initPlugins();
 		entity.addTo(scene);
 		entities[id] = entity;
 	});

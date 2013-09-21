@@ -6,8 +6,7 @@ function Entity(id, world, clock) {
 
 	var posBuffer = new PosPrediction(world, clock, new THREE.Vector3(0, 0, 0));
 
-	posBuffer.setDelay(localStorage.lag || 100);
-
+	//We forward a lot, as we are basically embedding posBuffer
 	self.predictMovement = posBuffer.predictMovement;
 	self.posMessage = posBuffer.posMessage;
 	self.pos = posBuffer.pos;
@@ -36,19 +35,23 @@ function Entity(id, world, clock) {
 	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
 	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
 
+	//TODO: Move body stuff into a plugin
 	var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
 	var bodyMesh = new THREE.Mesh(bodyGeometry, material);
 
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
 	var headMesh = new THREE.Mesh(headGeometry, material);
 
-	var healthBar;
+	var UIPlugins = [];
 
-	self.init = function() {
-		healthBar = new HealthBar(self);
+	self.initPlugins = function() {
+		UIPlugins.push(new HealthBar(self));
+		if (localStorage.debug) {
+			UIPlugins.push(new PosHistoryBar(self, posBuffer, clock));
+		}
 
 		return self;
-	}
+	};
 
 	self.setHealth = function(health) {
 		hp = health;
@@ -59,6 +62,7 @@ function Entity(id, world, clock) {
 	};
 
 	self.maxHealth = function() {
+		//TODO: Actually sync this with the server
 		return 100;
 	}
 
@@ -66,14 +70,20 @@ function Entity(id, world, clock) {
 		scene.add(bodyMesh);
 		scene.add(headMesh);
 		scene.add(hitboxMesh);
-		scene.add(healthBar.mesh());
+
+		UIPlugins.forEach(function (plugin) {
+			scene.add(plugin.mesh());
+		});
 	};
 
 	self.removeFrom = function (scene) {
 		scene.remove(bodyMesh);
 		scene.remove(headMesh);
 		scene.remove(hitboxMesh);
-		scene.remove(healthBar.mesh());
+
+		UIPlugins.forEach(function (plugin) {
+			scene.remove(plugin.mesh());
+		});
 	};
 
 	self.id = function () {
@@ -87,9 +97,12 @@ function Entity(id, world, clock) {
 			posBuffer.setDelay(world.curLagInduction());
 		}
 
+		UIPlugins.forEach(function (plugin) {
+			plugin.update(playerPos);
+		});
+
 		updatePos(playerPos);
 		updateRot();
-		updateHP(playerPos);
 	};
 
 	function updatePos(playerPos) {
@@ -105,8 +118,6 @@ function Entity(id, world, clock) {
 		headMesh.position.set(c.x, c.y + bh/2, c.z);
 		hitboxMesh.position.set(c.x, c.y, c.z);
 
-		healthBar.updatePos(pos, playerPos);
-
 		return self;
 	}
 
@@ -114,9 +125,5 @@ function Entity(id, world, clock) {
 		headMesh.rotation.set(rot.x, rot.y, rot.z);
 		var br = bodyMesh.rotation;
 		br.y = rot.y;
-	}
-
-	function updateHP(playerPos) {
-		healthBar.updateHP(hp, playerPos);
 	}
 }

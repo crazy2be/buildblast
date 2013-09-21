@@ -1,6 +1,8 @@
 ﻿//Stores a history of values (with no context, and no manipulation
 //	or understanding of underlying values), allowing you to access
 //	the state based on time.
+//Is not POD, but I treat it as such because it makes the code much easier.
+//	However only really contextBuffer uses this, so the mess shouldn't spread.
 function HistoryBuffer(maxHistory) {
 	var self = this;
 

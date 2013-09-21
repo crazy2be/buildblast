@@ -131,6 +131,6 @@ function World(scene, conn, clientID, clock) {
 	}
 
 	self.curLagInduction = function() {
-		return localStorage.lag || 100;
+		return localStorage.lag || -1;
 	}
 }

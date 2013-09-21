@@ -12,6 +12,8 @@
 //	== -1, means always give the most recent position
 //	> 0, means give the 'closest' (TODO: elaborate on this word) position
 //		 to clock.time() - delay
+//	(0 is purposely NOT valid, as 0 is not the same as -1 and could
+//		still induce some lag)
 
 function PosPrediction(world, clock, initialPos) {
 	var self = this;
@@ -75,5 +77,31 @@ function PosPrediction(world, clock, initialPos) {
 	//and last received (but I am too lazy to implement that now).
 	self.lag = function () {
 		return clock.time() - posBuffer.lastConfirmedTime();
+	}
+
+	if (localStorage.debug) {
+		//Only use these for debugging!
+		self.posDebugData = function () {
+			var data = [];
+			var dataTimes = posBuffer.dataTimes();
+			var auxDataTimes = posBuffer.auxDataTimes();
+
+			var auxPosition = 0;
+
+			dataTimes.forEach(function (dataTime) {
+				var datum = {time: dataTime, hasAuxData: false};
+
+				var hasAuxData = false;
+				while (auxPosition < auxDataTimes.length &&
+					auxDataTimes[auxPosition] <= dataTime) {
+					//So many assumptions about this data is made right here...
+					datum.hasAuxData = auxDataTimes[auxPosition] == dataTime;
+					auxPosition++;
+				}
+				data.push(datum);
+			});
+
+			return data;
+		};
 	}
 }
