@@ -86,11 +86,9 @@ function Entity(id, world) {
 		ray.dy = payload.Vy;
 		posBuffer.addConfirmed(payload.Timestamp, ray);
 
-		var pos = posBuffer.getLastValue();
-
 		//rot = makeVec3(tickData.Rot);
 	}
-	self.controlMessage = function(controlState) {
+	self.predictMovement = function(controlState) {
 		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 	}
 	self.pos = function () {

@@ -81,7 +81,7 @@ function Player(world, conn, clock, container, clientID) {
 		conn.queue('controls-state', controlState);
 
 		if(curEntity()) {
-			curEntity().controlMessage(controlState);
+			curEntity().predictMovement(controlState);
 		}
 
 		//var playerPos = prediction.update(controlState);
