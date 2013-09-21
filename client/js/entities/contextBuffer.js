@@ -1,8 +1,11 @@
-﻿//A wrapper for HistoryBuffer which works with Vector3s
-//	and context, allowing for value sensitive (interpolation)
-//	time calculations.
+﻿//A wrapper for HistoryBuffer which adds context to values,
+//	and so understands the idea of confirmed and unconfirmed messages.
+//	This allows it to take functions for interpolate and it will apply
+//	the functions with the correct context. It still has no understanding
+//	of what it is interpolating though.
 
-function MovementBuffer(predictFnc) {
+//predictFnc(prevData, auxData, dt)
+function ContextBuffer(predictFnc) {
 	var self = this;
 
 	//We consider any position with no auxData to be "confirmed"

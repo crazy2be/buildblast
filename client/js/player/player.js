@@ -103,6 +103,7 @@ function Player(world, conn, clock, container, clientID) {
 
 			var pos = self.pos();
 			updatePositionText(pos, pos.dy);
+			updateHealthBar(curEntity().health());
 		}
 
 		speed.addDataPoint(dt);

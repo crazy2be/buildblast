@@ -13,6 +13,18 @@ function EntityManager(scene, conn, world, clock) {
 		entity.posMessage(payload);
 	});
 
+	//entity-hp
+	conn.on('entity-hp', function (payload) {
+		var id = payload.ID;
+		var entity = entities[id];
+		if (!entity) {
+			console.warn("Got entity-hp message for entity which does not exist!", id);
+			return;
+		}
+		//TODO: Use HP timestamps to make HP buffer
+		entity.setHealth(payload.Hp);
+	});
+
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (entities[id]) {

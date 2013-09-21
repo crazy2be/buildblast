@@ -76,7 +76,7 @@
 
 	var curHP = entity.health();
 	self.updateHP = function(newHP, playerPos) {
-		if(curHP == newHP) return;
+		//if(curHP == newHP) return;
 		curHP = newHP;
 
 		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
@@ -107,17 +107,16 @@
 	}
 
 	var curPos = entity.pos();
-	self.updatePos = function(pos, playerPos, hpChanged) {
-		if(!hpChanged
-			&& pos.x == curPos.x)
+	self.updatePos = function (pos, playerPos, hpChanged) {
+		//if (!hpChanged && pos.x == curPos.x && pos.y == curPos.y) return;
 
 		curPos = pos;
 
 		var p = curPos;
 		mesh1.position.set(p.x, p.y + 0.4, p.z);
-		mesh1.scale.x = 1/200;
-		mesh1.scale.y = 1/200;
-		mesh1.scale.z = 1/200;
+		mesh1.scale.x = 1 / 200;
+		mesh1.scale.y = 1 / 200;
+		mesh1.scale.z = 1 / 200;
 
 		//I don't know, I tried, but I don't know why this works,
 		//or how to do it any better.

@@ -19,7 +19,7 @@ function EntityPrediction(world, clock, initialPos) {
 	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 
 	// predictFnc(lastDatum, auxData, dt) : newDatum
-	var posBuffer = new MovementBuffer(
+	var posBuffer = new ContextBuffer(
 		moveSim.simulateMovement.bind(null, {
 			collides: box.collides, 
 			world: world

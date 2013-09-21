@@ -43,6 +43,10 @@ function Entity(id, world, clock) {
 		return self;
 	}
 
+	self.setHealth = function(health) {
+		hp = health;
+	};
+
 	self.health = function() {
 		return hp;
 	};
