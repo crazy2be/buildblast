@@ -1,6 +1,8 @@
-﻿//function predictFnc(lastDatum, auxData, dt) : newDatum
+﻿//A wrapper for HistoryBuffer which works with Vector3s
+//and context, allowing for value sensitive (interpolation)
+//time calculations.
 
-function PredictionBuffer(predictFnc) {
+function MovementBuffer(predictFnc) {
 	var self = this;
 
 	var dataHistory = new HistoryBuffer(30);
@@ -64,4 +66,9 @@ function PredictionBuffer(predictFnc) {
 	self.getLastValue = function () {
 		return dataHistory.historyValues[dataHistory.lastPos()];
 	};
+
+	self.getValueAt = function (time) {
+		//TODO: Interpolation
+		return dataHistory.getValue(time);
+	}
 }

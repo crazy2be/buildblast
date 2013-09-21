@@ -60,12 +60,14 @@ window.onload = function () {
 			previousTime = newTime;
 
 			conn.update();
+
+			player.update(dt);
+
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is looking,
 			//it can more efficiently handle queries.
 			world.update(dt, player.pos());
 
-			player.update(dt);
 			player.render(scene);
 
 			if (fatalErrorTriggered) return;

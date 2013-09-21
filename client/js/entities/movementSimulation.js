@@ -68,4 +68,4 @@
 		attemptMove: attemptMove,
 		simulateMovement: simulateMovement
 	};
-};
+}();

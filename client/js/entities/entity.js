@@ -4,13 +4,15 @@ function Entity(id, world, clock) {
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
-	var moveSim = window.moveSim();
-
 	var posBuffer = new EntityPrediction(world, clock, new THREE.Vector3(0, 0, 0));
+
+	posBuffer.setDelay(100);
+
 	self.predictMovement = posBuffer.predictMovement;
 	self.posMessage = posBuffer.posMessage;
 	self.pos = posBuffer.pos;
 	self.contains = posBuffer.contains;
+	self.setDelay = posBuffer.setDelay;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,

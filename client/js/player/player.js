@@ -61,6 +61,7 @@ function Player(world, conn, clock, container, clientID) {
 
 	self.pos = function () {
 		if(curEntity()) {
+			curEntity().setDelay(-1);
 			return curEntity().pos();
 		} else {
 			return new THREE.Vector3(0, 0, 0);

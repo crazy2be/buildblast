@@ -1,24 +1,27 @@
-//We only move every tick, and we move for the duration of the tick.
-//We queue up a list of the keyStates of every tick, and tell the server that we wish to move
-//at those tick times.
-//We then apply those movements to the player's position, to move it beyond our last confirmed position
-//When the server gives us a response, we use this to update our last confirmed position (whether it
-//matches of not), and reapply all our queued keyStates (which should be only 1, or even none).
+//We store a buffer of important "events" (such as controlStates), and timestamps for
+//these events. Some of these events are just predictions, and so may be overriden later.
+//At any time we can give a position at any time, although future times will be wrong,
+//and predicted times may change.
+
+//.pos delay:
+//	== -1, means always give the most recent position
+//	> 0, means give the 'closest' (TODO: elaborate on this word) position
+//		 to clock.time() - delay
 
 function EntityPrediction(world, clock, initialPos) {
 	var self = this;
 
-	var moveSim = window.moveSim();
-
 	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 
 	// predictFnc(lastDatum, auxData, dt) : newDatum
-	var posBuffer = new PredictionBuffer(
+	var posBuffer = new MovementBuffer(
 		moveSim.simulateMovement.bind(null, {
 			collides: box.collides, 
 			world: world
 		})
 	);
+
+	var _delay = -1;
 
 	posBuffer.addConfirmed(0, initialPos);
 
@@ -40,7 +43,15 @@ function EntityPrediction(world, clock, initialPos) {
 	};
 
 	self.pos = function () {
-		return posBuffer.getLastValue();
+		if (_delay == -1) {
+			return posBuffer.getLastValue();
+		}
+
+		if (_delay > 0) {
+			return posBuffer.getValueAt(clock.time() - _delay);
+		}
+
+		throw "No delay is defined for delay of: " + _delay;
 	};
 
 	self.contains = function (x, y, z) {
@@ -48,5 +59,9 @@ function EntityPrediction(world, clock, initialPos) {
 			new THREE.Vector3(x, y, z),
 			box.boundingBox(self.pos())
 		);
+	}
+
+	self.setDelay = function (delay) {
+		_delay = delay;
 	}
 }

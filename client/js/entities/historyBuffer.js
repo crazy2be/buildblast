@@ -1,9 +1,6 @@
-﻿//Stores a history of Vector3s, and then exposes
-//a interpolated Vector3 at any time, or a Vector3 that is
-//offset to a given Clock.
-
-//Can also be given uncertain future values, which are
-//cleared if they are not confirmed by pos values with an equivalent time.
+﻿//Stores a history of values (with no context, and no manipulation
+//	or understanding of underlying values), allowing you to access
+//	the state based on time.
 function HistoryBuffer(maxHistory) {
 	var self = this;
 
@@ -56,7 +53,7 @@ function HistoryBuffer(maxHistory) {
 
 		var insertIndex = getInsertIndex(time);
 		if (insertIndex > lastPos) insertIndex = lastPos;
-		return historyValues[time];
+		return historyValues[insertIndex];
 	}
 
 	//Same restrictions as getValue
