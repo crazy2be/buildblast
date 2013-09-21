@@ -1,7 +1,12 @@
+//TODO: Make 2 of these, one for the "player" entity and one for
+//	regular entities. This if we every optimize out the base code
+//	so it is different (specialized) for each case (to make it faster),
+//	we will have a layer that can make the switch seamless.
+
 //We store a buffer of important "events" (such as controlStates), and timestamps for
-//these events. Some of these events are just predictions, and so may be overriden later.
+//	these events. Some of these events are just predictions, and so may be overriden later.
 //At any time we can give a position at any time, although future times will be wrong,
-//and predicted times may change.
+//	and predicted times may change.
 
 //.pos delay:
 //	== -1, means always give the most recent position
@@ -59,9 +64,16 @@ function EntityPrediction(world, clock, initialPos) {
 			new THREE.Vector3(x, y, z),
 			box.boundingBox(self.pos())
 		);
-	}
+	};
 
 	self.setDelay = function (delay) {
 		_delay = delay;
+	};
+
+	//TODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
+	//move messages, this should instead be the time since our last sent message
+	//and last received (but I am too lazy to implement that now).
+	self.lag = function () {
+		return clock.time() - posBuffer.lastConfirmedTime();
 	}
 }

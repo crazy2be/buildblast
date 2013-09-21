@@ -13,6 +13,7 @@ function Entity(id, world, clock) {
 	self.pos = posBuffer.pos;
 	self.contains = posBuffer.contains;
 	self.setDelay = posBuffer.setDelay;
+	self.lag = posBuffer.lag;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,

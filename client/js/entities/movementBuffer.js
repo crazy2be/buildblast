@@ -1,13 +1,17 @@
 ﻿//A wrapper for HistoryBuffer which works with Vector3s
-//and context, allowing for value sensitive (interpolation)
-//time calculations.
+//	and context, allowing for value sensitive (interpolation)
+//	time calculations.
 
 function MovementBuffer(predictFnc) {
 	var self = this;
 
+	//We consider any position with no auxData to be "confirmed"
 	var dataHistory = new HistoryBuffer(30);
 	//Every aux should have a datum, but not necessarily the otherway around.
 	var auxDataHistory = new HistoryBuffer(30);
+
+	//We could look this up, but it is easier to just store it.
+	var lastConfirmed = 0;
 
 	self.addPrediction = function (time, auxData) {
 		var indexBefore = dataHistory.getIndexBefore(time);
@@ -28,6 +32,8 @@ function MovementBuffer(predictFnc) {
 	//Also recalculates the predictions for every aux data after this time, and
 	//removes the aux data associated with this time.
 	self.addConfirmed = function (time, pos) {
+		lastConfirmed = Math.max(lastConfirmed, time);
+
 		var dataIndex = dataHistory.setValue(time, pos);
 
 		var curAuxIndex = auxDataHistory.getIndexOf(time);
@@ -70,5 +76,9 @@ function MovementBuffer(predictFnc) {
 	self.getValueAt = function (time) {
 		//TODO: Interpolation
 		return dataHistory.getValue(time);
-	}
+	};
+
+	self.lastConfirmedTime = function () {
+		return lastConfirmed;
+	};
 }

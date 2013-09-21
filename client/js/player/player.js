@@ -100,6 +100,13 @@ function Player(world, conn, clock, container, clientID) {
 		doLook(camera, camPos, controlState.Controls);
 		inventory.update(self.pos(), controlState);
 
+		if(curEntity()) {
+			updateLagStats(curEntity().lag());
+
+			var pos = self.pos();
+			updatePositionText(pos, pos.dy);
+		}
+
 		speed.addDataPoint(dt);
 	};
 
@@ -113,5 +120,60 @@ function Player(world, conn, clock, container, clientID) {
 
 	function doLook(camera, p, c) {
 		camera.lookAt(getTarget(p, c));
+	}
+
+	var prevhp = -1;
+	function updateHealthBar(hp) {
+		if (hp === prevhp) return;
+		prevhp = hp;
+
+		var health = document.getElementById('health-value');
+		if (!health) return;
+
+		health.style.width = hp + '%';
+		if (hp < 25) {
+			health.classList.add('critical');
+		} else if (hp < 50) {
+			health.classList.add('low');
+		} else {
+			health.classList.remove('critical');
+			health.classList.remove('low');
+		}
+
+		// Force animations to restart
+		var newHealth = health.cloneNode(true);
+		health.parentNode.replaceChild(newHealth, health);
+	}
+
+	var lagStats = new PerfChart({
+		title: ' lag'
+	});
+	lagStats.elm.style.position = 'absolute';
+	lagStats.elm.style.top = '74px';
+	lagStats.elm.style.right = '80px';
+	document.getElementById('container').appendChild(lagStats.elm);
+	function updateLagStats(lag) {
+		lagStats.addDataPoint(lag);
+	}
+
+	var prevpos = new THREE.Vector3(0, 0, 0);
+	function updatePositionText(pos, vy) {
+		if (pos.equals(prevpos)) return;
+		prevpos = pos;
+
+		var info = document.getElementById('info');
+		if (!info) return;
+
+		info.innerHTML = JSON.stringify({
+			x: round(pos.x, 2),
+			y: round(pos.y, 2),
+			z: round(pos.z, 2),
+			v: round(vy, 2),
+		});
+	}
+
+	function round(n, digits) {
+		var factor = Math.pow(10, digits);
+		return Math.round(n * factor) / factor;
 	}
 };
