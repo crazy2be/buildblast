@@ -85,8 +85,6 @@ function Player(world, conn, clock, container, clientID) {
 			curEntity().predictMovement(controlState);
 		}
 
-		//var playerPos = prediction.update(controlState);
-
 		var camPos = self.pos();
 
 		if(localStorage.thirdPerson) {
