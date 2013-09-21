@@ -190,6 +190,8 @@ type MsgInventoryMove struct {
 
 type ClientMessage struct {
 	Kind    MessageKind
+	//json.RawMessage implements Marshaler and Unmarshaler,
+	//so it will NOT be serialized twice.
 	Payload json.RawMessage
 }
 

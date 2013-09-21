@@ -25,6 +25,8 @@ func (c *Conn) Send(m Message) error {
 	cm := new(ClientMessage)
 	cm.Kind = typeToKind(m)
 
+	//Payload(json.RawMessage) implements Marshaler and Unmarshaler,
+	//so it will NOT be serialized twice.
 	cm.Payload, err = json.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("marshalling websocket message: %s", err)

@@ -4,7 +4,7 @@ function Entity(id, world, clock) {
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
-	var posBuffer = new EntityPrediction(world, clock, new THREE.Vector3(0, 0, 0));
+	var posBuffer = new PosPrediction(world, clock, new THREE.Vector3(0, 0, 0));
 
 	posBuffer.setDelay(localStorage.lag || 100);
 

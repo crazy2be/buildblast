@@ -13,7 +13,7 @@
 //	> 0, means give the 'closest' (TODO: elaborate on this word) position
 //		 to clock.time() - delay
 
-function EntityPrediction(world, clock, initialPos) {
+function PosPrediction(world, clock, initialPos) {
 	var self = this;
 
 	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
