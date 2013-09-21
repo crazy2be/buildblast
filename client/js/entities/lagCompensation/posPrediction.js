@@ -53,7 +53,11 @@ function PosPrediction(world, clock, initialPos) {
 		}
 
 		if (curTime > posBuffer.lastTime()) {
-			console.error("Requested position at time after any positions in buffer.");
+			console.warn("Requested position at time after any positions in buffer.");
+		}
+
+		if (posBuffer.lastConfirmedTime() < posBuffer.firstTime()) {
+			console.warn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
 		}
 
 		return posBuffer.getValueAt(curTime);
