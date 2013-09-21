@@ -88,17 +88,25 @@
 		ctx.clearRect(0, 0, canvas1.width, canvas1.height);
 		canvas1.width = canvas1.width;
 
+		function posXFromTime(time) {
+			return(time - posStartTime) / posViewTime * canvas1.width;
+		}
+
 		viewData.forEach(function (viewDatum) {
 			if (viewDatum.time < posStartTime) return;
 			if (viewDatum.time > posEndTime) return;
 
-			var posX = (viewDatum.time - posStartTime) / posViewTime * canvas1.width;
+			var posX = posXFromTime(viewDatum.time);
 
 			var color = viewDatum.hasAuxData ? "yellow" : "green";
 
 			ctx.fillStyle = color;
 			ctx.fillRect(posX, 0, 1, canvas1.height);
 		});
+
+		var presentX = posXFromTime(clock.time());
+		ctx.fillStyle = "blue";
+		ctx.fillRect(presentX, 0, 1, canvas1.height);
 
 		// canvas contents will be used for a texture
 		texture1.needsUpdate = true;

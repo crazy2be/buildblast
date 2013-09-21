@@ -12,8 +12,6 @@
 		document.body.appendChild(script);
 	}
 }([
-	'js/./chat.js',
-	'js/./controls.js',
 	'js/./featureTester.js',
 	'js/./models.js',
 	'js/./canvasLibs/rect.js',
@@ -43,6 +41,8 @@
 	'js/./globalish/conn.js',
 	'js/./globalish/world.js',
 	'js/./perf/chart.js',
+	'js/./player/chat.js',
+	'js/./player/controls.js',
 	'js/./player/inventory.js',
 	'js/./player/item.js',
 	'js/./player/playerUI.js',

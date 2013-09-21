@@ -86,18 +86,20 @@ function PlayerUI(world, conn, clock, container, clientID) {
 			curEntity().predictMovement(controlState);
 		}
 
-		var camPos = self.pos();
+		var camPos = self.pos().clone();
+
+		var c = controlState.Controls;
 
 		if(localStorage.thirdPerson) {
-			var target = getTarget(camPos, controlState);
+			var target = getTarget(camPos, c);
 			var look = target.clone().sub(camPos);
 			look.setLength(3);
 			camPos.sub(look);
 		}
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
-		doLook(camera, camPos, controlState.Controls);
-		inventory.update(self.pos(), controlState);
+		doLook(camera, camPos, c);
+		inventory.update(self.pos(), c);
 
 		if(curEntity()) {
 			updateLagStats(curEntity().lag());
