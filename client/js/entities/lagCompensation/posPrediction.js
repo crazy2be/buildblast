@@ -8,13 +8,6 @@
 //At any time we can give a position at any time, although future times will be wrong,
 //	and predicted times may change.
 
-//.pos delay:
-//	== -1, means always give the most recent position
-//	> 0, means give the 'closest' (TODO: elaborate on this word) position
-//		 to clock.time() - delay
-//	(0 is purposely NOT valid, as 0 is not the same as -1 and could
-//		still induce some lag)
-
 function PosPrediction(world, clock, initialPos) {
 	var self = this;
 
@@ -27,8 +20,6 @@ function PosPrediction(world, clock, initialPos) {
 			world: world
 		})
 	);
-
-	var _delay = -1;
 
 	posBuffer.addConfirmed(0, initialPos);
 
@@ -49,16 +40,23 @@ function PosPrediction(world, clock, initialPos) {
 		//rot = makeVec3(tickData.Rot);
 	};
 
+	var _useEntityTime = true;
 	self.pos = function () {
-		if (_delay == -1) {
+		if (!_useEntityTime) {
 			return posBuffer.getLastValue();
 		}
 
-		if (_delay > 0) {
-			return posBuffer.getValueAt(clock.time() - _delay);
+		var curTime = clock.entityTime();
+
+		if (curTime < posBuffer.firstTime()) {
+			console.error("Requested position at time before any positions in buffer.");
 		}
 
-		throw "No delay is defined for delay of: " + _delay;
+		if (curTime > posBuffer.lastTime()) {
+			console.error("Requested position at time after any positions in buffer.");
+		}
+
+		return posBuffer.getValueAt(curTime);
 	};
 
 	self.contains = function (x, y, z) {
@@ -68,8 +66,12 @@ function PosPrediction(world, clock, initialPos) {
 		);
 	};
 
-	self.setDelay = function (delay) {
-		_delay = delay;
+	//If true our .pos() will return times based on clock.entityTime(),
+	//	else we will just use the earliest times (not strictly times
+	//	based on clock.time(), but in almost all cases should be equivalent).
+	//True by default.
+	self.setUseEntityTime = function (useEntityTime) {
+		_useEntityTime = useEntityTime;
 	};
 
 	//TODO: Not strictly speaking lag, hopefully if nothing moves we won't get any

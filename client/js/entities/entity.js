@@ -13,12 +13,11 @@ function Entity(id, world, clock) {
 	self.contains = posBuffer.contains;
 	self.lag = posBuffer.lag;
 
-	var _prediction = false;
-	self.enablePrediction = function() {
-		_prediction = true;
-	};
-	self.disablePrediction = function() {
-		_prediction = false;
+	var _isPlayer = false;
+	self.setIsPlayer = function(isPlayer) {
+		_isPlayer = isPlayer;
+
+		posBuffer.setUseEntityTime(_isPlayer);
 	};
 
 	var material = new THREE.MeshBasicMaterial({
@@ -91,12 +90,6 @@ function Entity(id, world, clock) {
 	};
 
 	self.update = function(dt, playerPos) {
-		if(_prediction) {
-			posBuffer.setDelay(-1);
-		} else {
-			posBuffer.setDelay(world.curLagInduction());
-		}
-
 		UIPlugins.forEach(function (plugin) {
 			plugin.update(playerPos);
 		});

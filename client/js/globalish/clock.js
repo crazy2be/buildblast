@@ -9,6 +9,13 @@ function Clock(conn) {
 		return curTime;
 	};
 
+	//The time which we use to display entities
+	self.entityTime = function () {
+		var lagInduction = localStorage.lag || 0;
+
+		return self.time() - lagInduction;
+	};
+
 	// Actual client <-> server offset, according to most
 	// recent sync.
 	var offset = 0;

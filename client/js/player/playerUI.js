@@ -61,7 +61,8 @@ function PlayerUI(world, conn, clock, container, clientID) {
 
 	self.pos = function () {
 		if(curEntity()) {
-			curEntity().enablePrediction();
+			//TODO: Call this when we first hook into the player!
+			curEntity().setIsPlayer(true);
 			return curEntity().pos();
 		} else {
 			return new THREE.Vector3(0, 0, 0);
@@ -78,7 +79,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		var controlState = {
 			Controls: controls.sample(),
 			Timestamp: clock.time(),
-			ViewTimestamp: clock.time() - world.curLagInduction()
+			ViewTimestamp: clock.entityTime()
 		};
 		conn.queue('controls-state', controlState);
 
