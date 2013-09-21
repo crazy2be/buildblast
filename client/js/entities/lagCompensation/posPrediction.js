@@ -30,10 +30,10 @@ function PosPrediction(world, clock, initialPos) {
 	self.posMessage = function (payload) {
 		//TODO: Make the server just send us this structure,
 		//or handle the server structure directly.
-		var ray = {};
-		ray.x = payload.Pos.X;
-		ray.y = payload.Pos.Y;
-		ray.z = payload.Pos.Z;
+		var ray = new THREE.Vector3(
+			payload.Pos.X,
+			payload.Pos.Y,
+			payload.Pos.Z);
 		ray.dy = payload.Vy;
 		posBuffer.addConfirmed(payload.Timestamp, ray);
 

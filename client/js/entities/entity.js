@@ -17,8 +17,11 @@ function Entity(id, world, clock) {
 	self.setIsPlayer = function(isPlayer) {
 		_isPlayer = isPlayer;
 
-		posBuffer.setUseEntityTime(_isPlayer);
+		posBuffer.setUseEntityTime(!_isPlayer);
 	};
+	self.isPlayer = function() {
+		return _isPlayer;
+	}
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,

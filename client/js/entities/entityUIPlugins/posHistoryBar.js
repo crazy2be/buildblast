@@ -17,7 +17,7 @@
 		// create a canvas element
 		canvas1 = document.createElement('canvas');
 		canvas1.width = 600;
-		canvas1.height = 10;
+		canvas1.height = 20;
 		ctx = canvas1.getContext('2d');
 
 		//Background
@@ -92,6 +92,8 @@
 			return(time - posStartTime) / posViewTime * canvas1.width;
 		}
 
+		var barWidth = 2;
+
 		viewData.forEach(function (viewDatum) {
 			if (viewDatum.time < posStartTime) return;
 			if (viewDatum.time > posEndTime) return;
@@ -101,12 +103,28 @@
 			var color = viewDatum.hasAuxData ? "yellow" : "green";
 
 			ctx.fillStyle = color;
-			ctx.fillRect(posX, 0, 1, canvas1.height);
+			ctx.fillRect(posX, 0, barWidth, canvas1.height);
 		});
 
-		var presentX = posXFromTime(clock.time());
-		ctx.fillStyle = "blue";
-		ctx.fillRect(presentX, 0, 1, canvas1.height);
+		if (entity.isPlayer()) {
+			var presentX = posXFromTime(clock.time());
+			var entityX = presentX; //The player is displayed at the present time
+
+			ctx.fillStyle = "blue";
+			ctx.fillRect(presentX, 0, barWidth, canvas1.height / 2);
+
+			ctx.fillStyle = "orange";
+			ctx.fillRect(entityX, canvas1.height / 2, barWidth, canvas1.height / 2);
+		} else {
+			var presentX = posXFromTime(clock.time());
+			var entityX = posXFromTime(clock.entityTime());
+
+			ctx.fillStyle = "blue";
+			ctx.fillRect(presentX, 0, barWidth, canvas1.height);
+
+			ctx.fillStyle = "orange";
+			ctx.fillRect(entityX, 0, barWidth, canvas1.height);
+		}
 
 		// canvas contents will be used for a texture
 		texture1.needsUpdate = true;
