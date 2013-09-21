@@ -1,4 +1,4 @@
-function EntityManager(scene, conn, world) {
+function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
 	var entities = {};
@@ -19,7 +19,7 @@ function EntityManager(scene, conn, world) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id, world).init();
+		var entity = new Entity(id, world, clock).init();
 		entity.addTo(scene);
 		entities[id] = entity;
 	});

@@ -38,6 +38,9 @@
 	'js/./entities/predictionBuffer.js',
 	'js/./geom/box.js',
 	'js/./geom/intersection.js',
+	'js/./globalish/clock.js',
+	'js/./globalish/conn.js',
+	'js/./globalish/world.js',
 	'js/./perf/chart.js',
 	'js/./player/inventory.js',
 	'js/./player/item.js',
@@ -47,7 +50,4 @@
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
 	'js/./tests/testSystem.js',
-	'js/./world/clock.js',
-	'js/./world/conn.js',
-	'js/./world/world.js',
 ]));

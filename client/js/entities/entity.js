@@ -1,18 +1,16 @@
-function Entity(id, world) {
+function Entity(id, world, clock) {
 	var self = this;
 
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
 	var moveSim = window.moveSim();
-	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-	var posBuffer = new PredictionBuffer(
-		moveSim.simulateMovement.bind(null, {
-			collides: box.collides,
-			world: world
-		})
-	);
-	posBuffer.addConfirmed(0, new THREE.Vector3(0, 0, 0));
+
+	var posBuffer = new EntityPrediction(world, clock, new THREE.Vector3(0, 0, 0));
+	self.predictMovement = posBuffer.predictMovement;
+	self.posMessage = posBuffer.posMessage;
+	self.pos = posBuffer.pos;
+	self.contains = posBuffer.contains;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -41,6 +39,32 @@ function Entity(id, world) {
 
 		return self;
 	}
+
+	self.health = function() {
+		return hp;
+	};
+
+	self.maxHealth = function() {
+		return 100;
+	}
+
+	self.addTo = function (scene) {
+		scene.add(bodyMesh);
+		scene.add(headMesh);
+		scene.add(hitboxMesh);
+		scene.add(healthBar.mesh());
+	};
+
+	self.removeFrom = function (scene) {
+		scene.remove(bodyMesh);
+		scene.remove(headMesh);
+		scene.remove(hitboxMesh);
+		scene.remove(healthBar.mesh());
+	};
+
+	self.id = function () {
+		return id;
+	};
 
 	self.update = function(dt, playerPos) {
 		updatePos(playerPos);
@@ -75,56 +99,4 @@ function Entity(id, world) {
 	function updateHP(playerPos) {
 		healthBar.updateHP(hp, playerPos);
 	}
-
-	self.posMessage = function(payload) {
-		//TODO: Make the server just send us this structure,
-		//or handle the server structure directly.
-		var ray = {};
-		ray.x = payload.Pos.X;
-		ray.y = payload.Pos.Y;
-		ray.z = payload.Pos.Z;
-		ray.dy = payload.Vy;
-		posBuffer.addConfirmed(payload.Timestamp, ray);
-
-		//rot = makeVec3(tickData.Rot);
-	}
-	self.predictMovement = function(controlState) {
-		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
-	}
-	self.pos = function () {
-		return posBuffer.getLastValue();
-	}
-
-	self.contains = function (x, y, z) {
-		return pointCollides(
-			new THREE.Vector3(x, y, z),
-			box.boundingBox(self.pos())
-		);
-	};
-
-	self.health = function() {
-		return hp;
-	};
-
-	self.maxHealth = function() {
-		return 100;
-	}
-
-	self.addTo = function (scene) {
-		scene.add(bodyMesh);
-		scene.add(headMesh);
-		scene.add(hitboxMesh);
-		scene.add(healthBar.mesh());
-	};
-
-	self.removeFrom = function (scene) {
-		scene.remove(bodyMesh);
-		scene.remove(headMesh);
-		scene.remove(hitboxMesh);
-		scene.remove(healthBar.mesh());
-	};
-
-	self.id = function () {
-		return id;
-	};
 }

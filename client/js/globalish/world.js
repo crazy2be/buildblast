@@ -1,8 +1,8 @@
-function World(scene, conn, clientID) {
+function World(scene, conn, clientID, clock) {
 	var self = this;
 
 	var chunkManager = new ChunkManager(scene, clientID);
-	var entityManager = new EntityManager(scene, conn, self);
+	var entityManager = new EntityManager(scene, conn, self, clock);
 
 	self.entityManager = entityManager;
 
