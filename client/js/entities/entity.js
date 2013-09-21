@@ -6,14 +6,21 @@ function Entity(id, world, clock) {
 
 	var posBuffer = new EntityPrediction(world, clock, new THREE.Vector3(0, 0, 0));
 
-	posBuffer.setDelay(100);
+	posBuffer.setDelay(localStorage.lag || 100);
 
 	self.predictMovement = posBuffer.predictMovement;
 	self.posMessage = posBuffer.posMessage;
 	self.pos = posBuffer.pos;
 	self.contains = posBuffer.contains;
-	self.setDelay = posBuffer.setDelay;
 	self.lag = posBuffer.lag;
+
+	var _prediction = false;
+	self.enablePrediction = function() {
+		_prediction = true;
+	};
+	self.disablePrediction = function() {
+		_prediction = false;
+	};
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -74,6 +81,12 @@ function Entity(id, world, clock) {
 	};
 
 	self.update = function(dt, playerPos) {
+		if(_prediction) {
+			posBuffer.setDelay(-1);
+		} else {
+			posBuffer.setDelay(world.curLagInduction());
+		}
+
 		updatePos(playerPos);
 		updateRot();
 		updateHP(playerPos);

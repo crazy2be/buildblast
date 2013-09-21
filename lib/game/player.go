@@ -20,6 +20,7 @@ type ControlState struct {
 	Lon           float64
 
 	Timestamp float64 // In ms
+	ViewTimestamp float64
 }
 
 var PLAYER_HEIGHT = 1.75
@@ -101,9 +102,10 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 
 	p.updateLook(controls)
 
-	hitPos := p.simulateBlaster(dt, controls)
+	hitPos := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
 
+	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
@@ -165,7 +167,7 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
+func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
@@ -180,7 +182,8 @@ func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.Worl
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
-	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
+	//We let the user shoot in the past, but they always move in the present.
+	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}

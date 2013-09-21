@@ -9,9 +9,9 @@ function ContextBuffer(predictFnc) {
 	var self = this;
 
 	//We consider any position with no auxData to be "confirmed"
-	var dataHistory = new HistoryBuffer(30);
+	var dataHistory = new HistoryBuffer(1000);
 	//Every aux should have a datum, but not necessarily the otherway around.
-	var auxDataHistory = new HistoryBuffer(30);
+	var auxDataHistory = new HistoryBuffer(1000);
 
 	//We could look this up, but it is easier to just store it.
 	var lastConfirmed = 0;

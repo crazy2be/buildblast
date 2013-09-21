@@ -61,7 +61,7 @@ function Player(world, conn, clock, container, clientID) {
 
 	self.pos = function () {
 		if(curEntity()) {
-			curEntity().setDelay(-1);
+			curEntity().enablePrediction();
 			return curEntity().pos();
 		} else {
 			return new THREE.Vector3(0, 0, 0);
@@ -78,6 +78,7 @@ function Player(world, conn, clock, container, clientID) {
 		var controlState = {
 			Controls: controls.sample(),
 			Timestamp: clock.time(),
+			ViewTimestamp: clock.time() - world.curLagInduction()
 		};
 		conn.queue('controls-state', controlState);
 

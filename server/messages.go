@@ -149,7 +149,11 @@ type MsgBlock struct {
 type MsgControlsState struct {
 	Controls game.ControlState
 	// JavaScript performance.now() timestamp.
+	//TimeStamp is when it was sent, ViewTimestamp is
+	//what time the client was displaying when it was sent
+	//(with lag induction on they may differ).
 	Timestamp float64
+	ViewTimestamp float64
 }
 
 type MsgChat struct {
