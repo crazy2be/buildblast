@@ -12,7 +12,7 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function Player(world, conn, clock, container, clientID) {
+function PlayerUI(world, conn, clock, container, clientID) {
 	var self = this;
 
 	var controls = new Controls(container);
