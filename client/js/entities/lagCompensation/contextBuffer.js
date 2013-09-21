@@ -103,6 +103,10 @@ function ContextBuffer(predictFnc) {
 			return dataHistory.historyTimes;
 		};
 
+		self.dataPositions = function () {
+			return dataHistory.historyValues;
+		};
+
 		self.auxDataTimes = function () {
 			return auxDataHistory.historyTimes;
 		};

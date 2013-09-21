@@ -90,12 +90,14 @@ function PosPrediction(world, clock, initialPos) {
 		self.posDebugData = function () {
 			var data = [];
 			var dataTimes = posBuffer.dataTimes();
+			var dataPositions = posBuffer.dataPositions();
 			var auxDataTimes = posBuffer.auxDataTimes();
 
 			var auxPosition = 0;
+			var posPosition = 0;
 
 			dataTimes.forEach(function (dataTime) {
-				var datum = {time: dataTime, hasAuxData: false};
+				var datum = { time: dataTime, hasAuxData: false, pos: dataPositions[posPosition] };
 
 				var hasAuxData = false;
 				while (auxPosition < auxDataTimes.length &&
@@ -105,6 +107,7 @@ function PosPrediction(world, clock, initialPos) {
 					auxPosition++;
 				}
 				data.push(datum);
+				posPosition++;
 			});
 
 			return data;

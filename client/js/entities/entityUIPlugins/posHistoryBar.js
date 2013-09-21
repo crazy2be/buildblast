@@ -77,8 +77,15 @@
 	function updateView(playerPos) {
 		var viewData = posBuffer.posDebugData();
 
-		var posViewTime = 2000;
-		var posPastTime = 1500; //posViewTime - posPastTime is future view time
+		var posPastTime = 1500;
+
+		if (!entity.isPlayer()) {
+			//Extend buffer is lag induction is too much.
+			posPastTime = Math.max(posPastTime, clock.time() - clock.entityTime())
+		}
+
+		var posViewTime = posPastTime + 500;
+
 		var posStartTime = clock.time() - posPastTime;
 		var posEndTime = clock.time() + posViewTime;
 
@@ -94,6 +101,7 @@
 
 		var barWidth = 2;
 
+		var lastPos = new THREE.Vector3(0, 0, 0);
 		viewData.forEach(function (viewDatum) {
 			if (viewDatum.time < posStartTime) return;
 			if (viewDatum.time > posEndTime) return;
@@ -102,8 +110,15 @@
 
 			var color = viewDatum.hasAuxData ? "yellow" : "green";
 
+			var changeFromLast = viewDatum.pos.clone().sub(lastPos).length();
+			lastPos = viewDatum.pos;
+
+			var delta = Math.min(1, changeFromLast * 10);
+
+			var barHeight = canvas1.height / 2 + (canvas1.height / 2) * delta;
+
 			ctx.fillStyle = color;
-			ctx.fillRect(posX, 0, barWidth, canvas1.height);
+			ctx.fillRect(posX, canvas1.height - barHeight, barWidth, canvas1.height);
 		});
 
 		if (entity.isPlayer()) {
