@@ -47,10 +47,10 @@ function ContextBuffer(predictFnc) {
 			auxDataHistory.removeAtIndex(curAuxIndex);
 		}
 
-		if (estimatePos
-			&& estimatePos.x == pos.x
-			&& estimatePos.y == pos.y
-			&& estimatePos.z == pos.z) {
+		if (estimatedPos
+			&& estimatedPos.x == pos.x
+			&& estimatedPos.y == pos.y
+			&& estimatedPos.z == pos.z) {
 			//If our estimated position was correct, there is no need to resimulate!
 			return;
 		}
