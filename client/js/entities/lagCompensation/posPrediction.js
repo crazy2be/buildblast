@@ -84,13 +84,13 @@ function PosPrediction(world, clock, initialPos) {
 		return clock.time() - posBuffer.lastConfirmedTime();
 	};
 
-	self.getSpeed = function () {
+	self.getVelocity = function () {
 		if (!_useEntityTime) {
 			//TODO: Make this use the last values, not clock.time()?
-			return posBuffer.getSpeed(clock.time());
+			return posBuffer.getVelocity(clock.time());
 		}
 
-		return posBuffer.getSpeed(clock.entityTime());
+		return posBuffer.getVelocity(clock.entityTime());
 	};
 
 	if (localStorage.qDebug) {

@@ -34,8 +34,12 @@
 
 		var newRay = new THREE.Vector3(0, 0, 0);
 
-		if(dt > 1000) {
-			dt = 1000;
+		//For some reason this whole function treats dt as a second...
+		//(on the server too).
+		dt /= 1000;
+
+		if(dt > 1) {
+			dt = 1;
 		}
 
 		lastRay.dy = lastRay.dy || 0;
@@ -55,7 +59,7 @@
 					);
 
 		//Hardcoded for now?
-		var speed = 10 / 1000; //10 per second?
+		var speed = 10; //10 per second?
 
 		var xzSpeed = speed * dt;
 		var fw = xzSpeed*(c.forward ? 1 : c.back ? -1 : 0);

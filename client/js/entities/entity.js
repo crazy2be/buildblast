@@ -172,7 +172,11 @@ function Entity(id, world, clock, scene) {
 			pos.z + co.z
 		);
 
-		isMoving = posBuffer.getSpeed() !== 0;
+		var velocity = posBuffer.getVelocity();
+
+		if(velocity.x !== 0 || velocity.z !== 0) {
+			isMoving = true;
+		}
 
 		bodyParts.position.set(c.x, c.y, c.z);
 	}

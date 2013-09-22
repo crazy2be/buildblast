@@ -137,7 +137,7 @@ function ContextBuffer(predictFnc) {
 		return dataHistory.historyTimes[dataHistory.lastPos];
 	};
 
-	self.getSpeed = function (time) {
+	self.getVelocity = function (time) {
 		if (dataHistory.lastPos() < 1) return 0;
 
 		var indexOfTime = dataHistory.getIndexOf(time);
@@ -157,7 +157,13 @@ function ContextBuffer(predictFnc) {
 		var curPos = dataHistory.historyValues[indexOfTime];
 		var curTime = dataHistory.historyTimes[indexOfTime];
 
-		return prevPos.clone().sub(curPos).length() / (curTime - prevTime);
+		var delta = prevPos.clone().sub(curPos);
+		var dt = (curTime - prevTime);
+		delta.x /= dt;
+		delta.y /= dt;
+		delta.z /= dt;
+
+		return delta;
 	};
 
 	if (localStorage.qDebug) {
