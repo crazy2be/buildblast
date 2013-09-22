@@ -1,4 +1,8 @@
-﻿function PosHistoryBar(entity, posBuffer, clock) {
+﻿//Blue is clock.time(), orange is the time the entity is showing at,
+//yellow is predicted, green is confirmed. Height roughly increases
+//with speed, but has a minimum.
+
+function PosHistoryBar(entity, posBuffer, clock) {
 	var self = this;
 
 	var BAR_MATERIAL = new THREE.MeshBasicMaterial({
