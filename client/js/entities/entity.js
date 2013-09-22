@@ -48,19 +48,19 @@ function Entity(id, world, clock, scene) {
 	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
 	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
 
-	//TODO: Move body stuff into a plugin
+	//TODO: Move body stuff into a view
 	var bodyGeometry = new THREE.CubeGeometry(0.4, 1.3, 0.6);
 	var bodyMesh = new THREE.Mesh(bodyGeometry, material);
 
 	var headGeometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
 	var headMesh = new THREE.Mesh(headGeometry, material);
 
-	var UIPlugins = [];
+	var UIViews = [];
 
-	self.initPlugins = function() {
-		UIPlugins.push(new HealthBar(self));
+	self.initViews = function() {
+		UIViews.push(new HealthBar(self));
 		if (localStorage.qDebug) {
-			UIPlugins.push(new PosHistoryBar(self, posBuffer, clock));
+			UIViews.push(new PosHistoryBar(self, posBuffer, clock));
 		}
 
 		return self;
@@ -86,8 +86,8 @@ function Entity(id, world, clock, scene) {
 		scene.add(headMesh);
 		scene.add(hitboxMesh);
 
-		UIPlugins.forEach(function (plugin) {
-			scene.add(plugin.mesh());
+		UIViews.forEach(function (view) {
+			scene.add(view.mesh());
 		});
 	};
 
@@ -98,8 +98,8 @@ function Entity(id, world, clock, scene) {
 		scene.remove(headMesh);
 		scene.remove(hitboxMesh);
 
-		UIPlugins.forEach(function (plugin) {
-			scene.remove(plugin.mesh());
+		UIViews.forEach(function (view) {
+			scene.remove(view.mesh());
 		});
 	};
 
@@ -108,8 +108,8 @@ function Entity(id, world, clock, scene) {
 	};
 
 	self.update = function(dt, playerPos) {
-		UIPlugins.forEach(function (plugin) {
-			plugin.update(playerPos);
+		UIViews.forEach(function (view) {
+			view.update(playerPos);
 		});
 
 		updatePos(playerPos);

@@ -1,6 +1,8 @@
 function Clock(conn) {
 	var self = this;
 
+	var defaultLagInduction = 100;
+
 	var curTime = 0;
 	// Only updated after you call .update(). This way, all
 	// things querying the time in a frame will get the
@@ -11,7 +13,7 @@ function Clock(conn) {
 
 	//The time which we use to display entities
 	self.entityTime = function () {
-		var lagInduction = localStorage.lag || 0;
+		var lagInduction = localStorage.lag || defaultLagInduction;
 
 		return self.time() - lagInduction;
 	};
