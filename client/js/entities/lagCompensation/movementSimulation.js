@@ -47,7 +47,7 @@
 		//We probably want to reduce 'gravity' a bit here
 		newRay.dy = lastRay.dy + dt * -9.81;
 
-		//TODO: Probably a function which does this, should use that instead.
+		//QTODO: Probably a function which does this, should use that instead.
 		var cos = Math.cos;
 		var sin = Math.sin;
 		var lat = controlState.lat;

@@ -21,7 +21,6 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-hp message for entity which does not exist!", id);
 			return;
 		}
-		//TODO: Use HP timestamps to make HP buffer
 		entity.setHealth(payload.Hp);
 	});
 

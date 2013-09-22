@@ -1,4 +1,4 @@
-//TODO: Move a lot of this logic to entity
+//QTODO: Move a lot of this logic to entity
 function Inventory(world, camera, conn, controls) {
 	var self = this;
 	var BAG_SIZE = 25;

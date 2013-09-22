@@ -8,7 +8,7 @@
 function ContextBuffer(predictFnc) {
 	var self = this;
 
-	//TODO: Sync these values (or more or less?) with the server
+	//QTODO: Sync these values (or more or less?) with the server
 	//We consider any position with no auxData to be "confirmed"
 	var dataHistory = new HistoryBuffer(1000);
 	//Every aux should have a datum, but not necessarily the otherway around.

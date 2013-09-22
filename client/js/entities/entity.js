@@ -48,7 +48,7 @@ function Entity(id, world, clock, scene) {
 	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
 	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
 
-	//TODO: Move body stuff into a view
+	//QTODO: Move body stuff into a view
 	var isMoving = false;
 	
 	var bodyParts = new THREE.Object3D();
@@ -90,7 +90,7 @@ function Entity(id, world, clock, scene) {
 	};
 
 	self.maxHealth = function() {
-		//TODO: Actually sync this with the server
+		//QTODO: Actually sync this with the server
 		return 100;
 	}
 

@@ -1,4 +1,4 @@
-//TODO: Make 2 of these, one for the "player" entity and one for
+//QTODO: Make 2 of these, one for the "player" entity and one for
 //	regular entities. This if we every optimize out the base code
 //	so it is different (specialized) for each case (to make it faster),
 //	we will have a layer that can make the switch seamless.
@@ -28,7 +28,7 @@ function PosPrediction(world, clock, initialPos) {
 	};
 
 	self.posMessage = function (payload) {
-		//TODO: Make the server just send us this structure,
+		//QTODO: Make the server just send us this structure,
 		//or handle the server structure directly.
 		var ray = new THREE.Vector3(
 			payload.Pos.X,
@@ -77,7 +77,7 @@ function PosPrediction(world, clock, initialPos) {
 		_useEntityTime = useEntityTime;
 	};
 
-	//TODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
+	//QTODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
 	//move messages, this should instead be the time since our last sent message
 	//and last received (but I am too lazy to implement that now).
 	self.lag = function () {
@@ -86,7 +86,7 @@ function PosPrediction(world, clock, initialPos) {
 
 	self.getVelocity = function () {
 		if (!_useEntityTime) {
-			//TODO: Make this use the last values, not clock.time()?
+			//QTODO: Make this use the last values, not clock.time()?
 			return posBuffer.getVelocity(clock.time());
 		}
 

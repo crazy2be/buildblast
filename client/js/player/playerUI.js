@@ -25,7 +25,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 
 	var _curEntity = null;
 	function curEntity() {
-		//TODO: Handle our entity being removed?
+		//QTODO: Handle our entity being removed?
 		if(_curEntity) return _curEntity;
 		_curEntity = world.entityManager.getEntity(clientID);
 		return _curEntity;
@@ -61,7 +61,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 
 	self.pos = function () {
 		if(curEntity()) {
-			//TODO: Call this when we first hook into the player!
+			//QTODO: Call this when we first hook into the player!
 			curEntity().setIsPlayer(true);
 			return curEntity().pos();
 		} else {
@@ -125,7 +125,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		camera.lookAt(getTarget(p, c));
 	}
 
-	//TODO: Move this stuff out into a playerView
+	//QTODO: Move this stuff out into a playerView
 	var prevhp = -1;
 	function updateHealthBar(hp) {
 		if (hp === prevhp) return;
