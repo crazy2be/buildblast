@@ -34,14 +34,25 @@
 
 		var newRay = new THREE.Vector3(0, 0, 0);
 
-		if(dt > 1) {
-			dt = 1;
+		if(dt > 1000) {
+			dt = 1000;
 		}
 
 		lastRay.dy = lastRay.dy || 0;
 
 		//We probably want to reduce 'gravity' a bit here
 		newRay.dy = lastRay.dy + dt * -9.81;
+
+		//TODO: Probably a function which does this, should use that instead.
+		var cos = Math.cos;
+		var sin = Math.sin;
+		var lat = controlState.lat;
+		var lon = controlState.lon;
+		newRay.look = new THREE.Vector3(
+						sin(lat) * cos(lon),
+						cos(lat),
+						sin(lat) * sin(lon)
+					);
 
 		//Hardcoded for now?
 		var speed = 10 / 1000; //10 per second?
