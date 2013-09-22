@@ -60,6 +60,7 @@ function HistoryBuffer(maxHistory) {
 
 	//Same restrictions as getValue
 	//(this is slightly inefficient, as they will likely call getValue with this time).
+	//If the time doesn't exist, it's equivalent to the index self.getValue uses.
 	self.getIndexBefore = function (time) {
 		if (lastPos == -1) return null;
 
@@ -75,6 +76,7 @@ function HistoryBuffer(maxHistory) {
 		return insertIndex;
 	}
 
+	//If the time doesn't exist, it's equivalent to the index self.getValue uses.
 	self.getIndexAfter = function (time) {
 		if (lastPos == -1) return null;
 

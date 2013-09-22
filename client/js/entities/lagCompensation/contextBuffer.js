@@ -77,9 +77,39 @@ function ContextBuffer(predictFnc) {
 		return dataHistory.historyValues[dataHistory.lastPos()];
 	};
 
+	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
+	function lerp (t, pOld, tOld, pNew, tNew) {
+		var timeSpan = tNew - tOld;
+		var oldWeight = (t - tOld) / timeSpan;
+		var newWeight = (tNew - t) / timeSpan;
+
+		return new THREE.Vector3(
+			pOld.x*oldWeight + pNew.x*newWeight,
+			pOld.y*oldWeight + pNew.y*newWeight,
+			pOld.z*oldWeight + pNew.z*newWeight
+		);
+	}
 	self.getValueAt = function (time) {
-		//TODO: Interpolation
-		return dataHistory.getValue(time);
+		var indexOfTime = dataHistory.getIndexOf(time);
+		if (indexOfTime !== null) {
+			return dataHistory.historyValues[indexOfTime];
+		}
+
+		var indexBefore = dataHistory.getIndexBefore(time);
+
+		if (indexBefore === null || indexBefore + 1 > dataHistory.lastPos()) {
+			//Just return whatever dataHistory will give us
+			return dataHistory.getValue(time);
+		}
+
+		var indexAfter = indexBefore + 1;
+
+		return lerp(time,
+			dataHistory.historyValues[indexBefore],
+			dataHistory.historyTimes[indexBefore],
+			dataHistory.historyValues[indexAfter],
+			dataHistory.historyTimes[indexAfter]
+		);
 	};
 
 	self.lastConfirmedTime = function () {

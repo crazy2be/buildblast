@@ -34,6 +34,10 @@
 
 		var newRay = new THREE.Vector3(0, 0, 0);
 
+		if(dt > 1) {
+			dt = 1;
+		}
+
 		lastRay.dy = lastRay.dy || 0;
 
 		//We probably want to reduce 'gravity' a bit here
