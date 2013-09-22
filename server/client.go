@@ -118,7 +118,7 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 		ID:        c.player.ID(),
 		Pos:       pos,
 		Vy: 	   vy,
-		Rot:       coords.Vec3{0, 0, 0},
+		Look:      c.player.Look(),
 	})
 
 	g.Broadcast(&MsgEntityHp{
@@ -184,8 +184,6 @@ func (c *Client) EntityCreated(id string) {
 }
 
 func (c *Client) EntityTick() { }
-		Look: look,
-		Vy:   vy,
 
 func (c *Client) EntityDied(id string, killer string) {}
 

@@ -135,7 +135,30 @@ function ContextBuffer(predictFnc) {
 		if (dataHistory.lastPos === -1) return 0;
 
 		return dataHistory.historyTimes[dataHistory.lastPos];
-	}
+	};
+
+	self.getSpeed = function (time) {
+		if (dataHistory.lastPos() < 1) return 0;
+
+		var indexOfTime = dataHistory.getIndexOf(time);
+		if (indexOfTime === null) {
+			indexOfTime = dataHistory.getIndexBefore(time);
+		}
+
+		if (indexOfTime === 0) {
+			indexOfTime++;
+		}
+
+		var prevIndex = indexOfTime - 1;
+
+		var prevPos = dataHistory.historyValues[prevIndex];
+		var prevTime = dataHistory.historyTimes[prevIndex];
+
+		var curPos = dataHistory.historyValues[indexOfTime];
+		var curTime = dataHistory.historyTimes[indexOfTime];
+
+		return prevPos.clone().sub(curPos).length() / (curTime - prevTime);
+	};
 
 	if (localStorage.qDebug) {
 		//Only use these for debugging!

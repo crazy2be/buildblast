@@ -35,9 +35,8 @@ function PosPrediction(world, clock, initialPos) {
 			payload.Pos.Y,
 			payload.Pos.Z);
 		ray.dy = payload.Vy;
+		ray.look = payload.Look;
 		posBuffer.addConfirmed(payload.Timestamp, ray);
-
-		//rot = makeVec3(tickData.Rot);
 	};
 
 	var _useEntityTime = true;
@@ -83,7 +82,16 @@ function PosPrediction(world, clock, initialPos) {
 	//and last received (but I am too lazy to implement that now).
 	self.lag = function () {
 		return clock.time() - posBuffer.lastConfirmedTime();
-	}
+	};
+
+	self.getSpeed = function () {
+		if (!_useEntityTime) {
+			//TODO: Make this use the last values, not clock.time()?
+			return posBuffer.getSpeed(clock.time());
+		}
+
+		return posBuffer.getSpeed(clock.entityTime());
+	};
 
 	if (localStorage.qDebug) {
 		//Only use these for debugging!

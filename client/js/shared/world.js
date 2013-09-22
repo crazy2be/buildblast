@@ -19,7 +19,6 @@ function World(scene, conn, clientID, clock) {
 	self.update = function (dt, playerPos) {
 		chunkManager.update(dt, playerPos);
 		entityManager.update(dt, playerPos);
-		entityManager.update(dt);
 	};
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);

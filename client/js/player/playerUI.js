@@ -125,6 +125,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		camera.lookAt(getTarget(p, c));
 	}
 
+	//TODO: Move this stuff out into a playerView
 	var prevhp = -1;
 	function updateHealthBar(hp) {
 		if (hp === prevhp) return;

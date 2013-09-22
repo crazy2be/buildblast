@@ -116,7 +116,7 @@ type MsgEntityPos struct {
 	ID		 string
 	Pos  coords.World
 	Vy       float64
-	Rot		 coords.Vec3
+	Look	 coords.Direction
 }
 
 type MsgEntityHp struct {

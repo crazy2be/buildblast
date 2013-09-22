@@ -124,6 +124,11 @@ function Entity(id, world, clock, scene) {
 			view.update(playerPos);
 		});
 
+		var look = self.pos().look;
+		if(look) {
+			self.setLook(look);
+		}
+
 		// Jump animation
 		var dy = self.pos().dy || 0;
 		jumpAngle = clamp(jumpAngle + signum(dy)*dt*jumpSpeed, 0, maxJumpAngle);
@@ -131,18 +136,18 @@ function Entity(id, world, clock, scene) {
 		rightArm.rotation.z = -jumpAngle;
 
 		// Arm swinging animation (as you walk)
-		if (!isMoving) return;
-		totalSwingTime += dt;
-		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
-		if (swingAngle > -0.1 && swingAngle < 0.1) {
-			isMoving = false;
-			swingAngle = 0;
+		if (isMoving) {
+			totalSwingTime += dt;
+			var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
+			if (swingAngle > -0.1 && swingAngle < 0.1) {
+				isMoving = false;
+				swingAngle = 0;
+			}
+			leftArm.rotation.x = -swingAngle;
+			rightArm.rotation.x = swingAngle;
 		}
-		leftArm.rotation.x = -swingAngle;
-		rightArm.rotation.x = swingAngle;
 
 		updatePos(playerPos);
-		updateRot();
 	};
 
 	self.setLook = function (newLook) {
@@ -167,17 +172,9 @@ function Entity(id, world, clock, scene) {
 			pos.z + co.z
 		);
 
-		var diffX = bodyParts.position.x - c.x;
-		var diffZ = bodyParts.position.z - c.z;
-		if (diffX !== 0 || diffZ !== 0) isMoving = true;
+		isMoving = posBuffer.getSpeed() !== 0;
 
 		bodyParts.position.set(c.x, c.y, c.z);
-	}
-
-	function updateRot() {
-		headMesh.rotation.set(rot.x, rot.y, rot.z);
-		var br = bodyMesh.rotation;
-		br.y = rot.y;
 	}
 
 	function createHitbox() {
