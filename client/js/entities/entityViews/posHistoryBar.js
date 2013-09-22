@@ -24,30 +24,6 @@
 		ctx.fillStyle = "rgba(87, 87, 87, 0.6)"; //grey
 		ctx.fillRect(0, 20, 600, 80);
 
-		//Username
-		userNameLbl = new Text();
-		userNameLbl.text(entity.id());
-		userNameLbl.color("white");
-		userNameLbl.font("Verdana");
-		userNameLbl.wrap(true);
-		userNameLbl.maxFontSize(50);
-		userNameLbl.align("center");
-		userNameLbl.lineSpacing(1);
-		userNameLbl.resize(new Rect(20, 25, 170, 70));
-		userNameLbl.draw(ctx);
-
-		//HP bar and fill
-		ctx.fillStyle = "rgba(135, 206, 46, 1)";//green
-		var hpPercent = (entity.health() / entity.maxHealth());
-		ctx.fillRect(230, 40, 350 * hpPercent, 40);
-
-		//HP bar surrounding
-		ctx.lineWidth = 4;
-		ctx.strokeStyle = "white";
-		ctx.beginPath();
-		ctx.rect(230, 38, 350, 44);
-		ctx.stroke();
-
 		// canvas contents will be used for a texture
 		texture1 = new THREE.Texture(canvas1);
 		texture1.needsUpdate = true;

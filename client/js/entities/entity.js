@@ -74,7 +74,6 @@ function Entity(id, world, clock, scene) {
 	var UIViews = [];
 
 	self.initViews = function() {
-		UIViews.push(new HealthBar(self));
 		if (localStorage.qDebug) {
 			UIViews.push(new PosHistoryBar(self, posBuffer, clock));
 		}
