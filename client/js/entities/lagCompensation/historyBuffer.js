@@ -58,6 +58,12 @@ function HistoryBuffer(maxHistory) {
 		return historyValues[insertIndex];
 	}
 
+	self.getValueExact = function (time) {
+		var index = self.getIndexOf(time);
+		if (index === null) return null;
+		return historyValues[index];
+	}
+
 	//Same restrictions as getValue
 	//(this is slightly inefficient, as they will likely call getValue with this time).
 	//If the time doesn't exist, it's equivalent to the index self.getValue uses.

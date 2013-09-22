@@ -38,11 +38,20 @@ function ContextBuffer(predictFnc) {
 	self.addConfirmed = function (time, pos) {
 		lastConfirmed = Math.max(lastConfirmed, time);
 
+		var estimatedPos = dataHistory.getValueExact(time);
+
 		var dataIndex = dataHistory.setValue(time, pos);
 
 		var curAuxIndex = auxDataHistory.getIndexOf(time);
 		if (curAuxIndex !== null) {
 			auxDataHistory.removeAtIndex(curAuxIndex);
+		}
+
+		if (estimatePos.x == pos.x
+			&& estimatePos.y == pos.y
+			&& estimatePos.z == pos.z) {
+			//If our estimated position was correct, there is no need to resimulate!
+			return;
 		}
 
 		curAuxIndex = auxDataHistory.getIndexAfter(time);
