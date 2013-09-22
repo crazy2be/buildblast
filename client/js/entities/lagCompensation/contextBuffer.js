@@ -127,7 +127,7 @@ function ContextBuffer(predictFnc) {
 		return dataHistory.historyTimes[dataHistory.lastPos];
 	}
 
-	if (localStorage.debug) {
+	if (localStorage.qDebug) {
 		//Only use these for debugging!
 		self.dataTimes = function () {
 			return dataHistory.historyTimes;

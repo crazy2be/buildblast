@@ -85,7 +85,7 @@ function PosPrediction(world, clock, initialPos) {
 		return clock.time() - posBuffer.lastConfirmedTime();
 	}
 
-	if (localStorage.debug) {
+	if (localStorage.qDebug) {
 		//Only use these for debugging!
 		self.posDebugData = function () {
 			var data = [];

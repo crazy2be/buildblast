@@ -1,4 +1,4 @@
-function Entity(id, world, clock) {
+function Entity(id, world, clock, scene) {
 	var self = this;
 
 	var rot = new THREE.Vector3(0, 0, 0);
@@ -15,9 +15,20 @@ function Entity(id, world, clock) {
 
 	var _isPlayer = false;
 	self.setIsPlayer = function(isPlayer) {
+		var isPlayerChanged = _isPlayer !== isPlayer;
 		_isPlayer = isPlayer;
 
 		posBuffer.setUseEntityTime(!_isPlayer);
+		if(isPlayerChanged && !localStorage.qDebug) {
+			if(_isPlayer) {
+				//Change _isPlayer so removeFromScene functions.
+				_isPlayer = false;
+				self.removeFromScene();
+				_isPlayer = true;
+			} else {
+				self.addToScene();
+			}
+		}
 	};
 	self.isPlayer = function() {
 		return _isPlayer;
@@ -48,7 +59,7 @@ function Entity(id, world, clock) {
 
 	self.initPlugins = function() {
 		UIPlugins.push(new HealthBar(self));
-		if (localStorage.debug) {
+		if (localStorage.qDebug) {
 			UIPlugins.push(new PosHistoryBar(self, posBuffer, clock));
 		}
 
@@ -68,7 +79,9 @@ function Entity(id, world, clock) {
 		return 100;
 	}
 
-	self.addTo = function (scene) {
+	self.addToScene = function () {
+		if(_isPlayer && !localStorage.qDebug) return;
+
 		scene.add(bodyMesh);
 		scene.add(headMesh);
 		scene.add(hitboxMesh);
@@ -78,7 +91,9 @@ function Entity(id, world, clock) {
 		});
 	};
 
-	self.removeFrom = function (scene) {
+	self.removeFromScene = function () {
+		if(_isPlayer && !localStorage.qDebug) return;
+
 		scene.remove(bodyMesh);
 		scene.remove(headMesh);
 		scene.remove(hitboxMesh);

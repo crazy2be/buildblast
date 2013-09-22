@@ -31,8 +31,8 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new Entity(id, world, clock).initPlugins();
-		entity.addTo(scene);
+		var entity = new Entity(id, world, clock, scene).initPlugins();
+		entity.addToScene();
 		entities[id] = entity;
 	});
 
@@ -42,7 +42,7 @@ function EntityManager(scene, conn, world, clock) {
 		if (!entity) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);
 		}
-		entity.removeFrom(scene);
+		entity.removeFromScene();
 		delete entities[id];
 	});
 
