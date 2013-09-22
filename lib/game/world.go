@@ -9,6 +9,8 @@ import (
 	"buildblast/lib/physics"
 )
 
+	Vy() float64
+	Look() coords.Direction
 type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
@@ -49,6 +51,8 @@ func (w *World) Tick() {
 	for _, e := range w.entities {
 		e.Tick(w)
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
+		look := e.Look()
+		vy := e.Vy()
 
 		for _, listener := range w.entityListeners {
 			listener.EntityTick();

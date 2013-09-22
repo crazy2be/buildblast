@@ -9,12 +9,13 @@ import (
 //implement it, but for now it is just implemented by player).
 type Entity interface {
 	Tick(w *World)
-	Health() int
 	Damage(amount int)
 	Dead() bool
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
+	Vy() float64
 	Pos() coords.World
+	Look() coords.Direction
 	ID() string
 }
 

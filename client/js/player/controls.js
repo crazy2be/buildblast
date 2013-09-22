@@ -171,6 +171,7 @@ function Controls(elm) {
 		actionEnd(event.button);
 	}
 
+	var MOUSE_MOVE_DELTA_BUG = localStorage.activateMouseMoveDeltaBugWorkaround;
 	function mouseMove(event) {
 		function clamp(n, a, b) {
 			return Math.max(a, Math.min(b, n));
@@ -185,6 +186,14 @@ function Controls(elm) {
 			event.mozMovementY	||
 			event.webkitMovementY ||
 			0;
+		
+		// This is needed on Justin's version of chrome.
+		// For some reason the mouse events are off by one.
+		// (must be a bug on the Linux version of Chrome).
+		if (MOUSE_MOVE_DELTA_BUG) {
+			x = x + 1;
+			y = y + 1;
+		}
 
 		actions.lon += x * lookSpeed;
 		actions.lon %= 2 * Math.PI;

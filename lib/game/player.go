@@ -69,6 +69,14 @@ func NewPlayer(world *World, name string) *Player {
 	return player;
 }
 
+func (p *Player) Vy() float64 {
+	return p.vy
+}
+
+func (p *Player) Look() coords.Direction {
+	return p.look
+}
+
 func (p *Player) Pos() coords.World {
 	return p.pos
 }

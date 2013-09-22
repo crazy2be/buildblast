@@ -114,7 +114,7 @@ type MsgHandshakeError struct {
 type MsgEntityPos struct {
 	Timestamp float64
 	ID		 string
-	Pos      coords.World
+	Pos  coords.World
 	Vy       float64
 	Rot		 coords.Vec3
 }

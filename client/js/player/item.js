@@ -87,6 +87,8 @@ Item.realInit = function () {
 		};
 	}
 
+		if(localStorage.pistolDebug) {
+			}
 	function shovelAction(world, camera) {
 		var bc = world.findLookedAtBlock(camera);
 		if (!bc) return;

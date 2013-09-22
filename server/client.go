@@ -184,6 +184,8 @@ func (c *Client) EntityCreated(id string) {
 }
 
 func (c *Client) EntityTick() { }
+		Look: look,
+		Vy:   vy,
 
 func (c *Client) EntityDied(id string, killer string) {}
 
