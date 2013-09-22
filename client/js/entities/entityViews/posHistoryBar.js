@@ -130,7 +130,7 @@
 		curPos = pos;
 
 		var p = curPos;
-		mesh1.position.set(p.x, p.y + 0.16, p.z);
+		mesh1.position.set(p.x, p.y + 0.26, p.z);
 		mesh1.scale.x = 1 / 200;
 		mesh1.scale.y = 1 / 200;
 		mesh1.scale.z = 1 / 200;
