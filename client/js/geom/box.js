@@ -16,6 +16,7 @@ function Box(halfExtents, centerOffset) {
 		return [xs, ys, zs, xe, ye, ze];
 	}
 
+	//QTODO: Remove this from box.js
 	//Returns true if the box at that position
 	//collides, false otherwise.
 	self.collides = function(world, pos) {
@@ -26,6 +27,7 @@ function Box(halfExtents, centerOffset) {
 		);
 	}
 
+	//QTODO: Remove this from box.js
 	self.blockCollide = function(block) {
 		return !block || block.solid();
 	}
