@@ -9,4 +9,4 @@
 
 # Make sure your secret_key_base is kept private
 # if you're sharing your code publicly.
-Www::Application.config.secret_key_base = '52dc7d0fbfc4c580732fe205059a2b013f613196db54873a0c221c712984e0c4ac5de9c9e02541cb1b70f7fc88a1bfb81a78656fbd51f4d66b213eff1fb99803'
+Www::Application.config.secret_key_base = '4f68c59dea57f87e284248ddc6855e11dea29654f7910dce0a3f7e90ff1524e98339e59a77e998978eb33496d99a19b95d093aa611d85c285f93f31a06c46ffd'

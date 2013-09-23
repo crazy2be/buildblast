@@ -169,17 +169,18 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  capybara
   coffee-rails (~> 4.0.0)
   cucumber-rails
   database_cleaner
-  devise (= 3.0.0.rc)
+  devise (~> 3.0.0.rc)
   email_spec
   factory_girl_rails
   figaro
   jbuilder (~> 1.2)
   jquery-rails
   rails (= 4.0.0)
-  rspec-rails (~> 2.0)
+  rspec-rails
   sass-rails (~> 4.0.0)
   sdoc
   sqlite3
