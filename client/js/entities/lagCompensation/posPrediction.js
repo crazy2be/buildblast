@@ -65,10 +65,7 @@ function PosPrediction(world, clock, initialPos) {
 	};
 
 	self.contains = function (x, y, z) {
-		return pointCollides(
-			new THREE.Vector3(x, y, z),
-			box.boundingBox(self.pos())
-		);
+		return box.contains(x, y, z);
 	};
 
 	//If true our .pos() will return times based on clock.entityTime(),
