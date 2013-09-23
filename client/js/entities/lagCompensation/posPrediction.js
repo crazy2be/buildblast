@@ -8,6 +8,8 @@
 //At any time we can give a position at any time, although future times will be wrong,
 //	and predicted times may change.
 
+//Essentially implements lag induction.
+
 function PosPrediction(world, clock, initialPos) {
 	var self = this;
 

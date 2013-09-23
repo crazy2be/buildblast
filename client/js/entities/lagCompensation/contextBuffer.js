@@ -4,6 +4,8 @@
 //	the functions with the correct context. It still has no understanding
 //	of what it is interpolating though.
 
+//Essentially implements input compensation.
+
 //predictFnc(prevData, auxData, dt)
 function ContextBuffer(predictFnc) {
 	var self = this;

@@ -3,6 +3,9 @@
 //	the state based on time.
 //Is not POD, but I treat it as such because it makes the code much easier.
 //	However only really contextBuffer uses this, so the mess shouldn't spread.
+
+//Essentially implements lag compensation.
+
 function HistoryBuffer(maxHistory) {
 	var self = this;
 
