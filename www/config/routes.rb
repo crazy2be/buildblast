@@ -1,4 +1,11 @@
 Www::Application.routes.draw do
+  get "home/index"
+  authenticated :user do
+    root :to => 'home#index', as: :authenticated_root
+  end
+  unauthenticated do
+    root :to => "home#index"
+  end
   devise_for :users
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
