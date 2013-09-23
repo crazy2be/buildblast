@@ -36,7 +36,7 @@ func (ph *PlayerHistory) Add(t float64, pos coords.World) {
 func mod(i int, modulos int) int {
 	// Go has the same problem as JavaScript...
 	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
-	return (i % modulos + modulos) % modulos;
+	return ((i%modulos) + modulos)%modulos;
 }
 
 func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {

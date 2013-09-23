@@ -58,15 +58,13 @@ type Player struct {
 }
 
 func NewPlayer(world *World, name string) *Player {
-	player := &Player{
+	return &Player{
 		history:   NewPlayerHistory(),
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
 		hp: PLAYER_MAX_HP,
 	}
-
-	return player;
 }
 
 func (p *Player) Vy() float64 {

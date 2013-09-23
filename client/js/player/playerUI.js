@@ -113,16 +113,16 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		speed.addDataPoint(dt);
 	};
 
-	function getTarget(p, c) {
+	function calcTarget(p, lat, lon) {
 		var target = new THREE.Vector3();
-		target.x = p.x + sin(c.lat) * cos(c.lon);
-		target.y = p.y + cos(c.lat);
-		target.z = p.z + sin(c.lat) * sin(c.lon);
+		target.x = p.x + sin(lat) * cos(lon);
+		target.y = p.y + cos(lat);
+		target.z = p.z + sin(lat) * sin(lon);
 		return target;
 	}
 
 	function doLook(camera, p, c) {
-		camera.lookAt(getTarget(p, c));
+		camera.lookAt(calcTarget(p, c.lat, c.lon));
 	}
 
 	//QTODO: Move this stuff out into a playerView
