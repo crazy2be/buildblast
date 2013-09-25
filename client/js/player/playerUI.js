@@ -24,10 +24,8 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 	var speed;
 
 	//Set up entity as a player.
-	playerEntity.lagInduce(true);
-	if(!localStorage.viewsVisible) {
-		self.setViewVisibility(false);
-	}
+	playerEntity.lagInduce(false);
+	playerEntity.setViewVisibility(localStorage.viewsVisible);
 
 	var renderer = new THREE.WebGLRenderer();
 	initializeRenderer();
@@ -57,7 +55,7 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 		inventory.resize();
 	}
 
-	self.pos = function () {
+	function pos () {
 		return playerEntity.pos();
 	};
 
@@ -77,12 +75,12 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 
 		playerEntity.predictMovement(controlState);
 
-		var camPos = self.pos().clone();
+		var camPos = pos().clone();
 
 		var c = controlState.Controls;
 
 		if(localStorage.thirdPerson) {
-			var target = getTarget(camPos, c);
+			var target = calcTarget(camPos, c.lat, c.lon);
 			var look = target.clone().sub(camPos);
 			look.setLength(3);
 			camPos.sub(look);
@@ -90,12 +88,11 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
 		doLook(camera, camPos, c);
-		inventory.update(self.pos(), c);
+		inventory.update(pos(), c);
 
 		updateLagStats(playerEntity.lag());
 
-		var pos = self.pos();
-		updatePositionText(pos, pos.dy);
+		updatePositionText(pos(), pos().dy);
 		updateHealthBar(playerEntity.health());
 
 		speed.addDataPoint(dt);

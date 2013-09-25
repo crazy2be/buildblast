@@ -5,6 +5,7 @@ function Entity(id, world, clock, scene) {
 	var hp = 0;
 
 	var posBuffer = new PosPrediction(world, clock, new THREE.Vector3(0, 0, 0));
+	posBuffer.setUseEntityTime(true);
 
 	//We forward a lot, as we are basically embedding posBuffer
 	self.predictMovement = posBuffer.predictMovement;

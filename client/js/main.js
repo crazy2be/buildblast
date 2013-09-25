@@ -53,7 +53,9 @@ window.onload = function () {
 		//The server has confirmed our ID, we are not going to wait for the entity-create,
 		//we are creating our entity RIGHT NOW.
 		var player = new Entity(clientID, world, clock, scene).initViews();
-		var playerUI = new PlayerUI(world, conn, clock, container, clientID);
+		var playerUI = new PlayerUI(world, conn, clock, container, player);
+
+		world.addUserPlayer(player);
 
 		window.testExposure.player = playerUI;
 		window.testExposure.world = world;
@@ -73,7 +75,7 @@ window.onload = function () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, playerUI.pos());
+			world.update(dt, player.pos());
 
 			playerUI.render(scene);
 

@@ -3,10 +3,19 @@ function EntityManager(scene, conn, world, clock) {
 
 	var entities = {};
 
+	var playerId = null;
+	//This is only for the player which represents the player!
+	self.addUserPlayer = function(player) {
+		var playerId = player.id();
+		entities[player.id()] = player;
+	};
+
 	conn.on('entity-pos', function (payload) {
 		var id = payload.ID;
 		var entity = entities[id];
 		if (!entity) {
+			//This is good, confirms that the server recognizes our existence
+			if(id === playerId) return;
 			console.warn("Got entity-pos message for entity which does not exist!", id);
 			return;
 		}

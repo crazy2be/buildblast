@@ -4,7 +4,7 @@ function World(scene, conn, clientID, clock) {
 	var chunkManager = new ChunkManager(scene, clientID);
 	var entityManager = new EntityManager(scene, conn, self, clock);
 
-	self.entityManager = entityManager;
+	self.addUserPlayer = entityManager.addUserPlayer;
 
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;

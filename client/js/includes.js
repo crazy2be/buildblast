@@ -12,8 +12,7 @@
 		document.body.appendChild(script);
 	}
 }([
-	'js/./canvasLibs/rect.js',
-	'js/./canvasLibs/text.js',
+	'js/./settings.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',
 	'js/./chunks/chunkManager.js',
@@ -27,14 +26,12 @@
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
 	'js/./entities/entity.js',
 	'js/./entities/entityManager.js',
-	'js/./entities/entityViews/healthBars.js',
 	'js/./entities/entityViews/posHistoryBar.js',
 	'js/./entities/lagCompensation/contextBuffer.js',
 	'js/./entities/lagCompensation/historyBuffer.js',
 	'js/./entities/lagCompensation/movementSimulation.js',
 	'js/./entities/lagCompensation/posPrediction.js',
 	'js/./geom/box.js',
-	'js/./geom/intersection.js',
 	'js/./perf/chart.js',
 	'js/./player/chat.js',
 	'js/./player/controls.js',
