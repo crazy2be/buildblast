@@ -13,27 +13,6 @@ function Entity(id, world, clock, scene) {
 	self.contains = posBuffer.contains;
 	self.lag = posBuffer.lag;
 
-	var _isPlayer = false;
-	self.setIsPlayer = function(isPlayer) {
-		var isPlayerChanged = _isPlayer !== isPlayer;
-		_isPlayer = isPlayer;
-
-		posBuffer.setUseEntityTime(!_isPlayer);
-		if(isPlayerChanged && !localStorage.qDebug) {
-			if(_isPlayer) {
-				//Change _isPlayer so removeFromScene functions.
-				_isPlayer = false;
-				self.removeFromScene();
-				_isPlayer = true;
-			} else {
-				self.addToScene();
-			}
-		}
-	};
-	self.isPlayer = function() {
-		return _isPlayer;
-	}
-
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
 		wireframe: true,
@@ -81,6 +60,18 @@ function Entity(id, world, clock, scene) {
 		return self;
 	};
 
+	self.lagInduce = function(yes) {
+		posBuffer.setUseEntityTime(yes);
+	}
+	
+	self.setViewVisibility = function(visible) {
+		if(!visible) {
+			self.removeFromScene();
+		} else {
+			self.addToScene();
+		}
+	}
+
 	self.setHealth = function(health) {
 		hp = health;
 	};
@@ -95,8 +86,6 @@ function Entity(id, world, clock, scene) {
 	}
 
 	self.addToScene = function () {
-		if(_isPlayer && !localStorage.qDebug) return;
-
 		scene.add(bodyParts);
 
 		UIViews.forEach(function (view) {
@@ -105,8 +94,6 @@ function Entity(id, world, clock, scene) {
 	};
 
 	self.removeFromScene = function () {
-		if(_isPlayer && !localStorage.qDebug) return;
-
 		scene.remove(bodyParts);
 
 		UIViews.forEach(function (view) {

@@ -12,7 +12,7 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function PlayerUI(world, conn, clock, container, clientID) {
+function PlayerUI(world, conn, clock, container, playerEntity) {
 	var self = this;
 
 	var controls = new Controls(container);
@@ -23,12 +23,10 @@ function PlayerUI(world, conn, clock, container, clientID) {
 
 	var speed;
 
-	var _curEntity = null;
-	function curEntity() {
-		//QTODO: Handle our entity being removed?
-		if(_curEntity) return _curEntity;
-		_curEntity = world.entityManager.getEntity(clientID);
-		return _curEntity;
+	//Set up entity as a player.
+	playerEntity.lagInduce(true);
+	if(!localStorage.viewsVisible) {
+		self.setViewVisibility(false);
 	}
 
 	var renderer = new THREE.WebGLRenderer();
@@ -60,13 +58,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 	}
 
 	self.pos = function () {
-		if(curEntity()) {
-			//QTODO: Call this when we first hook into the player!
-			curEntity().setIsPlayer(true);
-			return curEntity().pos();
-		} else {
-			return new THREE.Vector3(0, 0, 0);
-		}
+		return playerEntity.pos();
 	};
 
 	self.render = function (scene) {
@@ -83,9 +75,7 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		};
 		conn.queue('controls-state', controlState);
 
-		if(curEntity()) {
-			curEntity().predictMovement(controlState);
-		}
+		playerEntity.predictMovement(controlState);
 
 		var camPos = self.pos().clone();
 
@@ -102,13 +92,11 @@ function PlayerUI(world, conn, clock, container, clientID) {
 		doLook(camera, camPos, c);
 		inventory.update(self.pos(), c);
 
-		if(curEntity()) {
-			updateLagStats(curEntity().lag());
+		updateLagStats(playerEntity.lag());
 
-			var pos = self.pos();
-			updatePositionText(pos, pos.dy);
-			updateHealthBar(curEntity().health());
-		}
+		var pos = self.pos();
+		updatePositionText(pos, pos.dy);
+		updateHealthBar(playerEntity.health());
 
 		speed.addDataPoint(dt);
 	};

@@ -46,9 +46,13 @@ window.onload = function () {
 		scene.add(ambientLight);
 
 		var world = new World(scene, conn, clientID, clock);
-		var player = new PlayerUI(world, conn, clock, container, clientID);
+		
+		//The server has confirmed our ID, we are not going to wait for the entity-create,
+		//we are creating our entity RIGHT NOW.
+		var player = new Entity(clientID, world, clock, scene).initViews();
+		var playerUI = new PlayerUI(world, conn, clock, container, clientID);
 
-		window.testExposure.player = player;
+		window.testExposure.player = playerUI;
 		window.testExposure.world = world;
 
 		var previousTime = clock.time();
@@ -61,14 +65,14 @@ window.onload = function () {
 
 			conn.update();
 
-			player.update(dt);
+			playerUI.update(dt);
 
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos());
+			world.update(dt, playerUI.pos());
 
-			player.render(scene);
+			playerUI.render(scene);
 
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
