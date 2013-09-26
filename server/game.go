@@ -141,11 +141,43 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityDied(id string, killer string) {
+func (g *Game) EntityDied(entity game.Entity, id string, killer string) {
 	g.Announce(killer + " killed " + id)
+	
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	
+	g.Broadcast(&MsgEntityHp{
+		Timestamp: curTime,
+		ID:        entity.ID(),
+		Hp:        entity.Health(),
+	})
+	g.Broadcast(&MsgEntityPos{
+		Timestamp:  curTime,
+		ID:         entity.ID(),
+		Pos:        entity.Pos(),
+		Vy:         entity.Vy(),
+		Look:       entity.Look(),
+	})
 }
 
 func (g *Game) EntityTick() {}
 
-func (g *Game) EntityCreated(id string) {}
-func (g *Game) EntityRemoved(id string) {}
+func (g *Game) EntityCreated(entity game.Entity, id string) {
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	
+	g.Broadcast(&MsgEntityHp{
+		Timestamp: curTime,
+		ID:        entity.ID(),
+		Hp:        entity.Health(),
+	})
+	g.Broadcast(&MsgEntityPos{
+		Timestamp:  curTime,
+		ID:         entity.ID(),
+		Pos:        entity.Pos(),
+		Vy:         entity.Vy(),
+		Look:       entity.Look(),
+	})
+}
+func (g *Game) EntityRemoved(id string) {
+	
+}

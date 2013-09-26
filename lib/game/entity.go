@@ -17,11 +17,12 @@ type Entity interface {
 	Pos() coords.World
 	Look() coords.Direction
 	ID() string
+	Health() int
 }
 
 type EntityListener interface {
 	EntityTick()
-	EntityCreated(id string)
-	EntityDied(id string, killer string)
+	EntityCreated(entity Entity, id string)
+	EntityDied(entity Entity, id string, killer string)
 	EntityRemoved(id string)
 }

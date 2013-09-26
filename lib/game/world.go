@@ -128,7 +128,7 @@ func (w *World) AddEntity(e Entity) {
 	e.Respawn(w.findSpawn())
 
 	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e.ID())
+		listener.EntityCreated(e, e.ID())
 	}
 }
 
@@ -150,7 +150,7 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	if e.Dead() {
 		e.Respawn(w.findSpawn())
 		for _, listener := range w.entityListeners {
-			listener.EntityDied(e.ID(), damager)
+			listener.EntityDied(e, e.ID(), damager)
 		}
 	}
 }

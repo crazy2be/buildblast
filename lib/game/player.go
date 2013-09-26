@@ -89,11 +89,11 @@ func (p *Player) Inventory() *Inventory {
 
 func (p *Player) Tick(w *World) {}
 
-func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
+func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return p.pos, 0.0, nil, nil
+		return nil, nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -115,7 +115,7 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.pos, p.vy, hitPos, hitEntity
+	return hitPos, hitEntity
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -173,18 +173,18 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(controls ControlState) *coords.World {
+func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) {
 	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
-		return nil
+		return nil, nil
 	}
 
 	// They were holding it down last frame
 	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
-		return nil
+		return nil, nil
 	}
 
 	ray := physics.NewRay(p.pos, p.look)

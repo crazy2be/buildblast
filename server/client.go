@@ -21,7 +21,7 @@ type Client struct {
 	blockSendQueue chan *MsgBlock
 	chunksOnce     sync.Once
 
-	player *game.Player
+	player *game.Player		
 }
 
 func NewClient(name string) *Client {
@@ -109,15 +109,15 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 }
 
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	pos, vy, hitPos, hitEntity := c.player.ClientTick(m.Controls)
+	hitPos, hitEntity := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(w, pos)
+	c.cm.QueueChunksNearby(w, c.player.Pos())
 
 	g.Broadcast(&MsgEntityPos{
 		Timestamp: m.Timestamp,
 		ID:        c.player.ID(),
-		Pos:       pos,
-		Vy:        vy,
+		Pos:       c.player.Pos(),
+		Vy:        c.player.Vy(),
 		Look:      c.player.Look(),
 	})
 
@@ -126,6 +126,13 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 			Timestamp: m.Timestamp,
 			ID:        hitEntity.ID(),
 			Hp:        hitEntity.Health(),
+		})
+		g.Broadcast(&MsgEntityPos{
+			Timestamp:  m.Timestamp,
+			ID:         hitEntity.ID(),
+			Pos:        hitEntity.Pos(),
+			Vy:         hitEntity.Vy(),
+			Look:       hitEntity.Look(),
 		})
 	}
 
@@ -141,7 +148,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	//Tell the client about all the other entities
 	for _, id := range w.GetEntityIDs() {
-		c.EntityCreated(id)
+		c.EntityCreated(p, id)
 	}
 
 	w.AddBlockListener(c)
@@ -154,6 +161,8 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
 	})
+	
+	g.world
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
@@ -179,7 +188,7 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) EntityCreated(id string) {
+func (c *Client) EntityCreated(entity game.Entity, id string) {
 	c.Send(&MsgEntityCreate{
 		ID: id,
 	})
@@ -187,7 +196,7 @@ func (c *Client) EntityCreated(id string) {
 
 func (c *Client) EntityTick() {}
 
-func (c *Client) EntityDied(id string, killer string) {}
+func (c *Client) EntityDied(entity game.Entity, id string, killer string) { }
 
 func (c *Client) EntityRemoved(id string) {
 	c.Send(&MsgEntityRemove{
