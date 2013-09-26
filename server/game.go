@@ -152,7 +152,7 @@ func (g *Game) EntityDied(entity game.Entity, id string, killer string) {
 		Hp:        entity.Health(),
 	})
 	g.Broadcast(&MsgEntityPos{
-		Timestamp:  curTime,
+		Timestamp:  curTime, //QTODO: Fix this timestamp!
 		ID:         entity.ID(),
 		Pos:        entity.Pos(),
 		Vy:         entity.Vy(),
@@ -171,7 +171,7 @@ func (g *Game) EntityCreated(entity game.Entity, id string) {
 		Hp:        entity.Health(),
 	})
 	g.Broadcast(&MsgEntityPos{
-		Timestamp:  curTime,
+		Timestamp:  curTime, //QTODO: Fix this timestamp!
 		ID:         entity.ID(),
 		Pos:        entity.Pos(),
 		Vy:         entity.Vy(),

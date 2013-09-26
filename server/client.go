@@ -162,7 +162,13 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		Items: c.player.Inventory().ItemsToString(),
 	})
 	
-	g.world
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	c.Send(&MsgEntityHp{
+		Timestamp: curTime,
+		ID:        p.ID(),
+		Hp:        p.Health(),
+	})
+	
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
