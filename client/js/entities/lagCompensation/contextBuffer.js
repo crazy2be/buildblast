@@ -168,7 +168,7 @@ function ContextBuffer(predictFnc) {
 		return delta;
 	};
 
-	if (localStorage.qDebug) {
+	if (localStorage.posHistoryBar) {
 		//Only use these for debugging!
 		self.dataTimes = function () {
 			return dataHistory.historyTimes;

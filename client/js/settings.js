@@ -16,6 +16,7 @@ function _LoadSettings() {
 			localStorage.viewsVisible = true;
 			localStorage.lag = 300;
 			localStorage.thirdPerson = true;
+			localStorage.posHistoryBar = true;
 			break;
 		}
 		default: {

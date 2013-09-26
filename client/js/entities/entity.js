@@ -6,6 +6,7 @@ function Entity(id, world, clock, scene) {
 
 	var posBuffer = new PosPrediction(world, clock, new THREE.Vector3(0, 0, 0));
 	posBuffer.setUseEntityTime(true);
+	var _isLagCompensated = true;
 
 	//We forward a lot, as we are basically embedding posBuffer
 	self.predictMovement = posBuffer.predictMovement;
@@ -54,7 +55,7 @@ function Entity(id, world, clock, scene) {
 	var UIViews = [];
 
 	self.initViews = function() {
-		if (localStorage.qDebug) {
+		if (localStorage.posHistoryBar) {
 			UIViews.push(new PosHistoryBar(self, posBuffer, clock));
 		}
 
@@ -62,7 +63,11 @@ function Entity(id, world, clock, scene) {
 	};
 
 	self.lagInduce = function(yes) {
-		posBuffer.setUseEntityTime(yes);
+		_isLagCompensated = yes;
+		posBuffer.setUseEntityTime(_isLagCompensated);
+	}
+	self.isLagCompensated = function() {
+		return _isLagCompensated;
 	}
 	
 	self.setViewVisibility = function(visible) {

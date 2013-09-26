@@ -92,7 +92,7 @@ function PosPrediction(world, clock, initialPos) {
 		return posBuffer.getVelocity(clock.entityTime());
 	};
 
-	if (localStorage.qDebug) {
+	if (localStorage.posHistoryBar) {
 		//Only use these for debugging!
 		self.posDebugData = function () {
 			var data = [];
