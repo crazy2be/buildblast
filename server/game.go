@@ -147,5 +147,5 @@ func (g *Game) EntityDied(id string, killer string) {
 
 func (g *Game) EntityTick() {}
 
-func (g *Game) EntityCreated(id string)                                                    {}
-func (g *Game) EntityRemoved(id string)                                                    {}
+func (g *Game) EntityCreated(id string) {}
+func (g *Game) EntityRemoved(id string) {}

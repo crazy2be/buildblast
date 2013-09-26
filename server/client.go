@@ -109,7 +109,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 }
 
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
+	pos, vy, hitPos, hitEntity := c.player.ClientTick(m.Controls)
 
 	c.cm.QueueChunksNearby(w, pos)
 
@@ -117,15 +117,17 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 		Timestamp: m.Timestamp,
 		ID:        c.player.ID(),
 		Pos:       pos,
-		Vy: 	   vy,
+		Vy:        vy,
 		Look:      c.player.Look(),
 	})
 
-	g.Broadcast(&MsgEntityHp{
-		Timestamp: m.Timestamp,
-		ID:        c.player.ID(),
-		Hp:		   hp,
-	})
+	if hitEntity != nil {
+		g.Broadcast(&MsgEntityHp{
+			Timestamp: m.Timestamp,
+			ID:        hitEntity.ID(),
+			Hp:        hitEntity.Health(),
+		})
+	}
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -139,7 +141,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	//Tell the client about all the other entities
 	for _, id := range w.GetEntityIDs() {
-		c.EntityCreated(id);
+		c.EntityCreated(id)
 	}
 
 	w.AddBlockListener(c)
@@ -183,7 +185,7 @@ func (c *Client) EntityCreated(id string) {
 	})
 }
 
-func (c *Client) EntityTick() { }
+func (c *Client) EntityTick() {}
 
 func (c *Client) EntityDied(id string, killer string) {}
 

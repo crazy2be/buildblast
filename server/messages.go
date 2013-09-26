@@ -15,8 +15,8 @@ const (
 	MSG_HANDSHAKE_INIT  = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
-	MSG_ENTITY_POS		= MessageKind("entity-pos")
-	MSG_ENTITY_HP		= MessageKind("entity-hp")
+	MSG_ENTITY_POS      = MessageKind("entity-pos")
+	MSG_ENTITY_HP       = MessageKind("entity-hp")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
@@ -113,16 +113,16 @@ type MsgHandshakeError struct {
 
 type MsgEntityPos struct {
 	Timestamp float64
-	ID		 string
-	Pos  coords.World
-	Vy       float64
-	Look	 coords.Direction
+	ID        string
+	Pos       coords.World
+	Vy        float64
+	Look      coords.Direction
 }
 
 type MsgEntityHp struct {
 	Timestamp float64
-	ID		 string
-	Hp		int
+	ID        string
+	Hp        int
 }
 
 type MsgEntityCreate struct {
@@ -152,7 +152,7 @@ type MsgControlsState struct {
 	//TimeStamp is when it was sent, ViewTimestamp is
 	//what time the client was displaying when it was sent
 	//(with lag induction on they may differ).
-	Timestamp float64
+	Timestamp     float64
 	ViewTimestamp float64
 }
 
@@ -165,7 +165,7 @@ type MsgPlayerState struct {
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
 	Pos       coords.World
-	Vy 		  float64
+	Vy        float64
 	Hp        int
 }
 
@@ -189,7 +189,7 @@ type MsgInventoryMove struct {
 }
 
 type ClientMessage struct {
-	Kind    MessageKind
+	Kind MessageKind
 	//json.RawMessage implements Marshaler and Unmarshaler,
 	//so it will NOT be serialized twice.
 	Payload json.RawMessage

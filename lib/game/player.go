@@ -19,7 +19,7 @@ type ControlState struct {
 	Lat           float64
 	Lon           float64
 
-	Timestamp float64 // In ms
+	Timestamp     float64 // In ms
 	ViewTimestamp float64
 }
 
@@ -41,8 +41,8 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	look     coords.Direction
-	
+	look coords.Direction
+
 	box      physics.Box
 	controls ControlState
 	history  *PlayerHistory
@@ -52,9 +52,9 @@ type Player struct {
 	// Gameplay state
 	inventory *Inventory
 
-	hp		 int
-	pos      coords.World
-	vy       float64
+	hp  int
+	pos coords.World
+	vy  float64
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -63,7 +63,7 @@ func NewPlayer(world *World, name string) *Player {
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
-		hp: PLAYER_MAX_HP,
+		hp:        PLAYER_MAX_HP,
 	}
 }
 
@@ -93,7 +93,7 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return p.pos, 0.0, p.hp, nil
+		return p.pos, 0.0, nil, nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -108,14 +108,14 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 
 	p.updateLook(controls)
 
-	hitPos := p.simulateBlaster(controls)
+	hitPos, hitEntity := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.pos, p.vy, p.hp, hitPos
+	return p.pos, p.vy, hitPos, hitEntity
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -193,7 +193,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-	return hitPos
+	return hitPos, hitEntity
 }
 
 func (p *Player) Box() *physics.Box {
@@ -211,7 +211,7 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 }
 
 func (p *Player) Health() int {
-	return p.hp;
+	return p.hp
 }
 
 func (p *Player) Damage(amount int) {

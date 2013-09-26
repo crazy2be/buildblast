@@ -41,7 +41,7 @@ func NewWorld(seed float64) *World {
 
 func (w *World) Tick() {
 	//curTime := float64(time.Now().UnixNano()) / 1e6
-	
+
 	w.generationTick()
 	//For all entities, send as message to all entityListeners.
 	//This is the core of the whole scaling problem with any multiplayer game,
@@ -51,7 +51,7 @@ func (w *World) Tick() {
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
 
 		for _, listener := range w.entityListeners {
-			listener.EntityTick();
+			listener.EntityTick()
 		}
 	}
 }

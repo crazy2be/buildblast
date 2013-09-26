@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"time"
 	"reflect"
+	"time"
 )
 
 // ClientConn is a generic, non-blocking, lossy over lag

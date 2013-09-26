@@ -20,7 +20,7 @@ var globalGame = NewGame()
 func handler(w http.ResponseWriter, r *http.Request) {
 	//A hack because either my version of go or chrome is messing of the content type (probably go).
 	if strings.HasSuffix(r.URL.Path, ".css") {
-		w.Header().Set("Content-Type", "text/css");
+		w.Header().Set("Content-Type", "text/css")
 	}
 	http.ServeFile(w, r, "."+r.URL.Path)
 }
