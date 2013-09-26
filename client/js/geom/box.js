@@ -34,7 +34,7 @@ function Box(halfExtents, centerOffset) {
 			bb[iDim] = Math.floor(bb[iDim]);
 		}
 		for(var iDim = 3; iDim < 6; iDim++) {
-			bb[iDim] = Math.ceil(bb[iDim]);
+			bb[iDim] = Math.floor(bb[iDim]);
 		}
 		var x, y, z;
 		//x, y, z, iterating in this way is the same way the blocks
