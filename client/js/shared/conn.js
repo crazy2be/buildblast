@@ -1,15 +1,13 @@
 define([], function () {
-
-	function getWSURI(path) {
-		var loc = window.location;
-		var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-		uri += "//" + loc.host + "/sockets/" + path;
-		return uri;
-	}
-
-	function Conn(uri) {
+	//Takes a fully formed uri (ws://localhost:8080/sockets/stuff/) OR
+	//just the tip (stuff, which is converts to the the full uri).
+	return function Conn(uri) {
 		var self = this;
 		var WS_OPEN = 1;
+
+		if (uri.indexOf("wss:") !== 0 && uri.indexOf("ws:") !== 0) {
+			uri = getWSURI(uri);
+		}
 
 		if (!uri) {
 			throw "URI required, but not provided to Conn constructor.";
@@ -85,7 +83,17 @@ define([], function () {
 		ws.onclose = function (ev) {
 			throw new Error("Someone closed my websocket :(", ev);
 		};
-	}
 
-	return Conn;
+		function getWSURI(path) {
+			var loc = window.location;
+			var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+			uri += "//" + loc.host + "/sockets/" + path;
+
+			if (uri[uri.length - 1] !== '/') {
+				uri += '/';
+			}
+
+			return uri;
+		}
+	}
 });

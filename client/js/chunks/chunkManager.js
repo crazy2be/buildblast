@@ -38,7 +38,7 @@ function ChunkManager(scene, clientID) {
 		geometryWorker.postMessage({
 			'kind': 'start-conn',
 			'payload': {
-				'uri': getWSURI('chunk/' + name),
+				'uri': 'chunk/' + name,
 			},
 		});
 	}

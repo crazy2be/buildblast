@@ -1,9 +1,19 @@
-require(["shared/conn"], function(conn){
-	console.log(conn);
-});
+//Allows you to format your require includes real nice.
+function NestPaths(path, urls) {
+	var newPaths = [];
+	urls.forEach(function(url) {
+		newPaths.push(path + "/" + url);
+	});
+	return newPaths;
+}
 
-window.onload = function () {
-	return;
+require(
+	NestPaths("shared", ["conn", "clock", "featureTester", "settings"	])
+	.concat(NestPaths("/lib/", ['async.js'])), function(
+						Conn,   Clock,   FeatureTester ,  settings,				
+								 async				){
+
+	var FeatureTester = require("shared/featureTester");
 
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
@@ -18,12 +28,19 @@ window.onload = function () {
 	window.testExposure = { };
 	
 	//This loads the settings (currently just sets localStorage variables)
-	_LoadSettings();
+	settings.loadSettings();
 
 	//Connect to server and shake our hands.
-	var conn = new Conn(getWSURI("main/"));
+	var conn = new Conn("main");
 	var clock = new Clock(conn);
 	var clientID;
+
+	async.parallel([
+		function() { console.log("1"); },
+		function() { console.log("2"); },
+	]);
+
+	return;
 
 	async.parallel([
 		function (callback) {
@@ -89,50 +106,50 @@ window.onload = function () {
 			requestAnimationFrame(animate);
 		}
 	}
-};
 
-window.onerror = function (msg, url, lineno) {
-	fatalError({
-		message: msg,
-		filename: url,
-		lineno: lineno,
-	});
-};
+	window.onerror = function (msg, url, lineno) {
+		fatalError({
+			message: msg,
+			filename: url,
+			lineno: lineno,
+		});
+	};
 
-var fatalErrorTriggered = false;
-function fatalError(err) {
-	var container = document.getElementById('container');
-	container.classList.add('error');
+	var fatalErrorTriggered = false;
+	function fatalError(err) {
+		var container = document.getElementById('container');
+		container.classList.add('error');
 
-	var elm = splash.querySelector('.contents');
-	html = [
-		"<h1>Fatal Error!</h1>",
-		"<p>",
-			err.filename || err.fileName,
-			" (",
-				err.lineno || err.lineNumber,
-			"):",
-		"</p>",
-		"<p>",
-			err.message,
-		"</p>",
-		"<p>Press F5 to attempt a rejoin</p>",
-	].join("\n");
-	elm.innerHTML = html;
+		var elm = splash.querySelector('.contents');
+		html = [
+			"<h1>Fatal Error!</h1>",
+			"<p>",
+				err.filename || err.fileName,
+				" (",
+					err.lineno || err.lineNumber,
+				"):",
+			"</p>",
+			"<p>",
+				err.message,
+			"</p>",
+			"<p>Press F5 to attempt a rejoin</p>",
+		].join("\n");
+		elm.innerHTML = html;
 
-	exitPointerLock();
-	fatalErrorTriggered = true;
-	function exitPointerLock() {
-		(document.exitPointerLock ||
-		document.mozExitPointerLock ||
-		document.webkitExitPointerLock).call(document);
+		exitPointerLock();
+		fatalErrorTriggered = true;
+		function exitPointerLock() {
+			(document.exitPointerLock ||
+			document.mozExitPointerLock ||
+			document.webkitExitPointerLock).call(document);
+		}
 	}
-}
 
-var sin = Math.sin;
-var cos = Math.cos;
-var abs = Math.abs;
-var min = Math.min;
-var max = Math.max;
-var sqrt = Math.sqrt;
-var pow = Math.pow;
+	var sin = Math.sin;
+	var cos = Math.cos;
+	var abs = Math.abs;
+	var min = Math.min;
+	var max = Math.max;
+	var sqrt = Math.sqrt;
+	var pow = Math.pow;
+});
