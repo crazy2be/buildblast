@@ -1,4 +1,4 @@
-define(["js/shared/conn.js"], function(conn){
+require(["shared/conn"], function(conn){
 	console.log(conn);
 });
 
