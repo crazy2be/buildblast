@@ -29,7 +29,7 @@ The architecture is based on a few fairly simple structures, which communicate t
 - **ChunkManager**: Manages the chunks (of blocks), and handles adding and removing them from the THREE.Scene.
 - **EntityManager**: Manages the entities (players for now, in the future hopefully more) and add/removes them from the THREE.Scene.
 - **World**: Holds both the ChunkManager and EntityManager and provides useful logic to interface with them. Can directly expose blocks but also provides most of the helper functions you should need.
-- **Player**: Should probably be called _UserInterface_. Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
+- **PlayerUI**: Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
 
 Bugs
 -------
