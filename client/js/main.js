@@ -1,6 +1,6 @@
 defineWrapper(function(
 		_js_shared_,	Conn, Clock, FeatureTester, settings, Models,
-		_lib_,			async, THREE
+		_lib_,			async, __THREE
 	) {
 
 	return function main () {

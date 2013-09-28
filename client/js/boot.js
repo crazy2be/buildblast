@@ -29,8 +29,8 @@ function magicWrapper(fnc, callback) {
 
 	var curDirectory = "";
 	includes.forEach(function (includeName) {
-		var noDirectory = includeName.indexOf("__") !== -1;
-		if(noDirectory) {
+		var forceDirectory = includeName.indexOf("__") !== -1;
+		if(forceDirectory) {
 			includeName = includeName.substring(2);
 		}
 
@@ -48,7 +48,7 @@ function magicWrapper(fnc, callback) {
 
 		var fullPath = "";
 		
-		if(includeName.indexOf('/') === -1 && !noDirectory) {
+		if(includeName.indexOf('/') === -1 && !forceDirectory) {
 			fullPath += curDirectory;
 		}
 
@@ -65,6 +65,7 @@ function magicWrapper(fnc, callback) {
 //These functions create the array of includes based on the name of your arguments.
 //	underscores represent forward slashes, and every include that ends with an underscore,
 //	simply sets the current directory, which is used by every include after that has no underscores.
+//Double underscores forces it to not use the current directory.
 function defineWrapper(fnc) {
 	magicWrapper(fnc, define);
 }
@@ -74,14 +75,13 @@ function requireWrapper(fnc) {
 }
 
 requirejs.config({
+	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
-	//For some reason this doesn't work... the documentation is totally useless on this,
-	//it doesn't even explain how this is supposed to be used, but it looks like paths
-	//to paths doesn't work... but it works for shims...
-		'/lib/THREE.js': '/lib/THREE.min.js',
+		THREE: '/lib/THREE.min',
 	},
+	//We need shims independently of the min problem.
 	shim: {
-		'/lib/THREE.js': {
+		THREE: {
 			exports: 'THREE'
 		}
 	},
