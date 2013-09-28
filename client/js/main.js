@@ -1,4 +1,10 @@
+define(["js/shared/conn.js"], function(conn){
+	console.log(conn);
+});
+
 window.onload = function () {
+	return;
+
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
 	tester.run();
