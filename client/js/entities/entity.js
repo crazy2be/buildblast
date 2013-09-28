@@ -24,8 +24,8 @@ function Entity(id, world, clock, scene) {
 	self.look = function() {
 		return posPrediction.posState().look;
 	};
-	self.vy = function() {
-		return posPrediction.posState().look;
+	self.dy = function() {
+		return posPrediction.posState().dy;
 	};
 	self.posState = posPrediction.posState;
 	
@@ -122,7 +122,7 @@ function Entity(id, world, clock, scene) {
 		self.setLook(self.look());
 
 		// Jump animation
-		var dy = self.pos().dy || 0;
+		var dy = self.dy();
 		jumpAngle = clamp(jumpAngle + signum(dy)*dt*jumpSpeed, 0, maxJumpAngle);
 		leftArm.rotation.z = jumpAngle;
 		rightArm.rotation.z = -jumpAngle;

@@ -18,10 +18,6 @@ function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 
-		if (id !== _playerId) {
-			debugger;
-		}
-
 		entity.posMessage(payload);
 	});
 

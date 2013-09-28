@@ -135,7 +135,9 @@ function ContextBuffer(predictFnc, maxHistory) {
 		var indexOfTime = dataHistory.getIndexAfter(time);
 		var prevIndex = dataHistory.getIndexBefore(time);
 
-		if (indexOfTime === null || prevIndex === null) return 0;
+		if (indexOfTime === null || prevIndex === null) {
+			return new THREE.Vector3(0, 0, 0);
+		}
 
 		var prevPos = dataHistory.historyValues[prevIndex].pos;
 		var prevTime = dataHistory.historyTimes[prevIndex];
