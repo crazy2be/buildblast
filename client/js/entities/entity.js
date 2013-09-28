@@ -4,30 +4,33 @@ function Entity(id, world, clock, scene) {
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
-	var posBuffer = new PosPrediction(world, clock, {
+	var posPrediction = new PosPrediction(world, clock, {
 			pos: new THREE.Vector3(0, 0, 0),
 			dy: 0,
 			look: new THREE.Vector3(0, 0, 0),
 		});
-	posBuffer.setUseEntityTime(true);
-	var _isLagCompensated = true;
 
-	//We forward a lot, as we are basically embedding posBuffer
-	self.predictMovement = posBuffer.predictMovement;
-	self.posMessage = posBuffer.posMessage;
+	var _isLagInduced = true;
+	posPrediction.lagInduce(_isLagInduced);
+
+	self.posDebugData = posPrediction.posDebugData;
+
+	//We forward a lot, as we are basically embedding posPrediction
+	self.predictMovement = posPrediction.predictMovement;
+	self.posMessage = posPrediction.posMessage;
 	self.pos = function() {
-		return posBuffer.posState().pos;
+		return posPrediction.posState().pos;
 	};
 	self.look = function() {
-		return posBuffer.posState().look;
-	}
+		return posPrediction.posState().look;
+	};
 	self.vy = function() {
-		return posBuffer.posState().look;
-	}
-	self.posState = posBuffer.posState;
+		return posPrediction.posState().look;
+	};
+	self.posState = posPrediction.posState;
 	
-	self.contains = posBuffer.contains;
-	self.lag = posBuffer.lag;
+	self.contains = posPrediction.contains;
+	self.lag = posPrediction.lag;
 
 	var material = new THREE.MeshBasicMaterial({
 		color: 0x0000ff,
@@ -70,18 +73,18 @@ function Entity(id, world, clock, scene) {
 
 	self.initViews = function() {
 		if (localStorage.posHistoryBar) {
-			UIViews.push(new PosHistoryBar(self, posBuffer, clock));
+			UIViews.push(new PosHistoryBar(self, posPrediction, clock));
 		}
 
 		return self;
 	};
 
 	self.lagInduce = function(yes) {
-		_isLagCompensated = yes;
-		posBuffer.setUseEntityTime(_isLagCompensated);
+		_isLagInduced = yes;
+		posPrediction.lagInduce(_isLagInduced);
 	}
-	self.isLagCompensated = function() {
-		return _isLagCompensated;
+	self.isLagInduced = function() {
+		return _isLagInduced;
 	}
 	
 	self.setViewVisibility = function(visible) {
@@ -175,7 +178,7 @@ function Entity(id, world, clock, scene) {
 			pos.z + co.z
 		);
 
-		var velocity = posBuffer.getVelocity();
+		var velocity = posPrediction.getVelocity();
 
 		if(velocity.x !== 0 || velocity.z !== 0) {
 			isMoving = true;

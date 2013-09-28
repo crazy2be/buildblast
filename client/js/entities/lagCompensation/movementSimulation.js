@@ -1,7 +1,7 @@
 ﻿var moveSim = function () {
 
 	//Tries to apply an application of deltaMove to pos, without introducing intersections.
-	function attemptMove(pos, collides, world, deltaMove) {
+	function attemptMove(world, pos, collides, deltaMove) {
 		//This code should probably be put to use for partial application of all movement
 		//in the y direction, but if it is the server code must also be changed.
 		if (collides(world, pos)) {
@@ -29,7 +29,7 @@
 		}
 	}
 
-	function simulateMovement(userConstants, lastPosState, controlState, dt) {
+	function simulateMovement(world, userConstants, lastPosState, controlState, dt) {
 		var c = controlState;
 		
 		var newPosState = {
@@ -76,7 +76,7 @@
 		newPosState.pos.y = lastPosState.pos.y;
 		newPosState.pos.z = lastPosState.pos.z;
 
-		attemptMove(newPosState.pos, userConstants.collides, userConstants.world, move);
+		attemptMove(world, newPosState.pos, userConstants.collides, move);
 
 		if (move.y === 0) {
 			newPosState.dy = c.jump ? 6 : 0;
@@ -85,8 +85,48 @@
 		return newPosState;
 	}
 
+	function interpolatePosState(time, posStateBefore, timeBefore, posStateAfter, timeAfter) {
+		return {
+			pos: lerp(time,
+				posStateBefore.pos,
+				timeBefore,
+				posStateAfter.pos,
+				timeAfter
+			),
+			dy: weightedValue(time, posStateBefore.dy, timeBefore, posStateAfter.dy, timeAfter),
+			look: lerp(time,
+				posStateBefore.look,
+				timeBefore,
+				posStateAfter.look,
+				timeAfter
+			),
+		};
+	}
+
+	function weightedValue (t, vOld, tOld, vNew, tNew) {
+		var timeSpan = tNew - tOld;
+		var oldWeight = (t - tOld) / timeSpan;
+		var newWeight = (tNew - t) / timeSpan;
+
+		return vOld*oldWeight + vNew*newWeight;
+	}
+		
+	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
+	function lerp (t, pOld, tOld, pNew, tNew) {
+		var timeSpan = tNew - tOld;
+		var oldWeight = (t - tOld) / timeSpan;
+		var newWeight = (tNew - t) / timeSpan;
+
+		return new THREE.Vector3(
+			pOld.x*oldWeight + pNew.x*newWeight,
+			pOld.y*oldWeight + pNew.y*newWeight,
+			pOld.z*oldWeight + pNew.z*newWeight
+		);
+	}
+
 	return {
 		attemptMove: attemptMove,
-		simulateMovement: simulateMovement
+		simulateMovement: simulateMovement,
+		interpolatePosState: interpolatePosState
 	};
 }();

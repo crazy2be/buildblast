@@ -17,6 +17,11 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-pos message for entity which does not exist!", id);
 			return;
 		}
+
+		if (id !== _playerId) {
+			debugger;
+		}
+
 		entity.posMessage(payload);
 	});
 

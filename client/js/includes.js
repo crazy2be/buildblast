@@ -12,6 +12,7 @@
 		document.body.appendChild(script);
 	}
 }([
+	'js/./logging.js',
 	'js/./settings.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',

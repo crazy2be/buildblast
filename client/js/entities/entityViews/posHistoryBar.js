@@ -60,7 +60,7 @@ function PosHistoryBar(entity, posBuffer, clock) {
 
 		var posPastTime = 1500;
 
-		if (!entity.isLagCompensated()) {
+		if (!entity.isLagInduced()) {
 			//Extend buffer is lag induction is too much.
 			posPastTime = Math.max(posPastTime, clock.time() - clock.entityTime())
 		}
@@ -103,7 +103,7 @@ function PosHistoryBar(entity, posBuffer, clock) {
 		});
 
 		//Without lag compensation our present time and entity time are equal.
-		if (!entity.isLagCompensated()) {
+		if (!entity.isLagInduced()) {
 			var presentX = posXFromTime(clock.time());
 			var entityX = presentX; //The player is displayed at the present time
 
@@ -157,6 +157,10 @@ function PosHistoryBar(entity, posBuffer, clock) {
 
 	self.update = function (playerPos) {
 		updateView(playerPos);
+		if (!entity.pos()) {
+			debugger;
+			var test = entity.pos();
+		}
 		updatePos(entity.pos(), playerPos);
 	}
 }

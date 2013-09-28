@@ -7,17 +7,21 @@
 //Essentially implements input compensation.
 
 //predictFnc(prevData, auxData, dt)
-function ContextBuffer(predictFnc) {
+function ContextBuffer(predictFnc, maxHistory) {
 	var self = this;
 
-	//QTODO: Sync these values (or more or less?) with the server
-	//We consider any position with no auxData to be "confirmed"
-	var dataHistory = new HistoryBuffer(1000);
+	//QTODO: consider making these values lower than the server for other players, and higher for our player.
+	var dataHistory = new HistoryBuffer(maxHistory);
 	//Every aux should have a datum, but not necessarily the otherway around.
-	var auxDataHistory = new HistoryBuffer(1000);
+	var auxDataHistory = new HistoryBuffer(maxHistory);
 
 	//We could look this up, but it is easier to just store it.
 	var lastConfirmed = 0;
+
+	self.setMaxHistory = function (maxHistory) {
+		dataHistory.setMaxHistory(maxHistory);
+		auxDataHistory.setMaxHistory(maxHistory);
+	};
 
 	self.addPrediction = function (time, auxData) {
 		var indexBefore = dataHistory.getIndexBefore(time);
@@ -89,18 +93,6 @@ function ContextBuffer(predictFnc) {
 		return dataHistory.historyValues[dataHistory.lastPos()];
 	};
 
-	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
-	function lerp (t, pOld, tOld, pNew, tNew) {
-		var timeSpan = tNew - tOld;
-		var oldWeight = (t - tOld) / timeSpan;
-		var newWeight = (tNew - t) / timeSpan;
-
-		return new THREE.Vector3(
-			pOld.x*oldWeight + pNew.x*newWeight,
-			pOld.y*oldWeight + pNew.y*newWeight,
-			pOld.z*oldWeight + pNew.z*newWeight
-		);
-	}
 	self.getValueAt = function (time) {
 		var indexOfTime = dataHistory.getIndexOf(time);
 		if (indexOfTime !== null) {
@@ -116,7 +108,7 @@ function ContextBuffer(predictFnc) {
 
 		var indexAfter = indexBefore + 1;
 
-		return lerp(time,
+		return moveSim.interpolatePosState(time, time,
 			dataHistory.historyValues[indexBefore],
 			dataHistory.historyTimes[indexBefore],
 			dataHistory.historyValues[indexAfter],

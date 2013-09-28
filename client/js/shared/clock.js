@@ -11,7 +11,7 @@ function Clock(conn) {
 		return curTime;
 	};
 
-	//The time which we use to display entities
+	//The time which we use to display entities (lag induction)
 	self.entityTime = function () {
 		var lagInduction = localStorage.lag || defaultLagInduction;
 

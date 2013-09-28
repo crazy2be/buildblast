@@ -19,6 +19,24 @@ function HistoryBuffer(maxHistory) {
 	self.historyValues = historyValues;
 	self.historyTimes = historyTimes;
 
+	self.setMaxHistory = function (newMaxSize) {
+		var shiftTarget = historyMax - newMaxSize;
+		historyMax = newMaxSize;
+		var shiftedCount = 0;
+		while (lastPos > historyMax) {
+			historyValues.shift();
+			historyTimes.shift();
+			shiftedCount++;
+		}
+
+		if (shiftTarget > 0 && shiftedCount != shiftTarget) {
+			//This is bad, I try very hard to keep HistoryBuffer correctly synced without
+			//constantly while loops to chuck elements. While HistoryBuffer exposes a lot,
+			//it's callers shouldn't mess with it's arrays, so this should never happen.
+			console.error("NOOOOO a history buffer got out of sync, this could lead to no data, or infinite data situations.");
+		}
+	};
+
 	self.setValue = function (time, newValue) {
 		if (lastPos == historyMax) {
 			//Buffer is full
@@ -74,6 +92,9 @@ function HistoryBuffer(maxHistory) {
 		if (lastPos == -1) return null;
 
 		var insertIndex = getInsertIndex(time);
+		insertIndex -= 1;
+
+		if (insertIndex < 0) return null;
 
 		if (insertIndex > lastPos) return lastPos;
 

@@ -15,15 +15,20 @@ function PosPrediction(world, clock, initialPosState) {
 
 	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 
+	var lagInducedMaxHistory = 101;
+	var normalMaxHistory = 151;
+
+	var _lagInduced = true;
 	// predictFnc(lastDatum, auxData, dt) : newDatum
 	var posBuffer = new ContextBuffer(
-		moveSim.simulateMovement.bind(null, {
-			collides: box.collides, 
-			world: world
-		})
+		moveSim.simulateMovement.bind(null, 
+			world, {
+				collides: box.collides
+			}
+		), lagInducedMaxHistory
 	);
 
-	posBuffer.addConfirmed(0, initialPosState);
+	posBuffer.addConfirmed(Number.NEGATIVE_INFINITY, initialPosState);
 
 	self.predictMovement = function (controlState) {
 		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
@@ -41,24 +46,23 @@ function PosPrediction(world, clock, initialPosState) {
 		posBuffer.addConfirmed(payload.Timestamp, newPosState);
 	};
 
-	var _useEntityTime = true;
 	self.posState = function () {
-		if (!_useEntityTime) {
+		if (!_lagInduced) {
 			return posBuffer.getLastValue();
 		}
 
 		var curTime = clock.entityTime();
 
 		if (curTime < posBuffer.firstTime()) {
-			console.error("Requested position at time before any positions in buffer.");
+			throttledError("Requested position at time before any positions in buffer.");
 		}
 
 		if (curTime > posBuffer.lastTime()) {
-			console.warn("Requested position at time after any positions in buffer.");
+			throttledWarn("Requested position at time after any positions in buffer.");
 		}
 
 		if (posBuffer.lastConfirmedTime() < posBuffer.firstTime()) {
-			console.warn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
+			throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
 		}
 
 		return posBuffer.getValueAt(curTime);
@@ -72,8 +76,11 @@ function PosPrediction(world, clock, initialPosState) {
 	//	else we will just use the earliest times (not strictly times
 	//	based on clock.time(), but in almost all cases should be equivalent).
 	//True by default.
-	self.setUseEntityTime = function (useEntityTime) {
-		_useEntityTime = useEntityTime;
+	self.lagInduce = function (lagInduce) {
+		_lagInduced = lagInduce;
+
+		posBuffer.setMaxHistory(_lagInduced ? 
+			lagInducedMaxHistory : normalMaxHistory);
 	};
 
 	//QTODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
@@ -84,7 +91,7 @@ function PosPrediction(world, clock, initialPosState) {
 	};
 
 	self.getVelocity = function () {
-		if (!_useEntityTime) {
+		if (!_lagInduced) {
 			//QTODO: Make this use the last values, not clock.time()?
 			return posBuffer.getVelocity(clock.time());
 		}

@@ -4,7 +4,7 @@ function Box(halfExtents, centerOffset) {
 	var self = this;
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
-	//Returns [xs, ys, zs, xe, ye, ze]
+	//Returns {xs, ys, zs, xe, ye, ze}
 	function boundingBox(pos) {
 		var p = pos;
 		var he = halfExtents;
@@ -13,7 +13,7 @@ function Box(halfExtents, centerOffset) {
 		var ys = p.y + co.y - he.y, ye = p.y + co.y + he.y;
 		var zs = p.z + co.z - he.z, ze = p.z + co.z + he.z;
 
-		return [xs, ys, zs, xe, ye, ze];
+		return {xs: xs, ys: ys, zs: zs, xe: xe, ye: ye, ze: ze};
 	}
 
 	//QTODO: Remove this from box.js
@@ -30,21 +30,22 @@ function Box(halfExtents, centerOffset) {
 	function boundingBoxHasACollision (world, pos, blockCollide) {
 		var bb = boundingBox(pos);
 		//Turn everything into integers
-		for(var iDim = 0; iDim < 3; iDim++) {
-			bb[iDim] = Math.floor(bb[iDim]);
-		}
-		for(var iDim = 3; iDim < 6; iDim++) {
-			bb[iDim] = Math.floor(bb[iDim]);
-		}
+		bb.xs = Math.floor(bb.xs);
+		bb.ys = Math.floor(bb.ys);
+		bb.zs = Math.floor(bb.zs);
+		bb.xe = Math.floor(bb.xe);
+		bb.ye = Math.floor(bb.ye);
+		bb.ze = Math.floor(bb.ze);
+
 		var x, y, z;
 		//x, y, z, iterating in this way is the same way the blocks
 		//are stored linearly in memory, so it's good.
-		x = bb[0];
-		while(x <= bb[3]) {
-			y = bb[1];
-			while(y <= bb[4]) {
-				z = bb[2];
-				while(z <= bb[5]) {
+		x = bb.xs;
+		while(x <= bb.xe) {
+			y = bb.ys;
+			while(y <= bb.ye) {
+				z = bb.zs;
+				while(z <= bb.ze) {
 					var block = world.blockAt(x, y, z);
 					if(blockCollide(block)) {
 						return new THREE.Vector3(x, y, z);
