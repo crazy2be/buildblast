@@ -1,4 +1,8 @@
-define([], function () {
+//Aww... this means THREE should be in shared or something...
+//So... TODO: Move this out of shared?
+defineWrapper(function (
+		_lib_,		async, THREE
+	) {
 
 	function Models() { };
 
