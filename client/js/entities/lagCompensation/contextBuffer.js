@@ -153,10 +153,10 @@ function ContextBuffer(predictFnc) {
 
 		var prevIndex = indexOfTime - 1;
 
-		var prevPos = dataHistory.historyValues[prevIndex];
+		var prevPos = dataHistory.historyValues[prevIndex].pos;
 		var prevTime = dataHistory.historyTimes[prevIndex];
 
-		var curPos = dataHistory.historyValues[indexOfTime];
+		var curPos = dataHistory.historyValues[indexOfTime].pos;
 		var curTime = dataHistory.historyTimes[indexOfTime];
 
 		var delta = prevPos.clone().sub(curPos);

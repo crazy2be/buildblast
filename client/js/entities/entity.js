@@ -4,14 +4,28 @@ function Entity(id, world, clock, scene) {
 	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
-	var posBuffer = new PosPrediction(world, clock, new THREE.Vector3(0, 0, 0));
+	var posBuffer = new PosPrediction(world, clock, {
+			pos: new THREE.Vector3(0, 0, 0),
+			dy: 0,
+			look: new THREE.Vector3(0, 0, 0),
+		});
 	posBuffer.setUseEntityTime(true);
 	var _isLagCompensated = true;
 
 	//We forward a lot, as we are basically embedding posBuffer
 	self.predictMovement = posBuffer.predictMovement;
 	self.posMessage = posBuffer.posMessage;
-	self.pos = posBuffer.pos;
+	self.pos = function() {
+		return posBuffer.posState().pos;
+	};
+	self.look = function() {
+		return posBuffer.posState().look;
+	}
+	self.vy = function() {
+		return posBuffer.posState().look;
+	}
+	self.posState = posBuffer.posState;
+	
 	self.contains = posBuffer.contains;
 	self.lag = posBuffer.lag;
 
@@ -116,10 +130,7 @@ function Entity(id, world, clock, scene) {
 			view.update(playerPos);
 		});
 
-		var look = self.pos().look;
-		if(look) {
-			self.setLook(look);
-		}
+		self.setLook(self.look());
 
 		// Jump animation
 		var dy = self.pos().dy || 0;

@@ -10,7 +10,7 @@
 
 //Essentially implements lag induction.
 
-function PosPrediction(world, clock, initialPos) {
+function PosPrediction(world, clock, initialPosState) {
 	var self = this;
 
 	var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
@@ -23,26 +23,26 @@ function PosPrediction(world, clock, initialPos) {
 		})
 	);
 
-	posBuffer.addConfirmed(0, initialPos);
+	posBuffer.addConfirmed(0, initialPosState);
 
 	self.predictMovement = function (controlState) {
 		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 	};
 
 	self.posMessage = function (payload) {
-		//QTODO: Make the server just send us this structure,
-		//or handle the server structure directly.
-		var ray = new THREE.Vector3(
-			payload.Pos.X,
-			payload.Pos.Y,
-			payload.Pos.Z);
-		ray.dy = payload.Vy;
-		ray.look = payload.Look;
-		posBuffer.addConfirmed(payload.Timestamp, ray);
+		var p = payload.Pos;
+		var l = payload.Look;
+		var newPosState = {
+			pos: new THREE.Vector3(p.X, p.Y, p.Z),
+			dy: payload.Vy,
+			look: new THREE.Vector3(l.X, l.Y, l.Z),
+		};
+		
+		posBuffer.addConfirmed(payload.Timestamp, newPosState);
 	};
 
 	var _useEntityTime = true;
-	self.pos = function () {
+	self.posState = function () {
 		if (!_useEntityTime) {
 			return posBuffer.getLastValue();
 		}
@@ -104,7 +104,7 @@ function PosPrediction(world, clock, initialPos) {
 			var posPosition = 0;
 
 			dataTimes.forEach(function (dataTime) {
-				var datum = { time: dataTime, hasAuxData: false, pos: dataPositions[posPosition] };
+				var datum = { time: dataTime, hasAuxData: false, pos: dataPositions[posPosition].pos };
 
 				var hasAuxData = false;
 				while (auxPosition < auxDataTimes.length &&

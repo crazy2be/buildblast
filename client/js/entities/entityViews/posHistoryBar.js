@@ -40,6 +40,7 @@ function PosHistoryBar(entity, posBuffer, clock) {
 			material1
 		);
 		var p = entity.pos();
+		console.log(entity.posState());
 		mesh1.position.set(p.x, p.y + 0.6, p.z);
 		mesh1.scale.x = 1/200;
 		mesh1.scale.y = 1/200;
