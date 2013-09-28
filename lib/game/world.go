@@ -173,12 +173,13 @@ type MsgEntityPos2 struct {
 	Vy        float64
 	Look      coords.Direction
 }
+
 func (w *World) GetEntityPosMessages() []MsgEntityPos2 {
 	result := make([]MsgEntityPos2, len(w.entities))
 	for i, entity := range w.entities {
 		pos, posTime := entity.Pos()
 		result[i] = MsgEntityPos2{
-			Timestamp: posTime, 
+			Timestamp: posTime,
 			ID:        entity.ID(),
 			Pos:       pos,
 			Vy:        entity.Vy(),

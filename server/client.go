@@ -21,7 +21,7 @@ type Client struct {
 	blockSendQueue chan *MsgBlock
 	chunksOnce     sync.Once
 
-	player *game.Player		
+	player *game.Player
 }
 
 func NewClient(name string) *Client {
@@ -132,11 +132,11 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 			Hp:        hitEntity.Health(),
 		})
 		g.Broadcast(&MsgEntityPos{
-			Timestamp:  hitEntityPosTime,
-			ID:         hitEntity.ID(),
-			Pos:        hitEntityPos,
-			Vy:         hitEntity.Vy(),
-			Look:       hitEntity.Look(),
+			Timestamp: hitEntityPosTime,
+			ID:        hitEntity.ID(),
+			Pos:       hitEntityPos,
+			Vy:        hitEntity.Vy(),
+			Look:      hitEntity.Look(),
 		})
 	}
 
@@ -162,7 +162,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 			Pos:       posMsg.Pos,
 			Vy:        posMsg.Vy,
 			Look:      posMsg.Look,
-		});
+		})
 	}
 	//QTODO, we need to fix our server architecture
 
@@ -176,7 +176,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
 	})
-	
+
 	curTime := float64(time.Now().UnixNano()) / 1e6
 	c.Send(&MsgEntityHp{
 		Timestamp: curTime,
@@ -226,12 +226,12 @@ func (c *Client) EntityCreated(entity game.Entity, id string) {
 		Pos:       pos,
 		Vy:        entity.Vy(),
 		Look:      entity.Look(),
-	});
+	})
 }
 
 func (c *Client) EntityTick() {}
 
-func (c *Client) EntityDied(entity game.Entity, id string, killer string) { }
+func (c *Client) EntityDied(entity game.Entity, id string, killer string) {}
 
 func (c *Client) EntityRemoved(id string) {
 	c.Send(&MsgEntityRemove{
