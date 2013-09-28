@@ -116,7 +116,7 @@ function ContextBuffer(predictFnc, maxHistory) {
 		);
 	};
 
-	self.lastConfirmedTime = function () {
+	self.largestConfirmedTime = function () {
 		return lastConfirmed;
 	};
 
@@ -132,18 +132,10 @@ function ContextBuffer(predictFnc, maxHistory) {
 	};
 
 	self.getVelocity = function (time) {
-		if (dataHistory.lastPos() < 1) return 0;
+		var indexOfTime = dataHistory.getIndexAfter(time);
+		var prevIndex = dataHistory.getIndexBefore(time);
 
-		var indexOfTime = dataHistory.getIndexOf(time);
-		if (indexOfTime === null) {
-			indexOfTime = dataHistory.getIndexBefore(time);
-		}
-
-		if (indexOfTime === 0) {
-			indexOfTime++;
-		}
-
-		var prevIndex = indexOfTime - 1;
+		if (indexOfTime === null || prevIndex === null) return 0;
 
 		var prevPos = dataHistory.historyValues[prevIndex].pos;
 		var prevTime = dataHistory.historyTimes[prevIndex];

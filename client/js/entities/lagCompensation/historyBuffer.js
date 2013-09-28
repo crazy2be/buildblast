@@ -86,8 +86,7 @@ function HistoryBuffer(maxHistory) {
 	}
 
 	//Same restrictions as getValue
-	//(this is slightly inefficient, as they will likely call getValue with this time).
-	//If the time doesn't exist, it's equivalent to the index self.getValue uses.
+	//Gets the largest index of a time that is < time, or null
 	self.getIndexBefore = function (time) {
 		if (lastPos == -1) return null;
 
@@ -106,7 +105,7 @@ function HistoryBuffer(maxHistory) {
 		return insertIndex;
 	}
 
-	//If the time doesn't exist, it's equivalent to the index self.getValue uses.
+	//Gets the smallest index of a time that is >= time, or null
 	self.getIndexAfter = function (time) {
 		if (lastPos == -1) return null;
 
@@ -114,11 +113,6 @@ function HistoryBuffer(maxHistory) {
 
 		//If there is nothing after it we indicate this with null
 		if (insertIndex > lastPos) return null;
-
-		//The time actually exists
-		if (historyTimes[insertIndex] == time) {
-			return insertIndex + 1;
-		}
 
 		return insertIndex;
 	}

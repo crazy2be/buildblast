@@ -129,8 +129,4 @@ function World(scene, conn, clientID, clock) {
 		});
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
-
-	self.curLagInduction = function() {
-		return localStorage.lag || -1;
-	}
 }

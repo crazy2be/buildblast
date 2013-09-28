@@ -61,7 +61,7 @@ function PosPrediction(world, clock, initialPosState) {
 			throttledWarn("Requested position at time after any positions in buffer.");
 		}
 
-		if (posBuffer.lastConfirmedTime() < posBuffer.firstTime()) {
+		if (posBuffer.largestConfirmedTime() < posBuffer.firstTime()) {
 			throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
 		}
 
@@ -87,7 +87,7 @@ function PosPrediction(world, clock, initialPosState) {
 	//move messages, this should instead be the time since our last sent message
 	//and last received (but I am too lazy to implement that now).
 	self.lag = function () {
-		return clock.time() - posBuffer.lastConfirmedTime();
+		return clock.time() - posBuffer.largestConfirmedTime();
 	};
 
 	self.getVelocity = function () {

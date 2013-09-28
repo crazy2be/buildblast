@@ -1,7 +1,7 @@
 Chunks
 =======
 
-(See worldReadme.md also.)
+(See client/js/README.md also.)
 
 Rendering
 ----------------------------

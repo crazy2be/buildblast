@@ -32,20 +32,6 @@ function Entity(id, world, clock, scene) {
 	self.contains = posPrediction.contains;
 	self.lag = posPrediction.lag;
 
-	var material = new THREE.MeshBasicMaterial({
-		color: 0x0000ff,
-		wireframe: true,
-	});
-	var hitboxMaterial = new THREE.MeshBasicMaterial({
-		color: 0xff0000,
-		wireframe: true,
-	});
-
-	var he = PLAYER_HALF_EXTENTS;
-	var co = PLAYER_CENTER_OFFSET;
-	var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
-	var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
-
 	//QTODO: Move body stuff into a view
 	var isMoving = false;
 	
