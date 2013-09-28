@@ -14,7 +14,7 @@ type Entity interface {
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
 	Vy() float64
-	Pos() coords.World
+	Pos() (coords.World, float64)
 	Look() coords.Direction
 	ID() string
 	Health() int

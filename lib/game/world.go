@@ -48,7 +48,9 @@ func (w *World) Tick() {
 	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
-		w.chunkGenerator.QueueChunksNearby(e.Pos())
+		pos, posTime := e.Pos()
+		posTime = posTime
+		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
 			listener.EntityTick()
@@ -159,6 +161,29 @@ func (w *World) GetEntityIDs() []string {
 	result := make([]string, len(w.entities))
 	for i, entity := range w.entities {
 		result[i] = entity.ID()
+	}
+	return result
+}
+
+//Your architecture is messed
+type MsgEntityPos2 struct {
+	Timestamp float64
+	ID        string
+	Pos       coords.World
+	Vy        float64
+	Look      coords.Direction
+}
+func (w *World) GetEntityPosMessages() []MsgEntityPos2 {
+	result := make([]MsgEntityPos2, len(w.entities))
+	for i, entity := range w.entities {
+		pos, posTime := entity.Pos()
+		result[i] = MsgEntityPos2{
+			Timestamp: posTime, 
+			ID:        entity.ID(),
+			Pos:       pos,
+			Vy:        entity.Vy(),
+			Look:      entity.Look(),
+		}
 	}
 	return result
 }

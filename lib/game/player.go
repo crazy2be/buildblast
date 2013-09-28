@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"math"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
@@ -55,6 +56,8 @@ type Player struct {
 	hp  int
 	pos coords.World
 	vy  float64
+	//The time our position is "at" (last received time from client)
+	posTime float64
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -75,8 +78,9 @@ func (p *Player) Look() coords.Direction {
 	return p.look
 }
 
-func (p *Player) Pos() coords.World {
-	return p.pos
+//Let there be a time for every position.
+func (p *Player) Pos() (coords.World, float64) {
+	return p.pos, p.posTime
 }
 
 func (p *Player) ID() string {
@@ -110,6 +114,7 @@ func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
 
 	hitPos, hitEntity := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
+	p.posTime = controls.Timestamp
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
@@ -226,4 +231,7 @@ func (p *Player) Respawn(pos coords.World) {
 	p.pos = pos
 	p.hp = PLAYER_MAX_HP
 	p.history.Clear()
+
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	p.history.Add(curTime, p.pos)
 }

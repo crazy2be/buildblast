@@ -21,7 +21,7 @@ type PlayerHistory struct {
 
 func NewPlayerHistory() *PlayerHistory {
 	ph := new(PlayerHistory)
-	ph.buf = make([]PlayerHistoryEntry, 1000)
+	ph.buf = make([]PlayerHistoryEntry, 101)
 	return ph
 }
 

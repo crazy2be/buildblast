@@ -111,26 +111,30 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
 	hitPos, hitEntity := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(w, c.player.Pos())
+	pos, posTime := c.player.Pos()
+
+	c.cm.QueueChunksNearby(w, pos)
 
 	g.Broadcast(&MsgEntityPos{
-		Timestamp: m.Timestamp,
+		Timestamp: posTime,
 		ID:        c.player.ID(),
-		Pos:       c.player.Pos(),
+		Pos:       pos,
 		Vy:        c.player.Vy(),
 		Look:      c.player.Look(),
 	})
 
 	if hitEntity != nil {
+		hitEntityPos, hitEntityPosTime := hitEntity.Pos()
+
 		g.Broadcast(&MsgEntityHp{
-			Timestamp: m.Timestamp,
+			Timestamp: hitEntityPosTime,
 			ID:        hitEntity.ID(),
 			Hp:        hitEntity.Health(),
 		})
 		g.Broadcast(&MsgEntityPos{
-			Timestamp:  m.Timestamp,
+			Timestamp:  hitEntityPosTime,
 			ID:         hitEntity.ID(),
-			Pos:        hitEntity.Pos(),
+			Pos:        hitEntityPos,
 			Vy:         hitEntity.Vy(),
 			Look:       hitEntity.Look(),
 		})
@@ -150,6 +154,17 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	for _, id := range w.GetEntityIDs() {
 		c.EntityCreated(p, id)
 	}
+	//(And their positions...)
+	for _, posMsg := range w.GetEntityPosMessages() {
+		c.Send(&MsgEntityPos{
+			Timestamp: posMsg.Timestamp,
+			ID:        posMsg.ID,
+			Pos:       posMsg.Pos,
+			Vy:        posMsg.Vy,
+			Look:      posMsg.Look,
+		});
+	}
+	//QTODO, we need to fix our server architecture
 
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
@@ -168,7 +183,6 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		ID:        p.ID(),
 		Hp:        p.Health(),
 	})
-	
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
@@ -198,6 +212,21 @@ func (c *Client) EntityCreated(entity game.Entity, id string) {
 	c.Send(&MsgEntityCreate{
 		ID: id,
 	})
+
+	pos, posTime := entity.Pos()
+	c.Send(&MsgEntityHp{
+		Timestamp: posTime,
+		ID:        entity.ID(),
+		Hp:        entity.Health(),
+	})
+
+	c.Send(&MsgEntityPos{
+		Timestamp: posTime,
+		ID:        entity.ID(),
+		Pos:       pos,
+		Vy:        entity.Vy(),
+		Look:      entity.Look(),
+	});
 }
 
 func (c *Client) EntityTick() {}
