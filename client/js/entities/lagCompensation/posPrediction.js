@@ -22,9 +22,7 @@ function PosPrediction(world, clock, initialPosState) {
 	// predictFnc(lastDatum, auxData, dt) : newDatum
 	var posBuffer = new ContextBuffer(
 		moveSim.simulateMovement.bind(null, 
-			world, {
-				collides: box.collides
-			}
+			world, box.collides
 		), lagInducedMaxHistory
 	);
 

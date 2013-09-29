@@ -1,4 +1,4 @@
-﻿var moveSim = function () {
+var moveSim = function () {
 
 	//Tries to apply an application of deltaMove to pos, without introducing intersections.
 	function attemptMove(world, pos, collides, deltaMove) {
@@ -29,7 +29,7 @@
 		}
 	}
 
-	function simulateMovement(world, userConstants, lastPosState, controlState, dt) {
+	function simulateMovement(world, collides, lastPosState, controlState, dt) {
 		var c = controlState;
 		
 		var newPosState = {
@@ -76,7 +76,7 @@
 		newPosState.pos.y = lastPosState.pos.y;
 		newPosState.pos.z = lastPosState.pos.z;
 
-		attemptMove(world, newPosState.pos, userConstants.collides, move);
+		attemptMove(world, newPosState.pos, collides, move);
 
 		if (move.y === 0) {
 			newPosState.dy = c.jump ? 6 : 0;
@@ -87,14 +87,14 @@
 
 	function interpolatePosState(time, posStateBefore, timeBefore, posStateAfter, timeAfter) {
 		return {
-			pos: lerp(time,
+			pos: lerpVec3(time,
 				posStateBefore.pos,
 				timeBefore,
 				posStateAfter.pos,
 				timeAfter
 			),
-			dy: weightedValue(time, posStateBefore.dy, timeBefore, posStateAfter.dy, timeAfter),
-			look: lerp(time,
+			dy: lerp(time, posStateBefore.dy, timeBefore, posStateAfter.dy, timeAfter),
+			look: lerpVec3(time,
 				posStateBefore.look,
 				timeBefore,
 				posStateAfter.look,
@@ -103,16 +103,15 @@
 		};
 	}
 
-	function weightedValue (t, vOld, tOld, vNew, tNew) {
+	function lerp (t, vOld, tOld, vNew, tNew) {
 		var timeSpan = tNew - tOld;
 		var oldWeight = (t - tOld) / timeSpan;
 		var newWeight = (tNew - t) / timeSpan;
 
 		return vOld*oldWeight + vNew*newWeight;
 	}
-		
 	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
-	function lerp (t, pOld, tOld, pNew, tNew) {
+	function lerpVec3 (t, pOld, tOld, pNew, tNew) {
 		var timeSpan = tNew - tOld;
 		var oldWeight = (t - tOld) / timeSpan;
 		var newWeight = (tNew - t) / timeSpan;
@@ -125,7 +124,6 @@
 	}
 
 	return {
-		attemptMove: attemptMove,
 		simulateMovement: simulateMovement,
 		interpolatePosState: interpolatePosState
 	};
