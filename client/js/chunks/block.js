@@ -1,4 +1,4 @@
-require(function(require) {
+define(function(require) {
 	function Block(type) {
 		this.type = type;
 	}

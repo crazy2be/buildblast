@@ -5,7 +5,7 @@ define(function(require) {
 
 	var CHUNK = common.CHUNK;
 
-	var Block = require("block");
+	var Block = require("../block");
 
 	var meshCommon = {};
 	//IMPORTANT! Before you call any of these functions, run this function on your blocks array!

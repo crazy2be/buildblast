@@ -155,8 +155,14 @@ define(function(require) {
 		window.mod = function(a, b) {
 			return (((a % b) + b) % b);
 		}
+		// Clamp n between [a, b]. Behaviour is
+		// undefined if a > b. (who even wrote this?)
 		window.clamp = function(n, a, b) {
-			return Math.min(Math.max(n, a), b);
+			return n < a ? a : n > b ? b : n;
+		}
+		// Return the sign of n, -1, 1, or 0.
+		window.signum = function(n) {
+			return n < 0 ? -1 : n > 0 ? 1 : 0;
 		}
 
 		//TODO, move this into it's own module

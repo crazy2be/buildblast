@@ -182,15 +182,16 @@ define(function(require) {
 		});
 	}
 
-	window.dist = function (p1, p2) {
+	self.dist = function (p1, p2) {
 		return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
 	}
 
-	window.clamp = function(n, a, b) {
+	self.clamp = function(n, a, b) {
 		return Math.min(Math.max(n, a), b);
 	}
 
 
 	//TODO, put this in another file...
+	//(no one needs it yet, but they might)
 	return console;
 });

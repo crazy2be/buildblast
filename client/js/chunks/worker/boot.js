@@ -12,6 +12,6 @@ requirejs.config({
 	}],
 });
 
-require(["main"], function(main) {
-	main();
+require(["main"], function(console) {
+	//No need to call anything, just including main should do it...
 });

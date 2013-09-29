@@ -1,6 +1,7 @@
 define(function(require) {
 
 	var ChunkManager = require("chunkManager");
+	var EntityManager = require("entityManager");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;

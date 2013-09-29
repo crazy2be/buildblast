@@ -4,7 +4,7 @@
 
 //This is basically just POD, the meshers do all the heavy lifting.
 define(function(require) {
-	var common = require("../chunk");
+	var common = require("../common");
 
 	var CHUNK = common.CHUNK;
 
