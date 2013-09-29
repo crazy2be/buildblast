@@ -1,7 +1,6 @@
 function Entity(id, world, clock, scene) {
 	var self = this;
 
-	var rot = new THREE.Vector3(0, 0, 0);
 	var hp = 0;
 
 	var posPrediction = new PosPrediction(world, clock, {
