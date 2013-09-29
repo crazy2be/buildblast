@@ -3,9 +3,13 @@ define(function(require) {
 	var common = require("../common");
 	var CHUNK = common.CHUNK;
 
-	debugger;
+	var greedyMesher = require("meshers/greedyMesher");
 
-	return;
+	var ChunkGeometry = require("chunkGeometry");
+
+	var Conn = require("../../shared/conn");
+
+	var WorkerChunkManager = require("workerChunkManager");
 
 	// I use self for other things. Parent makes
 	// a lot more sense anyway.
@@ -178,11 +182,15 @@ define(function(require) {
 		});
 	}
 
-	function dist(p1, p2) {
+	window.dist = function (p1, p2) {
 		return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
 	}
 
-	function clamp(n, a, b) {
+	window.clamp = function(n, a, b) {
 		return Math.min(Math.max(n, a), b);
 	}
+
+
+	//TODO, put this in another file...
+	return console;
 });

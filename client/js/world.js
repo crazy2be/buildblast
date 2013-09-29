@@ -6,6 +6,8 @@ define(function(require) {
 		var self = this;
 
 		var chunkManager = new ChunkManager(scene, clientID);
+
+		return;
 		var entityManager = new EntityManager(scene, conn, self, clock);
 
 		self.addUserPlayer = entityManager.addUserPlayer;

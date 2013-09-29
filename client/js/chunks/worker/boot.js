@@ -15,18 +15,3 @@ requirejs.config({
 require(["main"], function(main) {
 	main();
 });
-
-/*
-importScripts(
-	'../block.js',
-	'../common.js',
-	'meshCommon.js',
-	'meshers/simpleMesher.js',
-	'meshers/simpleNewMesher.js',
-	'meshers/greedyMesher.js',
-	'chunkGeometry.js',
-	'noise.js',
-	'../../shared/conn.js',
-	'workerChunkManager.js'
-);
-*/

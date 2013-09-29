@@ -1,4 +1,12 @@
-var meshCommon = function() {
+define(function(require) {
+	var perlinNoise = require("noise");
+
+	var common = require("../common");
+
+	var CHUNK = common.CHUNK;
+
+	var Block = require("block");
+
 	var meshCommon = {};
 	//IMPORTANT! Before you call any of these functions, run this function on your blocks array!
 	//This makes it so all empty blocks become AIR, I found this makes the
@@ -35,8 +43,8 @@ var meshCommon = function() {
 	meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, blocks, voxelization) {
 		if(voxelization == 1) {
 			return blocks[
-						ocXStart * CHUNK_WIDTH * CHUNK_HEIGHT +
-						ocYStart * CHUNK_WIDTH +
+						ocXStart * CHUNK.WIDTH * CHUNK.HEIGHT +
+						ocYStart * CHUNK.WIDTH +
 						ocZStart
 					];
 		}
@@ -56,8 +64,8 @@ var meshCommon = function() {
 			for (var ocY = ocYStart; ocY < ocYEnd; ocY++) {
 				for (var ocZ = ocZStart; ocZ < ocZEnd; ocZ++) {
 					var sampleBlockType = blocks[
-							ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
-							ocY * CHUNK_WIDTH +
+							ocX * CHUNK.WIDTH * CHUNK.HEIGHT +
+							ocY * CHUNK.WIDTH +
 							ocZ
 						];
 					if (!blockCounts[sampleBlockType]) {
@@ -92,8 +100,8 @@ var meshCommon = function() {
 			for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
 				for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
 					var adjBlock = blocks[  
-							ocX * CHUNK_WIDTH * CHUNK_HEIGHT +
-							ocY * CHUNK_WIDTH +
+							ocX * CHUNK.WIDTH * CHUNK.HEIGHT +
+							ocY * CHUNK.WIDTH +
 							ocZ];
 					if (adjBlock == Block.AIR) {
 						return Block.AIR;
@@ -109,7 +117,7 @@ var meshCommon = function() {
 	//compZ is the dimension in ocArr we should check.
 	//Assumes ocArr is only 1 off, which makes it easier for greedyMesher.
 	//Returns null if the chunk does not exist
-	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+	var chunkDims = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
 	meshCommon.getBlockData = function(manager, blocks, ccArr, ocArr, compZ) {
 		var ccDirection = 0;
 		if (ocArr[compZ] < 0) {
@@ -278,4 +286,4 @@ var meshCommon = function() {
 	}
 
 	return meshCommon;
-}();
+});

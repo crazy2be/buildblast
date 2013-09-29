@@ -55,7 +55,6 @@ var testMesh = function () {
 
 		var loops = 100;
 		for (var i = 0; i < loops; i++) {
-			seedRandom(59825525, 239876364);
 			LOOP.For3D(
 			new THREE.Vector3(0, 0, 0),
 			new THREE.Vector3(maxChunk, maxChunk, maxChunk),
