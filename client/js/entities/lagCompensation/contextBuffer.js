@@ -121,14 +121,14 @@ function ContextBuffer(predictFnc, maxHistory) {
 	};
 
 	self.firstTime = function () {
-		if (dataHistory.lastPos === -1) return 0;
+		if (dataHistory.lastPos() === -1) return 0;
 
 		return dataHistory.historyTimes[0];
 	};
 	self.lastTime = function () {
-		if (dataHistory.lastPos === -1) return 0;
+		if (dataHistory.lastPos() === -1) return 0;
 
-		return dataHistory.historyTimes[dataHistory.lastPos];
+		return dataHistory.historyTimes[dataHistory.lastPos()];
 	};
 
 	self.getVelocity = function (time) {
