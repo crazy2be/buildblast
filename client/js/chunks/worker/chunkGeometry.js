@@ -6,9 +6,9 @@
 function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 	var self = this;
 
-	var cw = CHUNK_WIDTH;
-	var ch = CHUNK_HEIGHT;
-	var cd = CHUNK_DEPTH;
+	var cw = CHUNK.WIDTH;
+	var ch = CHUNK.HEIGHT;
+	var cd = CHUNK.DEPTH;
 
 	self.blocks = blocks;
 	self.cc = cc;
@@ -23,7 +23,7 @@ function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 		var geometries = [];
 		var transferables = [];
 
-		CHUNK_VOXELIZATIONS.forEach(function (voxelization) {
+		CHUNK.VOXELIZATIONS.forEach(function (voxelization) {
 			var geometry = { };
 
 			var res = self.chunkMesher(self.blocks, voxelization, self.cc, manager);

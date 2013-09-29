@@ -1,8 +1,12 @@
-require(function(require) {
+define(function(require) {
 
 	var THREE = require("THREE");
 
-	var Block = require("./block.js");
+	var Block = require("./block");
+
+	var common = require("./common");
+
+	var CHUNK = common.CHUNK;
 
 	var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 		vertexColors: true,
@@ -12,9 +16,9 @@ require(function(require) {
 		var self = this;
 
 		var meshes = {};
-		for (var i = 0; i < CHUNK_VOXELIZATIONS.length; i++) {
+		for (var i = 0; i < CHUNK.VOXELIZATIONS.length; i++) {
 			var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-			meshes[CHUNK_VOXELIZATIONS[i]] = mesh;
+			meshes[CHUNK.VOXELIZATIONS[i]] = mesh;
 		}
 
 		self.remove = function () {
@@ -42,8 +46,8 @@ require(function(require) {
 				// an array of arrays, and is a lot less
 				// garbage to clean up.
 				return new Block(blocks[
-					oc.x * CHUNK_WIDTH * CHUNK_HEIGHT +
-					oc.y * CHUNK_WIDTH +
+					oc.x * CHUNK.WIDTH * CHUNK.HEIGHT +
+					oc.y * CHUNK.WIDTH +
 					oc.z
 				]);
 			} else {

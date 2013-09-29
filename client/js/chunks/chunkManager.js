@@ -1,5 +1,7 @@
 define(['./chunk'], function(Chunk) {
 
+	var test = new Chunk();
+
 	return function ChunkManager(scene, clientID) {
 		var self = this;
 

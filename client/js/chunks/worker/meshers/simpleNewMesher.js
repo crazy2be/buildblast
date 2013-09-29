@@ -1,17 +1,17 @@
 //meshCommon
 
 function simpleMesh2(blocks, voxelization, cc, manager) {
-	var cw = CHUNK_WIDTH;
-	var ch = CHUNK_HEIGHT;
-	var cd = CHUNK_DEPTH;
+	var cw = CHUNK.WIDTH;
+	var ch = CHUNK.HEIGHT;
+	var cd = CHUNK.DEPTH;
 
 	meshCommon.preprocessBlocks(blocks);
 
 	var ccArr = [cc.x, cc.y, cc.z];
 
-	var bcxStart = CHUNK_WIDTH * cc.x;
-	var bcyStart = CHUNK_HEIGHT * cc.y;
-	var bczStart = CHUNK_DEPTH * cc.z;
+	var bcxStart = CHUNK.WIDTH * cc.x;
+	var bcyStart = CHUNK.HEIGHT * cc.y;
+	var bczStart = CHUNK.DEPTH * cc.z;
 
 	var verts = []; //Each vertice is made of 3 integers (3D point)
 	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -23,7 +23,7 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 		var ourBlockType = meshCommon.getVoxelatedBlockType(ocX, ocY, ocZ, blocks, voxelization);
 		if (ourBlockType == Block.AIR) return;
 
-		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+		var oMax = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
 
 		for(var iFace = 0; iFace < 6; iFace++) {
 			var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;

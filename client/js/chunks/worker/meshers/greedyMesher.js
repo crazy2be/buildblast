@@ -15,12 +15,12 @@
 function greedyMesher(blocks, voxelization, cc, manager) {
 	var ccArr = [cc.x, cc.y, cc.z];
 
-	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+	var chunkDims = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
 	meshCommon.preprocessBlocks(blocks);
 
-	var bcxStart = CHUNK_WIDTH * cc.x;
-	var bcyStart = CHUNK_HEIGHT * cc.y;
-	var bczStart = CHUNK_DEPTH * cc.z;
+	var bcxStart = CHUNK.WIDTH * cc.x;
+	var bcyStart = CHUNK.HEIGHT * cc.y;
+	var bczStart = CHUNK.DEPTH * cc.z;
 
 	var verts = []; //Each vertice is made of 3 integers (3D point)
 	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -51,7 +51,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 		var deltaPlane = new Float32Array(planeSize);
 
 		//Gets an offset in the correct chunk
-		var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
+		var ocArr = [CHUNK.WIDTH / 2, CHUNK.HEIGHT / 2, CHUNK.DEPTH / 2];
 		ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
 		var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, ocArr, compZ);

@@ -151,5 +151,14 @@ define(function(require) {
 		window.max = Math.max;
 		window.sqrt = Math.sqrt;
 		window.pow = Math.pow;
+
+		//Well this stuff should probably go in a module... but this is
+		//soooo convienent!
+		window.mod = function(a, b) {
+			return (((a % b) + b) % b);
+		}
+		window.clamp = function(n, a, b) {
+			return Math.min(Math.max(n, a), b);
+		}
 	}
 });
