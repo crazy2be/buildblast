@@ -2,7 +2,9 @@
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '/lib/THREE.min',
-		$: 'lib/jquery.min'
+		jquery: '/lib/jquery.min',
+		jqueryui: '/lib/jquery-ui.min',
+		jqueryWaitImgs: '/lib/jquery.waitforimages.min'
 
 		/*
 		<script src="lib/three.min.js"></script>
@@ -17,8 +19,17 @@
 		THREE: {
 			exports: 'THREE'
 		},
-		$: {
-			exports: $
+		jquery: {
+			deps: [],
+			init: function() {
+				return $;
+			}
+		},
+		jqueryui: {
+			deps: ['jquery']
+		},
+		jqueryWaitImgs: {
+			deps: ['jqueryui']
 		}
 	},
 	packages: [{

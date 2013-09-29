@@ -1,4 +1,4 @@
-﻿define(function () {
+﻿define(function (require) {
 	var THREE = require("THREE");
 
 	var PLAYER = {};

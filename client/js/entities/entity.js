@@ -4,6 +4,10 @@ define(function(require) {
 
 	var PosPrediction = require("entities/lagCompensation/posPrediction");
 
+	var PLAYER = require("player/playerSize");
+
+	var PosHistoryBar = require("entities/entityViews/PosHistoryBar");
+
 	return function Entity(id, world, clock, scene) {
 		var self = this;
 

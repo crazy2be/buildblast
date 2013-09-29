@@ -9,8 +9,10 @@ define(function (require) {
 	//Should really be a package... but w/e
 	var HistoryBuffer = require("entities/lagCompensation/historyBuffer");
 
+	var moveSim = require("entities/lagCompensation/movementSimulation");
+
 	//predictFnc(prevData, auxData, dt)
-	function ContextBuffer(predictFnc, maxHistory) {
+	return function ContextBuffer(predictFnc, maxHistory) {
 		var self = this;
 
 		//QTODO: consider making these values lower than the server for other players, and higher for our player.
@@ -112,11 +114,11 @@ define(function (require) {
 			var indexAfter = indexBefore + 1;
 
 			return moveSim.interpolatePosState(time, time,
-			dataHistory.historyValues[indexBefore],
-			dataHistory.historyTimes[indexBefore],
-			dataHistory.historyValues[indexAfter],
-			dataHistory.historyTimes[indexAfter]
-		);
+				dataHistory.historyValues[indexBefore],
+				dataHistory.historyTimes[indexBefore],
+				dataHistory.historyValues[indexAfter],
+				dataHistory.historyTimes[indexAfter]
+			);
 		};
 
 		self.largestConfirmedTime = function () {

@@ -1,5 +1,4 @@
-﻿var moveSim = function () {
-
+﻿define(function (require) {
 	//Tries to apply an application of deltaMove to pos, without introducing intersections.
 	function attemptMove(world, pos, collides, deltaMove) {
 		//This code should probably be put to use for partial application of all movement
@@ -129,4 +128,4 @@
 		simulateMovement: simulateMovement,
 		interpolatePosState: interpolatePosState
 	};
-}();
+});

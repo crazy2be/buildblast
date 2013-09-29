@@ -1,4 +1,8 @@
-define(['main', './chunk'], function(fatalError, Chunk) {
+define(function(require) {
+
+	var fatalError = require("fatalError");
+	var Chunk = require("./chunk");
+	var common = require("./common");
 
 	return function ChunkManager(scene, clientID) {
 		var self = this;
@@ -8,7 +12,7 @@ define(['main', './chunk'], function(fatalError, Chunk) {
 		startChunkConn(clientID);
 
 		self.chunk = function (cc) {
-			return chunks[ccStr(cc)];
+			return chunks[common.ccStr(cc)];
 		};
 
 		var accumulatedTime = 0;
@@ -80,7 +84,7 @@ define(['main', './chunk'], function(fatalError, Chunk) {
 
 			chunk = new Chunk(payload.blocks, geometries, scene, payload.voxelization);
 			chunk.add();
-			chunks[ccStr(cc)] = chunk;
+			chunks[common.ccStr(cc)] = chunk;
 
 			console.log("Added chunk at ", cc);
 		}

@@ -6,6 +6,9 @@ define(function(require) {
 	var common = require("../../common");
 	var CHUNK = common.CHUNK;
 
+	var addToContext = require("math");
+	addToContext(self);
+
 	return function simpleMesh(blocks, voxelization, cc, manager) {
 		var cw = CHUNK.WIDTH;
 		var cd = CHUNK.DEPTH;

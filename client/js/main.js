@@ -10,6 +10,9 @@ define(function(require) {
 
 	var World = require("/js/world.js");
 
+	var Entity = require("entities/entity");
+	var PlayerUI = require("player/playerUI");
+
 	return function main () {
 		var container = document.getElementById('container');
 		var tester = new FeatureTester();
@@ -30,11 +33,6 @@ define(function(require) {
 		var conn = new Conn("main");
 		var clock = new Clock(conn);
 		var clientID;
-
-		async.parallel([
-			function() { console.log("1"); },
-			function() { console.log("2"); },
-		]);
 
 		async.parallel([
 			function (callback) {
@@ -58,7 +56,7 @@ define(function(require) {
 		], function (err, results) {
 			console.log(results);
 			startGame();
-		})
+		});
 
 		function startGame() {
 			var scene = new THREE.Scene();
@@ -67,8 +65,6 @@ define(function(require) {
 
 			var world = new World(scene, conn, clientID, clock);
 
-			return;
-		
 			//The server has confirmed our ID, we are not going to wait for the entity-create,
 			//we are creating our entity RIGHT NOW.
 			var player = new Entity(clientID, world, clock, scene).initViews();
@@ -140,32 +136,5 @@ define(function(require) {
 				document.webkitExitPointerLock).call(document);
 			}
 		}
-
-		//Should probably put this in a module ROFL :P
-		window.sin = Math.sin;
-		window.cos = Math.cos;
-		window.abs = Math.abs;
-		window.min = Math.min;
-		window.max = Math.max;
-		window.sqrt = Math.sqrt;
-		window.pow = Math.pow;
-
-		//Well this stuff should probably go in a module... but this is
-		//soooo convienent!
-		window.mod = function(a, b) {
-			return (((a % b) + b) % b);
-		}
-		// Clamp n between [a, b]. Behaviour is
-		// undefined if a > b. (who even wrote this?)
-		window.clamp = function(n, a, b) {
-			return n < a ? a : n > b ? b : n;
-		}
-		// Return the sign of n, -1, 1, or 0.
-		window.signum = function(n) {
-			return n < 0 ? -1 : n > 0 ? 1 : 0;
-		}
-
-		//TODO, move this into it's own module
-		return fatalError;
 	}
 });

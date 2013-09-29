@@ -1,5 +1,10 @@
 define(function(require) {
 	var Stack = require("player/stack");
+	var Item = require("player/item");
+
+	var $ = require("jquery");
+	var jqueryUi = require("jqueryui");
+	var jqueryWaitImgs = require("jqueryWaitImgs");
 
 	//QTODO: Move a lot of this logic to entity
 	function Inventory(world, camera, conn, controls) {

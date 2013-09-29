@@ -4,7 +4,9 @@ define(function(require) {
 
 	var THREE = require("THREE");
 
-	var Inventory = require("Inventory");
+	var Inventory = require("player/Inventory");
+
+	var PerfChart = require("perf/chart");
 
 	return function PlayerUI(world, conn, clock, container, playerEntity) {
 		var self = this;

@@ -1,14 +1,14 @@
 define(function(require) {
 
 	var ChunkManager = require("chunkManager");
-	var EntityManager = require("entityManager");
+	var EntityManager = require("entities/entityManager");
+
+	var common = require("chunks/common");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;
 
 		var chunkManager = new ChunkManager(scene, clientID);
-
-		return;
 		var entityManager = new EntityManager(scene, conn, self, clock);
 
 		self.addUserPlayer = entityManager.addUserPlayer;
@@ -46,7 +46,7 @@ define(function(require) {
 		};
 
 		self.blockAt = function (wcX, wcY, wcZ) {
-			var cords = worldToChunk(wcX, wcY, wcZ);
+			var cords = common.worldToChunk(wcX, wcY, wcZ);
 			var oc = cords.o;
 			var cc = cords.c;
 

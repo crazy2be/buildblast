@@ -71,8 +71,8 @@ define([], function () {
 	}
 
 	return {
-		onError: onError,
-		onWarning: onWarning,
-		onLog: onLog,
+		throttledError: throttledError,
+		throttledWarn: throttledWarn,
+		throttledLog: throttledLog,
 	};
 });

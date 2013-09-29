@@ -107,7 +107,7 @@ define(function(require) {
 		var pos = payload.Pos;
 		var type = payload.Type;
 		var x = pos.X, y = pos.Y, z = pos.Z;
-		var coords = worldToChunk(x, y, z);
+		var coords = common.worldToChunk(x, y, z);
 		var cc = coords.c;
 		var oc = coords.o;
 
@@ -129,7 +129,7 @@ define(function(require) {
 		changedChunks.push(cc);
 
 		function invalidate(bcX, bcY, bcZ) {
-			coords = worldToChunk(bcX, bcY, bcZ);
+			coords = common.worldToChunk(bcX, bcY, bcZ);
 			changedChunks.push(coords.c);
 		}
 
@@ -161,7 +161,7 @@ define(function(require) {
 
 	function processPlayerPosition(payload) {
 		var p = payload.pos;
-		var coords = worldToChunk(p.x, p.y, p.z);
+		var coords = common.worldToChunk(p.x, p.y, p.z);
 		var cv = CHUNK_VOXELIZATIONS;
 
 		manager.each(function (chunk) {

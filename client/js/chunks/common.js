@@ -1,4 +1,7 @@
-define([], function() {
+define(function(require){
+
+	var addToContext = require("math");
+	addToContext(window);
 
 	var CHUNK = { };
 
@@ -15,14 +18,14 @@ define([], function() {
 		}
 		return {
 			c: {
-				x: Math.floor(wcX / CHUNK.WIDTH),
-				y: Math.floor(wcY / CHUNK.HEIGHT),
-				z: Math.floor(wcZ / CHUNK.DEPTH),
+				x: floor(wcX / CHUNK.WIDTH),
+				y: floor(wcY / CHUNK.HEIGHT),
+				z: floor(wcZ / CHUNK.DEPTH),
 			},
 			o: {
-				x: mod(Math.floor(wcX), CHUNK.WIDTH),
-				y: mod(Math.floor(wcY), CHUNK.HEIGHT),
-				z: mod(Math.floor(wcZ), CHUNK.DEPTH),
+				x: mod(floor(wcX), CHUNK.WIDTH),
+				y: mod(floor(wcY), CHUNK.HEIGHT),
+				z: mod(floor(wcZ), CHUNK.DEPTH),
 			},
 		};
 	}

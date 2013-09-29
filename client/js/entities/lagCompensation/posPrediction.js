@@ -17,6 +17,10 @@ define(function(require) {
 
 	var Box = require("geom/box");
 
+	var moveSim = require("entities/lagCompensation/movementSimulation");
+
+	var logging = require("shared/logging");
+
 	return function PosPrediction(world, clock, initialPosState) {
 		var self = this;
 
@@ -61,15 +65,15 @@ define(function(require) {
 			var curTime = clock.entityTime();
 
 			if (curTime < posBuffer.firstTime()) {
-				throttledError("Requested position at time before any positions in buffer.");
+				logging.throttledError("Requested position at time before any positions in buffer.");
 			}
 
 			if (curTime > posBuffer.lastTime()) {
-				throttledWarn("Requested position at time after any positions in buffer.");
+				logging.throttledWarn("Requested position at time after any positions in buffer.");
 			}
 
 			if (posBuffer.largestConfirmedTime() < posBuffer.firstTime()) {
-				throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
+				logging.throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
 			}
 
 			return posBuffer.getValueAt(curTime);
