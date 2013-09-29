@@ -4,7 +4,7 @@ define(function(require) {
 
 	var Block = require("./block");
 
-	var common = require("./common");
+	var common = require("./chunkCommon");
 
 	var CHUNK = common.CHUNK;
 
@@ -40,7 +40,7 @@ define(function(require) {
 		}
 
 		self.block = function (oc) {
-			if (validChunkOffset(oc.x, oc.y, oc.z)) {
+			if (common.validChunkOffset(oc.x, oc.y, oc.z)) {
 				// A flattened array is mesurably faster to
 				// index (approximently twice as fast) as
 				// an array of arrays, and is a lot less

@@ -1,6 +1,6 @@
 //Exposes handy math functions to the global context
 
-define(function (require) {
+define([], function() {
 	return function addToContext(context) {
 		//I swear, I should just loop through all of math and add it to the global context...
 		context.sin = Math.sin;

@@ -2,14 +2,16 @@ define(function(require) {
 
 	var fatalError = require("fatalError");
 	var Chunk = require("./chunk");
-	var common = require("./common");
+	var common = require("./chunkCommon");
+
+	var Conn = require("shared/conn");
 
 	return function ChunkManager(scene, clientID) {
 		var self = this;
 
 		var chunks = {};
 		var geometryWorker = new Worker('js/chunks/worker/boot.js');
-		startChunkConn(clientID);
+		//We star the conn after we set up our onerror functions on this.
 
 		self.chunk = function (cc) {
 			return chunks[common.ccStr(cc)];
@@ -44,8 +46,8 @@ define(function(require) {
 			geometryWorker.postMessage({
 				'kind': 'start-conn',
 				'payload': {
-					'uri': 'chunk/' + name,
-				},
+					'uri': 'chunk/' + name
+				}
 			});
 		}
 
@@ -63,6 +65,11 @@ define(function(require) {
 		};
 
 		geometryWorker.onerror = fatalError;
+
+		//Now we can start the conn, after we subscribe to onmessage
+		//QTODO: remove this with a worker handshake.
+		//(Give the worker thread a little time to setup...)
+		setTimeout(startChunkConn.bind(null, clientID), 500);
 
 		//Payload contains vertices creates by the mesher.
 		function processChunk(payload) {

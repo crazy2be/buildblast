@@ -3,7 +3,7 @@ define(function(require) {
 	var ChunkManager = require("chunkManager");
 	var EntityManager = require("entities/entityManager");
 
-	var common = require("chunks/common");
+	var common = require("chunks/chunkCommon");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;

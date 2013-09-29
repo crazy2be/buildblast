@@ -1,7 +1,7 @@
 define(function(require){
 
 	var addToContext = require("math");
-	addToContext(window);
+	addToContext(self);
 
 	var CHUNK = { };
 

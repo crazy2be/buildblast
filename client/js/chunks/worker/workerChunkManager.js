@@ -1,5 +1,5 @@
 define(function (require) {
-	var common = require("../common");
+	var common = require("../chunkCommon");
 
 	return function WorkerChunkManager() {
 		var self = this;

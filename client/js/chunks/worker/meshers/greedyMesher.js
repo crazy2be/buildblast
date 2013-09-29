@@ -15,7 +15,7 @@
 define(function (require) {
 	var Block = require("../../block");
 
-	var common = require("../../common");
+	var common = require("../../chunkCommon");
 	var CHUNK = common.CHUNK;
 
 	var meshCommon = require("../meshCommon");

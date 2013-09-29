@@ -1,7 +1,7 @@
 define(function(require) {
 	var perlinNoise = require("noise");
 
-	var common = require("../common");
+	var common = require("../chunkCommon");
 
 	var CHUNK = common.CHUNK;
 

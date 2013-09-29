@@ -1,6 +1,6 @@
 define(function(require) {
 
-	var common = require("../common");
+	var common = require("../chunkCommon");
 	var CHUNK = common.CHUNK;
 
 	var greedyMesher = require("meshers/greedyMesher");
@@ -162,7 +162,7 @@ define(function(require) {
 	function processPlayerPosition(payload) {
 		var p = payload.pos;
 		var coords = common.worldToChunk(p.x, p.y, p.z);
-		var cv = CHUNK_VOXELIZATIONS;
+		var cv = CHUNK.VOXELIZATIONS;
 
 		manager.each(function (chunk) {
 			var d = dist(coords.c, chunk.cc);

@@ -4,7 +4,7 @@
 
 //This is basically just POD, the meshers do all the heavy lifting.
 define(function(require) {
-	var common = require("../common");
+	var common = require("../chunkCommon");
 
 	var CHUNK = common.CHUNK;
 
@@ -47,7 +47,7 @@ define(function(require) {
 		}
 
 		self.block = function block(ocX, ocY, ocZ) {
-			if (validChunkOffset(ocX, ocY, ocZ)) {
+			if (common.validChunkOffset(ocX, ocY, ocZ)) {
 				return blocks[ocX*cw*ch + ocY*cw + ocZ];
 			} else {
 				throw "Invalid offset coords!";
@@ -55,7 +55,7 @@ define(function(require) {
 		};
 
 		self.setBlock = function setBlock(ocX, ocY, ocZ, type) {
-			if (validChunkOffset(ocX, ocY, ocZ)) {
+			if (common.validChunkOffset(ocX, ocY, ocZ)) {
 				blocks[ocX*cw*ch + ocY*cw + ocZ] = type;
 			} else {
 				throw "Invalid offset coords!";

@@ -1,7 +1,7 @@
 define([], function () {
 	//Takes a fully formed uri (ws://localhost:8080/sockets/stuff/) OR
 	//just the tip (stuff, which is converts to the the full uri).
-	return function Conn(uri) {
+	function Conn(uri) {
 		var self = this;
 		var WS_OPEN = 1;
 
@@ -83,17 +83,22 @@ define([], function () {
 		ws.onclose = function (ev) {
 			throw new Error("Someone closed my websocket :(", ev);
 		};
-
-		function getWSURI(path) {
-			var loc = window.location;
-			var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-			uri += "//" + loc.host + "/sockets/" + path;
-
-			if (uri[uri.length - 1] !== '/') {
-				uri += '/';
-			}
-
-			return uri;
-		}
 	}
+
+	function getWSURI(path) {
+		//self  == window, but also works when in a worker.
+		var loc = self.location;
+		var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+		uri += "//" + loc.host + "/sockets/" + path;
+
+		if (uri[uri.length - 1] !== '/') {
+			uri += '/';
+		}
+
+		return uri;
+	}
+
+	Conn.getWSURI = getWSURI;
+
+	return Conn;
 });

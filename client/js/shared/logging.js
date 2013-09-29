@@ -26,6 +26,8 @@ define([], function () {
 
 			if (info.lastTime + minDuration > curTime) continue;
 
+			if(info.count == 0) continue;
+
 			info.fnc(info.count);
 
 			info.lastTime = curTime;
