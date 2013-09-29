@@ -1,12 +1,10 @@
-define(['./chunk'], function(Chunk) {
-
-	var test = new Chunk();
+define(['main', './chunk'], function(fatalError, Chunk) {
 
 	return function ChunkManager(scene, clientID) {
 		var self = this;
 
 		var chunks = {};
-		var geometryWorker = new Worker('js/chunks/worker/main.js');
+		var geometryWorker = new Worker('js/chunks/worker/boot.js');
 		startChunkConn(clientID);
 
 		self.chunk = function (cc) {

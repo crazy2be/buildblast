@@ -10,8 +10,6 @@ define(function(require) {
 
 	var World = require("/js/world.js");
 
-	console.log(World);
-
 	return function main () {
 		var container = document.getElementById('container');
 		var tester = new FeatureTester();
@@ -67,9 +65,9 @@ define(function(require) {
 			var ambientLight = new THREE.AmbientLight(0xffffff);
 			scene.add(ambientLight);
 
-			return;
-
 			var world = new World(scene, conn, clientID, clock);
+
+			return;
 		
 			//The server has confirmed our ID, we are not going to wait for the entity-create,
 			//we are creating our entity RIGHT NOW.
@@ -160,5 +158,8 @@ define(function(require) {
 		window.clamp = function(n, a, b) {
 			return Math.min(Math.max(n, a), b);
 		}
+
+		//TODO, move this into it's own module
+		return fatalError;
 	}
 });

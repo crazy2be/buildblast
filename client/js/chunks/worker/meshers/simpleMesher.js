@@ -1,7 +1,7 @@
 function simpleMesh(blocks, voxelization, cc, manager) {
-	var cw = CHUNK_WIDTH;
-	var cd = CHUNK_DEPTH;
-	var ch = CHUNK_HEIGHT;
+	var cw = CHUNK.WIDTH;
+	var cd = CHUNK.DEPTH;
+	var ch = CHUNK.HEIGHT;
 
 	var ccX = cc.x;
 	var ccY = cc.y;
