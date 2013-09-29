@@ -1,8 +1,9 @@
 //Aww... this means THREE should be in shared or something...
 //So... TODO: Move this out of shared?
-defineWrapper(function (
-		_lib_,		async, __THREE
-	) {
+define(function (require) {
+	var THREE = require("THREE");
+
+	var async = require("/lib/async.js");
 
 	function Models() { };
 

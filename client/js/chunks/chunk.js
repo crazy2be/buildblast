@@ -1,51 +1,58 @@
-var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
-	vertexColors: true,
-});
+require(function(require) {
 
-function Chunk(blocks, geometries, scene, voxelization) {
-	var self = this;
+	var THREE = require("THREE");
 
-	var meshes = {};
-	for (var i = 0; i < CHUNK_VOXELIZATIONS.length; i++) {
-		var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-		meshes[CHUNK_VOXELIZATIONS[i]] = mesh;
-	}
+	var Block = require("./block.js");
 
-	self.remove = function () {
-		scene.remove(meshes[voxelization]);
-	};
+	var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
+		vertexColors: true,
+	});
 
-	self.add = function () {
-		scene.add(meshes[voxelization]);
-	};
+	return function Chunk(blocks, geometries, scene, voxelization) {
+		var self = this;
 
-	self.setVoxelization = function (newVoxelization) {
-		self.remove();
-		voxelization = newVoxelization;
-		self.add();
-	};
-
-	self.voxelization = function() {
-		return voxelization;
-	}
-
-	self.block = function (oc) {
-		if (validChunkOffset(oc.x, oc.y, oc.z)) {
-			// A flattened array is mesurably faster to
-			// index (approximently twice as fast) as
-			// an array of arrays, and is a lot less
-			// garbage to clean up.
-			return new Block(blocks[
-				oc.x * CHUNK_WIDTH * CHUNK_HEIGHT +
-				oc.y * CHUNK_WIDTH +
-				oc.z
-			]);
-		} else {
-			throw "block coords out of bounds: " + oc;
+		var meshes = {};
+		for (var i = 0; i < CHUNK_VOXELIZATIONS.length; i++) {
+			var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
+			meshes[CHUNK_VOXELIZATIONS[i]] = mesh;
 		}
-	};
 
-	self.testExposure = {
-		blocks: blocks
-	};
-}
+		self.remove = function () {
+			scene.remove(meshes[voxelization]);
+		};
+
+		self.add = function () {
+			scene.add(meshes[voxelization]);
+		};
+
+		self.setVoxelization = function (newVoxelization) {
+			self.remove();
+			voxelization = newVoxelization;
+			self.add();
+		};
+
+		self.voxelization = function() {
+			return voxelization;
+		}
+
+		self.block = function (oc) {
+			if (validChunkOffset(oc.x, oc.y, oc.z)) {
+				// A flattened array is mesurably faster to
+				// index (approximently twice as fast) as
+				// an array of arrays, and is a lot less
+				// garbage to clean up.
+				return new Block(blocks[
+					oc.x * CHUNK_WIDTH * CHUNK_HEIGHT +
+					oc.y * CHUNK_WIDTH +
+					oc.z
+				]);
+			} else {
+				throw "block coords out of bounds: " + oc;
+			}
+		};
+
+		self.testExposure = {
+			blocks: blocks
+		};
+	}
+});

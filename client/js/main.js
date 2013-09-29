@@ -1,7 +1,16 @@
-defineWrapper(function(
-		_js_shared_,	Conn, Clock, FeatureTester, settings, Models,
-		_lib_,			async, __THREE
-	) {
+define(function(require) {
+
+	var Conn = require("shared/Conn");
+	var Clock = require("shared/Clock");
+	var FeatureTester = require("shared/FeatureTester");
+	var settings = require("shared/settings");
+	var Models = require("shared/Models");
+
+	var async = require("/lib/async.js");
+
+	var World = require("/js/world.js");
+
+	console.log(World);
 
 	return function main () {
 		var container = document.getElementById('container');
