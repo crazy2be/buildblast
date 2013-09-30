@@ -1,5 +1,9 @@
 package game
 
+//This serves the same purpose as "HistoryBuffer" on the client,
+//	but the client wraps it a few times to add input prediction
+//	and lag induction.
+
 import (
 	"buildblast/lib/coords"
 )
@@ -17,7 +21,7 @@ type PlayerHistory struct {
 
 func NewPlayerHistory() *PlayerHistory {
 	ph := new(PlayerHistory)
-	ph.buf = make([]PlayerHistoryEntry, 100)
+	ph.buf = make([]PlayerHistoryEntry, 101)
 	return ph
 }
 
@@ -29,22 +33,39 @@ func (ph *PlayerHistory) Add(t float64, pos coords.World) {
 	ph.buf[ph.offset] = PlayerHistoryEntry{pos, t}
 }
 
-func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
-	l := len(ph.buf)
+func mod(i int, modulos int) int {
 	// Go has the same problem as JavaScript...
 	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
-	return ph.buf[(((ph.offset+i)%l)+l)%l]
+	return ((i % modulos) + modulos) % modulos
+}
+
+func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
+	l := len(ph.buf)
+	return ph.buf[mod(ph.offset+i, l)]
 }
 
 func (ph *PlayerHistory) set(i int, val PlayerHistoryEntry) {
 	l := len(ph.buf)
-	ph.buf[(((ph.offset+i)%l)+l)%l] = val
+	ph.buf[mod(ph.offset+i, l)] = val
 }
 
 func (ph *PlayerHistory) Clear() {
 	l := len(ph.buf)
 	for i := 0; i < l; i++ {
 		ph.set(i, PlayerHistoryEntry{})
+	}
+}
+
+//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
+func lerp(older PlayerHistoryEntry, newer PlayerHistoryEntry, t float64) coords.World {
+	timeSpan := newer.t - older.t
+	oldWeight := (t - older.t) / timeSpan
+	newWeight := (newer.t - t) / timeSpan
+
+	return coords.World{
+		X: older.pos.X*oldWeight + newer.pos.X*newWeight,
+		Y: older.pos.Y*oldWeight + newer.pos.Y*newWeight,
+		Z: older.pos.Z*oldWeight + newer.pos.Z*newWeight,
 	}
 }
 
@@ -82,25 +103,5 @@ func (ph *PlayerHistory) PositionAt(t float64) coords.World {
 		return older.pos
 	}
 
-	p1 := older.pos
-	p3 := newer.pos
-
-	// t1        t2     t3
-	// |          |     |
-	// older.t    t   newer.t
-	t13 := newer.t - older.t
-	t12 := t - older.t
-
-	r := t12 / t13
-	p13 := coords.Vec3{
-		X: p3.X - p1.X,
-		Y: p3.Y - p1.Y,
-		Z: p3.Z - p1.Z,
-	}
-
-	return coords.World{
-		X: p1.X + p13.X*r,
-		Y: p1.Y + p13.Y*r,
-		Z: p1.Z + p13.Z*r,
-	}
+	return lerp(older, newer, t)
 }

@@ -9,25 +9,6 @@ import (
 	"buildblast/lib/physics"
 )
 
-type Entity interface {
-	Tick(w *World)
-	Damage(amount int)
-	Dead() bool
-	Respawn(pos coords.World)
-	BoxAt(t float64) *physics.Box
-	Vy() float64
-	Pos() coords.World
-	Look() coords.Direction
-	ID() string
-}
-
-type EntityListener interface {
-	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World, look coords.Direction, vy float64)
-	EntityDied(id string, killer string)
-	EntityRemoved(id string)
-}
-
 type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
@@ -59,17 +40,20 @@ func NewWorld(seed float64) *World {
 }
 
 func (w *World) Tick() {
+	//curTime := float64(time.Now().UnixNano()) / 1e6
+
 	w.generationTick()
+	//For all entities, send as message to all entityListeners.
+	//This is the core of the whole scaling problem with any multiplayer game,
+	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
-		id := e.ID()
-		pos := e.Pos()
-		look := e.Look()
-		vy := e.Vy()
+		pos, posTime := e.Pos()
+		posTime = posTime
 		w.chunkGenerator.QueueChunksNearby(pos)
 
 		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos, look, vy)
+			listener.EntityTick()
 		}
 	}
 }
@@ -96,7 +80,10 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	return w.spawns[rand.Intn(l)]
+	//QTODO: Stop hardcoding the spawn.
+	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
+	index = index + 1
+	return w.spawns[0] //return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
@@ -143,7 +130,7 @@ func (w *World) AddEntity(e Entity) {
 	e.Respawn(w.findSpawn())
 
 	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e.ID())
+		listener.EntityCreated(e, e.ID())
 	}
 }
 
@@ -165,7 +152,7 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	if e.Dead() {
 		e.Respawn(w.findSpawn())
 		for _, listener := range w.entityListeners {
-			listener.EntityDied(e.ID(), damager)
+			listener.EntityDied(e, e.ID(), damager)
 		}
 	}
 }
@@ -174,6 +161,30 @@ func (w *World) GetEntityIDs() []string {
 	result := make([]string, len(w.entities))
 	for i, entity := range w.entities {
 		result[i] = entity.ID()
+	}
+	return result
+}
+
+//Your architecture is messed
+type MsgEntityPos2 struct {
+	Timestamp float64
+	ID        string
+	Pos       coords.World
+	Vy        float64
+	Look      coords.Direction
+}
+
+func (w *World) GetEntityPosMessages() []MsgEntityPos2 {
+	result := make([]MsgEntityPos2, len(w.entities))
+	for i, entity := range w.entities {
+		pos, posTime := entity.Pos()
+		result[i] = MsgEntityPos2{
+			Timestamp: posTime,
+			ID:        entity.ID(),
+			Pos:       pos,
+			Vy:        entity.Vy(),
+			Look:      entity.Look(),
+		}
 	}
 	return result
 }

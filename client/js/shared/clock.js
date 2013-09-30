@@ -1,12 +1,21 @@
 function Clock(conn) {
 	var self = this;
 
+	var defaultLagInduction = 100;
+
 	var curTime = 0;
 	// Only updated after you call .update(). This way, all
 	// things querying the time in a frame will get the
 	// same time.
 	self.time = function () {
 		return curTime;
+	};
+
+	//The time which we use to display entities (lag induction)
+	self.entityTime = function () {
+		var lagInduction = localStorage.lag || defaultLagInduction;
+
+		return self.time() - lagInduction;
 	};
 
 	// Actual client <-> server offset, according to most

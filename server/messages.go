@@ -15,8 +15,9 @@ const (
 	MSG_HANDSHAKE_INIT  = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
+	MSG_ENTITY_POS      = MessageKind("entity-pos")
+	MSG_ENTITY_HP       = MessageKind("entity-hp")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
-	MSG_ENTITY_POSITION = MessageKind("entity-position")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
@@ -33,10 +34,12 @@ func kindToType(kind MessageKind) Message {
 	switch kind {
 	case MSG_HANDSHAKE_INIT:
 		return &MsgHandshakeInit{}
+	case MSG_ENTITY_POS:
+		return &MsgEntityPos{}
+	case MSG_ENTITY_HP:
+		return &MsgEntityHp{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
-	case MSG_ENTITY_POSITION:
-		return &MsgEntityPosition{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
 	case MSG_BLOCK:
@@ -65,10 +68,12 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
+	case *MsgEntityPos:
+		return MSG_ENTITY_POS
+	case *MsgEntityHp:
+		return MSG_ENTITY_HP
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE
-	case *MsgEntityPosition:
-		return MSG_ENTITY_POSITION
 	case *MsgEntityRemove:
 		return MSG_ENTITY_REMOVE
 	case *MsgChunk:
@@ -106,15 +111,22 @@ type MsgHandshakeError struct {
 	Message string
 }
 
-type MsgEntityCreate struct {
-	ID string
+type MsgEntityPos struct {
+	Timestamp float64
+	ID        string
+	Pos       coords.World
+	Vy        float64
+	Look      coords.Direction
 }
 
-type MsgEntityPosition struct {
-	Pos  coords.World
-	Look coords.Direction
-	Vy   float64
-	ID   string
+type MsgEntityHp struct {
+	Timestamp float64
+	ID        string
+	Hp        int
+}
+
+type MsgEntityCreate struct {
+	ID string
 }
 
 type MsgEntityRemove struct {
@@ -137,7 +149,11 @@ type MsgBlock struct {
 type MsgControlsState struct {
 	Controls game.ControlState
 	// JavaScript performance.now() timestamp.
-	Timestamp float64
+	//TimeStamp is when it was sent, ViewTimestamp is
+	//what time the client was displaying when it was sent
+	//(with lag induction on they may differ).
+	Timestamp     float64
+	ViewTimestamp float64
 }
 
 type MsgChat struct {
@@ -146,10 +162,10 @@ type MsgChat struct {
 }
 
 type MsgPlayerState struct {
-	Pos       coords.World
-	VelocityY float64
 	// JavaScript performance.now() timestamp.
 	Timestamp float64
+	Pos       coords.World
+	Vy        float64
 	Hp        int
 }
 
@@ -173,7 +189,9 @@ type MsgInventoryMove struct {
 }
 
 type ClientMessage struct {
-	Kind    MessageKind
+	Kind MessageKind
+	//json.RawMessage implements Marshaler and Unmarshaler,
+	//so it will NOT be serialized twice.
 	Payload json.RawMessage
 }
 

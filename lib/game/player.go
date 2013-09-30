@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"math"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
@@ -19,7 +20,8 @@ type ControlState struct {
 	Lat           float64
 	Lon           float64
 
-	Timestamp float64 // In ms
+	Timestamp     float64 // In ms
+	ViewTimestamp float64
 }
 
 var PLAYER_HEIGHT = 1.75
@@ -40,9 +42,8 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	pos      coords.World
-	look     coords.Direction
-	vy       float64
+	look coords.Direction
+
 	box      physics.Box
 	controls ControlState
 	history  *PlayerHistory
@@ -50,17 +51,22 @@ type Player struct {
 	name     string
 
 	// Gameplay state
-	hp        int
 	inventory *Inventory
+
+	hp  int
+	pos coords.World
+	vy  float64
+	//The time our position is "at" (last received time from client)
+	posTime float64
 }
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
 		history:   NewPlayerHistory(),
-		hp:        PLAYER_MAX_HP,
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
+		hp:        PLAYER_MAX_HP,
 	}
 }
 
@@ -72,8 +78,9 @@ func (p *Player) Look() coords.Direction {
 	return p.look
 }
 
-func (p *Player) Pos() coords.World {
-	return p.pos
+//Let there be a time for every position.
+func (p *Player) Pos() (coords.World, float64) {
+	return p.pos, p.posTime
 }
 
 func (p *Player) ID() string {
@@ -86,11 +93,11 @@ func (p *Player) Inventory() *Inventory {
 
 func (p *Player) Tick(w *World) {}
 
-func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, *coords.World) {
+func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return p.pos, 0.0, p.hp, nil
+		return nil, nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -105,13 +112,15 @@ func (p *Player) ClientTick(controls ControlState) (coords.World, float64, int, 
 
 	p.updateLook(controls)
 
-	hitPos := p.simulateBlaster(dt, controls)
+	hitPos, hitEntity := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
+	p.posTime = controls.Timestamp
 
+	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return p.pos, p.vy, p.hp, hitPos
+	return hitPos, hitEntity
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -169,26 +178,27 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(dt float64, controls ControlState) *coords.World {
+func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) {
 	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
-		return nil
+		return nil, nil
 	}
 
 	// They were holding it down last frame
 	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
-		return nil
+		return nil, nil
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
-	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.Timestamp, ray)
+	//We let the user shoot in the past, but they always move in the present.
+	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-	return hitPos
+	return hitPos, hitEntity
 }
 
 func (p *Player) Box() *physics.Box {
@@ -205,6 +215,10 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		PLAYER_CENTER_OFFSET)
 }
 
+func (p *Player) Health() int {
+	return p.hp
+}
+
 func (p *Player) Damage(amount int) {
 	p.hp -= amount
 }
@@ -217,4 +231,7 @@ func (p *Player) Respawn(pos coords.World) {
 	p.pos = pos
 	p.hp = PLAYER_MAX_HP
 	p.history.Clear()
+
+	curTime := float64(time.Now().UnixNano()) / 1e6
+	p.history.Add(curTime, p.pos)
 }

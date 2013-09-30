@@ -1,8 +1,37 @@
-function Entity() {
+function Entity(id, world, clock, scene) {
 	var self = this;
 
-	var pos;
-	var vy;
+	var hp = 0;
+
+	var posPrediction = new PosPrediction(world, clock, {
+			pos: new THREE.Vector3(0, 0, 0),
+			dy: 0,
+			look: new THREE.Vector3(0, 0, 0),
+		});
+
+	var _isLagInduced = true;
+	posPrediction.lagInduce(_isLagInduced);
+
+	self.posDebugData = posPrediction.posDebugData;
+
+	//We forward a lot, as we are basically embedding posPrediction
+	self.predictMovement = posPrediction.predictMovement;
+	self.posMessage = posPrediction.posMessage;
+	self.pos = function() {
+		return posPrediction.posState().pos;
+	};
+	self.look = function() {
+		return posPrediction.posState().look;
+	};
+	self.dy = function() {
+		return posPrediction.posState().dy;
+	};
+	self.posState = posPrediction.posState;
+	
+	self.contains = posPrediction.contains;
+	self.lag = posPrediction.lag;
+
+	//QTODO: Move body stuff into a view
 	var isMoving = false;
 	
 	var bodyParts = new THREE.Object3D();
@@ -23,50 +52,93 @@ function Entity() {
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
-	self.update = function (dt) {
-		// Jump animation
-		jumpAngle = clamp(jumpAngle + signum(vy)*dt*jumpSpeed, 0, maxJumpAngle);
-		leftArm.rotation.z = jumpAngle;
-		rightArm.rotation.z = -jumpAngle;
 
-		// Arm swinging animation (as you walk)
-		if (!isMoving) return;
-		totalSwingTime += dt;
-		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
-		if (swingAngle > -0.1 && swingAngle < 0.1) {
-			isMoving = false;
-			swingAngle = 0;
+
+	var UIViews = [];
+
+	self.initViews = function() {
+		if (localStorage.posHistoryBar) {
+			UIViews.push(new PosHistoryBar(self, posPrediction, clock));
 		}
-		leftArm.rotation.x = -swingAngle;
-		rightArm.rotation.x = swingAngle;
-	}
-
-	self.setVy = function (newVy) {
-		vy = newVy;
-	};
-
-	self.setPos = function (newPos) {
-		pos = newPos;
-		var co = PLAYER_CENTER_OFFSET;
-		var c = new THREE.Vector3(
-			pos.x + co.x,
-			pos.y + co.y,
-			pos.z + co.z
-		);
-
-		var diffX = bodyParts.position.x - c.x;
-		var diffZ = bodyParts.position.z - c.z;
-		if (diffX !== 0 || diffZ !== 0) isMoving = true;
-
-		bodyParts.position.set(c.x, c.y, c.z);
 
 		return self;
 	};
 
-	self.contains = function (x, y, z) {
-		if (!pos) return;
-		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-		return box.contains(x, y, z);
+	self.lagInduce = function(yes) {
+		_isLagInduced = yes;
+		posPrediction.lagInduce(_isLagInduced);
+	}
+	self.isLagInduced = function() {
+		return _isLagInduced;
+	}
+	
+	self.setViewVisibility = function(visible) {
+		if(!visible) {
+			self.removeFromScene();
+		} else {
+			self.addToScene();
+		}
+	}
+
+	self.setHealth = function(health) {
+		hp = health;
+	};
+
+	self.health = function() {
+		return hp;
+	};
+
+	self.maxHealth = function() {
+		//QTODO: Actually sync this with the server
+		return 100;
+	}
+
+	self.addToScene = function () {
+		scene.add(bodyParts);
+
+		UIViews.forEach(function (view) {
+			scene.add(view.mesh());
+		});
+	};
+
+	self.removeFromScene = function () {
+		scene.remove(bodyParts);
+
+		UIViews.forEach(function (view) {
+			scene.remove(view.mesh());
+		});
+	};
+
+	self.id = function () {
+		return id;
+	};
+
+	self.update = function(dt, playerPos) {
+		UIViews.forEach(function (view) {
+			view.update(playerPos);
+		});
+
+		self.setLook(self.look());
+
+		// Jump animation
+		var dy = self.dy();
+		jumpAngle = clamp(jumpAngle + signum(dy)*dt*jumpSpeed, 0, maxJumpAngle);
+		leftArm.rotation.z = jumpAngle;
+		rightArm.rotation.z = -jumpAngle;
+
+		// Arm swinging animation (as you walk)
+		if (isMoving) {
+			totalSwingTime += dt;
+			var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
+			if (swingAngle > -0.1 && swingAngle < 0.1) {
+				isMoving = false;
+				swingAngle = 0;
+			}
+			leftArm.rotation.x = -swingAngle;
+			rightArm.rotation.x = swingAngle;
+		}
+
+		updatePos(playerPos);
 	};
 
 	self.setLook = function (newLook) {
@@ -82,15 +154,24 @@ function Entity() {
 		lookAt(headMesh, 0, newLook.y, 1);
 	};
 
-	self.addTo = function (scene) {
-		scene.add(bodyParts);
-	};
+	function updatePos(playerPos) {
+		var pos = self.pos();
+		var co = PLAYER_CENTER_OFFSET;
+		var c = new THREE.Vector3(
+			pos.x + co.x,
+			pos.y + co.y,
+			pos.z + co.z
+		);
 
-	self.removeFrom = function (scene) {
-		scene.remove(bodyParts);
-	};
-	
-	// Model/geometry
+		var velocity = posPrediction.getVelocity();
+
+		if(velocity.x !== 0 || velocity.z !== 0) {
+			isMoving = true;
+		}
+
+		bodyParts.position.set(c.x, c.y, c.z);
+	}
+
 	function createHitbox() {
 		var hitboxMaterial = new THREE.MeshBasicMaterial({
 			color: 0xff0000,
