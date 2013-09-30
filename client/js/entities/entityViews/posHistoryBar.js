@@ -38,8 +38,8 @@ define(function (require) {
 
 			mesh1 = new THREE.Mesh(
 			new THREE.PlaneGeometry(canvas1.width, canvas1.height),
-			material1
-		);
+				material1
+			);
 			var p = entity.pos();
 			console.log(entity.posState());
 			mesh1.position.set(p.x, p.y + 0.6, p.z);
@@ -156,7 +156,7 @@ define(function (require) {
 			return mesh1;
 		}
 
-		self.update = function (playerPos) {
+		self.update = function (dt, playerPos) {
 			updateView(playerPos);
 			if (!entity.pos()) {
 				debugger;

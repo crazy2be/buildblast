@@ -35,9 +35,9 @@ define([], function () {
 		}
 	}
 
-	setInterval(clearOldThrottledBuffer, 500);
-
 	var THROTTLED_MIN_DURATION = 2500;
+
+	setInterval(clearOldThrottledBuffer.bind(null, THROTTLED_MIN_DURATION), 500);
 
 	function onError(error, count) {
 		var message = error;
