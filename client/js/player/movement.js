@@ -1,37 +1,33 @@
 var movement = function () {
-
-	//Tries to apply an application of delta to pos, without introducing intersections.
-	function attemptMove(world, pos, collides, delta) {
-		//This code should probably be put to use for partial application of all movement
-		//in the y direction, but if it is the server code must also be changed.
-		if (collides(world, pos)) {
+	function attemptMove(pos, delta, collides) {
+		if (collides(pos)) {
 			delta.x = 0;
 			delta.y = 1;
 			delta.z = 0;
-			return;
+			return delta;
 		}
 
 		pos.x += delta.x;
-		if (collides(world, pos)) {
+		if (collides(pos)) {
 			pos.x -= delta.x;
 			delta.x = 0;
 		}
 
 		pos.y += delta.y;
-		if (collides(world, pos)) {
+		if (collides(pos)) {
 			pos.y -= delta.y;
 			delta.y = 0;
 		}
 
 		pos.z += delta.z;
-		if (collides(world, pos)) {
+		if (collides(pos)) {
 			pos.z -= delta.z;
 			delta.z = 0;
 		}
+		return delta;
 	}
 
-	function simulate(world, collides, state, c, dt) /* newState */ {
-		
+	function simulate(collides, state, c, dt) /* newState */ {
 		var newState = {
 			pos: new THREE.DVector3(0, 0, 0),
 			look: new THREE.DVector3(0, 0, 0),
@@ -60,17 +56,17 @@ var movement = function () {
 		var xzSpeed = speed * dt;
 		var fw = xzSpeed*(c.forward ? 1 : c.back ? -1 : 0);
 		var rt = xzSpeed*(c.right ? 1 : c.left ? -1 : 0);
-		var move = {
-			x: -cos(c.lon) * fw + sin(c.lon) * rt,
-			y: newState.vy * dt,
-			z: -sin(c.lon) * fw - cos(c.lon) * rt,
+		var delta = {
+			x: -cos(c.lon)*fw + sin(c.lon)*rt,
+			y: newState.vy*dt,
+			z: -sin(c.lon)*fw - cos(c.lon)*rt,
 		};
 
 		newState.pos.copy(state.pos);
 
-		attemptMove(world, newState.pos, collides, move);
+		delta = attemptMove(newState.pos, delta, collides);
 
-		if (move.y === 0) {
+		if (delta.y === 0) {
 			newState.vy = c.jump ? 6 : 0;
 		}
 		

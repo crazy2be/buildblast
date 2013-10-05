@@ -56,7 +56,7 @@ window.onload = function () {
 		//we are creating our entity RIGHT NOW.
 		var player = new PlayerEntity();
 		var playerBox = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-		var playerPredictor = movement.simulate.bind(null, world, playerBox.collides);
+		var playerPredictor = movement.simulate.bind(null, playerBox.collides.bind(null, world));
 		var playerController = new PredictiveEntityController(player, clock, controls, playerPredictor);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
 
