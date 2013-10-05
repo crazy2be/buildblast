@@ -22,7 +22,7 @@ function BetterHistoryBuffer() {
 		} else if (typeof a === 'object') {
 			var res = {};
 			for (var key in a) {
-				if (!a.hasOwnProperty(a)) continue;
+				if (!a.hasOwnProperty(key)) continue;
 				res[key] = lerp(a[key], b[key], frac);
 			}
 			return res;
@@ -60,6 +60,11 @@ function BetterHistoryBuffer() {
 function NetworkEntityController(entity, clock) {
 	var self = this;
 	var history = new BetterHistoryBuffer();
+	history.add(0, {
+		pos: new THREE.DVector3(0, 0, 0),
+		look: new THREE.DVector3(0, 0, 0),
+		vy: 0.0,
+	});
 	
 	self.update = function () {
 		entity.update(history.at(clock.time()), clock);
@@ -129,7 +134,7 @@ function PlayerEntity() {
 	var self = this;
 
 	var pos = new THREE.Vector3(0, 0, 0);
-	var vy;
+	var vy = 0;
 	var isMoving = false;
 	
 	var bodyParts = new THREE.Object3D();
@@ -153,7 +158,7 @@ function PlayerEntity() {
 	self.update = function (state, clock) {
 		self.setPos(state.pos);
 		self.setLook(state.look);
-		self.setVy(state.Vy);
+		self.setVy(state.vy);
 		var dt = clock.dt();
 		// Jump animation
 		jumpAngle = clamp(jumpAngle + signum(vy)*dt*jumpSpeed, 0, maxJumpAngle);

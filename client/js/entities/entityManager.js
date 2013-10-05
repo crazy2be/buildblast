@@ -23,7 +23,7 @@ function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 		var entity = new PlayerEntity(id)
-		var controller = new NetworkEntityController(entity, world, clock);
+		var controller = new NetworkEntityController(entity, clock);
 		entity.addTo(scene);
 		entities[id] = entity;
 		entityControllers[id] = controller;
