@@ -74,12 +74,14 @@ function PredictiveEntityController(entity, clock, controls, predictor) {
 	var self = this;
 	var controlStates = [];
 	var times = [];
-	var lastConfirmed = {time: 0, data: {
-		pos: new THREE.DVector3(0, 0, 0),
-		look: new THREE.DVector3(0, 0, 0),
-	}};
-	addDebugWatch(lastConfirmed.data, "vy");
-	lastConfirmed.data.vy = 0;
+	var lastConfirmed = {
+		time: 0,
+		data: {
+			pos: new THREE.DVector3(0, 0, 0),
+			look: new THREE.DVector3(0, 0, 0),
+			vy: 0.0,
+		},
+	};
 	
 	self.update = function () {
 		var latest = predictMovement();

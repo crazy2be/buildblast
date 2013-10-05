@@ -36,9 +36,8 @@ var moveSim = function () {
 		var newPosState = {
 			pos: new THREE.DVector3(0, 0, 0),
 			look: new THREE.DVector3(0, 0, 0),
+			vy: 0,
 		};
-		addDebugWatch(newPosState, "vy");
-		newPosState.vy = 0;
 
 		//For some reason this whole function treats dt as it's in seconds...
 		//(on the server too).
@@ -48,22 +47,16 @@ var moveSim = function () {
 			dt = 1;
 		}
 
-		//We probably want to reduce 'gravity' a bit here
 		newPosState.vy = lastPosState.vy + dt * -9.81;
 
-		//QTODO: Probably a function which does this, should use that instead.
-		var cos = Math.cos;
-		var sin = Math.sin;
-		var lat = controlState.lat;
-		var lon = controlState.lon;
+		var sin = Math.sin, cos = Math.cos;
 		newPosState.look = new THREE.Vector3(
-						sin(lat) * cos(lon),
-						cos(lat),
-						sin(lat) * sin(lon)
-					);
+			sin(c.lat) * cos(c.lon),
+			cos(c.lat),
+			sin(c.lat) * sin(c.lon)
+		);
 
-		//Hardcoded for now?
-		var speed = 10; //10 per second
+		var speed = 10;
 
 		var xzSpeed = speed * dt;
 		var fw = xzSpeed*(c.forward ? 1 : c.back ? -1 : 0);
@@ -82,54 +75,10 @@ var moveSim = function () {
 			newPosState.vy = c.jump ? 6 : 0;
 		}
 		
-		// TODO: Don't be stupid
-		lastPosState.pos.copy(newPosState.pos);
-		lastPosState.look.copy(newPosState.look);
-		lastPosState.vy = newPosState.vy;
-
 		return newPosState;
 	}
 
-	function interpolatePosState(time, posStateBefore, timeBefore, posStateAfter, timeAfter) {
-		return {
-			pos: lerpVec3(time,
-				posStateBefore.pos,
-				timeBefore,
-				posStateAfter.pos,
-				timeAfter
-			),
-			dy: lerp(time, posStateBefore.dy, timeBefore, posStateAfter.dy, timeAfter),
-			look: lerpVec3(time,
-				posStateBefore.look,
-				timeBefore,
-				posStateAfter.look,
-				timeAfter
-			),
-		};
-	}
-
-	function lerp (t, vOld, tOld, vNew, tNew) {
-		var timeSpan = tNew - tOld;
-		var oldWeight = (t - tOld) / timeSpan;
-		var newWeight = (tNew - t) / timeSpan;
-
-		return vOld*oldWeight + vNew*newWeight;
-	}
-	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
-	function lerpVec3 (t, pOld, tOld, pNew, tNew) {
-		var timeSpan = tNew - tOld;
-		var oldWeight = (t - tOld) / timeSpan;
-		var newWeight = (tNew - t) / timeSpan;
-
-		return new THREE.Vector3(
-			pOld.x*oldWeight + pNew.x*newWeight,
-			pOld.y*oldWeight + pNew.y*newWeight,
-			pOld.z*oldWeight + pNew.z*newWeight
-		);
-	}
-
 	return {
-		simulateMovement: simulateMovement,
-		interpolatePosState: interpolatePosState
+		simulateMovement: simulateMovement
 	};
 }();
