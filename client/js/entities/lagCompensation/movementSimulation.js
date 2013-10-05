@@ -1,31 +1,32 @@
 var moveSim = function () {
 
-	//Tries to apply an application of deltaMove to pos, without introducing intersections.
-	function attemptMove(world, pos, collides, deltaMove) {
+	//Tries to apply an application of delta to pos, without introducing intersections.
+	function attemptMove(world, pos, collides, delta) {
 		//This code should probably be put to use for partial application of all movement
 		//in the y direction, but if it is the server code must also be changed.
 		if (collides(world, pos)) {
-			deltaMove.x = 0;
-			deltaMove.y = 1;
-			deltaMove.z = 0;
+			delta.x = 0;
+			delta.y = 1;
+			delta.z = 0;
+			return;
 		}
 
-		pos.x += deltaMove.x;
+		pos.x += delta.x;
 		if (collides(world, pos)) {
-			pos.x -= deltaMove.x;
-			deltaMove.x = 0;
+			pos.x -= delta.x;
+			delta.x = 0;
 		}
 
-		pos.y += deltaMove.y;
+		pos.y += delta.y;
 		if (collides(world, pos)) {
-			pos.y -= deltaMove.y;
-			deltaMove.y = 0;
+			pos.y -= delta.y;
+			delta.y = 0;
 		}
 
-		pos.z += deltaMove.z;
+		pos.z += delta.z;
 		if (collides(world, pos)) {
-			pos.z -= deltaMove.z;
-			deltaMove.z = 0;
+			pos.z -= delta.z;
+			delta.z = 0;
 		}
 	}
 
@@ -33,10 +34,11 @@ var moveSim = function () {
 		var c = controlState;
 		
 		var newPosState = {
-			pos: new THREE.Vector3(0, 0, 0),
-			dy: 0,
-			look: new THREE.Vector3(0, 0, 0),
+			pos: new THREE.DVector3(0, 0, 0),
+			look: new THREE.DVector3(0, 0, 0),
 		};
+		addDebugWatch(newPosState, "vy");
+		newPosState.vy = 0;
 
 		//For some reason this whole function treats dt as it's in seconds...
 		//(on the server too).
@@ -47,7 +49,7 @@ var moveSim = function () {
 		}
 
 		//We probably want to reduce 'gravity' a bit here
-		newPosState.dy = lastPosState.dy + dt * -9.81;
+		newPosState.vy = lastPosState.vy + dt * -9.81;
 
 		//QTODO: Probably a function which does this, should use that instead.
 		var cos = Math.cos;
@@ -68,19 +70,22 @@ var moveSim = function () {
 		var rt = xzSpeed*(c.right ? 1 : c.left ? -1 : 0);
 		var move = {
 			x: -cos(c.lon) * fw + sin(c.lon) * rt,
-			y: newPosState.dy * dt,
+			y: newPosState.vy * dt,
 			z: -sin(c.lon) * fw - cos(c.lon) * rt,
 		};
 
-		newPosState.pos.x = lastPosState.pos.x;
-		newPosState.pos.y = lastPosState.pos.y;
-		newPosState.pos.z = lastPosState.pos.z;
+		newPosState.pos.copy(lastPosState.pos);
 
 		attemptMove(world, newPosState.pos, collides, move);
 
 		if (move.y === 0) {
-			newPosState.dy = c.jump ? 6 : 0;
+			newPosState.vy = c.jump ? 6 : 0;
 		}
+		
+		// TODO: Don't be stupid
+		lastPosState.pos.copy(newPosState.pos);
+		lastPosState.look.copy(newPosState.look);
+		lastPosState.vy = newPosState.vy;
 
 		return newPosState;
 	}

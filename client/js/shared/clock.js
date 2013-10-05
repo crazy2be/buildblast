@@ -10,6 +10,13 @@ function Clock(conn) {
 	self.time = function () {
 		return curTime;
 	};
+	
+	var lastUpdateDT = 0.0;
+	// Time differential between this frame and the last
+	// drawn frame.
+	self.dt = function () {
+		return lastUpdateDT
+	}
 
 	//The time which we use to display entities (lag induction)
 	self.entityTime = function () {
@@ -28,13 +35,22 @@ function Clock(conn) {
 	var prevNow = now();
 	self.update = function () {
 		var curNow = now();
-		var dt = curNow - prevNow;
-		var doff = offset - appliedOffset;
-		appliedOffset += min(abs(dt*0.1), abs(doff)) * signum(doff);
+		var localdt = curNow - prevNow;
+		var offsetdt = minMag(localdt * 0.1, offset - appliedOffset);
+		appliedOffset += offsetdt;
 
 		curTime = appliedOffset + curNow;
+		lastUpdateDT = localdt + offsetdt;
 		prevNow = curNow;
 	};
+	
+	// http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/mag.html
+	function minMag(a, b) {
+		var aa = abs(a), ab = abs(b);
+		if (aa < ab) return a;
+		else if (ab < aa) return b;
+		else return min(a, b);
+	}
 
 	function signum(n) {
 		if (n > 0) return 1;

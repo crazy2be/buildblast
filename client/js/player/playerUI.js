@@ -12,10 +12,9 @@ var PLAYER_CENTER_OFFSET = new THREE.Vector3(
 	0
 );
 
-function PlayerUI(world, conn, clock, container, playerEntity) {
+function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 	var self = this;
 
-	var controls = new Controls(container);
 	var chat = new Chat(controls, conn, container);
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
@@ -24,8 +23,8 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 	var speed;
 
 	//Set up entity as a player.
-	playerEntity.lagInduce(false);
-	playerEntity.setViewVisibility(localStorage.viewsVisible);
+// 	playerEntity.lagInduce(false);
+// 	playerEntity.setViewVisibility(localStorage.viewsVisible);
 
 	var renderer = new THREE.WebGLRenderer();
 	initializeRenderer();
@@ -63,8 +62,8 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 		renderer.render(scene, camera);
 	};
 
-	self.update = function (dt) {
-		chat.update(dt);
+	self.update = function () {
+		chat.update(clock.dt());
 
 		var controlState = {
 			Controls: controls.sample(),
@@ -73,7 +72,7 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 		};
 		conn.queue('controls-state', controlState);
 
-		playerEntity.predictMovement(controlState);
+// 		playerEntity.predictMovement(controlState);
 
 		var camPos = pos().clone();
 
@@ -90,12 +89,12 @@ function PlayerUI(world, conn, clock, container, playerEntity) {
 		doLook(camera, camPos, c);
 		inventory.update(pos(), c);
 
-		updateLagStats(playerEntity.lag());
+// 		updateLagStats(playerEntity.lag());
 
 		updatePositionText(pos(), pos().dy);
-		updateHealthBar(playerEntity.health());
+// 		updateHealthBar(playerEntity.health());
 
-		speed.addDataPoint(dt);
+		speed.addDataPoint(clock.dt());
 	};
 
 	function calcTarget(p, lat, lon) {

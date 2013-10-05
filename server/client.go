@@ -123,22 +123,22 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 		Look:      c.player.Look(),
 	})
 
-	if hitEntity != nil {
-		hitEntityPos, hitEntityPosTime := hitEntity.Pos()
-
-		g.Broadcast(&MsgEntityHp{
-			Timestamp: hitEntityPosTime,
-			ID:        hitEntity.ID(),
-			Hp:        hitEntity.Health(),
-		})
-		g.Broadcast(&MsgEntityPos{
-			Timestamp: hitEntityPosTime,
-			ID:        hitEntity.ID(),
-			Pos:       hitEntityPos,
-			Vy:        hitEntity.Vy(),
-			Look:      hitEntity.Look(),
-		})
-	}
+	_ = hitEntity
+// 	if hitEntity != nil {
+// 		hitEntityPos, hitEntityPosTime := hitEntity.Pos()
+// 
+// 		g.Broadcast(&MsgEntityHp{
+// 			Timestamp: hitEntityPosTime,
+// 			ID:        hitEntity.ID(),
+// 		})
+// 		g.Broadcast(&MsgEntityPos{
+// 			Timestamp: hitEntityPosTime,
+// 			ID:        hitEntity.ID(),
+// 			Pos:       hitEntityPos,
+// 			Vy:        hitEntity.Vy(),
+// 			Look:      hitEntity.Look(),
+// 		})
+// 	}
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -155,22 +155,23 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		c.EntityCreated(p, id)
 	}
 	//(And their positions...)
-	for _, posMsg := range w.GetEntityPosMessages() {
-		c.Send(&MsgEntityPos{
-			Timestamp: posMsg.Timestamp,
-			ID:        posMsg.ID,
-			Pos:       posMsg.Pos,
-			Vy:        posMsg.Vy,
-			Look:      posMsg.Look,
-		})
-	}
+// 	for _, posMsg := range w.GetEntityPosMessages() {
+// 		c.Send(&MsgEntityPos{
+// 			Timestamp: posMsg.Timestamp,
+// 			ID:        posMsg.ID,
+// 			Pos:       posMsg.Pos,
+// 			Vy:        posMsg.Vy,
+// 			Look:      posMsg.Look,
+// 		})
+// 	}
 	//QTODO, we need to fix our server architecture
+	
+	//After AddEntityListener, so they get the entity create of their own entity
+	w.AddEntity(p)
 
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
 
-	//After AddEntityListener, so they get the entity create of their own entity
-	w.AddEntity(p)
 
 	c.player = p
 	c.Send(&MsgInventoryState{
@@ -213,20 +214,20 @@ func (c *Client) EntityCreated(entity game.Entity, id string) {
 		ID: id,
 	})
 
-	pos, posTime := entity.Pos()
-	c.Send(&MsgEntityHp{
-		Timestamp: posTime,
-		ID:        entity.ID(),
-		Hp:        entity.Health(),
-	})
+// 	pos, posTime := entity.Pos()
+// 	c.Send(&MsgEntityHp{
+// 		Timestamp: posTime,
+// 		ID:        entity.ID(),
+// 		Hp:        entity.Health(),
+// 	})
 
-	c.Send(&MsgEntityPos{
-		Timestamp: posTime,
-		ID:        entity.ID(),
-		Pos:       pos,
-		Vy:        entity.Vy(),
-		Look:      entity.Look(),
-	})
+// 	c.Send(&MsgEntityPos{
+// 		Timestamp: posTime,
+// 		ID:        entity.ID(),
+// 		Pos:       pos,
+// 		Vy:        entity.Vy(),
+// 		Look:      entity.Look(),
+// 	})
 }
 
 func (c *Client) EntityTick() {}

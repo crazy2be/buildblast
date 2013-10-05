@@ -1,4 +1,5 @@
 window.onload = function () {
+
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
 	tester.run();
@@ -49,13 +50,17 @@ window.onload = function () {
 		scene.add(ambientLight);
 
 		var world = new World(scene, conn, clientID, clock);
+		var controls = new Controls(container);
 		
 		//The server has confirmed our ID, we are not going to wait for the entity-create,
 		//we are creating our entity RIGHT NOW.
-		var player = new Entity(clientID, world, clock, scene).initViews();
-		var playerUI = new PlayerUI(world, conn, clock, container, player);
+		var player = new PlayerEntity();
+		var playerBox = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+		var playerPredictor = moveSim.simulateMovement.bind(null, world, playerBox.collides);
+		var playerController = new PredictiveEntityController(player, clock, controls, playerPredictor);
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
 
-		world.addUserPlayer(player);
+		world.addUserPlayer(clientID, player, playerController);
 
 		window.testExposure.player = playerUI;
 		window.testExposure.world = world;
@@ -130,3 +135,27 @@ var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var pow = Math.pow;
+
+function addDebugWatch(obj, propertyName) {
+	hash = {};
+	hash[propertyName] = {
+		get: function () {
+			return this["_" + propertyName];
+		},
+		set: function(val) {
+			if (val !== val || val === undefined) {
+				throw "Invalid value for " + propertyName;
+			}
+			this["_" + propertyName] = val;
+		}
+	}
+	Object.defineProperties(obj, hash);
+}
+
+THREE.DVector3 = function (x, y, z) {
+	addDebugWatch(this, "x");
+	addDebugWatch(this, "y");
+	addDebugWatch(this, "z");
+	this.x = x; this.y = y; this.z = z;
+}
+THREE.DVector3.prototype = THREE.Vector3.prototype;
