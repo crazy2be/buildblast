@@ -117,6 +117,7 @@ type MsgEntityPos struct {
 	Pos       coords.World
 	Vy        float64
 	Look      coords.Direction
+	Health    int
 }
 
 type MsgEntityHp struct {

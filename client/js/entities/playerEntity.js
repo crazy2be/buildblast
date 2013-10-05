@@ -5,6 +5,10 @@ function PlayerEntity() {
 		return pos;
 	};
 
+	self.health = function () {
+		return health;
+	}
+
 	self.contains = function (x, y, z) {
 		if (!pos) return;
 		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
@@ -21,6 +25,7 @@ function PlayerEntity() {
 
 	var pos = new THREE.Vector3(0, 0, 0);
 	var vy = 0;
+	var health = 100;
 	var isMoving = false;
 
 	var bodyParts = new THREE.Object3D();
@@ -41,10 +46,12 @@ function PlayerEntity() {
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
+
 	self.update = function (state, clock) {
 		updatePosition(state.pos);
 		updateLook(state.look);
 		vy = state.vy;
+		health = state.health;
 
 		var dt = clock.dt();
 

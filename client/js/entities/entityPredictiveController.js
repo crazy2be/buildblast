@@ -31,6 +31,10 @@ function EntityPredictiveController(entity, clock, controls, predictor) {
 		lastConfirmed = data;
 	};
 
+	self.entity = function () {
+		return entity;
+	};
+
 	function predictMovement() {
 		var c = controls.sample();
 		var t = clock.time();

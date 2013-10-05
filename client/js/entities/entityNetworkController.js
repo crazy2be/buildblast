@@ -14,4 +14,8 @@ function EntityNetworkController(entity, clock) {
 	self.message = function (data) {
 		history.add(data.time, data.data);
 	};
+
+	self.entity = function () {
+		return entity;
+	};
 }

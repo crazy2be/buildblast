@@ -171,7 +171,7 @@ function Controls(elm) {
 		actionEnd(event.button);
 	}
 
-	var MOUSE_MOVE_DELTA_BUG = localStorage.activateMouseMoveDeltaBugWorkaround;
+	var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
 	function mouseMove(event) {
 		function clamp(n, a, b) {
 			return Math.max(a, Math.min(b, n));

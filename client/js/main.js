@@ -58,11 +58,12 @@ window.onload = function () {
 		var playerBox = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 		var playerPredictor = movement.simulate.bind(null, playerBox.collides.bind(null, world));
 		var playerController = new EntityPredictiveController(player, clock, controls, playerPredictor);
-		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
-
 		world.addUserPlayer(clientID, player, playerController);
 
-		window.testExposure.player = playerUI;
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
+
+
+		window.testExposure.playerUI = playerUI;
 		window.testExposure.world = world;
 
 		var previousTime = clock.time();
