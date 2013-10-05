@@ -133,10 +133,28 @@ function PredictiveEntityController(entity, clock, controls, predictor) {
 function PlayerEntity() {
 	var self = this;
 
+	self.pos = function () {
+		return pos;
+	};
+
+	self.contains = function (x, y, z) {
+		if (!pos) return;
+		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+		return box.contains(x, y, z);
+	};
+
+	self.addTo = function (scene) {
+		scene.add(bodyParts);
+	};
+
+	self.removeFrom = function (scene) {
+		scene.remove(bodyParts);
+	};
+
 	var pos = new THREE.Vector3(0, 0, 0);
 	var vy = 0;
 	var isMoving = false;
-	
+
 	var bodyParts = new THREE.Object3D();
 	var headMesh = createHead();
 	bodyParts.add(headMesh);
@@ -150,16 +168,18 @@ function PlayerEntity() {
 	var jumpAngle = 0;
 	var maxJumpAngle = 4 * Math.PI / 5;
 	var jumpSpeed = maxJumpAngle / 300;
-	
+
 	var swingAngle = 0;
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
 	self.update = function (state, clock) {
-		self.setPos(state.pos);
-		self.setLook(state.look);
-		self.setVy(state.vy);
+		updatePosition(state.pos);
+		updateLook(state.look);
+		vy = state.vy;
+
 		var dt = clock.dt();
+
 		// Jump animation
 		jumpAngle = clamp(jumpAngle + signum(vy)*dt*jumpSpeed, 0, maxJumpAngle);
 		leftArm.rotation.z = jumpAngle;
@@ -177,11 +197,7 @@ function PlayerEntity() {
 		rightArm.rotation.x = swingAngle;
 	}
 
-	self.setVy = function (newVy) {
-		vy = newVy;
-	};
-
-	self.setPos = function (newPos) {
+	function updatePosition(newPos) {
 		pos = newPos;
 		var co = PLAYER_CENTER_OFFSET;
 		var c = new THREE.Vector3(
@@ -198,9 +214,8 @@ function PlayerEntity() {
 
 		return self;
 	};
-	self.pos = function () { return pos };
 
-	self.setLook = function (newLook) {
+	function updateLook(newLook) {
 		function lookAt(obj, x, y, z) {
 			var headTarget = new THREE.Vector3(
 				obj.position.x + x,
@@ -211,20 +226,6 @@ function PlayerEntity() {
 		}
 		lookAt(bodyParts, newLook.x, 0, newLook.z);
 		lookAt(headMesh, 0, newLook.y, 1);
-	};
-
-	self.contains = function (x, y, z) {
-		if (!pos) return;
-		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-		return box.contains(x, y, z);
-	};
-
-	self.addTo = function (scene) {
-		scene.add(bodyParts);
-	};
-
-	self.removeFrom = function (scene) {
-		scene.remove(bodyParts);
 	};
 	
 	// Model/geometry
