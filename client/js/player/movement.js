@@ -1,4 +1,4 @@
-var moveSim = function () {
+var movement = function () {
 
 	//Tries to apply an application of delta to pos, without introducing intersections.
 	function attemptMove(world, pos, collides, delta) {
@@ -30,10 +30,9 @@ var moveSim = function () {
 		}
 	}
 
-	function simulateMovement(world, collides, lastPosState, controlState, dt) {
-		var c = controlState;
+	function simulate(world, collides, state, c, dt) /* newState */ {
 		
-		var newPosState = {
+		var newState = {
 			pos: new THREE.DVector3(0, 0, 0),
 			look: new THREE.DVector3(0, 0, 0),
 			vy: 0,
@@ -47,10 +46,10 @@ var moveSim = function () {
 			dt = 1;
 		}
 
-		newPosState.vy = lastPosState.vy + dt * -9.81;
+		newState.vy = state.vy + dt * -9.81;
 
 		var sin = Math.sin, cos = Math.cos;
-		newPosState.look = new THREE.Vector3(
+		newState.look = new THREE.Vector3(
 			sin(c.lat) * cos(c.lon),
 			cos(c.lat),
 			sin(c.lat) * sin(c.lon)
@@ -63,22 +62,22 @@ var moveSim = function () {
 		var rt = xzSpeed*(c.right ? 1 : c.left ? -1 : 0);
 		var move = {
 			x: -cos(c.lon) * fw + sin(c.lon) * rt,
-			y: newPosState.vy * dt,
+			y: newState.vy * dt,
 			z: -sin(c.lon) * fw - cos(c.lon) * rt,
 		};
 
-		newPosState.pos.copy(lastPosState.pos);
+		newState.pos.copy(state.pos);
 
-		attemptMove(world, newPosState.pos, collides, move);
+		attemptMove(world, newState.pos, collides, move);
 
 		if (move.y === 0) {
-			newPosState.vy = c.jump ? 6 : 0;
+			newState.vy = c.jump ? 6 : 0;
 		}
 		
-		return newPosState;
+		return newState;
 	}
 
 	return {
-		simulateMovement: simulateMovement
+		simulate: simulate,
 	};
 }();
