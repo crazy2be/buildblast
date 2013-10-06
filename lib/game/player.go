@@ -42,20 +42,18 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	look coords.Direction
-
 	box      physics.Box
 	controls ControlState
 	history  *HistoryBuffer
 	world    *World
 	name     string
 
-	// Gameplay state
 	inventory *Inventory
 
-	hp  int
-	pos coords.World
-	vy  float64
+	pos    coords.World
+	look   coords.Direction
+	health int
+	vy     float64
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -64,7 +62,7 @@ func NewPlayer(world *World, name string) *Player {
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
-		hp:        PLAYER_MAX_HP,
+		health:    PLAYER_MAX_HP,
 	}
 }
 
@@ -213,20 +211,20 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 }
 
 func (p *Player) Health() int {
-	return p.hp
+	return p.health
 }
 
 func (p *Player) Damage(amount int) {
-	p.hp -= amount
+	p.health -= amount
 }
 
 func (p *Player) Dead() bool {
-	return p.hp <= 0
+	return p.health <= 0
 }
 
 func (p *Player) Respawn(pos coords.World) {
 	p.pos = pos
-	p.hp = PLAYER_MAX_HP
+	p.health = PLAYER_MAX_HP
 	p.history.Clear()
 
 	curTime := float64(time.Now().UnixNano()) / 1e6
