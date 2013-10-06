@@ -21,7 +21,6 @@ function Clock(conn) {
 	//The time which we use to display entities (lag induction)
 	self.entityTime = function () {
 		var lagInduction = localStorage.lagInductionTime || defaultLagInduction;
-
 		return self.time() - lagInduction;
 	};
 
