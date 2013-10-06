@@ -88,9 +88,6 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		doLook(camera, camPos, c);
 		inventory.update(pos(), c);
 
-		// TODO: Fix this.
-// 		updateLagStats(playerEntity.lag());
-
 		updatePositionText(pos(), pos().dy);
 		updateHealthBar(playerEntity.health());
 
