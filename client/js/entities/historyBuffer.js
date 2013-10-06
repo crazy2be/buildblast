@@ -3,6 +3,7 @@ function HistoryBuffer() {
 	var times = [];
 	var datums = [];
 	var len = 0;
+	var maxLen = 60;
 	self.add = function (t, data) {
 		if (t < times[len - 1]) {
 			console.warn("Not adding old data to history buffer.")
@@ -10,7 +11,7 @@ function HistoryBuffer() {
 		times.push(t);
 		datums.push(data);
 		len++;
-		if (len > 100) {
+		if (len > maxLen) {
 			times.shift();
 			datums.shift();
 			len--;
@@ -43,5 +44,46 @@ function HistoryBuffer() {
 		return datums[older_i].clone().lerp(
 			datums[newer_i],
 			(t - times[older_i])/(times[newer_i] - times[older_i]));
+	};
+	self.drawState = function (ctx, time, width, height) {
+		oldest_t = times[0];
+		newest_t = times[len - 1];
+		function xat(t) {
+			return (
+				(t - oldest_t)/
+				(newest_t - oldest_t)
+			) * width;
+		}
+
+		ctx.strokeStyle = 'white';
+		ctx.fillStyle = 'white';
+		ctx.textBaseline = 'middle';
+		ctx.font = 'bold 20pt monospace';
+		ctx.textAlign = 'left';
+		ctx.fillText('-', 0, height/2);
+		ctx.textAlign = 'right';
+		ctx.fillText('+', width, height/2);
+		ctx.strokeRect(0, 0, width, height);
+
+		ctx.beginPath();
+		for (var i = 0; i < len; i++) {
+			var x = xat(times[i]);
+			ctx.moveTo(x, 4);
+			ctx.lineTo(x, height - 4);
+		}
+		ctx.strokeStyle = "green";
+		ctx.stroke();
+
+		ctx.beginPath();
+		var x = xat(time);
+		ctx.moveTo(x, 0);
+		ctx.lineTo(x, height);
+		ctx.strokeStyle = "orange";
+		ctx.stroke();
+
+		if (x < 0 || x > width) {
+			ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+			ctx.fillRect(0, 0, width, height);
+		}
 	};
 }

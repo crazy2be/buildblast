@@ -4,10 +4,12 @@ function EntityManager(scene, conn, world, clock) {
 	var controllers = {};
 
 	var _playerId = null;
+	var _playerEntity;
 	//This is only for the player which represents the player!
 	self.addUserPlayer = function(id, entity, controller) {
 		_playerId = id;
 		controllers[id] = controller;
+		_playerEntity = entity;
 		if (localStorage.showOwnEntity || localStorage.thirdPerson) {
 			entity.addTo(scene);
 		}
@@ -22,10 +24,16 @@ function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 		var entity = new PlayerEntity()
+		entity.addTo(scene);
+
 		var initialState = protocolToLocal(payload);
 		var controller = new EntityNetworkController(entity, clock, initialState);
-		controller.entity().addTo(scene);
+
 		controllers[id] = controller;
+
+		if (localStorage.posHistoryBar) {
+			entity.add(new EntityBar(controller.drawState, _playerEntity));
+		}
 	});
 
 	function protocolToLocal(payload) {

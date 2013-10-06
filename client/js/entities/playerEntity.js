@@ -45,6 +45,12 @@ function PlayerEntity() {
 		scene.remove(bodyParts);
 	};
 
+	var children = [];
+	self.add = function (child) {
+		children.push(child);
+		bodyParts.add(child.mesh());
+	}
+
 	var pos = new THREE.Vector3(0, 0, 0);
 	var vy = 0;
 	var health = 100;
@@ -75,6 +81,10 @@ function PlayerEntity() {
 		vy = state.vy;
 		health = state.health;
 
+		for (var i = 0; i < children.length; i++) {
+			children[i].update(self, clock);
+		}
+		
 		var dt = clock.dt();
 
 		// Jump animation
@@ -92,6 +102,7 @@ function PlayerEntity() {
 		}
 		leftArm.rotation.x = -swingAngle;
 		rightArm.rotation.x = swingAngle;
+
 	}
 
 	function updatePosition(newPos) {
