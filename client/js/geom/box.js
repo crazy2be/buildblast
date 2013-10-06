@@ -1,5 +1,3 @@
-//Fulfills volume requirements, which is to expose
-//a boundingBox, collides and blockCollide function.
 function Box(halfExtents, centerOffset) {
 	var self = this;
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);

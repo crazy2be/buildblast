@@ -17,6 +17,10 @@ function HistoryBuffer() {
 			len--;
 		}
 	};
+	// Ideally, this should be as similar to the server
+	// as possible. That way, where we are displaying
+	// the entity is in the same place the server will
+	// calculate it as.
 	self.at = function (t) /* data */ {
 		if (len <= 0) {
 			throw "Attempt to access item in empty history buffer.";
