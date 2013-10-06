@@ -44,19 +44,23 @@ In map generation and geometry code, which is particularly concerned with the ex
 
 Lag hiding
 ----------
-In order to make the game playable with 100s of milliseconds of lag we apply multiple algorithms to reduce the appearance of lag.
-
- - https://developer.valvesoftware.com/wiki/Lag_compensation
- - http://en.wikipedia.org/wiki/Lag_(online_gaming)#Rewind_time
+In order to make the game playable with 100s of milliseconds of lag we apply multiple algorithms to reduce the appearance of lag. You might find [this article by Valve](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking) to be helpful if you are interested in this.
 
 ### Lag Compensation (Shooting is accurate regardless of lag)
 If the client shoots at time 0 ms, and the server receives it at time 100 ms, it is likely the person they were shooting at has moved since the time they shot. So, we "lag compensate" players (entities). This means the server stores the history of positions for every player, and the player timestamps its shoot events, so when the server receives the shoot it can simulate it with the player positions that existed when the shot was fired.
 
+ - https://developer.valvesoftware.com/wiki/Lag_compensation
+ - http://en.wikipedia.org/wiki/Lag_(online_gaming)#Rewind_time
+
 ### Input Prediction (No player movement lag)
 When the player presses a movement key technically we need to wait until the server confirms the message to know if we can move, since the server is the "master". However, it's much nicer from a user's perspecitve if the controls respond immediately. Thus, we use the client's game state to make predictions about what will happen, and show that state to the player. If the server thinks something different happened, we'll throw away our predictions, and follow it's command.
 
+ - https://developer.valvesoftware.com/wiki/Prediction
+
 ### Lag Induction (Smooth other player movement and easier gameplay)
 The server may send messages at a varying speed, and we may receive them at a varying speed. This means other player's will appear to jerk around as we receive movement messages. To get around this we store don't immediately show player positions as we receive them, instead we show players where they were `lagInduction` time in the past. This gives us a buffer to hide the impact of lag (and smooth out movement). `clock.entityTime()` is the current time that entities are being displayed at.
+
+ - https://developer.valvesoftware.com/wiki/Interpolation
 
 Bugs
 -------
