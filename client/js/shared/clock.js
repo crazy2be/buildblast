@@ -10,7 +10,7 @@ function Clock(conn) {
 	self.time = function () {
 		return curTime;
 	};
-	
+
 	var lastUpdateDT = 0.0;
 	// Time differential between this frame and the last
 	// drawn frame.
@@ -20,7 +20,7 @@ function Clock(conn) {
 
 	//The time which we use to display entities (lag induction)
 	self.entityTime = function () {
-		var lagInduction = localStorage.lag || defaultLagInduction;
+		var lagInduction = localStorage.lagInductionTime || defaultLagInduction;
 
 		return self.time() - lagInduction;
 	};
@@ -43,7 +43,7 @@ function Clock(conn) {
 		lastUpdateDT = localdt + offsetdt;
 		prevNow = curNow;
 	};
-	
+
 	// http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/mag.html
 	function minMag(a, b) {
 		var aa = abs(a), ab = abs(b);

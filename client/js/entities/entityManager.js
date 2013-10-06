@@ -29,7 +29,7 @@ function EntityManager(scene, conn, world, clock) {
 
 		controllers[id] = controller;
 
-		if (localStorage.posHistoryBar) {
+		if (localStorage.showHistoryBuffers) {
 			var playerEntity = controllers[_playerId].entity();
 			entity.add(new EntityBar(controller.drawState, playerEntity));
 		}
