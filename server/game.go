@@ -145,7 +145,6 @@ func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
 
 func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {
 	pos, posTime := entity.Pos()
-
 	g.Broadcast(&MsgEntityState{
 		Timestamp: posTime,
 		ID:        id,
@@ -158,17 +157,7 @@ func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {
 
 func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
 	g.Announce(killer + " killed " + string(id))
-
-	pos, posTime := entity.Pos()
-
-	g.Broadcast(&MsgEntityState{
-		Timestamp: posTime,
-		ID:        id,
-		Pos:       pos,
-		Vy:        entity.Vy(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-	})
+	g.EntityDamaged(id, entity)
 }
 
 func (g *Game) EntityRemoved(id game.EntityID) {}
