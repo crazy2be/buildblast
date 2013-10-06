@@ -1,4 +1,5 @@
-//QTODO: Move a lot of this logic to entity
+// TODO: Move a lot of this logic to entity. We want
+// Entities to be able to have items too!
 function Inventory(world, camera, conn, controls) {
 	var self = this;
 	var BAG_SIZE = 25;

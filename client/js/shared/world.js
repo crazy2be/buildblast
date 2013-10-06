@@ -44,10 +44,12 @@ function World(scene, conn, clientID, clock) {
 		var cc = cords.c;
 
 		var chunk = chunkManager.chunk(cc);
-		if (!chunk) return null;
+		if (!chunk) {
+			return new Block(Block.NIL);
+		}
 		var block = chunk.block(oc);
 		if (!block) throw "Could not load blockkk!!!";
-		else return block;
+		return block;
 	};
 
 	function findIntersection(point, look, criteriaFnc, precision, maxDist) {

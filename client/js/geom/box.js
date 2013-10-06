@@ -4,75 +4,53 @@ function Box(halfExtents, centerOffset) {
 	var self = this;
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
-	//Returns {xs, ys, zs, xe, ye, ze}
-	function boundingBox(pos) {
-		var p = pos;
+	// We might want to move this at some point...
+	// You can't have boxes checking collisions with
+	// other boxes, or your collision detection will
+	// become O(n^2). Boxes checking world is fine,
+	// that's only O(n), but it might make sence to
+	// move this once we have a more comprehensive
+	// collision interface.
+	self.collides = function(world, pos) {
+		return volumeBlockCollides(pos, blockCollide.bind(null, world));
+	}
+
+	// We can do this (fairly) efficiently because
+	// of the assumed resolution of the voxel world.
+	function volumeBlockCollides(p, blockCollide) {
+		var he = halfExtents;
+		var co = centerOffset;
+		var f = Math.floor;
+		var xs = f(p.x + co.x - he.x), xe = f(p.x + co.x + he.x);
+		var ys = f(p.y + co.y - he.y), ye = f(p.y + co.y + he.y);
+		var zs = f(p.z + co.z - he.z), ze = f(p.z + co.z + he.z);
+
+		for (var x = xs; x <= xe; x++) {
+			for (var y = ys; y <= ye; y++) {
+				for (var z = zs; z <= ze; z++) {
+					if (blockCollide(x, y, z)) {
+						return new THREE.Vector3(x, y, z);
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	function blockCollide(world, x, y, z) {
+		return world.blockAt(x, y, z).solid();
+	}
+
+	self.contains = function (x, y, z) {
 		var he = halfExtents;
 		var co = centerOffset;
 		var xs = p.x + co.x - he.x, xe = p.x + co.x + he.x;
 		var ys = p.y + co.y - he.y, ye = p.y + co.y + he.y;
 		var zs = p.z + co.z - he.z, ze = p.z + co.z + he.z;
 
-		return {xs: xs, ys: ys, zs: zs, xe: xe, ye: ye, ze: ze};
-	}
-
-	//QTODO: Remove this from box.js
-	//Returns true if the box at that position
-	//collides, false otherwise.
-	self.collides = function(world, pos) {
-		return boundingBoxHasACollision(
-			world,
-			pos,
-			blockCollide
-		);
-	}
-
-	function boundingBoxHasACollision (world, pos, blockCollide) {
-		var bb = boundingBox(pos);
-		//Turn everything into integers
-		bb.xs = Math.floor(bb.xs);
-		bb.ys = Math.floor(bb.ys);
-		bb.zs = Math.floor(bb.zs);
-		bb.xe = Math.floor(bb.xe);
-		bb.ye = Math.floor(bb.ye);
-		bb.ze = Math.floor(bb.ze);
-
-		var x, y, z;
-		//x, y, z, iterating in this way is the same way the blocks
-		//are stored linearly in memory, so it's good.
-		x = bb.xs;
-		while(x <= bb.xe) {
-			y = bb.ys;
-			while(y <= bb.ye) {
-				z = bb.zs;
-				while(z <= bb.ze) {
-					var block = world.blockAt(x, y, z);
-					if(blockCollide(block)) {
-						return new THREE.Vector3(x, y, z);
-					}
-					z++;
-				}
-				y++;
-			}
-			x++;
-		}
-
-		return null;
-	}
-
-	function pointCollides(point, boundingBox) {
-		return boundingBox[0] <= point.x && point.x <= boundingBox[3] &&
-			boundingBox[1] <= point.y && point.y <= boundingBox[4] &&
-			boundingBox[2] <= point.z && point.z <= boundingBox[5];
-	}
-
-	//QTODO: Remove this from box.js
-	function blockCollide (block) {
-		return !block || block.solid();
-	}
-
-	self.contains = function(x, y, z) {
-		var pos = new THREE.Vector3(x, y, z)
-		pointCollides(pos, boundingBox(pos));
-	}
+		return xs < x && xe > x &&
+			ys < y && ye > y &&
+			zs < z && ze > z;
+	};
 }
