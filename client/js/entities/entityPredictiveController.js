@@ -55,6 +55,7 @@ function EntityPredictiveController(entity, clock, controls, predictor) {
 			var c = controlStates[i];
 			var t = times[i];
 			var dt = t - prev_t;
+			prev_t = t;
 			state = predictor(state, c, dt);
 		}
 		return state;
