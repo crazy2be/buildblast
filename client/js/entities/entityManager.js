@@ -4,15 +4,12 @@ function EntityManager(scene, conn, world, clock) {
 	var controllers = {};
 
 	var _playerId = null;
-	var _playerEntity;
-	//This is only for the player which represents the player!
 	self.setPlayer = function(id, entity, controller) {
-		if (_playerId || _playerEntity) {
+		if (_playerId) {
 			throw "Attempt to set player when player has already been set.";
 		}
 		_playerId = id;
 		controllers[id] = controller;
-		_playerEntity = entity;
 		if (localStorage.showOwnEntity || localStorage.thirdPerson) {
 			entity.addTo(scene);
 		}
@@ -33,7 +30,8 @@ function EntityManager(scene, conn, world, clock) {
 		controllers[id] = controller;
 
 		if (localStorage.posHistoryBar) {
-			entity.add(new EntityBar(controller.drawState, _playerEntity));
+			var playerEntity = controllers[_playerId].entity();
+			entity.add(new EntityBar(controller.drawState, playerEntity));
 		}
 	});
 
