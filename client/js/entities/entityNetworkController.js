@@ -4,7 +4,7 @@ function EntityNetworkController(entity, clock, initialState) {
 	history.add(initialState.time, initialState.data);
 
 	self.update = function () {
-		entity.update(history.at(clock.time()), clock);
+		entity.update(history.at(clock.entityTime()), clock);
 	};
 
 	self.message = function (data) {
