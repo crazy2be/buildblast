@@ -46,7 +46,7 @@ type Player struct {
 
 	box      physics.Box
 	controls ControlState
-	history  *PlayerHistory
+	history  *HistoryBuffer
 	world    *World
 	name     string
 
@@ -60,7 +60,7 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		history:   NewPlayerHistory(),
+		history:   NewHistoryBuffer(),
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,

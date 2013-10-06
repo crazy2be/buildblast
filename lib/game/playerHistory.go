@@ -1,36 +1,32 @@
 package game
 
-//This serves the same purpose as "HistoryBuffer" on the client,
-//	but the client wraps it a few times to add input prediction
-//	and lag induction.
-
 import (
 	"buildblast/lib/coords"
 )
 
-type PlayerHistoryEntry struct {
+type HistoryEntry struct {
 	pos coords.World
 	// JavaScript performance.now() timestamp.
 	t float64
 }
 
-type PlayerHistory struct {
-	buf    []PlayerHistoryEntry
+type HistoryBuffer struct {
+	buf    []HistoryEntry
 	offset int
 }
 
-func NewPlayerHistory() *PlayerHistory {
-	ph := new(PlayerHistory)
-	ph.buf = make([]PlayerHistoryEntry, 101)
+func NewHistoryBuffer() *HistoryBuffer {
+	ph := new(HistoryBuffer)
+	ph.buf = make([]HistoryEntry, 101)
 	return ph
 }
 
-func (ph *PlayerHistory) Add(t float64, pos coords.World) {
+func (ph *HistoryBuffer) Add(t float64, pos coords.World) {
 	ph.offset--
 	if ph.offset < 0 {
 		ph.offset = len(ph.buf) - 1
 	}
-	ph.buf[ph.offset] = PlayerHistoryEntry{pos, t}
+	ph.buf[ph.offset] = HistoryEntry{pos, t}
 }
 
 func mod(i int, modulos int) int {
@@ -39,25 +35,25 @@ func mod(i int, modulos int) int {
 	return ((i % modulos) + modulos) % modulos
 }
 
-func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
+func (ph *HistoryBuffer) at(i int) HistoryEntry {
 	l := len(ph.buf)
 	return ph.buf[mod(ph.offset+i, l)]
 }
 
-func (ph *PlayerHistory) set(i int, val PlayerHistoryEntry) {
+func (ph *HistoryBuffer) set(i int, val HistoryEntry) {
 	l := len(ph.buf)
 	ph.buf[mod(ph.offset+i, l)] = val
 }
 
-func (ph *PlayerHistory) Clear() {
+func (ph *HistoryBuffer) Clear() {
 	l := len(ph.buf)
 	for i := 0; i < l; i++ {
-		ph.set(i, PlayerHistoryEntry{})
+		ph.set(i, HistoryEntry{})
 	}
 }
 
 //http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
-func lerp(older PlayerHistoryEntry, newer PlayerHistoryEntry, t float64) coords.World {
+func lerp(older HistoryEntry, newer HistoryEntry, t float64) coords.World {
 	timeSpan := newer.t - older.t
 	oldWeight := (t - older.t) / timeSpan
 	newWeight := (newer.t - t) / timeSpan
@@ -75,7 +71,7 @@ func lerp(older PlayerHistoryEntry, newer PlayerHistoryEntry, t float64) coords.
 // ring buffer, return that entry. If t is between
 // two entries in the ring buffer, interpolate
 // between them.
-func (ph *PlayerHistory) PositionAt(t float64) coords.World {
+func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	l := len(ph.buf)
 
 	newest := ph.at(0)
