@@ -41,6 +41,16 @@ window.onload = function () {
 		startGame();
 	})
 
+	function makePlayer(world, clock, controls) {
+		var player = new PlayerEntity();
+		var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+		var collides = box.collides.bind(null, world);
+		var predictor = movement.simulate.bind(null, collides);
+		var controller = new EntityPredictiveController(player, clock, controls, predictor);
+		world.setPlayer(clientID, player, controller);
+		return player;
+	}
+
 	function startGame() {
 		var scene = new THREE.Scene();
 		var ambientLight = new THREE.AmbientLight(0xffffff);
@@ -48,15 +58,8 @@ window.onload = function () {
 
 		var world = new World(scene, conn, clientID, clock);
 		var controls = new Controls(container);
-		
-		//The server has confirmed our ID, we are not going to wait for the entity-create,
-		//we are creating our entity RIGHT NOW.
-		var player = new PlayerEntity();
-		var playerBox = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
-		var playerPredictor = movement.simulate.bind(null, playerBox.collides.bind(null, world));
-		var playerController = new EntityPredictiveController(player, clock, controls, playerPredictor);
-		world.addUserPlayer(clientID, player, playerController);
 
+		var player = makePlayer(world, clock, controls)
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
 
 

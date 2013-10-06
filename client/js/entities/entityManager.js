@@ -6,7 +6,10 @@ function EntityManager(scene, conn, world, clock) {
 	var _playerId = null;
 	var _playerEntity;
 	//This is only for the player which represents the player!
-	self.addUserPlayer = function(id, entity, controller) {
+	self.setPlayer = function(id, entity, controller) {
+		if (_playerId || _playerEntity) {
+			throw "Attempt to set player when player has already been set.";
+		}
 		_playerId = id;
 		controllers[id] = controller;
 		_playerEntity = entity;
@@ -18,8 +21,6 @@ function EntityManager(scene, conn, world, clock) {
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			//This is good, confirms that the server recognizes our existence
-			if (id === _playerId) return;
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
