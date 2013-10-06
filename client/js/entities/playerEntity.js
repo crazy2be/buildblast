@@ -32,7 +32,6 @@ function PlayerEntity() {
 	}
 
 	self.contains = function (x, y, z) {
-		if (!pos) return;
 		var box = new Box(pos, PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 		return box.contains(x, y, z);
 	};
@@ -84,7 +83,7 @@ function PlayerEntity() {
 		for (var i = 0; i < children.length; i++) {
 			children[i].update(self, clock);
 		}
-		
+
 		var dt = clock.dt();
 
 		// Jump animation
