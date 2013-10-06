@@ -45,6 +45,10 @@ function HistoryBuffer() {
 			datums[newer_i],
 			(t - times[older_i])/(times[newer_i] - times[older_i]));
 	};
+	// Draw the state of this history buffer to a canvas.
+	// Useful for debugging! Green lines correspond to
+	// history entries, orange to our current rendering
+	// time (well actually whatever time is passed in).
 	self.drawState = function (ctx, time, width, height) {
 		oldest_t = times[0];
 		newest_t = times[len - 1];
@@ -63,6 +67,7 @@ function HistoryBuffer() {
 		ctx.fillText('-', 0, height/2);
 		ctx.textAlign = 'right';
 		ctx.fillText('+', width, height/2);
+		ctx.lineWidth = 1;
 		ctx.strokeRect(0, 0, width, height);
 
 		ctx.beginPath();
@@ -71,6 +76,7 @@ function HistoryBuffer() {
 			ctx.moveTo(x, 4);
 			ctx.lineTo(x, height - 4);
 		}
+		ctx.lineWidth = 1;
 		ctx.strokeStyle = "green";
 		ctx.stroke();
 
@@ -78,12 +84,22 @@ function HistoryBuffer() {
 		var x = xat(time);
 		ctx.moveTo(x, 0);
 		ctx.lineTo(x, height);
+		ctx.lineWidth = 4;
 		ctx.strokeStyle = "orange";
 		ctx.stroke();
 
 		if (x < 0 || x > width) {
-			ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
 			ctx.fillRect(0, 0, width, height);
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillStyle = 'red';
+			var howFarBehind = round(time - newest_t, 2) + 'ms';
+			ctx.fillText(howFarBehind, width/2, height/2);
+		}
+		function round(n, places) {
+			var mult = Math.pow(10, places);
+			return Math.round(n*mult)/mult;
 		}
 	};
 }

@@ -12,7 +12,6 @@
 		document.body.appendChild(script);
 	}
 }([
-	'js/./logging.js',
 	'js/./settings.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',
@@ -25,12 +24,12 @@
 	'js/./chunks/worker/meshers/greedyMesher.js',
 	'js/./chunks/worker/meshers/simpleMesher.js',
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
+	'js/./entities/entityBar.js',
 	'js/./entities/entityManager.js',
 	'js/./entities/entityNetworkController.js',
 	'js/./entities/entityPredictiveController.js',
 	'js/./entities/historyBuffer.js',
 	'js/./entities/playerEntity.js',
-	'js/./entities/entityViews/posHistoryBar.js',
 	'js/./geom/box.js',
 	'js/./perf/chart.js',
 	'js/./player/chat.js',
