@@ -30,6 +30,14 @@ function EntityPredictiveController(entity, clock, controls, predictor) {
 		return entity;
 	};
 
+	// How far ahead are we predicting? This is a
+	// rough indicator of lag, since it tells us how
+	// long it's taking the server to confirm our
+	// position.
+	self.predictionAheadBy = function () {
+		return times[times.length - 1] - lastConfirmed.time;
+	}
+
 	function predictMovement() {
 		var c = controls.sample();
 		var t = clock.time();

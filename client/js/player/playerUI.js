@@ -20,17 +20,9 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
 
-	var speed;
-
-	var renderer = new THREE.WebGLRenderer();
-	initializeRenderer();
-	function initializeRenderer() {
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
-		container.querySelector('#opengl').appendChild(renderer.domElement);
-		document.querySelector('#splash h1').innerHTML = 'Click to play!';
-
-		speed = new PerfChart({
+	var speed = initSpeedChart();
+	function initSpeedChart() {
+		var speed = new PerfChart({
 			title: ' render',
 			maxValue: 50,
 		});
@@ -38,6 +30,18 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		speed.elm.style.top = '74px';
 		speed.elm.style.right = '0px';
 		container.appendChild(speed.elm);
+		return speed;
+	}
+
+	var renderer = initRenderer();
+	function initRenderer() {
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+
+		container.querySelector('#opengl').appendChild(renderer.domElement);
+		document.querySelector('#splash h1').innerHTML = 'Click to play!';
+
+		return renderer;
 	}
 
 	window.addEventListener('resize', onWindowResize, false);
@@ -84,6 +88,7 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		doLook(camera, camPos, c);
 		inventory.update(pos(), c);
 
+		// TODO: Fix this.
 // 		updateLagStats(playerEntity.lag());
 
 		updatePositionText(pos(), pos().dy);
@@ -127,17 +132,6 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		// Force animations to restart
 		var newHealth = health.cloneNode(true);
 		health.parentNode.replaceChild(newHealth, health);
-	}
-
-	var lagStats = new PerfChart({
-		title: ' lag'
-	});
-	lagStats.elm.style.position = 'absolute';
-	lagStats.elm.style.top = '74px';
-	lagStats.elm.style.right = '80px';
-	document.getElementById('container').appendChild(lagStats.elm);
-	function updateLagStats(lag) {
-		lagStats.addDataPoint(lag);
 	}
 
 	var prevpos = new THREE.Vector3(0, 0, 0);

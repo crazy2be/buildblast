@@ -1,5 +1,4 @@
 window.onload = function () {
-
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
 	tester.run();
@@ -41,7 +40,21 @@ window.onload = function () {
 		startGame();
 	})
 
+	var updateLagStats;
 	function makePlayer(world, clock, controls) {
+		var lagStats = new PerfChart({
+			title: ' lag'
+		});
+		lagStats.elm.style.position = 'absolute';
+		lagStats.elm.style.top = '74px';
+		lagStats.elm.style.right = '80px';
+		container.appendChild(lagStats.elm);
+		
+		updateLagStats = function () {
+			var lag = controller.predictionAheadBy()
+			lagStats.addDataPoint(lag);
+		}
+
 		var player = new PlayerEntity();
 		var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
@@ -80,6 +93,8 @@ window.onload = function () {
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
 			world.update(dt, player.pos());
+
+			updateLagStats();
 
 			playerUI.update(dt);
 			playerUI.render(scene);
