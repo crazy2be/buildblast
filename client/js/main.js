@@ -73,13 +73,12 @@ window.onload = function () {
 
 			conn.update();
 
-			playerUI.update(dt);
-
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
 			world.update(dt, player.pos());
 
+			playerUI.update(dt);
 			playerUI.render(scene);
 
 			if (fatalErrorTriggered) return;
