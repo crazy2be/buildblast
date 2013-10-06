@@ -9,11 +9,8 @@ window.onload = function () {
 		return;
 	}
 
-	//We use this to expose certain variables for test code.
+	// We use this to expose certain variables for test code.
 	window.testExposure = { };
-	
-	//This loads the settings (currently just sets localStorage variables)
-	_LoadSettings();
 
 	//Connect to server and shake our hands.
 	var conn = new Conn(getWSURI("main/"));
