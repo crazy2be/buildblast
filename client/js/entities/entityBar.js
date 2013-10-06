@@ -21,7 +21,7 @@ function EntityBar(drawFunc, playerEntity) {
 		new THREE.PlaneGeometry(canvas.width, canvas.height),
 		material);
 
-	mesh.scale.set(1/100, 1/100, 1/100);
+	mesh.scale.set(-1/100, 1/100, 1/100);
 	mesh.position.set(0, 1.25, 0);
 
 	self.update = function (entity, clock) {
