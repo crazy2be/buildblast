@@ -1,6 +1,6 @@
 // Conventient bundles of settings which you can activate
 // at your leasure in the javascript console.
-function __loadSettingScheme(name) {
+function __loadSettingsScheme(name) {
 	switch (name) {
 	case "quentin":
 		localStorage.lagInductionTime = 300;
@@ -18,7 +18,8 @@ function __loadSettingScheme(name) {
 			// which is thruthy to JavaScript.
 			delete localStorage[k];
 		}
+		return "Success!";
 	default:
-		return "No clue what the settings scheme: '" + localStorage.scheme + "' means?";
+		return "No clue what the settings scheme: '" + name + "' means?";
 	}
 }
