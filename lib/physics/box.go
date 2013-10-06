@@ -5,7 +5,7 @@ import (
 	"buildblast/lib/mapgen"
 )
 
-//QTODO: Rewrite this to mirror the client box.js.
+// TODO: Rewrite this to mirror the client box.js.
 
 // xs means x start, xe means x end, etc.
 // We have a middle value for y because otherwise
