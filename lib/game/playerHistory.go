@@ -29,10 +29,10 @@ func (ph *HistoryBuffer) Add(t float64, pos coords.World) {
 	ph.buf[ph.offset] = HistoryEntry{pos, t}
 }
 
-func mod(i int, modulos int) int {
+func mod(a, b int) int {
 	// Go has the same problem as JavaScript...
 	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
-	return ((i % modulos) + modulos) % modulos
+	return ((a % b) + b) % b
 }
 
 func (ph *HistoryBuffer) at(i int) HistoryEntry {
@@ -49,19 +49,6 @@ func (ph *HistoryBuffer) Clear() {
 	l := len(ph.buf)
 	for i := 0; i < l; i++ {
 		ph.set(i, HistoryEntry{})
-	}
-}
-
-//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
-func lerp(older HistoryEntry, newer HistoryEntry, t float64) coords.World {
-	timeSpan := newer.t - older.t
-	oldWeight := (t - older.t) / timeSpan
-	newWeight := (newer.t - t) / timeSpan
-
-	return coords.World{
-		X: older.pos.X*oldWeight + newer.pos.X*newWeight,
-		Y: older.pos.Y*oldWeight + newer.pos.Y*newWeight,
-		Z: older.pos.Z*oldWeight + newer.pos.Z*newWeight,
 	}
 }
 
@@ -99,5 +86,6 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 		return older.pos
 	}
 
-	return lerp(older, newer, t)
+	alpha := (t - older.t) / (newer.t - older.t)
+	return older.pos.Lerp(newer.pos, alpha)
 }

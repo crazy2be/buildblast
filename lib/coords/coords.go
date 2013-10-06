@@ -51,6 +51,16 @@ func (wc World) Move(d Direction, amount float64) World {
 	}
 }
 
+// alpha: [0, 1]. How much of "other" should be in
+// the result. (alpha of 0 => wc, alpha of 1 => other).
+func (wc World) Lerp(other World, alpha float64) World {
+	return World{
+		X: wc.X*(1 - alpha) + other.X*alpha,
+		Y: wc.Y*(1 - alpha) + other.Y*alpha,
+		Z: wc.Z*(1 - alpha) + other.Z*alpha,
+	}
+}
+
 func (wc World) Chunk() Chunk {
 	return wc.Block().Chunk()
 }
