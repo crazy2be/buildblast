@@ -144,14 +144,13 @@ func (g *Game) Tick() {
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
 
 func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {
-	pos, posTime := entity.Pos()
 	g.Broadcast(&MsgEntityState{
-		Timestamp: posTime,
 		ID:        id,
-		Pos:       pos,
-		Vy:        entity.Vy(),
+		Pos:       entity.Pos(),
 		Look:      entity.Look(),
 		Health:    entity.Health(),
+		Vy:        entity.Vy(),
+		Timestamp: entity.LastUpdated(),
 	})
 }
 

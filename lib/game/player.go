@@ -3,8 +3,7 @@ package game
 import (
 	"log"
 	"math"
-	"time"
-
+	
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
 )
@@ -66,17 +65,41 @@ func NewPlayer(world *World, name string) *Player {
 	}
 }
 
-func (p *Player) Vy() float64 {
-	return p.vy
+func (p *Player) Pos() coords.World {
+	return p.pos
 }
 
 func (p *Player) Look() coords.Direction {
 	return p.look
 }
 
-//Let there be a time for every position.
-func (p *Player) Pos() (coords.World, float64) {
-	return p.pos, p.controls.Timestamp
+func (p *Player) Health() int {
+	return p.health
+}
+
+func (p *Player) Damage(amount int) {
+	p.health -= amount
+}
+
+func (p *Player) Dead() bool {
+	return p.health <= 0
+}
+
+func (p *Player) Respawn(pos coords.World) {
+	p.pos = pos
+	p.health = PLAYER_MAX_HP
+	p.history.Clear()
+	p.history.Add(p.LastUpdated(), p.pos)
+}
+
+func (p *Player) Vy() float64 {
+	return p.vy
+}
+
+// Returns the last time this entity's state was updated
+// (i.e. by a client sending a control-state packet).
+func (p *Player) LastUpdated() float64 {
+	return p.controls.Timestamp
 }
 
 func (p *Player) ID() EntityID {
@@ -208,25 +231,4 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		p.history.PositionAt(t),
 		PLAYER_HALF_EXTENTS,
 		PLAYER_CENTER_OFFSET)
-}
-
-func (p *Player) Health() int {
-	return p.health
-}
-
-func (p *Player) Damage(amount int) {
-	p.health -= amount
-}
-
-func (p *Player) Dead() bool {
-	return p.health <= 0
-}
-
-func (p *Player) Respawn(pos coords.World) {
-	p.pos = pos
-	p.health = PLAYER_MAX_HP
-	p.history.Clear()
-
-	curTime := float64(time.Now().UnixNano()) / 1e6
-	p.history.Add(curTime, p.pos)
 }

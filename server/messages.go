@@ -107,11 +107,11 @@ type MsgEntityCreate MsgEntityState
 
 type MsgEntityState struct {
 	ID        game.EntityID
-	Timestamp float64
 	Pos       coords.World
-	Vy        float64
 	Look      coords.Direction
 	Health    int
+	Vy        float64
+	Timestamp float64
 }
 
 type MsgEntityRemove struct {

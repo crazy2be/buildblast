@@ -111,17 +111,15 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
 	hitPos := c.player.ClientTick(m.Controls)
 
-	pos, posTime := c.player.Pos()
-
-	c.cm.QueueChunksNearby(w, pos)
+	c.cm.QueueChunksNearby(w, c.player.Pos())
 
 	g.Broadcast(&MsgEntityState{
-		Timestamp: posTime,
 		ID:        c.player.ID(),
-		Pos:       pos,
-		Vy:        c.player.Vy(),
+		Pos:       c.player.Pos(),
 		Look:      c.player.Look(),
 		Health:    c.player.Health(),
+		Vy:        c.player.Vy(),
+		Timestamp: c.player.LastUpdated(),
 	})
 
 	if hitPos != nil {
@@ -173,14 +171,13 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 }
 
 func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
-	pos, posTime := entity.Pos()
 	c.Send(&MsgEntityCreate{
-		Timestamp: posTime,
 		ID:        id,
-		Pos:       pos,
-		Vy:        entity.Vy(),
+		Pos:       entity.Pos(),
 		Look:      entity.Look(),
 		Health:    entity.Health(),
+		Vy:        entity.Vy(),
+		Timestamp: entity.LastUpdated(),
 	})
 }
 

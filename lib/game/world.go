@@ -43,9 +43,7 @@ func (w *World) Tick() {
 	w.generationTick()
 	for _, e := range w.entities {
 		e.Tick(w)
-		pos, posTime := e.Pos()
-		_ = posTime
-		w.chunkGenerator.QueueChunksNearby(pos)
+		w.chunkGenerator.QueueChunksNearby(e.Pos())
 	}
 }
 
