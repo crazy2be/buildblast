@@ -44,7 +44,7 @@ In map generation and geometry code, which is particularly concerned with the ex
 
 Lag hiding
 ----------
-In order to make the game playable with 100s of milliseconds of lag we apply multiple algorithms to reduce the appearance of lag. You might find [this article by Valve](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking) to be helpful if you are interested in this.
+In order to make the game playable with hundreds of milliseconds of lag we apply multiple algorithms to reduce the appearance of lag. You might find [this article by Valve](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking) to be helpful if you are interested in this.
 
 ### Lag Compensation (Shooting is accurate regardless of lag)
 If the client shoots at time 0 ms, and the server receives it at time 100 ms, it is likely the person they were shooting at has moved since the time they shot. So, we "lag compensate" players (entities). This means the server stores the history of positions for every player, and the player timestamps its shoot events, so when the server receives the shoot it can simulate it with the player positions that existed when the shot was fired.
