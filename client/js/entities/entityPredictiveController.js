@@ -13,15 +13,14 @@ function EntityPredictiveController(entity, clock, controls, predictor) {
 	};
 
 	self.message = function (data) {
-		// FUUUUU QUENTIN I WILL FIND YOU
-		if (data.time === 0) return;
-		if (times.length < 1) throw "No matching prediction data for given prediction.";
+		if (times.length < 1) {
+			throw "No matching prediction data for prediction given by server.";
+		}
 		var time = times.shift();
 		var state = controlStates.shift();
 		if (time != data.time) {
+			// Aww yeah, recursive iteration.
 			return self.message(data);
-			// TODO: Handle this more gracefully.
-			throw "Recieved player-position packet from server with timestamp that does not match our oldest non-confirmed packet. This means the server is either processing packets out of order, or dropped one.";
 		}
 
 		lastConfirmed = data;
