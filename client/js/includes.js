@@ -12,6 +12,8 @@
 		document.body.appendChild(script);
 	}
 }([
+	'js/./featureTester.js',
+	'js/./models.js',
 	'js/./settings.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',
@@ -24,6 +26,9 @@
 	'js/./chunks/worker/meshers/greedyMesher.js',
 	'js/./chunks/worker/meshers/simpleMesher.js',
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
+	'js/./core/clock.js',
+	'js/./core/conn.js',
+	'js/./core/world.js',
 	'js/./entities/entityBar.js',
 	'js/./entities/entityManager.js',
 	'js/./entities/entityNetworkController.js',
@@ -39,11 +44,6 @@
 	'js/./player/movement.js',
 	'js/./player/playerUI.js',
 	'js/./player/stack.js',
-	'js/./shared/clock.js',
-	'js/./shared/conn.js',
-	'js/./shared/featureTester.js',
-	'js/./shared/models.js',
-	'js/./shared/world.js',
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
 ]));
