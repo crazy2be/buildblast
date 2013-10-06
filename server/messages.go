@@ -16,7 +16,6 @@ const (
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
 	MSG_ENTITY_POS      = MessageKind("entity-pos")
-	MSG_ENTITY_HP       = MessageKind("entity-hp")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
@@ -36,8 +35,6 @@ func kindToType(kind MessageKind) Message {
 		return &MsgHandshakeInit{}
 	case MSG_ENTITY_POS:
 		return &MsgEntityPos{}
-	case MSG_ENTITY_HP:
-		return &MsgEntityHp{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
 	case MSG_ENTITY_REMOVE:
@@ -70,8 +67,6 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_ERROR
 	case *MsgEntityPos:
 		return MSG_ENTITY_POS
-	case *MsgEntityHp:
-		return MSG_ENTITY_HP
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE
 	case *MsgEntityRemove:
@@ -111,27 +106,21 @@ type MsgHandshakeError struct {
 	Message string
 }
 
+// We want the entity to have a valid
+// state when we first create it.
+type MsgEntityCreate MsgEntityPos
+
 type MsgEntityPos struct {
 	Timestamp float64
-	ID        string
+	ID        game.EntityID
 	Pos       coords.World
 	Vy        float64
 	Look      coords.Direction
 	Health    int
 }
 
-type MsgEntityHp struct {
-	Timestamp float64
-	ID        string
-	Hp        int
-}
-
-type MsgEntityCreate struct {
-	ID string
-}
-
 type MsgEntityRemove struct {
-	ID string
+	ID game.EntityID
 }
 
 type MsgChunk struct {

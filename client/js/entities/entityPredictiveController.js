@@ -4,11 +4,7 @@ function EntityPredictiveController(entity, clock, controls, predictor) {
 	var times = [];
 	var lastConfirmed = {
 		time: 0,
-		data: {
-			pos: new THREE.DVector3(0, 0, 0),
-			look: new THREE.DVector3(0, 0, 0),
-			vy: 0.0,
-		},
+		data: new EntityState(),
 	};
 
 	self.update = function () {

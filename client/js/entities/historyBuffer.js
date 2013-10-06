@@ -16,20 +16,6 @@ function HistoryBuffer() {
 			len--;
 		}
 	};
-	function lerp(a, b, frac) {
-		if (typeof a === 'number') {
-			return a*(1 - frac) + b*frac;
-		} else if (typeof a === 'object') {
-			var res = {};
-			for (var key in a) {
-				if (!a.hasOwnProperty(key)) continue;
-				res[key] = lerp(a[key], b[key], frac);
-			}
-			return res;
-		} else {
-			throw "I don't know how to lerp that: " + a;
-		}
-	}
 	self.at = function (t) /* data */ {
 		if (len <= 0) {
 			throw "Attempt to access item in empty history buffer.";
@@ -54,8 +40,7 @@ function HistoryBuffer() {
 		if (times[older_i] === t) {
 			return datums[older_i];
 		}
-		return lerp(
-			datums[older_i],
+		return datums[older_i].clone().lerp(
 			datums[newer_i],
 			(t - times[older_i])/(times[newer_i] - times[older_i]));
 	};

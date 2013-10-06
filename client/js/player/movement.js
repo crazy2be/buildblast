@@ -28,11 +28,7 @@ var movement = function () {
 	}
 
 	function simulate(collides, state, c, dt) /* newState */ {
-		var newState = {
-			pos: new THREE.DVector3(0, 0, 0),
-			look: new THREE.DVector3(0, 0, 0),
-			vy: 0,
-		};
+		var newState = state.clone();
 
 		//For some reason this whole function treats dt as it's in seconds...
 		//(on the server too).

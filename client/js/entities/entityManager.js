@@ -21,11 +21,26 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new PlayerEntity(id)
-		var controller = new EntityNetworkController(entity, clock);
+		var entity = new PlayerEntity()
+		var initialState = protocolToLocal(payload);
+		var controller = new EntityNetworkController(entity, clock, initialState);
 		controller.entity().addTo(scene);
 		controllers[id] = controller;
 	});
+
+	function protocolToLocal(payload) {
+		function vec(obj) {
+			return new THREE.Vector3(obj.X, obj.Y, obj.Z)
+		}
+		return {
+			time: payload.Timestamp,
+			data: new EntityState(
+				vec(payload.Pos),
+				vec(payload.Look),
+				payload.Health,
+				payload.Vy),
+		};
+	}
 
 	conn.on('entity-pos', function (payload) {
 		var id = payload.ID;
@@ -34,18 +49,8 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-pos message for entity which does not exist!", id);
 			return;
 		}
-		function vec(obj) {
-			return new THREE.Vector3(obj.X, obj.Y, obj.Z)
-		}
-		var msg = {
-			time: payload.Timestamp,
-			data: {
-				pos: vec(payload.Pos),
-				vy: payload.Vy,
-				look: vec(payload.Look),
-			},
-		};
-		controller.message(msg);
+
+		controller.message(protocolToLocal(payload));
 	});
 
 	conn.on('entity-remove', function (payload) {

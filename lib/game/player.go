@@ -56,8 +56,6 @@ type Player struct {
 	hp  int
 	pos coords.World
 	vy  float64
-	//The time our position is "at" (last received time from client)
-	posTime float64
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -80,11 +78,11 @@ func (p *Player) Look() coords.Direction {
 
 //Let there be a time for every position.
 func (p *Player) Pos() (coords.World, float64) {
-	return p.pos, p.posTime
+	return p.pos, p.controls.Timestamp
 }
 
-func (p *Player) ID() string {
-	return p.name
+func (p *Player) ID() EntityID {
+	return EntityID(p.name)
 }
 
 func (p *Player) Inventory() *Inventory {
@@ -93,11 +91,11 @@ func (p *Player) Inventory() *Inventory {
 
 func (p *Player) Tick(w *World) {}
 
-func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
+func (p *Player) ClientTick(controls ControlState) *coords.World {
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return nil, nil
+		return nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -112,15 +110,14 @@ func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
 
 	p.updateLook(controls)
 
-	hitPos, hitEntity := p.simulateBlaster(controls)
+	hitPos := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
-	p.posTime = controls.Timestamp
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return hitPos, hitEntity
+	return hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -178,18 +175,18 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) {
+func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
-		return nil, nil
+		return nil
 	}
 
 	// They were holding it down last frame
 	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
-		return nil, nil
+		return nil
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
@@ -198,7 +195,7 @@ func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) 
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-	return hitPos, hitEntity
+	return hitPos
 }
 
 func (p *Player) Box() *physics.Box {
