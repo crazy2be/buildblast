@@ -3,7 +3,7 @@ package game
 import (
 	"log"
 	"math"
-	
+
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
 )

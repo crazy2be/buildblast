@@ -55,9 +55,9 @@ func (wc World) Move(d Direction, amount float64) World {
 // the result. (alpha of 0 => wc, alpha of 1 => other).
 func (wc World) Lerp(other World, alpha float64) World {
 	return World{
-		X: wc.X*(1 - alpha) + other.X*alpha,
-		Y: wc.Y*(1 - alpha) + other.Y*alpha,
-		Z: wc.Z*(1 - alpha) + other.Z*alpha,
+		X: wc.X*(1-alpha) + other.X*alpha,
+		Y: wc.Y*(1-alpha) + other.Y*alpha,
+		Z: wc.Z*(1-alpha) + other.Z*alpha,
 	}
 }
 

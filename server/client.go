@@ -181,7 +181,7 @@ func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
 	})
 }
 
-func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity) {}
+func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity)             {}
 func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {}
 
 func (c *Client) EntityRemoved(id game.EntityID) {
