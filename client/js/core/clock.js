@@ -34,22 +34,15 @@ function Clock(conn) {
 	var prevNow = now();
 	self.update = function () {
 		var curNow = now();
-		var localdt = curNow - prevNow;
-		var offsetdt = minMag(localdt * 0.1, offset - appliedOffset);
-		appliedOffset += offsetdt;
+		var dt = curNow - prevNow;
+		var doff = offset - appliedOffset;
+		appliedOffset += min(abs(dt*0.1), abs(doff)) * signum(doff);
 
+		var prevTime = curTime;
 		curTime = appliedOffset + curNow;
-		lastUpdateDT = localdt + offsetdt;
 		prevNow = curNow;
+		lastUpdateDT = curTime - prevTime;
 	};
-
-	// http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/mag.html
-	function minMag(a, b) {
-		var aa = abs(a), ab = abs(b);
-		if (aa < ab) return a;
-		else if (ab < aa) return b;
-		else return min(a, b);
-	}
 
 	function signum(n) {
 		if (n > 0) return 1;
@@ -63,7 +56,7 @@ function Clock(conn) {
 		appliedOffset = offset;
 		conn.on('ntp-sync', proccessSync);
 		startSync();
-	}
+	};
 
 	var clientTime = now();
 	function startSync() {
