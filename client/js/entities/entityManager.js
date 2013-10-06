@@ -50,7 +50,7 @@ function EntityManager(scene, conn, world, clock) {
 		};
 	}
 
-	conn.on('entity-pos', function (payload) {
+	conn.on('entity-state', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {

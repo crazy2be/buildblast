@@ -46,5 +46,4 @@
 	'js/./shared/world.js',
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
-	'js/./tests/testSystem.js',
 ]));

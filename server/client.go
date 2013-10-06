@@ -115,7 +115,7 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 
 	c.cm.QueueChunksNearby(w, pos)
 
-	g.Broadcast(&MsgEntityPos{
+	g.Broadcast(&MsgEntityState{
 		Timestamp: posTime,
 		ID:        c.player.ID(),
 		Pos:       pos,
