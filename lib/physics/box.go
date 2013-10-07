@@ -1,23 +1,17 @@
 package physics
 
 import (
+	"math"
+
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
 )
 
-// TODO: Rewrite this to mirror the client box.js.
-
 // xs means x start, xe means x end, etc.
-// We have a middle value for y because otherwise
-// players can impale themselves on blocks (since
-// players are > 1 block high). Note that this means
-// this implementation is not completely generic.
-// Oh well, it also means that it's really fast!
 type Box struct {
 	xs float64
 	xe float64
 	ys float64
-	ym float64
 	ye float64
 	zs float64
 	ze float64
@@ -32,13 +26,12 @@ func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset c
 	he := halfExtents
 	co := centerOffset
 	return &Box{
-		xs: p.X - he.X + co.X,
-		xe: p.X + he.X + co.X,
-		ys: p.Y - he.Y + co.Y,
-		ym: p.Y + co.Y,
-		ye: p.Y + he.Y + co.Y,
-		zs: p.Z - he.Z + co.Z,
-		ze: p.Z + he.Z + co.Z,
+		xs: p.X + co.X - he.X,
+		xe: p.X + co.X + he.X,
+		ys: p.Y + co.Y - he.Y,
+		ye: p.Y + co.Y + he.Y,
+		zs: p.Z + co.Z - he.Z,
+		ze: p.Z + co.Z + he.Z,
 	}
 }
 
@@ -59,11 +52,9 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 	}
 
 	b.ys += amount.Y
-	b.ym += amount.Y
 	b.ye += amount.Y
 	if b.inSolid(world) {
 		b.ys -= amount.Y
-		b.ym -= amount.Y
 		b.ye -= amount.Y
 		amount.Y = 0
 	}
@@ -87,23 +78,27 @@ func (b *Box) Contains(position coords.World) bool {
 }
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
-	solid := func(x, y, z float64) bool {
-		block := world.Block(coords.World{x, y, z}.Block())
-		return block.Solid()
+	blockCollide := func(x, y, z int) bool {
+		return world.Block(coords.Block{x, y, z}).Solid()
 	}
+	f := func(n float64) int {
+		return int(math.Floor(n))
+	}
+	xs := f(b.xs)
+	xe := f(b.xe)
+	ys := f(b.ys)
+	ye := f(b.ye)
+	zs := f(b.zs)
+	ze := f(b.ze)
 
-	xs := b.xs
-	xe := b.xe
-	ys := b.ys
-	ym := b.ym
-	ye := b.ye
-	zs := b.zs
-	ze := b.ze
-
-	return solid(xs, ys, zs) || solid(xs, ys, ze) ||
-		solid(xs, ym, zs) || solid(xs, ym, ze) ||
-		solid(xs, ye, zs) || solid(xs, ye, ze) ||
-		solid(xe, ys, zs) || solid(xe, ys, ze) ||
-		solid(xe, ym, zs) || solid(xe, ym, ze) ||
-		solid(xe, ye, zs) || solid(xe, ye, ze)
+	for x := xs; x <= xe; x++ {
+		for y := ys; y <= ye; y++ {
+			for z := zs; z <= ze; z++ {
+				if blockCollide(x, y, z) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
