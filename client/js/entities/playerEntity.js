@@ -124,12 +124,12 @@ function PlayerEntity() {
 
 	function updateLook(newLook) {
 		function lookAt(obj, x, y, z) {
-			var headTarget = new THREE.Vector3(
+			var target = new THREE.Vector3(
 				obj.position.x + x,
 				obj.position.y + y,
 				obj.position.z + z
 			);
-			obj.lookAt(headTarget);
+			obj.lookAt(target);
 		}
 		lookAt(bodyParts, newLook.x, 0, newLook.z);
 		lookAt(headMesh, 0, newLook.y, 1);

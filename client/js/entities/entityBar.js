@@ -21,13 +21,10 @@ function EntityBar(drawFunc, playerEntity) {
 		new THREE.PlaneGeometry(canvas.width, canvas.height),
 		material);
 
-	mesh.scale.set(-1/100, 1/100, 1/100);
+	mesh.scale.set(1/100, 1/100, 1/100);
 	mesh.position.set(0, 1.25, 0);
 
 	self.update = function (entity, clock) {
-		var ep = entity.pos();
-		var pp = playerEntity.pos();
-		mesh.rotation.y = Math.atan2(pp.x - ep.x, pp.z - ep.z);
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, clock.entityTime(), canvas.width, canvas.height);
 		texture.needsUpdate = true;
