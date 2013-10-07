@@ -115,7 +115,9 @@ function PlayerEntity() {
 
 		var diffX = bodyParts.position.x - c.x;
 		var diffZ = bodyParts.position.z - c.z;
-		if (diffX !== 0 || diffZ !== 0) isMoving = true;
+		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
+			isMoving = true;
+		}
 
 		bodyParts.position.set(c.x, c.y, c.z);
 

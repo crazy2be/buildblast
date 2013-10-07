@@ -37,7 +37,7 @@ function HistoryBuffer() {
 
 		var older_i = len - 1;
 		var newer_i = len - 1;
-		for (var i = 1; i < len; i++) {
+		for (var i = len - 2; i >= 0; i--) {
 			older_i = i;
 			if (times[older_i] <= t) break;
 			newer_i = older_i;
@@ -45,9 +45,8 @@ function HistoryBuffer() {
 		if (times[older_i] === t) {
 			return datums[older_i];
 		}
-		return datums[older_i].clone().lerp(
-			datums[newer_i],
-			(t - times[older_i])/(times[newer_i] - times[older_i]));
+		var alpha = (t - times[older_i])/(times[newer_i] - times[older_i]);
+		return datums[older_i].clone().lerp(datums[newer_i], alpha);
 	};
 	// Draw the state of this history buffer to a canvas.
 	// Useful for debugging! Green lines correspond to
