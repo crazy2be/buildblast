@@ -22,9 +22,9 @@ func NewHistoryBuffer() *HistoryBuffer {
 }
 
 func (ph *HistoryBuffer) Add(t float64, pos coords.World) {
-	ph.offset--
-	if ph.offset < 0 {
-		ph.offset = len(ph.buf) - 1
+	ph.offset++
+	if ph.offset >= len(ph.buf) {
+		ph.offset = 0
 	}
 	ph.buf[ph.offset] = HistoryEntry{pos, t}
 }
@@ -60,30 +60,32 @@ func (ph *HistoryBuffer) Clear() {
 // between them.
 func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	l := len(ph.buf)
+	if l < 0 {
+		panic("Attempt to access item in empty history buffer!")
+	}
 
-	newest := ph.at(0)
+	newest := ph.at(l - 1)
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
 		return newest.pos
 	}
 
-	oldest := ph.at(-1)
+	oldest := ph.at(0)
 	if oldest.t >= t {
+		// We don't go back that far :(
 		return oldest.pos
 	}
 
 	older := newest
 	newer := newest
-	for i := 1; i <= l; i++ {
+	// Go backwards, (in time and indicies), looking
+	// for a pair to interpolate between.
+	for i := l - 2; i >= 0; i-- {
 		older = ph.at(i)
 		if older.t <= t {
 			break
 		}
 		newer = older
-	}
-
-	if older.t == t {
-		return older.pos
 	}
 
 	alpha := (t - older.t) / (newer.t - older.t)

@@ -25,6 +25,7 @@ function HistoryBuffer() {
 		if (len <= 0) {
 			throw "Attempt to access item in empty history buffer.";
 		}
+		
 		var newest_t = times[len - 1];
 		if (newest_t <= t) {
 			return datums[len - 1];
@@ -42,9 +43,7 @@ function HistoryBuffer() {
 			if (times[older_i] <= t) break;
 			newer_i = older_i;
 		}
-		if (times[older_i] === t) {
-			return datums[older_i];
-		}
+
 		var alpha = (t - times[older_i])/(times[newer_i] - times[older_i]);
 		return datums[older_i].clone().lerp(datums[newer_i], alpha);
 	};

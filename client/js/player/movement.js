@@ -7,6 +7,10 @@ var movement = function () {
 			return delta;
 		}
 
+		// TODO: Partial application of movements
+		// (just make sure it matches the server!)
+		// some "stickyness" when jumping is likely
+		// caused by lack of partial movement application.
 		pos.x += delta.x;
 		if (collides(pos)) {
 			pos.x -= delta.x;
