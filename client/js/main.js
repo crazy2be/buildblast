@@ -8,9 +8,10 @@ window.onload = function () {
 		return;
 	}
 
-	//We use this to expose certain variables for test code.
+	// We use this to expose certain variables for test code.
 	window.testExposure = { };
 
+	//Connect to server and shake our hands.
 	var conn = new Conn(getWSURI("main/"));
 	var clock = new Clock(conn);
 	var clientID;
@@ -39,52 +40,68 @@ window.onload = function () {
 		startGame();
 	})
 
-	function startGame() {
-		var scene = new THREE.Scene();
-		var chunkManager = new ChunkManager(scene, clientID);
-		var world = new World(scene, conn, clock, container, chunkManager);
-		window.testExposure.world = world;
-		world.resize();
-
-		var renderer = new THREE.WebGLRenderer();
-		renderer.setSize(window.innerWidth, window.innerHeight);
-
-		container.querySelector('#opengl').appendChild(renderer.domElement);
-		document.querySelector('#splash h1').innerHTML = 'Click to play!';
-
-		var speed = new PerfChart({
-			title: ' render',
-			maxValue: 50,
+	var updateLagStats;
+	function makePlayer(world, clock, controls) {
+		var lagStats = new PerfChart({
+			title: ' lag'
 		});
-		speed.elm.style.position = 'absolute';
-		speed.elm.style.top = '74px';
-		speed.elm.style.right = '0px';
-		container.appendChild(speed.elm);
-
-		window.addEventListener('resize', onWindowResize, false);
-
-		function onWindowResize() {
-			world.resize();
-			renderer.setSize(window.innerWidth, window.innerHeight);
+		lagStats.elm.style.position = 'absolute';
+		lagStats.elm.style.top = '74px';
+		lagStats.elm.style.right = '80px';
+		container.appendChild(lagStats.elm);
+		
+		updateLagStats = function () {
+			var lag = controller.predictionAheadBy()
+			lagStats.addDataPoint(lag);
 		}
 
+		var player = new PlayerEntity();
+		var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+		var collides = box.collides.bind(null, world);
+		var predictor = movement.simulate.bind(null, collides);
+		var controller = new EntityPredictiveController(player, clock, controls, predictor);
+		world.setPlayer(clientID, player, controller);
+		return player;
+	}
+
+	function startGame() {
+		var scene = new THREE.Scene();
+		var ambientLight = new THREE.AmbientLight(0xffffff);
+		scene.add(ambientLight);
+
+		var world = new World(scene, conn, clientID, clock);
+		var controls = new Controls(container);
+
+		var player = makePlayer(world, clock, controls)
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
+
+
+		window.testExposure.playerUI = playerUI;
+		window.testExposure.world = world;
+
 		var previousTime = clock.time();
+		animate();
 		function animate() {
 			clock.update();
 			var newTime = clock.time();
 			var dt = newTime - previousTime;
 			previousTime = newTime;
-			
+
 			conn.update();
-			world.update(dt);
-			world.render(renderer, scene);
-			speed.addDataPoint(dt);
+
+			//Unfortunately this means our data relies partially on having a Player.
+			//Think of this as an optimization, if our data focuses on where our Player is located,
+			//it can more efficiently handle queries.
+			world.update(dt, player.pos());
+
+			updateLagStats();
+
+			playerUI.update(dt);
+			playerUI.render(scene);
 
 			if (fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
 		}
-
-		animate();
 	}
 };
 
@@ -133,3 +150,27 @@ var min = Math.min;
 var max = Math.max;
 var sqrt = Math.sqrt;
 var pow = Math.pow;
+
+function addDebugWatch(obj, propertyName) {
+	hash = {};
+	hash[propertyName] = {
+		get: function () {
+			return this["_" + propertyName];
+		},
+		set: function(val) {
+			if (val !== val || val === undefined) {
+				throw "Invalid value for " + propertyName;
+			}
+			this["_" + propertyName] = val;
+		}
+	}
+	Object.defineProperties(obj, hash);
+}
+
+THREE.DVector3 = function (x, y, z) {
+	addDebugWatch(this, "x");
+	addDebugWatch(this, "y");
+	addDebugWatch(this, "z");
+	this.x = x; this.y = y; this.z = z;
+}
+THREE.DVector3.prototype = THREE.Vector3.prototype;

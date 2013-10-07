@@ -69,7 +69,9 @@ Item.realInit = function () {
 	},{
 		name: 'pistol',
 		model: Models.pistol(),
-		action: pistolAction,
+			//This action does nothing, we send the server our controls every
+			//tick and that's how we shoot.
+		action: function(){},
 		icon: 4,
 	}
 	];
@@ -85,17 +87,8 @@ Item.realInit = function () {
 		};
 	}
 
-	function pistolAction(world, camera) {
 		if(localStorage.pistolDebug) {
-			var intersect = world.findPlayerIntersection(camera);
-			if (intersect) {
-				console.log("Hit!!", intersect, intersect.item);
-			} else {
-				console.log("miss!!");
 			}
-		}
-	}
-
 	function shovelAction(world, camera) {
 		var bc = world.findLookedAtBlock(camera);
 		if (!bc) return;
