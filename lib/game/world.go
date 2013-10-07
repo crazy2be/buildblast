@@ -9,25 +9,6 @@ import (
 	"buildblast/lib/physics"
 )
 
-type Entity interface {
-	Tick(w *World)
-	Damage(amount int)
-	Dead() bool
-	Respawn(pos coords.World)
-	BoxAt(t float64) *physics.Box
-	Vy() float64
-	Pos() coords.World
-	Look() coords.Direction
-	ID() string
-}
-
-type EntityListener interface {
-	EntityCreated(id string)
-	EntityMoved(id string, pos coords.World, look coords.Direction, vy float64)
-	EntityDied(id string, killer string)
-	EntityRemoved(id string)
-}
-
 type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
@@ -62,15 +43,7 @@ func (w *World) Tick() {
 	w.generationTick()
 	for _, e := range w.entities {
 		e.Tick(w)
-		id := e.ID()
-		pos := e.Pos()
-		look := e.Look()
-		vy := e.Vy()
-		w.chunkGenerator.QueueChunksNearby(pos)
-
-		for _, listener := range w.entityListeners {
-			listener.EntityMoved(id, pos, look, vy)
-		}
+		w.chunkGenerator.QueueChunksNearby(e.Pos())
 	}
 }
 
@@ -96,7 +69,10 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	return w.spawns[rand.Intn(l)]
+	//QTODO: Stop hardcoding the spawn.
+	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
+	index = index + 1
+	return w.spawns[0] //return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
@@ -143,7 +119,7 @@ func (w *World) AddEntity(e Entity) {
 	e.Respawn(w.findSpawn())
 
 	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e.ID())
+		listener.EntityCreated(e.ID(), e)
 	}
 }
 
@@ -165,15 +141,21 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	if e.Dead() {
 		e.Respawn(w.findSpawn())
 		for _, listener := range w.entityListeners {
-			listener.EntityDied(e.ID(), damager)
+			listener.EntityDied(e.ID(), e, damager)
+		}
+	} else {
+		// Should we fire Damaged events if they
+		// end up dying? I dunno. Currently we don't.
+		for _, listener := range w.entityListeners {
+			listener.EntityDamaged(e.ID(), e)
 		}
 	}
 }
 
-func (w *World) GetEntityIDs() []string {
-	result := make([]string, len(w.entities))
-	for i, entity := range w.entities {
-		result[i] = entity.ID()
+func (w *World) Entities() map[EntityID]Entity {
+	result := make(map[EntityID]Entity, len(w.entities))
+	for _, entity := range w.entities {
+		result[entity.ID()] = entity
 	}
 	return result
 }

@@ -6,24 +6,19 @@
 // subdirectories)
 
 (function include(names) {
-    for (var i = 0; i < names.length; i++) {
-        var script = document.createElement('script');
-        script.src = names[i];
-        document.body.appendChild(script);
-    }
+	for (var i = 0; i < names.length; i++) {
+		var script = document.createElement('script');
+		script.src = names[i];
+		document.body.appendChild(script);
+	}
 }([
-	'js/./box.js',
-	'js/./chat.js',
-	'js/./clock.js',
-	'js/./conn.js',
-	'js/./controls.js',
 	'js/./featureTester.js',
 	'js/./models.js',
-	'js/./world.js',
+	'js/./settings.js',
 	'js/./chunks/block.js',
 	'js/./chunks/chunk.js',
+	'js/./chunks/chunkManager.js',
 	'js/./chunks/common.js',
-	'js/./chunks/manager.js',
 	'js/./chunks/worker/chunkGeometry.js',
 	'js/./chunks/worker/meshCommon.js',
 	'js/./chunks/worker/noise.js',
@@ -31,13 +26,23 @@
 	'js/./chunks/worker/meshers/greedyMesher.js',
 	'js/./chunks/worker/meshers/simpleMesher.js',
 	'js/./chunks/worker/meshers/simpleNewMesher.js',
-	'js/./entities/entity.js',
-	'js/./entities/manager.js',
+	'js/./core/clock.js',
+	'js/./core/conn.js',
+	'js/./core/world.js',
+	'js/./entities/entityBar.js',
+	'js/./entities/entityManager.js',
+	'js/./entities/entityNetworkController.js',
+	'js/./entities/entityPredictiveController.js',
+	'js/./entities/historyBuffer.js',
+	'js/./entities/playerEntity.js',
+	'js/./geom/box.js',
 	'js/./perf/chart.js',
+	'js/./player/chat.js',
+	'js/./player/controls.js',
 	'js/./player/inventory.js',
 	'js/./player/item.js',
-	'js/./player/player.js',
-	'js/./player/playerPrediction.js',
+	'js/./player/movement.js',
+	'js/./player/playerUI.js',
 	'js/./player/stack.js',
 	'js/./tests/testCommon.js',
 	'js/./tests/testMesh.js',
