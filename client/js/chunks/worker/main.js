@@ -7,27 +7,11 @@ define(function(require) {
 
 	var ChunkGeometry = require("chunkGeometry");
 
-	var Conn = require("../../shared/conn");
+	var Conn = require("../../core/conn");
 
 	var WorkerChunkManager = require("workerChunkManager");
 
-	// I use self for other things. Parent makes
-	// a lot more sense anyway.
 	var parent = self;
-
-	console = {};
-	['log', 'warn', 'error'].forEach(function (type) {
-		console[type] = function () {
-			var args = [].slice.call(arguments);
-			parent.postMessage({
-				kind: 'log',
-				payload: {
-					type: type,
-					message: args,
-				},
-			});
-		};
-	});
 
 	function sendChunk() {
 		var chunk = manager.top();
@@ -62,9 +46,12 @@ define(function(require) {
 	};
 
 	function initConn(payload) {
+		console.log("initConn", payload);
 		var conn = new Conn(payload.uri);
 		conn.on('chunk', processChunk);
 		conn.on('block', processBlockChange);
+
+		console.log("initConn end", payload);
 	}
 
 	var manager = new WorkerChunkManager();
@@ -189,9 +176,4 @@ define(function(require) {
 	self.clamp = function(n, a, b) {
 		return Math.min(Math.max(n, a), b);
 	}
-
-
-	//TODO, put this in another file...
-	//(no one needs it yet, but they might)
-	return console;
 });

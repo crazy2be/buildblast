@@ -109,36 +109,18 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 }
 
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	hitPos, hitEntity := c.player.ClientTick(m.Controls)
+	hitPos := c.player.ClientTick(m.Controls)
 
-	pos, posTime := c.player.Pos()
+	c.cm.QueueChunksNearby(w, c.player.Pos())
 
-	c.cm.QueueChunksNearby(w, pos)
-
-	g.Broadcast(&MsgEntityPos{
-		Timestamp: posTime,
+	g.Broadcast(&MsgEntityState{
 		ID:        c.player.ID(),
-		Pos:       pos,
-		Vy:        c.player.Vy(),
+		Pos:       c.player.Pos(),
 		Look:      c.player.Look(),
+		Health:    c.player.Health(),
+		Vy:        c.player.Vy(),
+		Timestamp: c.player.LastUpdated(),
 	})
-
-	if hitEntity != nil {
-		hitEntityPos, hitEntityPosTime := hitEntity.Pos()
-
-		g.Broadcast(&MsgEntityHp{
-			Timestamp: hitEntityPosTime,
-			ID:        hitEntity.ID(),
-			Hp:        hitEntity.Health(),
-		})
-		g.Broadcast(&MsgEntityPos{
-			Timestamp: hitEntityPosTime,
-			ID:        hitEntity.ID(),
-			Pos:       hitEntityPos,
-			Vy:        hitEntity.Vy(),
-			Look:      hitEntity.Look(),
-		})
-	}
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -150,38 +132,18 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	//Tell the client about all the other entities
-	for _, id := range w.GetEntityIDs() {
-		c.EntityCreated(p, id)
+	w.AddEntity(p)
+
+	for id, e := range w.Entities() {
+		c.EntityCreated(id, e)
 	}
-	//(And their positions...)
-	for _, posMsg := range w.GetEntityPosMessages() {
-		c.Send(&MsgEntityPos{
-			Timestamp: posMsg.Timestamp,
-			ID:        posMsg.ID,
-			Pos:       posMsg.Pos,
-			Vy:        posMsg.Vy,
-			Look:      posMsg.Look,
-		})
-	}
-	//QTODO, we need to fix our server architecture
 
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
 
-	//After AddEntityListener, so they get the entity create of their own entity
-	w.AddEntity(p)
-
 	c.player = p
 	c.Send(&MsgInventoryState{
 		Items: c.player.Inventory().ItemsToString(),
-	})
-
-	curTime := float64(time.Now().UnixNano()) / 1e6
-	c.Send(&MsgEntityHp{
-		Timestamp: curTime,
-		ID:        p.ID(),
-		Hp:        p.Health(),
 	})
 }
 
@@ -208,32 +170,21 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) EntityCreated(entity game.Entity, id string) {
+func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
 	c.Send(&MsgEntityCreate{
-		ID: id,
-	})
-
-	pos, posTime := entity.Pos()
-	c.Send(&MsgEntityHp{
-		Timestamp: posTime,
-		ID:        entity.ID(),
-		Hp:        entity.Health(),
-	})
-
-	c.Send(&MsgEntityPos{
-		Timestamp: posTime,
-		ID:        entity.ID(),
-		Pos:       pos,
-		Vy:        entity.Vy(),
+		ID:        id,
+		Pos:       entity.Pos(),
 		Look:      entity.Look(),
+		Health:    entity.Health(),
+		Vy:        entity.Vy(),
+		Timestamp: entity.LastUpdated(),
 	})
 }
 
-func (c *Client) EntityTick() {}
+func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity)             {}
+func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {}
 
-func (c *Client) EntityDied(entity game.Entity, id string, killer string) {}
-
-func (c *Client) EntityRemoved(id string) {
+func (c *Client) EntityRemoved(id game.EntityID) {
 	c.Send(&MsgEntityRemove{
 		ID: id,
 	})

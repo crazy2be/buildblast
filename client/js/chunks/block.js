@@ -51,7 +51,6 @@ define(function(require) {
 			result.light = hex(0x5E5E5E);
 			result.dark  = hex(0x000000);
 		} else {
-			// TODO: Fix this during the process of killing downscaling.
 			throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 		}
 		return result;

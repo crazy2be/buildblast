@@ -1,10 +1,9 @@
 define(function(require) {
-
 	var fatalError = require("fatalError");
 	var Chunk = require("./chunk");
 	var common = require("./chunkCommon");
 
-	var Conn = require("shared/conn");
+	var Conn = require("core/conn");
 
 	return function ChunkManager(scene, clientID) {
 		var self = this;
@@ -54,7 +53,9 @@ define(function(require) {
 		geometryWorker.onmessage = function (e) {
 			var kind = e.data.kind;
 			var payload = e.data.payload;
-			if (kind === 'chunk') {
+			if (kind === 'booted') {
+				startChunkConn(clientID);
+			} else if (kind === 'chunk') {
 				processChunk(payload);
 			} else if (kind === 'chunk-voxelization-change') {
 				processVoxelizationChange(payload);
@@ -69,8 +70,7 @@ define(function(require) {
 		//Now we can start the conn, after we subscribe to onmessage
 		//QTODO: remove this with a worker handshake.
 		//(Give the worker thread a little time to setup...)
-		setTimeout(startChunkConn.bind(null, clientID), 500);
-
+// 		setTimeout(startChunkConn.bind(null, clientID), 500);
 		//Payload contains vertices creates by the mesher.
 		function processChunk(payload) {
 			var pg = payload.geometries;

@@ -2,6 +2,7 @@ define(function(require) {
 
 	var ChunkManager = require("chunkManager");
 	var EntityManager = require("entities/entityManager");
+	var Block = require("chunks/block");
 
 	var common = require("chunks/chunkCommon");
 
@@ -11,7 +12,7 @@ define(function(require) {
 		var chunkManager = new ChunkManager(scene, clientID);
 		var entityManager = new EntityManager(scene, conn, self, clock);
 
-		self.addUserPlayer = entityManager.addUserPlayer;
+		self.setPlayer = entityManager.setPlayer;
 
 		window.testExposure.chunkManager = chunkManager;
 		window.testExposure.entityManager = entityManager;
@@ -51,7 +52,7 @@ define(function(require) {
 			var cc = cords.c;
 
 			var chunk = chunkManager.chunk(cc);
-			if (!chunk) return null;
+			if (!chunk) return new Block(Block.NIL);
 			var block = chunk.block(oc);
 			if (!block) throw "Could not load blockkk!!!";
 			else return block;

@@ -12,10 +12,16 @@ define([], function () {
 			return curTime;
 		};
 
+	var lastUpdateDT = 0.0;
+	// Time differential between this frame and the last
+	// drawn frame.
+	self.dt = function () {
+		return lastUpdateDT
+	}
+
 		//The time which we use to display entities (lag induction)
 		self.entityTime = function () {
-			var lagInduction = localStorage.lag || defaultLagInduction;
-
+		var lagInduction = localStorage.lagInductionTime || defaultLagInduction;
 			return self.time() - lagInduction;
 		};
 
@@ -33,8 +39,10 @@ define([], function () {
 			var doff = offset - appliedOffset;
 			appliedOffset += min(abs(dt * 0.1), abs(doff)) * signum(doff);
 
+		var prevTime = curTime;
 			curTime = appliedOffset + curNow;
 			prevNow = curNow;
+		lastUpdateDT = curTime - prevTime;
 		};
 
 		function signum(n) {
@@ -49,7 +57,7 @@ define([], function () {
 			appliedOffset = offset;
 			conn.on('ntp-sync', proccessSync);
 			startSync();
-		}
+	};
 
 		var clientTime = now();
 		function startSync() {

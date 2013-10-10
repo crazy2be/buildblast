@@ -1,5 +1,5 @@
 define(function(require) {
-	var Models = require("shared/Models");
+	var Models = require("models");
 	var Block = require("chunks/block");
 
 	function Item(type) {

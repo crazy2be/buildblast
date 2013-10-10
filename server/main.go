@@ -18,7 +18,9 @@ import (
 var globalGame = NewGame()
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	//A hack because either my version of go or chrome is messing of the content type (probably go).
+	// Workaround for Quentin's system configuration.
+	// For some reason, css files are getting served
+	// without a content-type...
 	if strings.HasSuffix(r.URL.Path, ".css") {
 		w.Header().Set("Content-Type", "text/css")
 	}

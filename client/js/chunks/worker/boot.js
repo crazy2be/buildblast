@@ -2,20 +2,38 @@
 // a lot more sense anyway.
 var parent = self;
 
-importScripts("../../../../lib/requirejs/require.js");
+console = {};
+['log', 'warn', 'error'].forEach(function (type) {
+	console[type] = function () {
+		var args = [].slice.call(arguments);
+		parent.postMessage({
+			kind: 'log',
+			payload: {
+				type: type,
+				message: args,
+			},
+		});
+	};
+});
+
+importScripts("/lib/require.js");
 
 requirejs.config({
 	paths: {
 		math: "/js/math",
 	},
-	packages: [{
-		name: 'chunkManager',
-		location: '',
-		main: 'main',
-	}],
+// 	packages: [{
+// 		name: 'chunkManager',
+// 		location: '',
+// 		main: 'main',
+// 	}],
 });
 
-require(["main"], function(console) {
+require(["main"], function() {
 	//No need to call anything, just including main should do it...
 	console.log("Booted successfully?");
+	parent.postMessage({
+		kind: "booted",
+		payload: "success",
+	});
 });

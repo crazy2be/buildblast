@@ -15,15 +15,13 @@ const (
 	MSG_HANDSHAKE_INIT  = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
-	MSG_ENTITY_POS      = MessageKind("entity-pos")
-	MSG_ENTITY_HP       = MessageKind("entity-hp")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
+	MSG_ENTITY_STATE    = MessageKind("entity-state")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
-	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
@@ -34,12 +32,10 @@ func kindToType(kind MessageKind) Message {
 	switch kind {
 	case MSG_HANDSHAKE_INIT:
 		return &MsgHandshakeInit{}
-	case MSG_ENTITY_POS:
-		return &MsgEntityPos{}
-	case MSG_ENTITY_HP:
-		return &MsgEntityHp{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
+	case MSG_ENTITY_STATE:
+		return &MsgEntityState{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
 	case MSG_BLOCK:
@@ -48,8 +44,6 @@ func kindToType(kind MessageKind) Message {
 		return &MsgControlsState{}
 	case MSG_CHAT:
 		return &MsgChat{}
-	case MSG_PLAYER_STATE:
-		return &MsgPlayerState{}
 	case MSG_DEBUG_RAY:
 		return &MsgDebugRay{}
 	case MSG_NTP_SYNC:
@@ -68,12 +62,10 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
-	case *MsgEntityPos:
-		return MSG_ENTITY_POS
-	case *MsgEntityHp:
-		return MSG_ENTITY_HP
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE
+	case *MsgEntityState:
+		return MSG_ENTITY_STATE
 	case *MsgEntityRemove:
 		return MSG_ENTITY_REMOVE
 	case *MsgChunk:
@@ -84,8 +76,6 @@ func typeToKind(m Message) MessageKind {
 		return MSG_CONTROLS_STATE
 	case *MsgChat:
 		return MSG_CHAT
-	case *MsgPlayerState:
-		return MSG_PLAYER_STATE
 	case *MsgDebugRay:
 		return MSG_DEBUG_RAY
 	case *MsgNtpSync:
@@ -111,26 +101,21 @@ type MsgHandshakeError struct {
 	Message string
 }
 
-type MsgEntityPos struct {
-	Timestamp float64
-	ID        string
+// We want the entity to have a valid
+// state when we first create it.
+type MsgEntityCreate MsgEntityState
+
+type MsgEntityState struct {
+	ID        game.EntityID
 	Pos       coords.World
-	Vy        float64
 	Look      coords.Direction
-}
-
-type MsgEntityHp struct {
+	Health    int
+	Vy        float64
 	Timestamp float64
-	ID        string
-	Hp        int
-}
-
-type MsgEntityCreate struct {
-	ID string
 }
 
 type MsgEntityRemove struct {
-	ID string
+	ID game.EntityID
 }
 
 type MsgChunk struct {
@@ -149,9 +134,9 @@ type MsgBlock struct {
 type MsgControlsState struct {
 	Controls game.ControlState
 	// JavaScript performance.now() timestamp.
-	//TimeStamp is when it was sent, ViewTimestamp is
-	//what time the client was displaying when it was sent
-	//(with lag induction on they may differ).
+	// TimeStamp is when it was sent, ViewTimestamp is
+	// what time the client was displaying when it was sent
+	// (with lag induction they may differ).
 	Timestamp     float64
 	ViewTimestamp float64
 }
@@ -159,14 +144,6 @@ type MsgControlsState struct {
 type MsgChat struct {
 	DisplayName string
 	Message     string
-}
-
-type MsgPlayerState struct {
-	// JavaScript performance.now() timestamp.
-	Timestamp float64
-	Pos       coords.World
-	Vy        float64
-	Hp        int
 }
 
 type MsgDebugRay struct {
@@ -178,7 +155,8 @@ type MsgNtpSync struct {
 }
 
 type MsgInventoryState struct {
-	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
+	// This is a byte array encoded to a string, see ItemsToString() in items.go
+	Items     string
 	ItemLeft  int
 	ItemRight int
 }
@@ -190,8 +168,8 @@ type MsgInventoryMove struct {
 
 type ClientMessage struct {
 	Kind MessageKind
-	//json.RawMessage implements Marshaler and Unmarshaler,
-	//so it will NOT be serialized twice.
+	// json.RawMessage implements Marshaler and Unmarshaler,
+	// so it will NOT be serialized twice.
 	Payload json.RawMessage
 }
 
