@@ -8,7 +8,7 @@ var Models = require("models");
 
 var async = require("/lib/async.js");
 
-var World = require("world");
+var World = require("core/world");
 
 var Entity = require("entities/playerEntity");
 var PlayerUI = require("player/playerUI");
