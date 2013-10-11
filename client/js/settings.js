@@ -1,3 +1,4 @@
+define(function () {
 // Conventient bundles of settings which you can activate
 // at your leasure in the javascript console.
 function __loadSettingsScheme(name) {
@@ -23,3 +24,5 @@ function __loadSettingsScheme(name) {
 		return "No clue what the settings scheme: '" + name + "' means?";
 	}
 }
+return __loadSettingsScheme;
+});

@@ -10,133 +10,133 @@
 
 //Essentially implements lag induction.
 define(function(require) {
-	//Should really be a package... but w/e
-	var ContextBuffer = require("entities/lagCompensation/contextBuffer");
-	var THREE = require("THREE");
-	var PLAYER = require("player/playerSize");
+//Should really be a package... but w/e
+var ContextBuffer = require("entities/lagCompensation/contextBuffer");
+var THREE = require("THREE");
+var PLAYER = require("player/playerSize");
 
-	var Box = require("geom/box");
+var Box = require("geom/box");
 
-	var moveSim = require("entities/lagCompensation/movementSimulation");
+var moveSim = require("entities/lagCompensation/movementSimulation");
 
-	var logging = require("shared/logging");
+var logging = require("shared/logging");
 
-	return function PosPrediction(world, clock, initialPosState) {
-		var self = this;
+return function PosPrediction(world, clock, initialPosState) {
+	var self = this;
 
-		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
+	var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 
-		var lagInducedMaxHistory = 101;
-		var normalMaxHistory = 151;
+	var lagInducedMaxHistory = 101;
+	var normalMaxHistory = 151;
 
-		var _lagInduced = true;
-		// predictFnc(lastDatum, auxData, dt) : newDatum
-		var posBuffer = new ContextBuffer(
-			moveSim.simulateMovement.bind(null, 
-				world, {
-					collides: box.collides
-				}
-			), lagInducedMaxHistory
-		);
-
-		posBuffer.addConfirmed(Number.NEGATIVE_INFINITY, initialPosState);
-
-		self.predictMovement = function (controlState) {
-			posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
-		};
-
-		self.posMessage = function (payload) {
-			var p = payload.Pos;
-			var l = payload.Look;
-			var newPosState = {
-				pos: new THREE.Vector3(p.X, p.Y, p.Z),
-				dy: payload.Vy,
-				look: new THREE.Vector3(l.X, l.Y, l.Z),
-			};
-		
-			posBuffer.addConfirmed(payload.Timestamp, newPosState);
-		};
-
-		self.posState = function () {
-			if (!_lagInduced) {
-				return posBuffer.getLastValue();
+	var _lagInduced = true;
+	// predictFnc(lastDatum, auxData, dt) : newDatum
+	var posBuffer = new ContextBuffer(
+		moveSim.simulateMovement.bind(null,
+			world, {
+				collides: box.collides
 			}
+		), lagInducedMaxHistory
+	);
 
-			var curTime = clock.entityTime();
+	posBuffer.addConfirmed(Number.NEGATIVE_INFINITY, initialPosState);
 
-			if (curTime < posBuffer.firstTime()) {
-				logging.throttledError("Requested position at time before any positions in buffer.");
-			}
+	self.predictMovement = function (controlState) {
+		posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
+	};
 
-			if (curTime > posBuffer.lastTime()) {
-				logging.throttledWarn("Requested position at time after any positions in buffer.");
-			}
-
-			if (posBuffer.largestConfirmedTime() < posBuffer.firstTime()) {
-				logging.throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
-			}
-
-			return posBuffer.getValueAt(curTime);
+	self.posMessage = function (payload) {
+		var p = payload.Pos;
+		var l = payload.Look;
+		var newPosState = {
+			pos: new THREE.Vector3(p.X, p.Y, p.Z),
+			dy: payload.Vy,
+			look: new THREE.Vector3(l.X, l.Y, l.Z),
 		};
 
-		self.contains = function (x, y, z) {
-			return box.contains(x, y, z);
-		};
+		posBuffer.addConfirmed(payload.Timestamp, newPosState);
+	};
 
-		//If true our .pos() will return times based on clock.entityTime(),
-		//	else we will just use the earliest times (not strictly times
-		//	based on clock.time(), but in almost all cases should be equivalent).
-		//True by default.
-		self.lagInduce = function (lagInduce) {
-			_lagInduced = lagInduce;
-
-			posBuffer.setMaxHistory(_lagInduced ? 
-				lagInducedMaxHistory : normalMaxHistory);
-		};
-
-		//QTODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
-		//move messages, this should instead be the time since our last sent message
-		//and last received (but I am too lazy to implement that now).
-		self.lag = function () {
-			return clock.time() - posBuffer.largestConfirmedTime();
-		};
-
-		self.getVelocity = function () {
-			if (!_lagInduced) {
-				//QTODO: Make this use the last values, not clock.time()?
-				return posBuffer.getVelocity(clock.time());
-			}
-
-			return posBuffer.getVelocity(clock.entityTime());
-		};
-
-		if (localStorage.posHistoryBar) {
-			//Only use these for debugging!
-			self.posDebugData = function () {
-				var data = [];
-				var dataTimes = posBuffer.dataTimes();
-				var dataPositions = posBuffer.dataPositions();
-				var auxDataTimes = posBuffer.auxDataTimes();
-
-				var auxPosition = 0;
-				var posPosition = 0;
-
-				dataTimes.forEach(function (dataTime) {
-					var datum = { time: dataTime, hasAuxData: false, pos: dataPositions[posPosition].pos };
-
-					var hasAuxData = false;
-					while (auxPosition < auxDataTimes.length &&
-						auxDataTimes[auxPosition] <= dataTime) {
-						//So many assumptions about this data is made right here...
-						datum.hasAuxData = auxDataTimes[auxPosition] == dataTime;
-						auxPosition++;
-					}
-					data.push(datum);
-					posPosition++;
-				});
-
-				return data;
-			};
+	self.posState = function () {
+		if (!_lagInduced) {
+			return posBuffer.getLastValue();
 		}
+
+		var curTime = clock.entityTime();
+
+		if (curTime < posBuffer.firstTime()) {
+			logging.throttledError("Requested position at time before any positions in buffer.");
+		}
+
+		if (curTime > posBuffer.lastTime()) {
+			logging.throttledWarn("Requested position at time after any positions in buffer.");
+		}
+
+		if (posBuffer.largestConfirmedTime() < posBuffer.firstTime()) {
+			logging.throttledWarn("Queued predictions have exceeded buffer and no confirmed messages are currently stored!");
+		}
+
+		return posBuffer.getValueAt(curTime);
+	};
+
+	self.contains = function (x, y, z) {
+		return box.contains(x, y, z);
+	};
+
+	//If true our .pos() will return times based on clock.entityTime(),
+	//	else we will just use the earliest times (not strictly times
+	//	based on clock.time(), but in almost all cases should be equivalent).
+	//True by default.
+	self.lagInduce = function (lagInduce) {
+		_lagInduced = lagInduce;
+
+		posBuffer.setMaxHistory(_lagInduced ?
+			lagInducedMaxHistory : normalMaxHistory);
+	};
+
+	//QTODO: Not strictly speaking lag, hopefully if nothing moves we won't get any
+	//move messages, this should instead be the time since our last sent message
+	//and last received (but I am too lazy to implement that now).
+	self.lag = function () {
+		return clock.time() - posBuffer.largestConfirmedTime();
+	};
+
+	self.getVelocity = function () {
+		if (!_lagInduced) {
+			//QTODO: Make this use the last values, not clock.time()?
+			return posBuffer.getVelocity(clock.time());
+		}
+
+		return posBuffer.getVelocity(clock.entityTime());
+	};
+
+	if (localStorage.posHistoryBar) {
+		//Only use these for debugging!
+		self.posDebugData = function () {
+			var data = [];
+			var dataTimes = posBuffer.dataTimes();
+			var dataPositions = posBuffer.dataPositions();
+			var auxDataTimes = posBuffer.auxDataTimes();
+
+			var auxPosition = 0;
+			var posPosition = 0;
+
+			dataTimes.forEach(function (dataTime) {
+				var datum = { time: dataTime, hasAuxData: false, pos: dataPositions[posPosition].pos };
+
+				var hasAuxData = false;
+				while (auxPosition < auxDataTimes.length &&
+					auxDataTimes[auxPosition] <= dataTime) {
+					//So many assumptions about this data is made right here...
+					datum.hasAuxData = auxDataTimes[auxPosition] == dataTime;
+					auxPosition++;
+				}
+				data.push(datum);
+				posPosition++;
+			});
+
+			return data;
+		};
 	}
+}
 });

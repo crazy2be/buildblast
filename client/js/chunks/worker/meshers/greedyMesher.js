@@ -13,201 +13,201 @@
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 define(function (require) {
-	var Block = require("../../block");
+var Block = require("../../block");
 
-	var common = require("../../chunkCommon");
-	var CHUNK = common.CHUNK;
+var common = require("../../chunkCommon");
+var CHUNK = common.CHUNK;
 
-	var meshCommon = require("../meshCommon");
+var meshCommon = require("../meshCommon");
 
-	return function greedyMesher(blocks, voxelization, cc, manager) {
-		var ccArr = [cc.x, cc.y, cc.z];
+return function greedyMesher(blocks, voxelization, cc, manager) {
+	var ccArr = [cc.x, cc.y, cc.z];
 
-		var chunkDims = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
-		meshCommon.preprocessBlocks(blocks);
+	var chunkDims = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
+	meshCommon.preprocessBlocks(blocks);
 
-		var bcxStart = CHUNK.WIDTH * cc.x;
-		var bcyStart = CHUNK.HEIGHT * cc.y;
-		var bczStart = CHUNK.DEPTH * cc.z;
+	var bcxStart = CHUNK.WIDTH * cc.x;
+	var bcyStart = CHUNK.HEIGHT * cc.y;
+	var bczStart = CHUNK.DEPTH * cc.z;
 
-		var verts = []; //Each vertice is made of 3 integers (3D point)
-		var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
-		var faceNumbers = []; //same a blockTypes in size
-		var indexes = []; //indexes for triangles of points in verts
+	var verts = []; //Each vertice is made of 3 integers (3D point)
+	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
+	var faceNumbers = []; //same a blockTypes in size
+	var indexes = []; //indexes for triangles of points in verts
 
-		//Go over our blocks in 6 passes, 1 for every face (of a cube).
+	//Go over our blocks in 6 passes, 1 for every face (of a cube).
 
-		//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
+	//See meshCommon.js for more explanation of LOOP_CUBEFACES_DATA and mnemonics used.
 
-		for (var iFace = 0; iFace < 6; iFace++) {
-			var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;
-			var compX = meshCommon.LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
-			var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compY;
-			var compZ = meshCommon.LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
+	for (var iFace = 0; iFace < 6; iFace++) {
+		var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;
+		var compX = meshCommon.LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
+		var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compY;
+		var compZ = meshCommon.LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
-			var pcWidth = chunkDims[compX];
-			var pcHeight = chunkDims[compY];
-			var pcDepth = chunkDims[compZ];
+		var pcWidth = chunkDims[compX];
+		var pcHeight = chunkDims[compY];
+		var pcDepth = chunkDims[compZ];
 
-			//array of block types.
-			//We only allocate as much as we will need for our voxelization level. When we
-			//access the planes we have to scale the coordinates down to account for this.
-			var planeSize = pcWidth * pcHeight / voxelization / voxelization;
-			var adjacentPlane = new Float32Array(planeSize);
-			var curPlane = new Float32Array(planeSize);
-			//Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
-			var deltaPlane = new Float32Array(planeSize);
+		//array of block types.
+		//We only allocate as much as we will need for our voxelization level. When we
+		//access the planes we have to scale the coordinates down to account for this.
+		var planeSize = pcWidth * pcHeight / voxelization / voxelization;
+		var adjacentPlane = new Float32Array(planeSize);
+		var curPlane = new Float32Array(planeSize);
+		//Gives the blocks which have been added (ignores removed, so not REALLY delta, but close enough)
+		var deltaPlane = new Float32Array(planeSize);
 
-			//Gets an offset in the correct chunk
-			var ocArr = [CHUNK.WIDTH / 2, CHUNK.HEIGHT / 2, CHUNK.DEPTH / 2];
-			ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
+		//Gets an offset in the correct chunk
+		var ocArr = [CHUNK.WIDTH / 2, CHUNK.HEIGHT / 2, CHUNK.DEPTH / 2];
+		ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
-			var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, ocArr, compZ);
+		var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, ocArr, compZ);
 
-			var pcZAdj = ocArr[compZ];
+		var pcZAdj = ocArr[compZ];
 
-			if (adjacentBlocks == null) {
-				for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
-					for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
-						var index = (pcX * pcWidth / voxelization + pcY) / voxelization;
-						adjacentPlane[index] = Block.DIRT; //Any solid would do here
-					}
-				}
-			} else {
-				for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
-					for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
-						//Handles the rotation from the plane coords to block coords
-						ocArr = [0, 0, 0];
-						ocArr[compX] = pcX;
-						ocArr[compY] = pcY;
-						ocArr[compZ] = pcZAdj;
-
-						var planeBlock = meshCommon.getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, voxelization);
-
-						adjacentPlane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
-					}
+		if (adjacentBlocks == null) {
+			for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
+				for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
+					var index = (pcX * pcWidth / voxelization + pcY) / voxelization;
+					adjacentPlane[index] = Block.DIRT; //Any solid would do here
 				}
 			}
+		} else {
+			for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
+				for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
+					//Handles the rotation from the plane coords to block coords
+					ocArr = [0, 0, 0];
+					ocArr[compX] = pcX;
+					ocArr[compY] = pcY;
+					ocArr[compZ] = pcZAdj;
 
-			//Start off beyond the bounds, and then go back in the bounds inside the loop
-			var pcZCur;
-			var pcZBound;
+					var planeBlock = meshCommon.getNeighbourBlockType(ocArr[0], ocArr[1], ocArr[2], adjacentBlocks, compZ, voxelization);
 
-			if (faceDirection == -1) {
-				pcZCur = 0;
-				pcZBound = pcDepth;
-			} else {
-				pcZCur = pcDepth - voxelization;
-				pcZBound = -voxelization;
-			}
-
-			while (pcZCur != pcZBound) {
-				createPlane(curPlane, pcWidth, pcHeight, pcZCur);
-				function createPlane(plane, pcWidth, pcHeight, pcZValue) {
-					var ocArr = [0, 0, 0]; //Used to apply rotation
-
-					for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
-						for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
-							//Essentially handles the rotation from the plane coords to block coords
-							ocArr[compX] = pcX;
-							ocArr[compY] = pcY;
-							ocArr[compZ] = pcZValue;
-
-							var planeBlock;
-							planeBlock = meshCommon.getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], blocks, voxelization);
-
-							plane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
-						}
-					}
+					adjacentPlane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
 				}
-
-				//Find the delta plane
-				for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
-					for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
-						//No need make a face if the block adjacent to our face is filled,
-						//or if we have no block.
-						var index = (pcX * pcWidth / voxelization + pcY) / voxelization;
-
-						if (adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
-							deltaPlane[index] = Block.AIR;
-							continue;
-						}
-
-						deltaPlane[index] = curPlane[index];
-					}
-				}
-
-				//Now apply the actual greedy meshing to the deltaPlane
-				GreedyMesh(deltaPlane, pcWidth, pcHeight, voxelization, pcZCur, iFace);
-				function GreedyMesh(plane, pcWidth, pcHeight, voxelization, pcZCur, iFace) {
-					for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
-						for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
-							//The current end of the rectangle (exclusive)
-							var pcXEnd = pcX;
-							var pcYEnd = pcY;
-
-							//Do a quick check to make sure we are not just empty
-							var baseBlock = plane[(pcXEnd * pcWidth / voxelization + pcYEnd) / voxelization];
-							if (baseBlock == Block.AIR) continue;
-
-							pcYEnd += voxelization;
-
-							//Try to extend on the y axis
-							while (pcYEnd < pcHeight) {
-								var curBlock = plane[(pcXEnd * pcWidth / voxelization + pcYEnd) / voxelization];
-								if (curBlock != baseBlock) break;
-
-								pcYEnd += voxelization;
-							}
-
-							pcXEnd += voxelization;
-
-							//Try to extend on the x axis
-							while (pcXEnd < pcWidth) {
-								//For every 1 we extend it, we have to check the entire new column
-								for (var pyTest = pcY; pyTest < pcYEnd; pyTest += voxelization) {
-									var curBlock = plane[(pcXEnd * pcWidth / voxelization + pyTest) / voxelization];
-									if (curBlock != baseBlock) break;
-								}
-
-								//Did not match all blocks in the column
-								if (pyTest != pcYEnd) break;
-
-								pcXEnd += voxelization;
-							}
-
-							//Add quad to vertices, faces, etc
-							var rotArr = [0, 0, 0];
-							rotArr[compX] = pcX;
-							rotArr[compY] = pcY;
-							rotArr[compZ] = pcZCur;
-							meshCommon.addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, voxelization, verts);
-							blockTypes.push(baseBlock);
-							faceNumbers.push(iFace);
-
-							//Remove all parts of the quad from the plane.
-							for (var pcXRem = pcX; pcXRem < pcXEnd; pcXRem += voxelization) {
-								for (var pcYRem = pcY; pcYRem < pcYEnd; pcYRem += voxelization) {
-									plane[(pcXRem * pcWidth / voxelization + pcYRem) / voxelization] = Block.AIR;
-								}
-							}
-
-							//We can also increment y by the height, which saves us checks later.
-							pcY = pcYEnd - voxelization;
-						}
-					}
-				}
-
-				//The curPlane becomes the adjacentPlane
-				var temp = curPlane;
-				curPlane = adjacentPlane;
-				adjacentPlane = temp;
-
-				//Go opposite the face direction
-				pcZCur -= voxelization * faceDirection;
 			}
 		}
 
-		return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
+		//Start off beyond the bounds, and then go back in the bounds inside the loop
+		var pcZCur;
+		var pcZBound;
+
+		if (faceDirection == -1) {
+			pcZCur = 0;
+			pcZBound = pcDepth;
+		} else {
+			pcZCur = pcDepth - voxelization;
+			pcZBound = -voxelization;
+		}
+
+		while (pcZCur != pcZBound) {
+			createPlane(curPlane, pcWidth, pcHeight, pcZCur);
+			function createPlane(plane, pcWidth, pcHeight, pcZValue) {
+				var ocArr = [0, 0, 0]; //Used to apply rotation
+
+				for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
+					for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
+						//Essentially handles the rotation from the plane coords to block coords
+						ocArr[compX] = pcX;
+						ocArr[compY] = pcY;
+						ocArr[compZ] = pcZValue;
+
+						var planeBlock;
+						planeBlock = meshCommon.getVoxelatedBlockType(ocArr[0], ocArr[1], ocArr[2], blocks, voxelization);
+
+						plane[(pcX * pcWidth / voxelization + pcY) / voxelization] = planeBlock;
+					}
+				}
+			}
+
+			//Find the delta plane
+			for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
+				for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
+					//No need make a face if the block adjacent to our face is filled,
+					//or if we have no block.
+					var index = (pcX * pcWidth / voxelization + pcY) / voxelization;
+
+					if (adjacentPlane[index] != Block.AIR || curPlane[index] == Block.AIR) {
+						deltaPlane[index] = Block.AIR;
+						continue;
+					}
+
+					deltaPlane[index] = curPlane[index];
+				}
+			}
+
+			//Now apply the actual greedy meshing to the deltaPlane
+			GreedyMesh(deltaPlane, pcWidth, pcHeight, voxelization, pcZCur, iFace);
+			function GreedyMesh(plane, pcWidth, pcHeight, voxelization, pcZCur, iFace) {
+				for (var pcX = 0; pcX < pcWidth; pcX += voxelization) {
+					for (var pcY = 0; pcY < pcHeight; pcY += voxelization) {
+						//The current end of the rectangle (exclusive)
+						var pcXEnd = pcX;
+						var pcYEnd = pcY;
+
+						//Do a quick check to make sure we are not just empty
+						var baseBlock = plane[(pcXEnd * pcWidth / voxelization + pcYEnd) / voxelization];
+						if (baseBlock == Block.AIR) continue;
+
+						pcYEnd += voxelization;
+
+						//Try to extend on the y axis
+						while (pcYEnd < pcHeight) {
+							var curBlock = plane[(pcXEnd * pcWidth / voxelization + pcYEnd) / voxelization];
+							if (curBlock != baseBlock) break;
+
+							pcYEnd += voxelization;
+						}
+
+						pcXEnd += voxelization;
+
+						//Try to extend on the x axis
+						while (pcXEnd < pcWidth) {
+							//For every 1 we extend it, we have to check the entire new column
+							for (var pyTest = pcY; pyTest < pcYEnd; pyTest += voxelization) {
+								var curBlock = plane[(pcXEnd * pcWidth / voxelization + pyTest) / voxelization];
+								if (curBlock != baseBlock) break;
+							}
+
+							//Did not match all blocks in the column
+							if (pyTest != pcYEnd) break;
+
+							pcXEnd += voxelization;
+						}
+
+						//Add quad to vertices, faces, etc
+						var rotArr = [0, 0, 0];
+						rotArr[compX] = pcX;
+						rotArr[compY] = pcY;
+						rotArr[compZ] = pcZCur;
+						meshCommon.addQuad(rotArr[0] + bcxStart, rotArr[1] + bcyStart, rotArr[2] + bczStart, (pcXEnd - pcX), (pcYEnd - pcY), compZ, faceDirection, voxelization, verts);
+						blockTypes.push(baseBlock);
+						faceNumbers.push(iFace);
+
+						//Remove all parts of the quad from the plane.
+						for (var pcXRem = pcX; pcXRem < pcXEnd; pcXRem += voxelization) {
+							for (var pcYRem = pcY; pcYRem < pcYEnd; pcYRem += voxelization) {
+								plane[(pcXRem * pcWidth / voxelization + pcYRem) / voxelization] = Block.AIR;
+							}
+						}
+
+						//We can also increment y by the height, which saves us checks later.
+						pcY = pcYEnd - voxelization;
+					}
+				}
+			}
+
+			//The curPlane becomes the adjacentPlane
+			var temp = curPlane;
+			curPlane = adjacentPlane;
+			adjacentPlane = temp;
+
+			//Go opposite the face direction
+			pcZCur -= voxelization * faceDirection;
+		}
 	}
+
+	return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
+}
 });

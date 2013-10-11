@@ -21,6 +21,7 @@ importScripts("/lib/require.js");
 requirejs.config({
 	paths: {
 		math: "/js/math",
+		conn: "/js/core/conn",
 	},
 // 	packages: [{
 // 		name: 'chunkManager',

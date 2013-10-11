@@ -1,9 +1,9 @@
 define(function (require) {
-	var THREE = require("THREE");
+var THREE = require("THREE");
 
-	return function Box(halfExtents, centerOffset) {
-		var self = this;
-		centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
+return function Box(halfExtents, centerOffset) {
+	var self = this;
+	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
 	// We might want to move this at some point...
 	// You can't have boxes checking collisions with
@@ -12,9 +12,9 @@ define(function (require) {
 	// that's only O(n), but it might make sence to
 	// move this once we have a more comprehensive
 	// collision interface.
-		self.collides = function (world, pos) {
+	self.collides = function (world, pos) {
 		return volumeBlockCollides(pos, blockCollide.bind(null, world));
-		}
+	}
 
 	// We can do this (fairly) efficiently because
 	// of the assumed resolution of the voxel world.
@@ -30,20 +30,20 @@ define(function (require) {
 			for (var y = ys; y <= ye; y++) {
 				for (var z = zs; z <= ze; z++) {
 					if (blockCollide(x, y, z)) {
-							return new THREE.Vector3(x, y, z);
-						}
+						return new THREE.Vector3(x, y, z);
 					}
 				}
 			}
-
-			return null;
 		}
+
+		return null;
+	}
 
 	function blockCollide(world, x, y, z) {
 		return world.blockAt(x, y, z).solid();
-		}
+	}
 
-		self.contains = function (x, y, z) {
+	self.contains = function (x, y, z) {
 		var he = halfExtents;
 		var co = centerOffset;
 		var xs = p.x + co.x - he.x, xe = p.x + co.x + he.x;
@@ -54,5 +54,5 @@ define(function (require) {
 			ys < y && ye > y &&
 			zs < z && ze > z;
 	};
-	}
+}
 });
