@@ -1,5 +1,4 @@
-define(function(require) {
-
+define(function() {
 return function Controls(elm) {
 	// Key codes for a bunch of the keys we need. Need more
 	// keys or these keycodes aren't working for you?
@@ -173,7 +172,7 @@ return function Controls(elm) {
 		actionEnd(event.button);
 	}
 
-var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
+	var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
 	function mouseMove(event) {
 		function clamp(n, a, b) {
 			return Math.max(a, Math.min(b, n));
