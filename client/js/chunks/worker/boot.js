@@ -23,16 +23,11 @@ requirejs.config({
 		math: "/js/math",
 		conn: "/js/core/conn",
 	},
-// 	packages: [{
-// 		name: 'chunkManager',
-// 		location: '',
-// 		main: 'main',
-// 	}],
 });
 
-require(["main"], function() {
+require(["main"], function () {
 	//No need to call anything, just including main should do it...
-	console.log("Booted successfully?");
+	console.log("Booted successfully");
 	parent.postMessage({
 		kind: "booted",
 		payload: "success",
