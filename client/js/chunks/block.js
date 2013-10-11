@@ -28,8 +28,8 @@ Block.INVISIBLE = 0x1; //Essentially means it has no colors, so Block.getColours
 Block.SOLID = 0x2;  //Means it can be collided with, and cannot so entities cannot occupy the same square as it.
 
 Block.PROPERTIES = [
-	/** NIL	*/ 0,
-	/** AIR	*/ Block.INVISIBLE,
+	/** NIL    */ 0,
+	/** AIR    */ Block.INVISIBLE,
 	/** DIRT   */ Block.SOLID | Block.MINEABLE,
 	/** STONE  */ Block.SOLID | Block.MINEABLE,
 ];
@@ -58,7 +58,7 @@ Block.getColours = function (blockType, face) {
 		return {
 			r: (num >> 16) & 0xFF,
 			g: (num >> 8)  & 0xFF,
-			b:  num		& 0xFF,
+			b:  num        & 0xFF,
 		};
 	}
 };
