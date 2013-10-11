@@ -64,7 +64,7 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 		var c = controls.sample();
 
 		var controlState = {
-		Controls: c,
+			Controls: c,
 			Timestamp: clock.time(),
 			ViewTimestamp: clock.entityTime()
 		};
@@ -72,7 +72,7 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 
 		var camPos = pos().clone();
 
-		if(localStorage.thirdPerson) {
+		if (localStorage.thirdPerson) {
 			var target = calcTarget(camPos, c.lat, c.lon);
 			var look = target.clone().sub(camPos);
 			look.setLength(3);
