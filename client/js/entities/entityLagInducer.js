@@ -2,7 +2,7 @@
 define(function (require) {
 var HistoryBuffer = require("./historyBuffer");
 
-return function EntityNetworkController(entity, clock, initialState) {
+return function EntityLagInducer(entity, clock, initialState) {
 	var self = this;
 	var history = new HistoryBuffer();
 	history.add(initialState.time, initialState.data);
