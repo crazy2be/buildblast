@@ -1,7 +1,15 @@
-function simpleMesh(blocks, voxelization, cc, manager) {
-	var cw = CHUNK_WIDTH;
-	var cd = CHUNK_DEPTH;
-	var ch = CHUNK_HEIGHT;
+define(function(require) {
+var perlinNoise = require("noise");
+
+var Block = require("../../block");
+
+var common = require("../../chunkCommon");
+var CHUNK = common.CHUNK;
+
+return function simpleMesh(blocks, voxelization, cc, manager) {
+	var cw = CHUNK.WIDTH;
+	var cd = CHUNK.DEPTH;
+	var ch = CHUNK.HEIGHT;
 
 	var ccX = cc.x;
 	var ccY = cc.y;
@@ -73,7 +81,7 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 		offsets: offsets,
 		transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
 	};
-	
+
 	//Everything after here is just helper functions.
 
 	//Can get blocks from up to 1 chunk away from out current chunk
@@ -145,16 +153,6 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 			blockType = mostCommonBlock(ocX, ocY, ocZ, r);
 		}
 		if (blockType < 0) return;
-
-		function mod(a, b) {
-			return ((a % b) + b) % b;
-		}
-		function abs(n) {
-			return Math.abs(n);
-		}
-		function clamp(n, a, b) {
-			return Math.min(Math.max(n, a), b);
-		}
 
 		function inCenter(x, y, z) {
 			return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
@@ -301,3 +299,4 @@ function simpleMesh(blocks, voxelization, cc, manager) {
 		nzc = manager.chunkAt(ccX, ccY, ccZ - 1);
 	}
 }
+});

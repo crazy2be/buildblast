@@ -1,18 +1,14 @@
-var PLAYER_HEIGHT = 1.75;
-var PLAYER_EYE_HEIGHT = 1.6;
-var PLAYER_BODY_HEIGHT = 1.3;
-var PLAYER_HALF_EXTENTS = new THREE.Vector3(
-	0.2,
-	PLAYER_HEIGHT / 2,
-	0.2
-);
-var PLAYER_CENTER_OFFSET = new THREE.Vector3(
-	0,
-	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
-	0
-);
+define(function(require) {
+var Controls = require("player/controls");
+var Chat = require("player/chat");
 
-function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
+var THREE = require("THREE");
+
+var Inventory = require("player/inventory");
+
+var PerfChart = require("perf/chart");
+
+return function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 	var self = this;
 
 	var chat = new Chat(controls, conn, container);
@@ -54,7 +50,7 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		inventory.resize();
 	}
 
-	function pos() {
+	function pos () {
 		return playerEntity.pos();
 	};
 
@@ -152,3 +148,4 @@ function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
 		return Math.round(n * factor) / factor;
 	}
 };
+});

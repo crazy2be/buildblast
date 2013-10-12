@@ -1,4 +1,5 @@
-function Controls(elm) {
+define(function() {
+return function Controls(elm) {
 	// Key codes for a bunch of the keys we need. Need more
 	// keys or these keycodes aren't working for you?
 	// Head over to http://whatthekeycode.com/ to find out the
@@ -173,9 +174,6 @@ function Controls(elm) {
 
 	var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
 	function mouseMove(event) {
-		function clamp(n, a, b) {
-			return Math.max(a, Math.min(b, n));
-		}
 		var lookSpeed = 0.005;
 
 		var x = event.movementX  ||
@@ -186,7 +184,7 @@ function Controls(elm) {
 			event.mozMovementY	||
 			event.webkitMovementY ||
 			0;
-		
+
 		// This is needed on Justin's version of chrome.
 		// For some reason the mouse events are off by one.
 		// (must be a bug on the Linux version of Chrome).
@@ -292,3 +290,4 @@ function Controls(elm) {
 		return newO;
 	}
 };
+});

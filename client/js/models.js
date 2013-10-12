@@ -1,6 +1,11 @@
-function Models() {};
+define(function (require) {
+var THREE = require("THREE");
 
-Models.init = function(loadedCallback) {
+var async = require("/lib/async.js");
+
+function Models() { };
+
+Models.init = function (loadedCallback) {
 	var loader = new THREE.JSONLoader();
 	var models = [
 		'pistol',
@@ -31,3 +36,6 @@ Models.init = function(loadedCallback) {
 		}
 	}
 };
+
+return Models;
+});

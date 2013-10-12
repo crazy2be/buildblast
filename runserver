@@ -17,8 +17,6 @@ if go version; then
 	go get buildblast/server
 
 	cd client
-	echo "Regenerating includes."
-	(cd js; python genincludes.py)
 	echo "Starting server..."
 	../bin/server
 

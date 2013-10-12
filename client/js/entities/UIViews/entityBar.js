@@ -1,7 +1,11 @@
+define(function (require) {
+
+var THREE = require("THREE");
+
 // Could be used for various types of bars or canvases
 // we want to have in the scene if somebody wants to make
 // it generic.
-function EntityBar(drawFunc, playerEntity) {
+return function EntityBar(drawFunc) {
 	var self = this;
 	var canvas = document.createElement('canvas');
 	canvas.width = 200;
@@ -30,7 +34,8 @@ function EntityBar(drawFunc, playerEntity) {
 		texture.needsUpdate = true;
 	};
 
-	self.mesh = function () {
-		return mesh;
+	self.meshes = function () {
+		return [mesh];
 	};
 }
+});

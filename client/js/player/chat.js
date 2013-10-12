@@ -1,4 +1,8 @@
-function Chat(controls, conn, container) {
+define(function(require) {
+
+var $ = require("jquery");
+
+return function Chat(controls, conn, container) {
 	var self = this;
 
 	var firstEnter = false;
@@ -112,3 +116,4 @@ function Chat(controls, conn, container) {
 		};
 	}
 }
+});

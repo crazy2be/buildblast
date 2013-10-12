@@ -1,4 +1,5 @@
-function Clock(conn) {
+define(function () {
+return function Clock(conn) {
 	var self = this;
 
 	var defaultLagInduction = 100;
@@ -36,7 +37,7 @@ function Clock(conn) {
 		var curNow = now();
 		var dt = curNow - prevNow;
 		var doff = offset - appliedOffset;
-		appliedOffset += min(abs(dt*0.1), abs(doff)) * signum(doff);
+		appliedOffset += min(abs(dt * 0.1), abs(doff)) * signum(doff);
 
 		var prevTime = curTime;
 		curTime = appliedOffset + curNow;
@@ -84,3 +85,4 @@ function Clock(conn) {
 		return window.performance.now();
 	}
 }
+});

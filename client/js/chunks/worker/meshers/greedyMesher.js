@@ -12,15 +12,23 @@
 //      The algorithm to make the rectangle just extends the height as much as possible,
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
-function greedyMesher(blocks, voxelization, cc, manager) {
+define(function (require) {
+var Block = require("../../block");
+
+var common = require("../../chunkCommon");
+var CHUNK = common.CHUNK;
+
+var meshCommon = require("../meshCommon");
+
+return function greedyMesher(blocks, voxelization, cc, manager) {
 	var ccArr = [cc.x, cc.y, cc.z];
 
-	var chunkDims = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+	var chunkDims = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
 	meshCommon.preprocessBlocks(blocks);
 
-	var bcxStart = CHUNK_WIDTH * cc.x;
-	var bcyStart = CHUNK_HEIGHT * cc.y;
-	var bczStart = CHUNK_DEPTH * cc.z;
+	var bcxStart = CHUNK.WIDTH * cc.x;
+	var bcyStart = CHUNK.HEIGHT * cc.y;
+	var bczStart = CHUNK.DEPTH * cc.z;
 
 	var verts = []; //Each vertice is made of 3 integers (3D point)
 	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -43,7 +51,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 
 		//array of block types.
 		//We only allocate as much as we will need for our voxelization level. When we
-        //access the planes we have to scale the coordinates down to account for this.
+		//access the planes we have to scale the coordinates down to account for this.
 		var planeSize = pcWidth * pcHeight / voxelization / voxelization;
 		var adjacentPlane = new Float32Array(planeSize);
 		var curPlane = new Float32Array(planeSize);
@@ -51,7 +59,7 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 		var deltaPlane = new Float32Array(planeSize);
 
 		//Gets an offset in the correct chunk
-		var ocArr = [CHUNK_WIDTH / 2, CHUNK_HEIGHT / 2, CHUNK_DEPTH / 2];
+		var ocArr = [CHUNK.WIDTH / 2, CHUNK.HEIGHT / 2, CHUNK.DEPTH / 2];
 		ocArr[compZ] += ocArr[compZ] * 2 * faceDirection;
 
 		var adjacentBlocks = meshCommon.getBlockData(manager, blocks, ccArr, ocArr, compZ);
@@ -202,3 +210,4 @@ function greedyMesher(blocks, voxelization, cc, manager) {
 
 	return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
 }
+});

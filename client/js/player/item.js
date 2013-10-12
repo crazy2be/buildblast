@@ -1,3 +1,7 @@
+define(function(require) {
+var Models = require("models");
+var Block = require("chunks/block");
+
 function Item(type) {
 	this.type = type;
 }
@@ -94,7 +98,7 @@ Item.realInit = function () {
 		if (!bc) return;
 		world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 	}
-	
+
 	function superShovelAction(world, camera) {
 		var center = world.findLookedAtBlock(camera);
 		for (var x = 0; x < 10; x++) {
@@ -105,7 +109,7 @@ Item.realInit = function () {
 			}
 		}
 	}
-	
+
 	function blockAction(block) {
 		return function (world, camera) {
 			var bc = world.findLookedAtBlock(camera, true);
@@ -114,3 +118,6 @@ Item.realInit = function () {
 		};
 	}
 }
+
+return Item;
+});

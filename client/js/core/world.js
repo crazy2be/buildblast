@@ -1,4 +1,12 @@
-function World(scene, conn, clientID, clock) {
+define(function(require) {
+
+var ChunkManager = require("chunkManager");
+var EntityManager = require("entities/entityManager");
+var Block = require("chunks/block");
+
+var common = require("chunks/chunkCommon");
+
+return function World(scene, conn, clientID, clock) {
 	var self = this;
 
 	var chunkManager = new ChunkManager(scene, clientID);
@@ -39,17 +47,15 @@ function World(scene, conn, clientID, clock) {
 	};
 
 	self.blockAt = function (wcX, wcY, wcZ) {
-		var cords = worldToChunk(wcX, wcY, wcZ);
+		var cords = common.worldToChunk(wcX, wcY, wcZ);
 		var oc = cords.o;
 		var cc = cords.c;
 
 		var chunk = chunkManager.chunk(cc);
-		if (!chunk) {
-			return new Block(Block.NIL);
-		}
+		if (!chunk) return new Block(Block.NIL);
 		var block = chunk.block(oc);
 		if (!block) throw "Could not load blockkk!!!";
-		return block;
+		else return block;
 	};
 
 	function findIntersection(point, look, criteriaFnc, precision, maxDist) {
@@ -93,7 +99,7 @@ function World(scene, conn, clientID, clock) {
 	// until hitting a solid block. If dontWantSolidBlock is true, it then
 	// backs up one step, until the block immediately before the solid
 	// block. Returns the position of the block.
-	// BUG(yeerkkiller1): (literal) corner case is not handled correctly: 
+	// BUG(yeerkkiller1): (literal) corner case is not handled correctly:
 	// http://awwapp.com/s/e3/4f/fe.png
 	self.findLookedAtBlock = function(camera, dontWantSolidBlock) {
 		var precision = 0.1;
@@ -104,7 +110,7 @@ function World(scene, conn, clientID, clock) {
 			var block = self.blockAt(wcX, wcY, wcZ);
 			return block && block.solid();
 		}
-		
+
 		var intersect = findIntersection(pos, dir, solidBlockAt, precision);
 		if (!intersect) {
 			console.log("You aren't looking at anything!");
@@ -132,3 +138,4 @@ function World(scene, conn, clientID, clock) {
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 }
+});
