@@ -2,7 +2,8 @@ define(function (require) {
 var PlayerEntity = require("entities/playerEntity");
 var EntityState = require("entities/entityState");
 var EntityNetworkController = require("entities/entityNetworkController");
-var EntityBar = require("entities/entityBar");
+var EntityBar = require("entities/UIViews/entityBar");
+var PlayerMesh = require("entities/UIViews/playerMesh");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -27,7 +28,8 @@ return function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new PlayerEntity()
+		var entity = new PlayerEntity();
+		entity.add(new PlayerMesh(entity));
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);

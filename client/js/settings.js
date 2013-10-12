@@ -7,6 +7,8 @@ define(function () {
 				localStorage.lagInductionTime = 300;
 				localStorage.thirdPerson = true;
 				localStorage.showHistoryBuffers = true;
+				//If you want to make the UIView add and remove as you change thirdPerson be my guest...
+				localStorage.showSelfEntity = true;
 				return "Success!";
 			case "justin":
 				localStorage.useDvorak = true;

@@ -20,6 +20,8 @@ var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
 var EntityPredictiveController = require("entities/entityPredictiveController");
 
+var PlayerMesh = require("entities/UIViews/playerMesh");
+
 function main () {
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
@@ -78,6 +80,11 @@ function main () {
 		};
 
 		var player = new PlayerEntity();
+
+		if(localStorage.showSelfEntity) {
+			player.add(new PlayerMesh(player));
+		}
+
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
