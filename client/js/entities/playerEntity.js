@@ -35,9 +35,9 @@ define(function (require) {
 			scene.remove(entityMesh);
 		};
 
-		var UIViews = [];
+		var uIViews = [];
 		self.add = function (view) {
-			UIViews.push(view);
+			uIViews.push(view);
 			view.meshes().forEach(entityMesh.add.bind(entityMesh));
 		}
 
