@@ -34,6 +34,10 @@ define(function (require) {
 			return state.vy;
 		};
 
+		self.rotation = function () {
+			return entityMesh.rotation;
+		};
+
 		self.contains = function (x, y, z) {
 			var box = new Box(pos, PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 			return box.contains(x, y, z);

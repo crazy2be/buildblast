@@ -46,9 +46,8 @@ return function HpBar() {
 		userNameLbl.maxFontSize(50);
 		userNameLbl.align("center");
 		userNameLbl.lineSpacing(1);
-		userNameLbl.resize(new Rect(0, 0, canvas.width, canvas.height));
+		userNameLbl.resize(new Rect(0, 0, canvas.width, canvas.height - 5));
 	}
-
 
 	self.update = function (entity, clock) {
 		init(entity);
@@ -65,6 +64,10 @@ return function HpBar() {
 		ctx.fillRect(0, 0, canvas.width * hpPercent, canvas.height);
 
 		userNameLbl.draw(ctx);
+
+		//mesh.rotation = entity.rotation();
+
+
 
 		texture.needsUpdate = true;
 	};
