@@ -69,8 +69,8 @@ define(function (require) {
 			}
 			lookAt(entityMesh, c, look.x, 0, look.z);
 
-			for (var i = 0; i < UIViews.length; i++) {
-				UIViews[i].update(self, clock);
+			for (var i = 0; i < uIViews.length; i++) {
+				uIViews[i].update(self, clock);
 			}
 		}
 
