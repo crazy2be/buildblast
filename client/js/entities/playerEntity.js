@@ -1,17 +1,26 @@
 define(function (require) {
 	var THREE = require("THREE");
 	var PLAYER = require("player/playerSize");
+	var EntityState = require("./entityState");
 
 	return function PlayerEntity() {
 		var self = this;
 
 		self.pos = function () {
-			return pos;
+			return state.pos;
+		};
+
+		self.look = function () {
+			return state.look;
 		};
 
 		self.health = function () {
-			return health;
-		}
+			return state.health;
+		};
+
+		self.vy = function () {
+			return state.vy;
+		};
 
 		self.contains = function (x, y, z) {
 			var box = new Box(pos, PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
@@ -32,14 +41,15 @@ define(function (require) {
 			view.meshes().forEach(entityMesh.add.bind(entityMesh));
 		}
 
-		var pos = new THREE.Vector3(0, 0, 0);
-		var health = 100;
+		var state = new EntityState();
 
 		var entityMesh = new THREE.Object3D();
 
-		self.update = function (state, clock) {
-			pos = state.pos;
-			var look = state.look;
+		self.update = function (newState, clock) {
+			state = newState;
+
+			var pos = self.pos();
+			var look = self.look();
 
 			var co = PLAYER.CENTER_OFFSET;
 			var c = new THREE.Vector3(
@@ -60,7 +70,7 @@ define(function (require) {
 			lookAt(entityMesh, c, look.x, 0, look.z);
 
 			for (var i = 0; i < UIViews.length; i++) {
-				UIViews[i].update(self, clock, state);
+				UIViews[i].update(self, clock);
 			}
 		}
 

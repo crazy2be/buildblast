@@ -6,7 +6,7 @@ define(function (require) {
 	// Could be used for various types of bars or canvases
 	// we want to have in the scene if somebody wants to make
 	// it generic.
-	return function PlayerMesh(playerEntity) {
+	return function PlayerMesh() {
 		var self = this;
 
 		var headMesh = createHead();
@@ -26,12 +26,11 @@ define(function (require) {
 		var swingSpeed = 2 * Math.PI / 1000;
 		var totalSwingTime = 0;
 
-		var previousPos = new THREE.Vector3(0, 0, 0);
-		self.update = function (entity, clock, state) {
+		self.update = function (entity, clock) {
 			updatePosition(entity.pos());
-			updateLook(state.look);
-			vy = state.vy;
-			health = state.health;
+			updateLook(entity.look());
+			vy = entity.vy();
+			health = entity.health();
 
 			var dt = clock.dt();
 
@@ -50,19 +49,16 @@ define(function (require) {
 			}
 			leftArm.rotation.x = -swingAngle;
 			rightArm.rotation.x = swingAngle;
-
-			previousPos = entity.pos();
 		};
 
+		var previousPos = new THREE.Vector3(0, 0, 0);
 		function updatePosition(newPos) {
-
-			var diffX = previousPos.x - playerEntity.pos().x;
-			var diffZ = previousPos.z - playerEntity.pos().z;
+			var diffX = previousPos.x - newPos.x;
+			var diffZ = previousPos.z - newPos.z;
 			if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
 				isMoving = true;
 			}
-
-			return self;
+			previousPos = newPos;
 		};
 
 		function updateLook(newLook) {
@@ -74,7 +70,6 @@ define(function (require) {
 				);
 				obj.lookAt(target);
 			}
-			var pos = playerEntity.pos();
 			lookAt(headMesh, headMesh.position, 0, newLook.y, 1);
 		};
 
