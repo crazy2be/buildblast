@@ -24,6 +24,5 @@ define(function () {
 				return "No clue what the settings scheme: '" + name + "' means?";
 		}
 	}
-	self.__loadSettingsScheme = __loadSettingsScheme;
 	return __loadSettingsScheme;
 });
