@@ -20,8 +20,6 @@ var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
 var EntityInputPredicter = require("entities/entityInputPredicter");
 
-var PlayerMesh = require("entities/UIViews/playerMesh");
-
 function main () {
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
@@ -79,8 +77,7 @@ function main () {
 			lagStats.addDataPoint(lag);
 		};
 
-		var player = new PlayerEntity();
-		player.add(new PlayerMesh());
+		var player = new PlayerEntity(clientID).initViews();
 
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);

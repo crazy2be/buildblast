@@ -3,7 +3,6 @@ var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
 var EntityLagInducer = require("./entityLagInducer");
 var EntityBar = require("./UIViews/entityBar");
-var PlayerMesh = require("./UIViews/playerMesh");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -28,11 +27,12 @@ return function EntityManager(scene, conn, world, clock) {
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
+			if(id !== _playerId) {
+				console.warn("Got entity-create message for entity which already exists!", id);
+			}
 			return;
 		}
-		var entity = new PlayerEntity();
-		entity.add(new PlayerMesh());
+		var entity = new PlayerEntity(id).initViews();
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);

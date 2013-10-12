@@ -10,6 +10,11 @@ return function EntityBar(drawFunc) {
 	var canvas = document.createElement('canvas');
 	canvas.width = 200;
 	canvas.height = 30;
+
+	if(localStorage.hpBars) {
+		canvas.height = 10;
+	}
+
 	var ctx = canvas.getContext('2d');
 
 	var texture = new THREE.Texture(canvas);
@@ -27,6 +32,10 @@ return function EntityBar(drawFunc) {
 
 	mesh.scale.set(1/100, 1/100, 1/100);
 	mesh.position.set(0, 1.25, 0);
+
+	if(localStorage.hpBars) {
+		mesh.position.set(0, 1.15, 0);
+	}
 
 	self.update = function (entity, clock) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);

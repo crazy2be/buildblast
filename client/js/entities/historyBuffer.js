@@ -60,9 +60,12 @@ define(function (require) {
 			var offset = 0;
 
 			function xat(t) {
+				if (newest_t == oldest_t) {
+					return width + 1;
+				}
 				return (
-				(t - oldest_t) /
-				(newest_t - oldest_t)
+					(t - oldest_t) /
+					(newest_t - oldest_t)
 				) * width + offset;
 			}
 
@@ -89,8 +92,8 @@ define(function (require) {
 			ctx.beginPath();
 			for (var i = 0; i < len; i++) {
 				var x = xat(times[i]);
-				ctx.moveTo(x, 4);
-				ctx.lineTo(x, height - 4);
+				ctx.moveTo(x, localStorage.hpBars ? 0 : 4);
+				ctx.lineTo(x, height - (localStorage.hpBars ? 0 : 4));
 			}
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = "green";
@@ -105,7 +108,7 @@ define(function (require) {
 			ctx.strokeStyle = "orange";
 			ctx.stroke();
 
-			if (offset !== 0) {
+			if (offset !== 0 && !localStorage.hpBars) {
 				ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
 				ctx.fillRect(0, 0, width, height);
 				ctx.textAlign = 'center';

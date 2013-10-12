@@ -7,6 +7,7 @@ define(function () {
 				localStorage.lagInductionTime = 300;
 				localStorage.thirdPerson = true;
 				localStorage.showHistoryBuffers = true;
+				localStorage.hpBars = true;
 				return "Success!";
 			case "justin":
 				localStorage.useDvorak = true;

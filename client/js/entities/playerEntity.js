@@ -3,8 +3,16 @@ define(function (require) {
 	var PLAYER = require("player/playerSize");
 	var EntityState = require("./entityState");
 
-	return function PlayerEntity() {
+	var PlayerMesh = require("./UIViews/playerMesh");
+	var HpBar = require("./UIViews/hpBar");
+	var EntityBar = require("./UIViews/entityBar");
+
+	return function PlayerEntity(id) {
 		var self = this;
+
+		self.id = function () {
+			return id;
+		};
 
 		self.pos = function () {
 			return state.pos;
@@ -16,6 +24,10 @@ define(function (require) {
 
 		self.health = function () {
 			return state.health;
+		};
+
+		self.maxHealth = function () {
+			return state.maxHealth;
 		};
 
 		self.vy = function () {
@@ -39,6 +51,15 @@ define(function (require) {
 		self.add = function (view) {
 			UIViews.push(view);
 			view.meshes().forEach(entityMesh.add.bind(entityMesh));
+		}
+		//Inits the regular views, some stuff can't go in here
+		//(EntityBar) as it needs access to stuff an entity really should not have.
+		self.initViews = function () {
+			self.add(new PlayerMesh());
+			if (localStorage.hpBars) {
+				self.add(new HpBar());
+			}
+			return self;
 		}
 
 		var state = new EntityState();
