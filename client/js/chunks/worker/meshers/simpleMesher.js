@@ -154,16 +154,6 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 		}
 		if (blockType < 0) return;
 
-		function mod(a, b) {
-			return ((a % b) + b) % b;
-		}
-		function abs(n) {
-			return Math.abs(n);
-		}
-		function clamp(n, a, b) {
-			return Math.min(Math.max(n, a), b);
-		}
-
 		function inCenter(x, y, z) {
 			return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
 				Math.abs(mod(y, 1) - 0.5) < 0.001 ||

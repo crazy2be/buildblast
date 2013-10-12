@@ -105,9 +105,5 @@ return function PerfChart(opts) {
 		while (str.length < 6) str = ' ' + str;
 		return str + suffix;
 	}
-
-	function clamp(n, a, b) {
-		return max(a, min(b, n));
-	}
 }
 });

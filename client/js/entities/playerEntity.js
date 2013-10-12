@@ -73,16 +73,5 @@ define(function (require) {
 				uIViews[i].update(self, clock);
 			}
 		}
-
-		// Utils
-		// Clamp n between [a, b]. Behaviour is
-		// undefined if a > b.
-		function clamp(n, a, b) {
-			return n < a ? a : n > b ? b : n;
-		}
-		// Return the sign of n, -1, 1, or 0.
-		function signum(n) {
-			return n < 0 ? -1 : n > 0 ? 1 : 0;
-		}
 	}
 });
