@@ -30,7 +30,15 @@
 	}],
 });
 
-define(["main", "settings", "math"], function(main, __loadSettingsScheme, mathFnc) {
+define(["main", "settings", "math", "fatalError"], function(main, __loadSettingsScheme, mathFnc, fatalError) {
+	window.onerror = function (msg, url, lineno) {
+		fatalError({
+			message: msg,
+			filename: url,
+			lineno: lineno,
+		});
+	};
+
 	mathFnc(self);
 	self.__loadSettingsScheme = __loadSettingsScheme;
 	main();
