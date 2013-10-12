@@ -26,7 +26,6 @@ return function HistoryBuffer() {
 		if (len <= 0) {
 			throw "Attempt to access item in empty history buffer.";
 		}
-
 		var newest_t = times[len - 1];
 		if (newest_t <= t) {
 			return datums[len - 1];

@@ -40,5 +40,6 @@
 });
 
 require(["main", "settings"], function(main, __loadSettingsScheme) {
+	self.__loadSettingsScheme = __loadSettingsScheme;
 	main();
 });
