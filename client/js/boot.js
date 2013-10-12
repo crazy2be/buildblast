@@ -39,6 +39,6 @@
 	}],
 });
 
-require(["main"], function(main) {
+require(["main", "settings"], function(main, __loadSettingsScheme) {
 	main();
 });

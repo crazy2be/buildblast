@@ -1,6 +1,8 @@
 define(function (require) {
-var Entity = require("entities/playerEntity");
+var PlayerEntity = require("entities/playerEntity");
 var EntityState = require("entities/entityState");
+var EntityNetworkController = require("entities/entityNetworkController");
+var EntityBar = require("entities/entityBar");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
