@@ -35,9 +35,9 @@ define(function (require) {
 			scene.remove(entityMesh);
 		};
 
-		var UIViews = [];
+		var uIViews = [];
 		self.add = function (view) {
-			UIViews.push(view);
+			uIViews.push(view);
 			view.meshes().forEach(entityMesh.add.bind(entityMesh));
 		}
 
@@ -69,8 +69,8 @@ define(function (require) {
 			}
 			lookAt(entityMesh, c, look.x, 0, look.z);
 
-			for (var i = 0; i < UIViews.length; i++) {
-				UIViews[i].update(self, clock);
+			for (var i = 0; i < uIViews.length; i++) {
+				uIViews[i].update(self, clock);
 			}
 		}
 
