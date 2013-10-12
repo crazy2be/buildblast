@@ -1,5 +1,3 @@
-//Input prediction
-
 define(function (require) {
 var EntityState = require("./entityState");
 
