@@ -1,12 +1,4 @@
 define(function(require) {
-	window.onerror = function (msg, url, lineno) {
-		fatalError({
-			message: msg,
-			filename: url,
-			lineno: lineno,
-		});
-	};
-
 	function fatalError(err) {
 		var container = document.getElementById('container');
 		container.classList.add('error');
