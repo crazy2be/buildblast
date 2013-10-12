@@ -47,12 +47,9 @@ parent.onmessage = function (e) {
 };
 
 function initConn(payload) {
-	console.log("initConn", payload);
 	var conn = new Conn(payload.uri);
 	conn.on('chunk', processChunk);
 	conn.on('block', processBlockChange);
-
-	console.log("initConn end", payload);
 }
 
 var manager = new WorkerChunkManager();
