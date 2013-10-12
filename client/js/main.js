@@ -18,7 +18,9 @@ var PerfChart = require("perf/chart");
 var Box = require("geom/box");
 var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
-var EntityPredictiveController = require("entities/entityPredictiveController");
+var EntityInputPredicter = require("entities/entityInputPredicter");
+
+var PlayerMesh = require("entities/UIViews/playerMesh");
 
 function main () {
 	var container = document.getElementById('container');
@@ -78,10 +80,12 @@ function main () {
 		};
 
 		var player = new PlayerEntity();
+		player.add(new PlayerMesh());
+
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityPredictiveController(player, clock, controls, predictor);
+		var controller = new EntityInputPredicter(player, clock, controls, predictor);
 		world.setPlayer(clientID, player, controller);
 		return player;
 	}

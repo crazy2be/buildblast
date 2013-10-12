@@ -2,7 +2,7 @@ define(function () {
 return function EntityState(pos, look, health, vy) {
 	this.pos = pos || new THREE.Vector3(0, 0, 0);
 	this.look = look || new THREE.Vector3(0, 0, 0);
-	this.health = health || 0;
+	this.health = health || 100;
 	this.vy = vy || 0.0;
 	this.clone = function () {
 		var cloned = new EntityState(

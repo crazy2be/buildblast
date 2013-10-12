@@ -1,10 +1,16 @@
 define(function (require) {
-var Entity = require("entities/playerEntity");
-var EntityState = require("entities/entityState");
+var PlayerEntity = require("./playerEntity");
+var EntityState = require("./entityState");
+var EntityLagInducer = require("./entityLagInducer");
+var EntityBar = require("./UIViews/entityBar");
+var PlayerMesh = require("./UIViews/playerMesh");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
+	//Really not controllers, the network controls the entities, these
+	//	are just data, and inside the data are the views (which are isolated).
+	//They are in a sense, ViewModels :D
 	var controllers = {};
 
 	var _playerId = null;
@@ -25,17 +31,18 @@ return function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new PlayerEntity()
+		var entity = new PlayerEntity();
+		entity.add(new PlayerMesh());
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);
-		var controller = new EntityNetworkController(entity, clock, initialState);
+		var controller = new EntityLagInducer(entity, clock, initialState);
 
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
 			var playerEntity = controllers[_playerId].entity();
-			entity.add(new EntityBar(controller.drawState, playerEntity));
+			entity.add(new EntityBar(controller.drawState));
 		}
 	});
 

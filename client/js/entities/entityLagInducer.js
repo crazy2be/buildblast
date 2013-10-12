@@ -1,4 +1,8 @@
-function EntityNetworkController(entity, clock, initialState) {
+//Lag induction...
+define(function (require) {
+var HistoryBuffer = require("./historyBuffer");
+
+return function EntityLagInducer(entity, clock, initialState) {
 	var self = this;
 	var history = new HistoryBuffer();
 	history.add(initialState.time, initialState.data);
@@ -17,3 +21,4 @@ function EntityNetworkController(entity, clock, initialState) {
 
 	self.drawState = history.drawState;
 }
+});

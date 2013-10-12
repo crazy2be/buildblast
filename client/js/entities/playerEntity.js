@@ -1,198 +1,88 @@
 define(function (require) {
-var THREE = require("THREE");
-var PLAYER = require("player/playerSize");
+	var THREE = require("THREE");
+	var PLAYER = require("player/playerSize");
+	var EntityState = require("./entityState");
 
-return function PlayerEntity() {
-	var self = this;
+	return function PlayerEntity() {
+		var self = this;
 
-	self.pos = function () {
-		return pos;
-	};
+		self.pos = function () {
+			return state.pos;
+		};
 
-	self.health = function () {
-		return health;
-	}
+		self.look = function () {
+			return state.look;
+		};
 
-	self.contains = function (x, y, z) {
-		var box = new Box(pos, PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
-		return box.contains(x, y, z);
-	};
+		self.health = function () {
+			return state.health;
+		};
 
-	self.addTo = function (scene) {
-		scene.add(bodyParts);
-	};
+		self.vy = function () {
+			return state.vy;
+		};
 
-	self.removeFrom = function (scene) {
-		scene.remove(bodyParts);
-	};
+		self.contains = function (x, y, z) {
+			var box = new Box(pos, PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
+			return box.contains(x, y, z);
+		};
 
-	var children = [];
-	self.add = function (child) {
-		children.push(child);
-		bodyParts.add(child.mesh());
-	}
+		self.addTo = function (scene) {
+			scene.add(entityMesh);
+		};
 
-	var pos = new THREE.Vector3(0, 0, 0);
-	var vy = 0;
-	var health = 100;
-	var isMoving = false;
+		self.removeFrom = function (scene) {
+			scene.remove(entityMesh);
+		};
 
-	var bodyParts = new THREE.Object3D();
-	var headMesh = createHead();
-	bodyParts.add(headMesh);
-	var bodyMesh = createBody();
-	bodyParts.add(bodyMesh);
-	var leftArm = createArm(1);
-	bodyParts.add(leftArm);
-	var rightArm = createArm(-1);
-	bodyParts.add(rightArm);
-
-	var jumpAngle = 0;
-	var maxJumpAngle = 4 * Math.PI / 5;
-	var jumpSpeed = maxJumpAngle / 300;
-
-	var swingAngle = 0;
-	var maxSwingAngle = Math.PI / 2;
-	var swingSpeed = 2 * Math.PI / 1000;
-	var totalSwingTime = 0;
-
-	self.update = function (state, clock) {
-		updatePosition(state.pos);
-		updateLook(state.look);
-		vy = state.vy;
-		health = state.health;
-
-		for (var i = 0; i < children.length; i++) {
-			children[i].update(self, clock);
+		var UIViews = [];
+		self.add = function (view) {
+			UIViews.push(view);
+			view.meshes().forEach(entityMesh.add.bind(entityMesh));
 		}
 
-		var dt = clock.dt();
+		var state = new EntityState();
 
-		// Jump animation
-		jumpAngle = clamp(jumpAngle + signum(vy)*dt*jumpSpeed, 0, maxJumpAngle);
-		leftArm.rotation.z = jumpAngle;
-		rightArm.rotation.z = -jumpAngle;
+		var entityMesh = new THREE.Object3D();
 
-		// Arm swinging animation (as you walk)
-		if (!isMoving) return;
-		totalSwingTime += dt;
-		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
-		if (swingAngle > -0.1 && swingAngle < 0.1) {
-			isMoving = false;
-			swingAngle = 0;
-		}
-		leftArm.rotation.x = -swingAngle;
-		rightArm.rotation.x = swingAngle;
+		self.update = function (newState, clock) {
+			state = newState;
 
-	}
+			var pos = self.pos();
+			var look = self.look();
 
-	function updatePosition(newPos) {
-		pos = newPos;
-		var co = PLAYER.CENTER_OFFSET;
-		var c = new THREE.Vector3(
-			pos.x + co.x,
-			pos.y + co.y,
-			pos.z + co.z
-		);
-
-		var diffX = bodyParts.position.x - c.x;
-		var diffZ = bodyParts.position.z - c.z;
-		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
-			isMoving = true;
-		}
-
-		bodyParts.position.set(c.x, c.y, c.z);
-
-		return self;
-	};
-
-	function updateLook(newLook) {
-		function lookAt(obj, x, y, z) {
-			var target = new THREE.Vector3(
-				obj.position.x + x,
-				obj.position.y + y,
-				obj.position.z + z
+			var co = PLAYER.CENTER_OFFSET;
+			var c = new THREE.Vector3(
+				pos.x + co.x,
+				pos.y + co.y,
+				pos.z + co.z
 			);
-			obj.lookAt(target);
+			entityMesh.position.set(c.x, c.y, c.z);
+
+			function lookAt(obj, pos, x, y, z) {
+				var target = new THREE.Vector3(
+					pos.x + x,
+					pos.y + y,
+					pos.z + z
+				);
+				obj.lookAt(target);
+			}
+			lookAt(entityMesh, c, look.x, 0, look.z);
+
+			for (var i = 0; i < UIViews.length; i++) {
+				UIViews[i].update(self, clock);
+			}
 		}
-		lookAt(bodyParts, newLook.x, 0, newLook.z);
-		lookAt(headMesh, 0, newLook.y, 1);
-	};
 
-	// Model/geometry
-	function createHitbox() {
-		var hitboxMaterial = new THREE.MeshBasicMaterial({
-			color: 0xff0000,
-			wireframe: true
-		});
-		var he = PLAYER.HALF_EXTENTS;
-		var hitboxGeometry = new THREE.CubeGeometry(he.x*2, he.y*2, he.z*2);
-		var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
-		return hitboxMesh;
+		// Utils
+		// Clamp n between [a, b]. Behaviour is
+		// undefined if a > b.
+		function clamp(n, a, b) {
+			return n < a ? a : n > b ? b : n;
+		}
+		// Return the sign of n, -1, 1, or 0.
+		function signum(n) {
+			return n < 0 ? -1 : n > 0 ? 1 : 0;
+		}
 	}
-
-	function createHead() {
-		var headMat = new THREE.MeshBasicMaterial({
-			color: 0x0000ff
-		});
-		var faceMat = new THREE.MeshBasicMaterial({
-			color: 0x00ff00
-		});
-
-		var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-		geometry.materials = [headMat, faceMat];
-		geometry.faces[0].materialIndex = 0;
-		geometry.faces[1].materialIndex = 0;
-		geometry.faces[2].materialIndex = 0;
-		geometry.faces[3].materialIndex = 0;
-		geometry.faces[4].materialIndex = 1;
-		geometry.faces[5].materialIndex = 0;
-
-		var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
-
-		var peh = PLAYER.EYE_HEIGHT;
-		var pbh = PLAYER.BODY_HEIGHT;
-		mesh.position.y = peh - pbh / 2;
-
-		return mesh;
-	}
-
-	function createBody() {
-		var material = new THREE.MeshBasicMaterial({
-			color: 0x0000ff,
-			wireframe: true
-		});
-		var geometry = new THREE.CubeGeometry(0.6, PLAYER.BODY_HEIGHT, 0.4);
-		var mesh = new THREE.Mesh(geometry, material);
-		mesh.position.y = 0;
-		return mesh;
-	}
-
-	function createArm(offset) {
-		var armMat = new THREE.MeshBasicMaterial({
-			color: 0xff0000,
-			wireframe: true
-		});
-		var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);
-		var mesh = new THREE.Mesh(geometry, armMat);
-		mesh.position.y = -0.3;
-
-		var arm = new THREE.Object3D();
-		arm.add(mesh);
-		arm.position.x = offset * 0.4;
-		arm.position.y = PLAYER.BODY_HEIGHT / 2;
-		return arm;
-	}
-
-	// Utils
-	// Clamp n between [a, b]. Behaviour is
-	// undefined if a > b.
-	function clamp(n, a, b) {
-		return n < a ? a : n > b ? b : n;
-	}
-	// Return the sign of n, -1, 1, or 0.
-	function signum(n) {
-		return n < 0 ? -1 : n > 0 ? 1 : 0;
-	}
-}
 });

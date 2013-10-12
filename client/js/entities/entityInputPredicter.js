@@ -1,7 +1,9 @@
-define(function (require) {
-var EntityState = require("entities/entityState");
+//Input prediction
 
-return function EntityPredictiveController(entity, clock, controls, predictor) {
+define(function (require) {
+var EntityState = require("./entityState");
+
+return function EntityInputPredicter(entity, clock, controls, predictor) {
 	var self = this;
 	var controlStates = [];
 	var times = [];
