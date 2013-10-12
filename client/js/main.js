@@ -38,7 +38,7 @@ function main () {
 	window.testExposure = { };
 
 	//Connect to server and shake our hands.
-	var conn = new Conn("main");
+	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
 	var clientID;
 

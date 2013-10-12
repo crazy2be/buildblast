@@ -44,7 +44,7 @@ return function ChunkManager(scene, clientID) {
 		geometryWorker.postMessage({
 			'kind': 'start-conn',
 			'payload': {
-				'uri': 'chunk/' + name
+				'uri': Conn.socketURI('chunk/' + name),
 			}
 		});
 	}
