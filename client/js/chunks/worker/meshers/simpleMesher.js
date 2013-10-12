@@ -6,9 +6,6 @@ var Block = require("../../block");
 var common = require("../../chunkCommon");
 var CHUNK = common.CHUNK;
 
-var addToContext = require("math");
-addToContext(self);
-
 return function simpleMesh(blocks, voxelization, cc, manager) {
 	var cw = CHUNK.WIDTH;
 	var cd = CHUNK.DEPTH;
