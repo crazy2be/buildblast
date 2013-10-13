@@ -46,7 +46,7 @@ define(function (require) {
 			scene.add(entityMesh);
 
 			uIViews.forEach(function (view) {
-				if (view.fixToPlayer && !view.fixToPlayer()) {
+				if (!view.fixToPlayer()) {
 					view.meshes().forEach(scene.add.bind(scene));
 				}
 			});
@@ -56,7 +56,7 @@ define(function (require) {
 			scene.remove(entityMesh);
 
 			uIViews.forEach(function (view) {
-				if (view.fixToPlayer && !view.fixToPlayer()) {
+				if (!view.fixToPlayer()) {
 					view.meshes().forEach(scene.remove.bind(scene));
 				}
 			});
@@ -66,7 +66,7 @@ define(function (require) {
 		var uIViews = [];
 		self.add = function (view) {
 			uIViews.push(view);
-			if (!view.fixToPlayer || view.fixToPlayer()) {
+			if (view.fixToPlayer()) {
 				view.meshes().forEach(entityMesh.add.bind(entityMesh));
 			}
 		}
