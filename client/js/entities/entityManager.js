@@ -1,10 +1,10 @@
 define(function (require) {
 var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
-var EntityLagInducer = require("./entityLagInducer");
+var LagInducer = require("./controllers/lagInducer");
 var EntityBar = require("./UIViews/entityBar");
 
-return function EntityManager(scene, conn, world, clock) {
+return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
 	var self = this;
 
 	//Really not controllers, the network controls the entities, these
@@ -32,18 +32,19 @@ return function EntityManager(scene, conn, world, clock) {
 			}
 			return;
 		}
-		var entity = new PlayerEntity(id).initViews();
+
+		var entity = new PlayerEntity(id).initViews(cameraPosFnc);
+
+		if (localStorage.showHistoryBuffers) {
+			entity.add(new EntityBar(controller.drawState));
+		}
+
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);
-		var controller = new EntityLagInducer(entity, clock, initialState);
+		var controller = new LagInducer(entity, clock, initialState);
 
 		controllers[id] = controller;
-
-		if (localStorage.showHistoryBuffers) {
-			var playerEntity = controllers[_playerId].entity();
-			entity.add(new EntityBar(controller.drawState));
-		}
 	});
 
 	function protocolToLocal(payload) {
@@ -90,11 +91,11 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	self.update = function() {
+	self.update = function(dt, viewFacingPos) {
 		for (var id in controllers) {
 			var controller = controllers[id];
-			controller.update();
-			}
-		};
+			controller.update(viewFacingPos);
+		}
+	};
 	}
 });

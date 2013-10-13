@@ -18,7 +18,7 @@ var PerfChart = require("perf/chart");
 var Box = require("geom/box");
 var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
-var EntityInputPredicter = require("entities/entityInputPredicter");
+var InputPredicter = require("entities/controllers/inputPredicter");
 
 function main () {
 	var container = document.getElementById('container');
@@ -82,7 +82,7 @@ function main () {
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredicter(player, clock, controls, predictor);
+		var controller = new InputPredicter(player, clock, controls, predictor);
 		world.setPlayer(clientID, player, controller);
 		return player;
 	}
@@ -115,7 +115,7 @@ function main () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos());
+			world.update(dt, playerUI.cameraPos());
 
 			updateLagStats();
 

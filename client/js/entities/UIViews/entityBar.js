@@ -37,7 +37,7 @@ return function EntityBar(drawFunc) {
 		mesh.position.set(0, 1.15, 0);
 	}
 
-	self.update = function (entity, clock) {
+	self.update = function (entity, clock, viewFacingPos) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, clock.entityTime(), canvas.width, canvas.height);
 		texture.needsUpdate = true;

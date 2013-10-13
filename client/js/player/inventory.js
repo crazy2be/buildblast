@@ -246,7 +246,7 @@ function Inventory(world, camera, conn, controls) {
 
 	// Represents a 3d model (corresponding to some inventory item).
 	// leftward: 1 for left; -1 for right.
-	function InventoryModel(world, model, leftward) {
+function InventoryModel(world, model, leftward) {
 	var self = this;
 	self.update = function (playerPos, lat, lon) {
 		pointItem(lat, lon);

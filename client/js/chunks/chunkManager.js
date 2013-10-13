@@ -16,12 +16,12 @@ return function ChunkManager(scene, clientID) {
 	};
 
 	var accumulatedTime = 0;
-	self.update = function (dt, playerPos) {
+	self.update = function (dt, cameraPos) {
 		accumulatedTime += dt;
 		if (accumulatedTime < 1000 /*ms*/) return;
 
 		accumulatedTime -= 1000;
-		var p = playerPos;
+		var p = cameraPos;
 		geometryWorker.postMessage({
 			'kind': 'player-position',
 			'payload': {

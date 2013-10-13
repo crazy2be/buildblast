@@ -54,11 +54,13 @@ define(function (require) {
 		var UIViews = [];
 		self.add = function (view) {
 			UIViews.push(view);
-			view.meshes().forEach(entityMesh.add.bind(entityMesh));
+			if (view.fixToPlayer()) {
+				view.meshes().forEach(entityMesh.add.bind(entityMesh));
+			}
 		}
 		//Inits the regular views, some stuff can't go in here
 		//(EntityBar) as it needs access to stuff an entity really should not have.
-		self.initViews = function () {
+		self.initViews = function (cameraPosFnc) {
 			self.add(new PlayerMesh());
 			if (localStorage.hpBars) {
 				self.add(new HpBar());
@@ -70,7 +72,8 @@ define(function (require) {
 
 		var entityMesh = new THREE.Object3D();
 
-		self.update = function (newState, clock) {
+		var throttle = 0;
+		self.update = function (newState, clock, viewFacingPos) {
 			state = newState;
 
 			var pos = self.pos();
@@ -92,10 +95,20 @@ define(function (require) {
 				);
 				obj.lookAt(target);
 			}
+
+			function PosToString(pos) {
+				return "(" + pos.x.toFixed(1) + ", " + pos.y.toFixed(1) + ", " + pos.z.toFixed(1) + ")";
+			}
+			var log = throttle++ % 100 === 0;
+			if (log) console.log("Entity rotation: " + PosToString(entityMesh.rotation));
 			lookAt(entityMesh, c, look.x, 0, look.z);
+			if (entityMesh.rotation.x === entityMesh.rotation.z && entityMesh.rotation.z === -Math.PI) {
+				entityMesh.rotation.x = entityMesh.rotation.z = 0;
+			}
+			if (log) console.log("Entity rotation after: " + PosToString(entityMesh.rotation));
 
 			for (var i = 0; i < UIViews.length; i++) {
-				UIViews[i].update(self, clock);
+				UIViews[i].update(self, clock, viewFacingPos);
 			}
 		}
 

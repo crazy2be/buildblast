@@ -27,5 +27,12 @@ return function addToContext(context) {
 	context.signum = function (n) {
 		return n < 0 ? -1 : n > 0 ? 1 : 0;
 	}
+
+	//Essentially an extension of mod,
+	//wraps n around [a, b] if it is outside.
+	//(wrap(1.5, -1, 1) ~ -0.5
+	context.wrap = function (n, a, b) {
+		return context.mod(n - b, (a - b)) + b;
+	}
 }
 });

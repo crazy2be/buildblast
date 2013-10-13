@@ -26,7 +26,7 @@ define(function (require) {
 		var swingSpeed = 2 * Math.PI / 1000;
 		var totalSwingTime = 0;
 
-		self.update = function (entity, clock) {
+		self.update = function (entity, clock, viewFacingPos) {
 			updatePosition(entity.pos());
 			updateLook(entity.look());
 			vy = entity.vy();

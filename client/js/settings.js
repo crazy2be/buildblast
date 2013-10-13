@@ -13,6 +13,7 @@ define(function () {
 				localStorage.useDvorak = true;
 				localStorage.mouseMoveBug = true;
 				return "Success!";
+			case undefined:
 			case "default":
 				for (var k in localStorage) {
 					// Can't use = false, because it gets

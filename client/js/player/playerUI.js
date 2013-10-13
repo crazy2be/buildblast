@@ -54,6 +54,10 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 		return playerEntity.pos();
 	};
 
+	self.cameraPos = function() {
+		return camera.position.clone();
+	};
+
 	self.render = function (scene) {
 		renderer.render(scene, camera);
 	};
