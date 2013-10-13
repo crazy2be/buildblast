@@ -72,7 +72,7 @@ define(function (require) {
 		}
 		//Inits the regular views, some stuff can't go in here
 		//(EntityBar) as it needs access to stuff an entity really should not have.
-		self.initViews = function (cameraPosFnc) {
+		self.initViews = function () {
 			self.add(new PlayerMesh());
 			if (localStorage.hpBars) {
 				self.add(new HpBar());

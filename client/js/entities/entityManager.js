@@ -4,7 +4,7 @@ var EntityState = require("./entityState");
 var LagInducer = require("./controllers/lagInducer");
 var EntityBar = require("./UIViews/entityBar");
 
-return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
+return function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
 	//The network controls the entities, these
@@ -33,7 +33,7 @@ return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
 			return;
 		}
 
-		var entity = new PlayerEntity(id).initViews(cameraPosFnc);
+		var entity = new PlayerEntity(id).initViews();
 
 		var initialState = protocolToLocal(payload);
 		var controller = new LagInducer(entity, clock, initialState);
