@@ -34,5 +34,10 @@ return function addToContext(context) {
 	context.wrap = function (n, a, b) {
 		return context.mod(n - b, (a - b)) + b;
 	}
+	// You only need this on the worker thread,
+	//
+	context.dist = function (p1, p2) {
+		return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2) + pow(p1.z - p2.z, 2));
+	}
 }
 });

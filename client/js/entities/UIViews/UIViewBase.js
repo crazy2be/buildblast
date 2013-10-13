@@ -22,6 +22,10 @@ define(function (require) {
 	//Called (by the base update implementation) on the first update call.
 	UIViewBase.prototype.init = function (entity) {
 	}
+	//If it returns true, the meshes are added to the entity mesh, so
+	//	they track the players movement and rotation (this is likely much more
+	//	efficient than manually setting the position). Otherwise the meshes
+	//	are added independently to the scene.
 	UIViewBase.prototype.fixToPlayer = function () {
 		return true;
 	}

@@ -1,4 +1,3 @@
-//Not really needed, just somewhere to put the interface
 define(function (require) {
 	var UIViewBase = require("UIViewBase");
 	var extends = require("core/extends");

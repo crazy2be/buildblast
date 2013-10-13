@@ -20,6 +20,8 @@ var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
 var InputPredicter = require("entities/controllers/inputPredicter");
 
+var fatalError = require("fatalError");
+
 function main () {
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
@@ -34,7 +36,7 @@ function main () {
 	window.testExposure = { };
 
 	//Connect to server and shake our hands.
-	var conn = new Conn("main");
+	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
 	var clientID;
 
@@ -122,46 +124,8 @@ function main () {
 			playerUI.update(dt);
 			playerUI.render(scene);
 
-			if (fatalErrorTriggered) return;
+			if (fatalError.fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
-		}
-	}
-
-	window.onerror = function (msg, url, lineno) {
-		fatalError({
-			message: msg,
-			filename: url,
-			lineno: lineno,
-		});
-	};
-
-	var fatalErrorTriggered = false;
-	function fatalError(err) {
-		var container = document.getElementById('container');
-		container.classList.add('error');
-
-		var elm = splash.querySelector('.contents');
-		html = [
-			"<h1>Fatal Error!</h1>",
-			"<p>",
-				err.filename || err.fileName,
-				" (",
-					err.lineno || err.lineNumber,
-				"):",
-			"</p>",
-			"<p>",
-				err.message,
-			"</p>",
-			"<p>Press F5 to attempt a rejoin</p>",
-		].join("\n");
-		elm.innerHTML = html;
-
-		exitPointerLock();
-		fatalErrorTriggered = true;
-		function exitPointerLock() {
-			(document.exitPointerLock ||
-			document.mozExitPointerLock ||
-			document.webkitExitPointerLock).call(document);
 		}
 	}
 }

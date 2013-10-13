@@ -4,6 +4,8 @@ define(function () {
 	function __loadSettingsScheme(name) {
 		switch (name) {
 			case "quentin":
+				//Clear the existing scheme... not sure if anyone else wants this?
+				__loadSettingsScheme();
 				localStorage.lagInductionTime = 300;
 				localStorage.thirdPerson = true;
 				localStorage.showHistoryBuffers = true;

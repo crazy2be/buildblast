@@ -1,4 +1,3 @@
-//Lag induction...
 define(function (require) {
 var HistoryBuffer = require("../historyBuffer");
 

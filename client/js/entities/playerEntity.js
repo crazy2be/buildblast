@@ -45,15 +45,28 @@ define(function (require) {
 
 		self.addTo = function (scene) {
 			scene.add(entityMesh);
+
+			uIViews.forEach(function (view) {
+				if (!view.fixToPlayer()) {
+					view.meshes().forEach(scene.add.bind(scene));
+				}
+			});
 		};
 
 		self.removeFrom = function (scene) {
 			scene.remove(entityMesh);
+
+			uIViews.forEach(function (view) {
+				if (!view.fixToPlayer()) {
+					view.meshes().forEach(scene.remove.bind(scene));
+				}
+			});
 		};
 
-		var UIViews = [];
+		//You MUST add all your views before you are added to the scene!
+		var uIViews = [];
 		self.add = function (view) {
-			UIViews.push(view);
+			uIViews.push(view);
 			if (view.fixToPlayer()) {
 				view.meshes().forEach(entityMesh.add.bind(entityMesh));
 			}
@@ -107,20 +120,9 @@ define(function (require) {
 			}
 			if (log) console.log("Entity rotation after: " + PosToString(entityMesh.rotation));
 
-			for (var i = 0; i < UIViews.length; i++) {
-				UIViews[i].update(self, clock, viewFacingPos);
+			for (var i = 0; i < uIViews.length; i++) {
+				uIViews[i].update(self, clock);
 			}
-		}
-
-		// Utils
-		// Clamp n between [a, b]. Behaviour is
-		// undefined if a > b.
-		function clamp(n, a, b) {
-			return n < a ? a : n > b ? b : n;
-		}
-		// Return the sign of n, -1, 1, or 0.
-		function signum(n) {
-			return n < 0 ? -1 : n > 0 ? 1 : 0;
 		}
 	}
 });

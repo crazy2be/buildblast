@@ -7,7 +7,7 @@ var EntityBar = require("./UIViews/entityBar");
 return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
 	var self = this;
 
-	//Really not controllers, the network controls the entities, these
+	//The network controls the entities, these
 	//	are just data, and inside the data are the views (which are isolated).
 	//They are in a sense, ViewModels :D
 	var controllers = {};
