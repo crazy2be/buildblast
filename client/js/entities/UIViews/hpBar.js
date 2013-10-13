@@ -7,12 +7,12 @@ define(function (require) {
 	var CanvasViewBase = require("./CanvasViewBase");
 	var __extends = require("core/extends");
 	var __super = CanvasViewBase;
-	__extends(HpBarObj, __super);
+	__extends(HpBar, __super);
 
 	// Could be used for various types of bars or canvases
 	// we want to have in the scene if somebody wants to make
 	// it generic.
-	function HpBarObj() {
+	function HpBar() {
 		var self = this;
 
 		//Call super constructor first
@@ -26,12 +26,12 @@ define(function (require) {
 		self.trackPlayer(new THREE.Vector3(0, 0.40, 0));
 	}
 
-	HpBarObj.prototype.fixToPlayer = function () {
+	HpBar.prototype.fixToPlayer = function () {
 		return false;
 	}
 
 	var throttle = 0;
-	HpBarObj.prototype.update = function (entity, clock, viewFacingPos) {
+	HpBar.prototype.update = function (entity, clock, viewFacingPos) {
 		__super.prototype.update.call(this, entity, clock, viewFacingPos);
 
 		var ctx = this.ctx;
@@ -53,7 +53,7 @@ define(function (require) {
 		this.updateCanvas();
 	}
 
-	HpBarObj.prototype.init = function (entity) {
+	HpBar.prototype.init = function (entity) {
 		__super.prototype.init.call(this);
 
 		//Username
@@ -70,5 +70,5 @@ define(function (require) {
 		this.PRIVATE_userNameLbl = userNameLbl;
 	}
 
-	return HpBarObj;
+	return HpBar;
 });

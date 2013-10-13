@@ -7,12 +7,12 @@ define(function (require) {
 	var CanvasViewBase = require("./CanvasViewBase");
 	var __extends = require("core/extends");
 	var __super = CanvasViewBase;
-	__extends(EntityBarObj, __super);
+	__extends(EntityBar, __super);
 
 	// Could be used for various types of bars or canvases
 	// we want to have in the scene if somebody wants to make
 	// it generic.
-	function EntityBarObj(drawFunc) {
+	function EntityBar(drawFunc) {
 		var self = this;
 
 		//Call super constructor first
@@ -34,12 +34,12 @@ define(function (require) {
 		self.trackPlayer(playerOffset);
 	}
 
-	EntityBarObj.prototype.fixToPlayer = function () {
+	EntityBar.prototype.fixToPlayer = function () {
 		return false;
 	}
 
 	var throttle = 0;
-	EntityBarObj.prototype.update = function (entity, clock, viewFacingPos) {
+	EntityBar.prototype.update = function (entity, clock, viewFacingPos) {
 		__super.prototype.update.call(this, entity, clock, viewFacingPos);
 
 		var ctx = this.ctx;
@@ -49,5 +49,5 @@ define(function (require) {
 		this.updateCanvas();
 	}
 
-	return EntityBarObj;
+	return EntityBar;
 });

@@ -2,7 +2,7 @@ define(function (require) {
 var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
 var LagInducer = require("./controllers/lagInducer");
-var EntityBarObj = require("./UIViews/entityBarObj");
+var EntityBar = require("./UIViews/entityBar");
 
 return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
 	var self = this;
@@ -41,7 +41,7 @@ return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
-			entity.add(new EntityBarObj(controller.drawState));
+			entity.add(new EntityBar(controller.drawState));
 		}
 
 		entity.addTo(scene);

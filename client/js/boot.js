@@ -31,6 +31,7 @@
 });
 
 define(["main", "settings", "math", "fatalError"], function(main, __loadSettingsScheme, mathFnc, fatalError) {
+	//Won't catch require errors...
 	window.onerror = function (msg, url, lineno) {
 		fatalError({
 			message: msg,

@@ -5,11 +5,11 @@ define(function (require) {
 	var UIViewBase = require("./UIViewBase");
 	var __extends = require("core/extends");
 	var __super = UIViewBase;
-	__extends(PlayerMeshObj, __super);
+	__extends(PlayerMesh, __super);
 
 
 
-	function PlayerMeshObj() {
+	function PlayerMesh() {
 		var self = this;
 
 		//Call super constructor first
@@ -153,19 +153,19 @@ define(function (require) {
 		};
 	}
 
-	PlayerMeshObj.prototype.update = function (entity, clock, viewFacingPos) {
+	PlayerMesh.prototype.update = function (entity, clock, viewFacingPos) {
 		this.updateInternal(entity, clock);
 	}
 	//Called (by the base update implementation) on the first update call.
-	PlayerMeshObj.prototype.init = function (entity) {
+	PlayerMesh.prototype.init = function (entity) {
 	}
 	//If it returns true, the meshes are added to the entity mesh, so
 	//	they track the players movement and rotation (this is likely much more
 	//	efficient than manually setting the position). Otherwise the meshes
 	//	are added independently to the scene.
-	PlayerMeshObj.prototype.fixToPlayer = function () {
+	PlayerMesh.prototype.fixToPlayer = function () {
 		return true;
 	}
 
-	return PlayerMeshObj;
+	return PlayerMesh;
 });
