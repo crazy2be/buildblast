@@ -1,25 +1,23 @@
 define(function (require) {
-	var UIViewBase = require("UIViewBase");
-	var extends = require("core/extends");
-	extends(CanvasViewBase, UIViewBase);
+	var THREE = require("THREE");
+
+	var UIViewBase = require("./UIViewBase");
+	var __extends = require("core/extends");
+	var __super = UIViewBase;
+	__extends(CanvasViewBase, __super);
+
 
 	//width and height given are in world coordinates!
 	function CanvasViewBase(wcWidth, wcHeight, resolution) {
 		var self = this;
 
 		//Call super constructor first
-		UIViewBase.call(self);
-
-		//We probably lose some speed with this,
-		//but it makes the context sensible.
-		self.meshes = self.meshes.bind(self);
-		self.update = self.update.bind(self);
-		self.init = self.init.bind(self);
+		__super.call(self);
 
 		//The higher the resolution the higher quality the mesh looks.
 		resolution = resolution || 100;
 
-		var canvasWidth = wcHeight * resolution;
+		var canvasWidth = wcWidth * resolution;
 		var canvasHeight = wcHeight * resolution;
 
 		//If these were prototypical functions we would need to
@@ -37,12 +35,19 @@ define(function (require) {
 			return wcHeight;
 		}
 
+		//If fixToPlayer(), then this will be the position relative
+		//to the player else it will just be wc position.
+		self.setWcPosition = function(pos) {
+			mesh.position.set(pos.x, pos.y, pos.z);
+		}
+
+		self.lookAtWcPosition = function(pos) {
+			mesh.lookAt(pos);
+		}
+
 		self.updateCanvas = function() {
 			texture.needsUpdate = true;
 		}
-
-		mesh.scale.set(1/resolution, 1/resolution, 1/resolution);
-		//mesh.position.set(0, 1.25, 0);
 
 		var canvas = document.createElement('canvas');
 		canvas.width = canvasWidth;
@@ -59,20 +64,24 @@ define(function (require) {
 		});
 		material.transparent = true;
 
-		self.mesh = new THREE.Mesh(new THREE.PlaneGeometry(wcWidth, wcHeight), material);
+		var mesh = new THREE.Mesh(new THREE.PlaneGeometry(canvasWidth, canvasHeight), material);
+
+		mesh.scale.set(1/resolution, 1/resolution, 1/resolution);
+
+		self.PRIVATE_mesh = mesh;
+
+		self.ctx = canvas.getContext('2d');
 	}
 	CanvasViewBase.prototype.meshes = function () {
-		return [];
+		return [this.PRIVATE_mesh];
 	}
 	CanvasViewBase.prototype.update = function (entity, clock, viewFacingPos) {
-		UIViewBase.prototype.update.call(this, entity, clock, viewFacingPos);
-
-		var ctx = this.canvas;
-		ctx.clearRect(0, 0, ctx.width, ctx.height);
+		__super.prototype.update.call(this, entity, clock, viewFacingPos);
 	}
 	//Called (by the base update implementation) on the first update call.
 	CanvasViewBase.prototype.init = function (entity) {
-		UIViewBase.prototype.update.call(this);
+		//Unneeded super call, just as a good practice
+		__super.prototype.init.call(this);
 	}
 	return CanvasViewBase;
 });

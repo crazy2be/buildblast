@@ -29,8 +29,8 @@ define(function (require) {
 		material);
 
 		mesh.scale.set(1 / 100, 1 / 100, 1 / 100);
-		//mesh.position.set(0, 1.35, 0);
-		mesh.position.set(0, 0, 0);
+		mesh.position.set(0, 1.35, 0);
+		//mesh.position.set(0, 0, 0);
 
 		var userNameLbl;
 

@@ -3,12 +3,6 @@ define(function (require) {
 	function UIViewBase() {
 		var self = this;
 		self.inited = false;
-
-		//We probably lose some speed with this,
-		//but it makes the context sensible.
-		self.meshes = self.meshes.bind(this);
-		self.update = self.update.bind(this);
-		self.init = self.init.bind(this);
 	}
 	UIViewBase.prototype.meshes = function () {
 		return [];
@@ -16,7 +10,7 @@ define(function (require) {
 	UIViewBase.prototype.update = function (entity, clock, viewFacingPos) {
 		if (!this.inited) {
 			this.inited = true;
-			this.init();
+			this.init(entity);
 		}
 	}
 	//Called (by the base update implementation) on the first update call.

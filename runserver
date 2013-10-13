@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+if go version; then
+	export GOPATH="`pwd`/../../"
+
+	if [ ! -e "$GOPATH/src" ]; then
+		echo "WARN: Probably misconfigured GOPATH"
+		echo "(no src/ directory found at GOPATH root)"
+		echo "Your buildblast repository must be at <anything>/src/buildblast/"
+		echo "as this is a requirement of the go compiler toolchain."
+		echo "if <anything> == GOPATH, then the go tools will work as well."
+	fi
+
+	export GOBIN="`pwd`/bin"
+	echo "Compiling server..."
+	mkdir -p "$GOBIN"
+	go get buildblast/server
+
+	cd client
+	echo "Starting server..."
+	../bin/server
+
+	exit 0
+else
+	echo "ERROR: Go must be installed to compile the server."
+	echo "Get it from http://www.golang.org"
+	exit 1
+fi

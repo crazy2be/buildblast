@@ -5,6 +5,7 @@ define(function (require) {
 
 	var PlayerMesh = require("./UIViews/playerMesh");
 	var HpBar = require("./UIViews/hpBar");
+	var HpBarObj = require("./UIViews/hpBarObj");
 	var EntityBar = require("./UIViews/entityBar");
 
 	return function PlayerEntity(id) {
@@ -47,7 +48,7 @@ define(function (require) {
 			scene.add(entityMesh);
 
 			uIViews.forEach(function (view) {
-				if (!view.fixToPlayer()) {
+				if (view.fixToPlayer && !view.fixToPlayer()) {
 					view.meshes().forEach(scene.add.bind(scene));
 				}
 			});
@@ -57,7 +58,7 @@ define(function (require) {
 			scene.remove(entityMesh);
 
 			uIViews.forEach(function (view) {
-				if (!view.fixToPlayer()) {
+				if (view.fixToPlayer && !view.fixToPlayer()) {
 					view.meshes().forEach(scene.remove.bind(scene));
 				}
 			});
@@ -67,7 +68,7 @@ define(function (require) {
 		var uIViews = [];
 		self.add = function (view) {
 			uIViews.push(view);
-			if (view.fixToPlayer()) {
+			if (!view.fixToPlayer || view.fixToPlayer()) {
 				view.meshes().forEach(entityMesh.add.bind(entityMesh));
 			}
 		}
@@ -76,7 +77,8 @@ define(function (require) {
 		self.initViews = function (cameraPosFnc) {
 			self.add(new PlayerMesh());
 			if (localStorage.hpBars) {
-				self.add(new HpBar());
+				//self.add(new HpBar());
+				self.add(new HpBarObj());
 			}
 			return self;
 		}
@@ -109,19 +111,10 @@ define(function (require) {
 				obj.lookAt(target);
 			}
 
-			function PosToString(pos) {
-				return "(" + pos.x.toFixed(1) + ", " + pos.y.toFixed(1) + ", " + pos.z.toFixed(1) + ")";
-			}
-			var log = throttle++ % 100 === 0;
-			if (log) console.log("Entity rotation: " + PosToString(entityMesh.rotation));
 			lookAt(entityMesh, c, look.x, 0, look.z);
-			if (entityMesh.rotation.x === entityMesh.rotation.z && entityMesh.rotation.z === -Math.PI) {
-				entityMesh.rotation.x = entityMesh.rotation.z = 0;
-			}
-			if (log) console.log("Entity rotation after: " + PosToString(entityMesh.rotation));
 
 			for (var i = 0; i < uIViews.length; i++) {
-				uIViews[i].update(self, clock);
+				uIViews[i].update(self, clock, viewFacingPos);
 			}
 		}
 	}

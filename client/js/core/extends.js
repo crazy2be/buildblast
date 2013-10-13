@@ -1,6 +1,6 @@
 define(function () {
 //Typescript extends function
-	return function extends(derived, base) {
+	return function __extends(derived, base) {
 		for (var property in base) {
 			if (base.hasOwnProperty(property)) {
 				derivded[propetry] = base[propetry];
