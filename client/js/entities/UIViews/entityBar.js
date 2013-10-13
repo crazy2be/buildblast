@@ -1,7 +1,7 @@
 define(function (require) {
 	var THREE = require("THREE");
 
-	var CanvasViewBase = require("./CanvasViewBase");
+	var CanvasViewBase = require("./canvasViewBase");
 	var __extends = require("core/extends");
 	var __super = CanvasViewBase;
 	__extends(EntityBar, __super);
