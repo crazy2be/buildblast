@@ -32,12 +32,6 @@ function PlayerMesh() {
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
 
-	if (localStorage.hpBars) {
-		__super.call(self, 2, 0.1);
-	} else {
-		__super.call(self, 2, 0.3);
-	}
-
 	var previousPos = new THREE.Vector3(0, 0, 0);
 	var throttle = 0;
 	self.updatePosition = function (newPos) {
