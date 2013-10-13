@@ -1,12 +1,18 @@
-function ChunkManager(scene, clientID) {
+define(function(require) {
+var fatalError = require("fatalError");
+var Chunk = require("./chunk");
+var common = require("./chunkCommon");
+
+var Conn = require("core/conn");
+
+return function ChunkManager(scene, clientID) {
 	var self = this;
 
 	var chunks = {};
-	var geometryWorker = new Worker('js/chunks/worker/main.js');
-	startChunkConn(clientID);
+	var geometryWorker = new Worker('js/chunks/worker/boot.js');
 
 	self.chunk = function (cc) {
-		return chunks[ccStr(cc)];
+		return chunks[common.ccStr(cc)];
 	};
 
 	var accumulatedTime = 0;
@@ -38,15 +44,17 @@ function ChunkManager(scene, clientID) {
 		geometryWorker.postMessage({
 			'kind': 'start-conn',
 			'payload': {
-				'uri': getWSURI('chunk/' + name),
-			},
+				'uri': Conn.socketURI('chunk/' + name),
+			}
 		});
 	}
 
 	geometryWorker.onmessage = function (e) {
 		var kind = e.data.kind;
 		var payload = e.data.payload;
-		if (kind === 'chunk') {
+		if (kind === 'booted') {
+			startChunkConn(clientID);
+		} else if (kind === 'chunk') {
 			processChunk(payload);
 		} else if (kind === 'chunk-voxelization-change') {
 			processVoxelizationChange(payload);
@@ -58,7 +66,6 @@ function ChunkManager(scene, clientID) {
 
 	geometryWorker.onerror = fatalError;
 
-	//Payload contains vertices creates by the mesher.
 	function processChunk(payload) {
 		var pg = payload.geometries;
 		var geometries = [];
@@ -78,7 +85,7 @@ function ChunkManager(scene, clientID) {
 
 		chunk = new Chunk(payload.blocks, geometries, scene, payload.voxelization);
 		chunk.add();
-		chunks[ccStr(cc)] = chunk;
+		chunks[common.ccStr(cc)] = chunk;
 
 		console.log("Added chunk at ", cc);
 	}
@@ -93,3 +100,4 @@ function ChunkManager(scene, clientID) {
 		chunk.setVoxelization(payload.voxelization);
 	}
 }
+});

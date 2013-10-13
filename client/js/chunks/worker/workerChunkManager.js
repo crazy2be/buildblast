@@ -1,13 +1,16 @@
-function WorkerChunkManager() {
+define(function (require) {
+var common = require("../chunkCommon");
+
+return function WorkerChunkManager() {
 	var self = this;
 	var chunkList = {};
 
 	self.get = function (cc) {
-		return chunkList[ccStr(cc)];
+		return chunkList[common.ccStr(cc)];
 	}
 
 	self.set = function (cc, item) {
-		chunkList[ccStr(cc)] = item;
+		chunkList[common.ccStr(cc)] = item;
 	}
 
 	self.top = function () {
@@ -16,8 +19,8 @@ function WorkerChunkManager() {
 		for (var k in chunkList) {
 			var item = chunkList[k];
 			if (item.priority > highest
-				&& item.shown && item.changed
-			) {
+			&& item.shown && item.changed
+		) {
 				highest = item.priority;
 				key = k;
 			}
@@ -32,7 +35,7 @@ function WorkerChunkManager() {
 	}
 
 	self.chunkAt = function (ccX, ccY, ccZ) {
-		return self.get({x: ccX, y: ccY, z: ccZ});
+		return self.get({ x: ccX, y: ccY, z: ccZ });
 	}
 
 	self.refreshNeighbouring = function (cc) {
@@ -40,7 +43,7 @@ function WorkerChunkManager() {
 		var ccY = cc.y;
 		var ccZ = cc.z;
 		function r(ccX, ccY, ccZ) {
-			var chunk = self.get({x: ccX, y: ccY, z: ccZ});
+			var chunk = self.get({ x: ccX, y: ccY, z: ccZ });
 			if (chunk) chunk.changed = true;
 		};
 		r(ccX + 1, ccY, ccZ);
@@ -51,3 +54,4 @@ function WorkerChunkManager() {
 		r(ccX, ccY, ccZ - 1);
 	}
 }
+});

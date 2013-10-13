@@ -1,17 +1,24 @@
-//meshCommon
+define(function (require) {
 
-function simpleMesh2(blocks, voxelization, cc, manager) {
-	var cw = CHUNK_WIDTH;
-	var ch = CHUNK_HEIGHT;
-	var cd = CHUNK_DEPTH;
+var Block = require("../block");
+
+var common = require("../chunkCommon");
+var CHUNK = common.CHUNK;
+
+var meshCommon = require("meshCommon");
+
+return function simpleMesh2(blocks, voxelization, cc, manager) {
+	var cw = CHUNK.WIDTH;
+	var ch = CHUNK.HEIGHT;
+	var cd = CHUNK.DEPTH;
 
 	meshCommon.preprocessBlocks(blocks);
 
 	var ccArr = [cc.x, cc.y, cc.z];
 
-	var bcxStart = CHUNK_WIDTH * cc.x;
-	var bcyStart = CHUNK_HEIGHT * cc.y;
-	var bczStart = CHUNK_DEPTH * cc.z;
+	var bcxStart = CHUNK.WIDTH * cc.x;
+	var bcyStart = CHUNK.HEIGHT * cc.y;
+	var bczStart = CHUNK.DEPTH * cc.z;
 
 	var verts = []; //Each vertice is made of 3 integers (3D point)
 	var blockTypes = []; //1 per face, which is has 5 points, so 15 verts
@@ -23,12 +30,12 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 		var ourBlockType = meshCommon.getVoxelatedBlockType(ocX, ocY, ocZ, blocks, voxelization);
 		if (ourBlockType == Block.AIR) return;
 
-		var oMax = [CHUNK_WIDTH, CHUNK_HEIGHT, CHUNK_DEPTH];
+		var oMax = [CHUNK.WIDTH, CHUNK.HEIGHT, CHUNK.DEPTH];
 
-		for(var iFace = 0; iFace < 6; iFace++) {
+		for (var iFace = 0; iFace < 6; iFace++) {
 			var faceDirection = meshCommon.LOOP_CUBEFACES_DATA[iFace].faceDirection;
 			var compX = meshCommon.LOOP_CUBEFACES_DATA[iFace].compX; //x and y are face plane
-			var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compy; 
+			var compY = meshCommon.LOOP_CUBEFACES_DATA[iFace].compy;
 			var compZ = meshCommon.LOOP_CUBEFACES_DATA[iFace].compZ; //z is normal to face
 
 			var oAdjArr = [ocX, ocY, ocZ];
@@ -38,16 +45,16 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 
 			//We assume it's dirt if we cannot access an adjacent chunk
 			var adjacentBlock;
-			if(!adjacentBlocks) { //Not loaded
+			if (!adjacentBlocks) { //Not loaded
 				adjacentBlock = Block.DIRT;
-			} else if(adjacentBlocks != blocks) { //Neighbour
+			} else if (adjacentBlocks != blocks) { //Neighbour
 				adjacentBlock = meshCommon.getNeighbourBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2],
-					adjacentBlocks, compZ, voxelization);
+				adjacentBlocks, compZ, voxelization);
 			} else { //In current chunk
 				adjacentBlock = meshCommon.getVoxelatedBlockType(oAdjArr[0], oAdjArr[1], oAdjArr[2], blocks, voxelization);
 			}
 
-			if(adjacentBlock == Block.AIR) {
+			if (adjacentBlock == Block.AIR) {
 				meshCommon.addQuad(ocX + bcxStart, ocY + bcyStart, ocZ + bczStart, voxelization, voxelization, compZ, faceDirection, voxelization, verts);
 				blockTypes.push(ourBlockType);
 				faceNumbers.push(iFace);
@@ -65,3 +72,4 @@ function simpleMesh2(blocks, voxelization, cc, manager) {
 
 	return meshCommon.generateGeometry(verts, blockTypes, faceNumbers, indexes, voxelization);
 }
+});

@@ -1,3 +1,4 @@
+define(function(require) {
 function Block(type) {
 	this.type = type;
 }
@@ -77,3 +78,6 @@ Block.isSolid = function (block) {
 Block.inSubtype = function (block, subtype) {
 	return (Block.PROPERTIES[block] & 0xF) === subtype;
 };
+
+return Block;
+});

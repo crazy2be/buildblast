@@ -1,10 +1,4 @@
-function getWSURI(path) {
-	var loc = window.location;
-	var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-	uri += "//" + loc.host + "/sockets/" + path;
-	return uri;
-}
-
+define(function () {
 function Conn(uri) {
 	var self = this;
 	var WS_OPEN = 1;
@@ -16,7 +10,7 @@ function Conn(uri) {
 
 	var messageQueue = [];
 	self.queue = function (kind, payload) {
-		var obj = {kind: kind, payload: payload};
+		var obj = { kind: kind, payload: payload };
 		if (ws.readyState === WS_OPEN) {
 			ws.send(JSON.stringify(obj));
 		} else {
@@ -84,3 +78,19 @@ function Conn(uri) {
 		throw new Error("Someone closed my websocket :(", ev);
 	};
 }
+
+Conn.socketURI = function (path) {
+	//self == window, but also works when in a worker.
+	var loc = self.location;
+	var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+	uri += "//" + loc.host + "/sockets/" + path;
+
+	if (uri[uri.length - 1] !== '/') {
+		uri += '/';
+	}
+
+	return uri;
+}
+
+return Conn;
+});

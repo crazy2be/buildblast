@@ -1,4 +1,7 @@
-function Box(halfExtents, centerOffset) {
+define(function (require) {
+var THREE = require("THREE");
+
+return function Box(halfExtents, centerOffset) {
 	var self = this;
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
 
@@ -9,7 +12,7 @@ function Box(halfExtents, centerOffset) {
 	// that's only O(n), but it might make sence to
 	// move this once we have a more comprehensive
 	// collision interface.
-	self.collides = function(world, pos) {
+	self.collides = function (world, pos) {
 		return volumeBlockCollides(pos, blockCollide.bind(null, world));
 	}
 
@@ -52,3 +55,4 @@ function Box(halfExtents, centerOffset) {
 			zs < z && ze > z;
 	};
 }
+});

@@ -1,4 +1,30 @@
-window.onload = function () {
+define(function(require) {
+
+var Conn = require("core/conn");
+var Clock = require("core/clock");
+var Controls = require("player/controls");
+var FeatureTester = require("featureTester");
+var Models = require("models");
+
+var async = require("/lib/async.js");
+
+var World = require("core/world");
+
+var Entity = require("entities/playerEntity");
+var PlayerUI = require("player/playerUI");
+var PlayerEntity = require("entities/playerEntity");
+
+var PerfChart = require("perf/chart");
+var Box = require("geom/box");
+var PLAYER = require("player/playerSize");
+var movement = require("player/movement");
+var EntityInputPredictor = require("entities/entityInputPredictor");
+
+var PlayerMesh = require("entities/UIViews/playerMesh");
+
+var fatalError = require("fatalError");
+
+function main () {
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
 	tester.run();
@@ -8,11 +34,11 @@ window.onload = function () {
 		return;
 	}
 
-	// We use this to expose certain variables for test code.
+	//We use this to expose certain variables for test code.
 	window.testExposure = { };
 
 	//Connect to server and shake our hands.
-	var conn = new Conn(getWSURI("main/"));
+	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
 	var clientID;
 
@@ -38,7 +64,7 @@ window.onload = function () {
 	], function (err, results) {
 		console.log(results);
 		startGame();
-	})
+	});
 
 	var updateLagStats;
 	function makePlayer(world, clock, controls) {
@@ -49,17 +75,19 @@ window.onload = function () {
 		lagStats.elm.style.top = '74px';
 		lagStats.elm.style.right = '80px';
 		container.appendChild(lagStats.elm);
-		
+
 		updateLagStats = function () {
 			var lag = controller.predictionAheadBy()
 			lagStats.addDataPoint(lag);
-		}
+		};
 
 		var player = new PlayerEntity();
-		var box = new Box(PLAYER_HALF_EXTENTS, PLAYER_CENTER_OFFSET);
+		player.add(new PlayerMesh());
+
+		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityPredictiveController(player, clock, controls, predictor);
+		var controller = new EntityInputPredictor(player, clock, controls, predictor);
 		world.setPlayer(clientID, player, controller);
 		return player;
 	}
@@ -99,78 +127,10 @@ window.onload = function () {
 			playerUI.update(dt);
 			playerUI.render(scene);
 
-			if (fatalErrorTriggered) return;
+			if (fatalError.fatalErrorTriggered) return;
 			requestAnimationFrame(animate);
 		}
 	}
-};
-
-window.onerror = function (msg, url, lineno) {
-	fatalError({
-		message: msg,
-		filename: url,
-		lineno: lineno,
-	});
-};
-
-var fatalErrorTriggered = false;
-function fatalError(err) {
-	var container = document.getElementById('container');
-	container.classList.add('error');
-
-	var elm = splash.querySelector('.contents');
-	html = [
-		"<h1>Fatal Error!</h1>",
-		"<p>",
-			err.filename || err.fileName,
-			" (",
-				err.lineno || err.lineNumber,
-			"):",
-		"</p>",
-		"<p>",
-			err.message,
-		"</p>",
-		"<p>Press F5 to attempt a rejoin</p>",
-	].join("\n");
-	elm.innerHTML = html;
-
-	exitPointerLock();
-	fatalErrorTriggered = true;
-	function exitPointerLock() {
-		(document.exitPointerLock ||
-		document.mozExitPointerLock ||
-		document.webkitExitPointerLock).call(document);
-	}
 }
-
-var sin = Math.sin;
-var cos = Math.cos;
-var abs = Math.abs;
-var min = Math.min;
-var max = Math.max;
-var sqrt = Math.sqrt;
-var pow = Math.pow;
-
-function addDebugWatch(obj, propertyName) {
-	hash = {};
-	hash[propertyName] = {
-		get: function () {
-			return this["_" + propertyName];
-		},
-		set: function(val) {
-			if (val !== val || val === undefined) {
-				throw "Invalid value for " + propertyName;
-			}
-			this["_" + propertyName] = val;
-		}
-	}
-	Object.defineProperties(obj, hash);
-}
-
-THREE.DVector3 = function (x, y, z) {
-	addDebugWatch(this, "x");
-	addDebugWatch(this, "y");
-	addDebugWatch(this, "z");
-	this.x = x; this.y = y; this.z = z;
-}
-THREE.DVector3.prototype = THREE.Vector3.prototype;
+return main;
+});
