@@ -41,6 +41,8 @@ define(function (require) {
 			mesh.position.set(pos.x, pos.y, pos.z);
 		}
 
+		//Always in absolute coordinates (if you want relative,
+		//don't write a hack to get around it, please just change this function.)
 		self.lookAtWcPosition = function(pos) {
 			mesh.lookAt(pos);
 		}

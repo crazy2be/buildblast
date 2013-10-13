@@ -8,9 +8,6 @@ define(function (require) {
 	var __super = CanvasViewBase;
 	__extends(HpBar, __super);
 
-	// Could be used for various types of bars or canvases
-	// we want to have in the scene if somebody wants to make
-	// it generic.
 	function HpBar() {
 		var self = this;
 

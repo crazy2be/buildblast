@@ -1,4 +1,4 @@
-﻿define(function (require) {
+define(function (require) {
 
 function Rect(x, y, w, h) {
 	if (localStorage.debug) {

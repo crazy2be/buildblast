@@ -157,7 +157,7 @@
 				var fittedRect = measureText(newRect.clone());
 				if (fittedRect.w <= newRect.w && fittedRect.h <= newRect.h) {
 					usedHeight = fittedRect.h;
-					return;
+					return fittedRect;
 				}
 				if (curFontSize-- < 0) throw "WTF";
 			}

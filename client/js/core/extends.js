@@ -3,7 +3,7 @@ define(function () {
 	return function __extends(derived, base) {
 		for (var property in base) {
 			if (base.hasOwnProperty(property)) {
-				derivded[propetry] = base[propetry];
+				derived[propetry] = base[propetry];
 			}
 		}
 		function classDef() {
