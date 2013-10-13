@@ -2,7 +2,6 @@ define(function (require) {
 	var THREE = require("THREE");
 	var Text = require("canvasLibs/text");
 	var Rect = require("canvasLibs/rect");
-	var DIR = require("geom/direction");
 
 	var CanvasViewBase = require("./CanvasViewBase");
 	var __extends = require("core/extends");
