@@ -19,16 +19,18 @@ function PlayerMesh() {
 	var bodyMesh = createBody();
 	var leftArm = createArm(1);
 	var rightArm = createArm(-1);
-
+	
 	var jumpAngle = 0;
 	var maxJumpAngle = 4 * Math.PI / 5;
 	var jumpSpeed = maxJumpAngle / 300;
-
-	var totalSwingTime = 0;
+	
+	var isMoving = false;
+	var vy = 0;
+	
+	var swingAngle = 0;
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
-
-	var isMoving = false;
+	var totalSwingTime = 0;
 
 	if (localStorage.hpBars) {
 		__super.call(self, 2, 0.1);
