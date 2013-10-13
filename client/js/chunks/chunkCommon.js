@@ -1,8 +1,5 @@
 define(function(require){
 
-var addToContext = require("math");
-addToContext(self);
-
 var CHUNK = { };
 
 CHUNK.WIDTH = 32;

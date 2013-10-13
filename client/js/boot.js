@@ -5,16 +5,7 @@
 		jquery: '/lib/jquery.min',
 		jqueryui: '/lib/jquery-ui.min',
 		jqueryWaitImgs: '/lib/jquery.waitforimages.min'
-
-		/*
-		<script src="lib/three.min.js"></script>
-		<script src="lib/jquery.min.js"></script>
-		<script src="lib/jquery-ui.min.js"></script>
-		<script src="lib/jquery.waitforimages.min.js"></script>
-		<script src="lib/async.js"></script>
-		*/
 	},
-	//We need shims independently of the min problem.
 	shim: {
 		THREE: {
 			exports: 'THREE'
@@ -39,7 +30,16 @@
 	}],
 });
 
-require(["main", "settings"], function(main, __loadSettingsScheme) {
+define(["main", "settings", "math", "fatalError"], function(main, __loadSettingsScheme, mathFnc, fatalError) {
+	window.onerror = function (msg, url, lineno) {
+		fatalError({
+			message: msg,
+			filename: url,
+			lineno: lineno,
+		});
+	};
+
+	mathFnc(self);
 	self.__loadSettingsScheme = __loadSettingsScheme;
 	main();
 });

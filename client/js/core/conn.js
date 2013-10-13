@@ -1,13 +1,7 @@
 define(function () {
-//Takes a fully formed uri (ws://localhost:8080/sockets/stuff/) OR
-//just the tip (stuff, which is converts to the the full uri).
 function Conn(uri) {
 	var self = this;
 	var WS_OPEN = 1;
-
-	if (uri.indexOf("wss:") !== 0 && uri.indexOf("ws:") !== 0) {
-		uri = getWSURI(uri);
-	}
 
 	if (!uri) {
 		throw "URI required, but not provided to Conn constructor.";
@@ -85,7 +79,7 @@ function Conn(uri) {
 	};
 }
 
-function getWSURI(path) {
+Conn.socketURI = function (path) {
 	//self == window, but also works when in a worker.
 	var loc = self.location;
 	var uri = loc.protocol === "https:" ? "wss:" : "ws:";
@@ -97,8 +91,6 @@ function getWSURI(path) {
 
 	return uri;
 }
-
-Conn.getWSURI = getWSURI;
 
 return Conn;
 });

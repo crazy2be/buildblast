@@ -25,7 +25,9 @@ requirejs.config({
 	},
 });
 
-require(["main"], function () {
+require(["main", "math"], function (main, mathFnc) {
+	mathFnc(self);
+
 	//No need to call anything, just including main should do it...
 	console.log("Booted successfully");
 	parent.postMessage({

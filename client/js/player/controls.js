@@ -174,9 +174,6 @@ return function Controls(elm) {
 
 	var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
 	function mouseMove(event) {
-		function clamp(n, a, b) {
-			return Math.max(a, Math.min(b, n));
-		}
 		var lookSpeed = 0.005;
 
 		var x = event.movementX  ||

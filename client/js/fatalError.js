@@ -1,13 +1,4 @@
 define(function(require) {
-	window.onerror = function (msg, url, lineno) {
-		fatalError({
-			message: msg,
-			filename: url,
-			lineno: lineno,
-		});
-	};
-
-	var fatalErrorTriggered = false;
 	function fatalError(err) {
 		var container = document.getElementById('container');
 		container.classList.add('error');
@@ -29,13 +20,15 @@ define(function(require) {
 		elm.innerHTML = html;
 
 		exitPointerLock();
-		fatalErrorTriggered = true;
+		fatalError.fatalErrorTriggered = true;
 		function exitPointerLock() {
 			(document.exitPointerLock ||
 			document.mozExitPointerLock ||
 			document.webkitExitPointerLock).call(document);
 		}
 	}
+
+	fatalError.fatalErrorTriggered = false;
 
 	return fatalError;
 });

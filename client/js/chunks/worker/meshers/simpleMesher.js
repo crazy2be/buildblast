@@ -6,9 +6,6 @@ var Block = require("../../block");
 var common = require("../../chunkCommon");
 var CHUNK = common.CHUNK;
 
-var addToContext = require("math");
-addToContext(self);
-
 return function simpleMesh(blocks, voxelization, cc, manager) {
 	var cw = CHUNK.WIDTH;
 	var cd = CHUNK.DEPTH;
@@ -156,16 +153,6 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 			blockType = mostCommonBlock(ocX, ocY, ocZ, r);
 		}
 		if (blockType < 0) return;
-
-		function mod(a, b) {
-			return ((a % b) + b) % b;
-		}
-		function abs(n) {
-			return Math.abs(n);
-		}
-		function clamp(n, a, b) {
-			return Math.min(Math.max(n, a), b);
-		}
 
 		function inCenter(x, y, z) {
 			return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
