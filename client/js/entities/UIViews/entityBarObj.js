@@ -22,7 +22,16 @@ define(function (require) {
 			__super.call(self, 2, 0.3);
 		}
 
-		this.PRIVATE_drawFunc = drawFunc;
+		self.PRIVATE_drawFunc = drawFunc;
+
+		self.faceViewOnAxis("x");
+		self.faceViewOnAxis("z");
+
+		var playerOffset = localStorage.hpBars ? 
+			new THREE.Vector3(0, 0.20, 0) :
+			new THREE.Vector3(0, 0.40, 0);
+
+		self.trackPlayer(playerOffset);
 	}
 
 	EntityBarObj.prototype.fixToPlayer = function () {
@@ -32,19 +41,6 @@ define(function (require) {
 	var throttle = 0;
 	EntityBarObj.prototype.update = function (entity, clock, viewFacingPos) {
 		__super.prototype.update.call(this, entity, clock, viewFacingPos);
-
-		if (localStorage.hpBars) {
-			this.setWcPosition(entity.pos().clone().add(new THREE.Vector3(0, 0.20, 0)));
-		} else {
-			this.setWcPosition(entity.pos().clone().add(new THREE.Vector3(0, 0.40, 0)));
-		}
-
-		//Not entirely correct, messes up as barFacePos.y -> entity.pos().y
-		var barFacePos = viewFacingPos.clone();
-		barFacePos.y = entity.pos().y;
-
-		this.lookAtWcPosition(barFacePos);
-
 
 		var ctx = this.ctx;
 		ctx.clearRect(0, 0, this.canvasWidth(), this.canvasHeight());

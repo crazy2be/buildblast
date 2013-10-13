@@ -3,10 +3,8 @@ define(function (require) {
 	var PLAYER = require("player/playerSize");
 	var EntityState = require("./entityState");
 
-	var PlayerMesh = require("./UIViews/playerMesh");
-	var HpBar = require("./UIViews/hpBar");
+	var PlayerMeshObj = require("./UIViews/playerMeshObj");
 	var HpBarObj = require("./UIViews/hpBarObj");
-	var EntityBar = require("./UIViews/entityBar");
 
 	return function PlayerEntity(id) {
 		var self = this;
@@ -75,9 +73,8 @@ define(function (require) {
 		//Inits the regular views, some stuff can't go in here
 		//(EntityBar) as it needs access to stuff an entity really should not have.
 		self.initViews = function (cameraPosFnc) {
-			self.add(new PlayerMesh());
+			self.add(new PlayerMeshObj());
 			if (localStorage.hpBars) {
-				//self.add(new HpBar());
 				self.add(new HpBarObj());
 			}
 			return self;

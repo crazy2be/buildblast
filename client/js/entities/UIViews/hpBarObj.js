@@ -19,6 +19,11 @@ define(function (require) {
 		__super.call(self, 2, 0.3);
 
 		self.PRIVATE_userNameLbl = null;
+
+		self.faceViewOnAxis("x");
+		self.faceViewOnAxis("z");
+
+		self.trackPlayer(new THREE.Vector3(0, 0.40, 0));
 	}
 
 	HpBarObj.prototype.fixToPlayer = function () {
@@ -28,14 +33,6 @@ define(function (require) {
 	var throttle = 0;
 	HpBarObj.prototype.update = function (entity, clock, viewFacingPos) {
 		__super.prototype.update.call(this, entity, clock, viewFacingPos);
-
-		this.setWcPosition(entity.pos().clone().add(new THREE.Vector3(0, 0.40, 0)));
-
-		var barFacePos = viewFacingPos.clone();
-		barFacePos.y = entity.pos().y;
-
-		this.lookAtWcPosition(barFacePos);
-
 
 		var ctx = this.ctx;
 		ctx.clearRect(0, 0, ctx.width, ctx.height);

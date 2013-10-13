@@ -2,7 +2,6 @@ define(function (require) {
 var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
 var LagInducer = require("./controllers/lagInducer");
-var EntityBar = require("./UIViews/entityBar");
 var EntityBarObj = require("./UIViews/entityBarObj");
 
 return function EntityManager(scene, conn, world, clock, cameraPosFnc) {
