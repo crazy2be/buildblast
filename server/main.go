@@ -137,8 +137,6 @@ func promptLoop(quit chan bool, state *liner.State) {
 	}
 }
 
-//os.Args[0] == ourExePath (automatic)
-//os.Args[1] == portNumber
 func main() {
 	// 	setupPrompt()
 
