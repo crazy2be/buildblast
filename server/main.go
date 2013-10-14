@@ -10,6 +10,7 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
+	"strconv"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -18,12 +19,6 @@ import (
 var globalGame = NewGame()
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	// Workaround for Quentin's system configuration.
-	// For some reason, css files are getting served
-	// without a content-type...
-	if strings.HasSuffix(r.URL.Path, ".css") {
-		w.Header().Set("Content-Type", "text/css")
-	}
 	http.ServeFile(w, r, "."+r.URL.Path)
 }
 
@@ -141,8 +136,19 @@ func promptLoop(quit chan bool, state *liner.State) {
 	}
 }
 
+//os.Args[0] == ourExePath (automatic)
+//os.Args[1] == portNumber
 func main() {
 	// 	setupPrompt()
+
+	portNumber := 8080;
+	if len(os.Args) > 1 {
+		convPortNumber, portErr := strconv.Atoi(os.Args[1]);
+		if portErr != nil {
+			log.Fatal("Error when passing port argument:", portErr);
+		}
+		portNumber = convPortNumber
+	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
@@ -152,7 +158,7 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":" + strconv.Itoa(portNumber), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
