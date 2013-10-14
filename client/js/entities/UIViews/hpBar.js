@@ -3,7 +3,7 @@ define(function (require) {
 	var Text = require("canvasLibs/text");
 	var Rect = require("canvasLibs/rect");
 
-	var CanvasViewBase = require("./CanvasViewBase");
+	var CanvasViewBase = require("./canvasViewBase");
 	var __extends = require("core/extends");
 	var __super = CanvasViewBase;
 	__extends(HpBar, __super);
