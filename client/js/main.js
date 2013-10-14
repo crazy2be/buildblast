@@ -18,7 +18,7 @@ var PerfChart = require("perf/chart");
 var Box = require("geom/box");
 var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
-var InputPredicter = require("entities/controllers/inputPredicter");
+var InputPredictor = require("entities/controllers/inputPredictor");
 
 var fatalError = require("fatalError");
 
@@ -84,7 +84,7 @@ function main () {
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new InputPredicter(player, clock, controls, predictor);
+		var controller = new InputPredictor(player, clock, controls, predictor);
 		world.setPlayer(clientID, player, controller);
 		return player;
 	}

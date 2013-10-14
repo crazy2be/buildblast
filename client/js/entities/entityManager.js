@@ -27,9 +27,9 @@ return function EntityManager(scene, conn, world, clock) {
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			if(id !== _playerId) {
+			//if(id !== _playerId) {
 				console.warn("Got entity-create message for entity which already exists!", id);
-			}
+			//}
 			return;
 		}
 

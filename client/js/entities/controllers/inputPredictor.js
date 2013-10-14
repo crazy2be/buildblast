@@ -3,7 +3,7 @@
 define(function (require) {
 var EntityState = require("../entityState");
 
-return function InputPredicter(entity, clock, controls, predictor) {
+return function InputPredictor(entity, clock, controls, predictor) {
 	var self = this;
 	var controlStates = [];
 	var times = [];
