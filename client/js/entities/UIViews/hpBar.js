@@ -53,15 +53,15 @@ define(function (require) {
 		__super.prototype.init.call(this);
 
 		//Username
-		var userNameLbl = new Text();
-		userNameLbl.text(entity.id());
-		userNameLbl.color("white");
-		userNameLbl.font("Verdana");
-		userNameLbl.wrap(true);
-		userNameLbl.maxFontSize(50);
-		userNameLbl.align("center");
-		userNameLbl.lineSpacing(1);
-		userNameLbl.resize(new Rect(0, 0, this.canvasWidth(), this.canvasHeight() - 5));
+		var userNameLbl = new Text()
+			.contents(entity.id())
+			.color("white")
+			.fontFace("Verdana")
+			.wrap(true)
+			.maxFontSize(50)
+			.align("center")
+			.lineSpacing(1)
+			.rect(new Rect(0, 0, this.canvasWidth(), this.canvasHeight() - 5));
 
 		this.PRIVATE_userNameLbl = userNameLbl;
 	}
