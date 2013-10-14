@@ -37,6 +37,10 @@ define(function (require) {
 			return entityMesh.rotation;
 		};
 
+		self.meshPosition = function () {
+			return entityMesh.position;
+		}
+
 		self.contains = function (x, y, z) {
 			var box = new Box(pos, PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 			return box.contains(x, y, z);
@@ -88,26 +92,28 @@ define(function (require) {
 		initViews();
 
 		var throttle = 0;
-		self.update = function (newState, clock, viewFacingPos) {
+		self.update = function (newState, clock) {
 			state = newState;
+		}
 
+		self.updateMesh = function (clock, viewFacingPos) {
 			var pos = self.pos();
 			var look = self.look();
 
 			var co = PLAYER.CENTER_OFFSET;
 			var c = new THREE.Vector3(
-			pos.x + co.x,
-			pos.y + co.y,
-			pos.z + co.z
-		);
+				pos.x + co.x,
+				pos.y + co.y,
+				pos.z + co.z
+			);
 			entityMesh.position.set(c.x, c.y, c.z);
 
 			function lookAt(obj, pos, x, y, z) {
 				var target = new THREE.Vector3(
-				pos.x + x,
-				pos.y + y,
-				pos.z + z
-			);
+					pos.x + x,
+					pos.y + y,
+					pos.z + z
+				);
 				obj.lookAt(target);
 			}
 

@@ -117,11 +117,14 @@ function main () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, playerUI.cameraPos());
+			world.update(dt);
 
 			updateLagStats();
 
 			playerUI.update(dt);
+			//Needs to be done after the world updates it's positions, which
+			//	are used by playerUI, which gives us cameraPos, which updateMesh needs...
+			world.updateMesh(playerUI.cameraPos());
 			playerUI.render(scene);
 
 			if (fatalError.fatalErrorTriggered) return;

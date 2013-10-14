@@ -6,8 +6,12 @@ return function LagInducer(entity, clock, initialState) {
 	var history = new HistoryBuffer();
 	history.add(initialState.time, initialState.data);
 
-	self.update = function (viewFacingPos) {
-		entity.update(history.at(clock.entityTime()), clock, viewFacingPos);
+	self.update = function () {
+		entity.update(history.at(clock.entityTime()), clock);
+	};
+
+	self.updateMesh = function (viewFacingPos) {
+		entity.updateMesh(clock, viewFacingPos);
 	};
 
 	self.message = function (data) {

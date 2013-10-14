@@ -24,9 +24,14 @@ return function World(scene, conn, clientID, clock) {
 		self.addSmallCube(pos);
 	}
 
-	self.update = function (dt, viewFacingPos) {
-		chunkManager.update(dt, viewFacingPos);
-		entityManager.update(dt, viewFacingPos);
+	self.update = function (dt) {
+		chunkManager.update(dt);
+		entityManager.update(dt);
+	};
+
+	self.updateMesh = function (viewFacingPos) {
+		chunkManager.update(viewFacingPos);
+		entityManager.updateMesh(viewFacingPos);
 	};
 
 	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);

@@ -91,11 +91,18 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	self.update = function(dt, viewFacingPos) {
+	self.update = function(dt) {
 		for (var id in controllers) {
 			var controller = controllers[id];
-			controller.update(viewFacingPos);
+			controller.update();
 		}
 	};
+	self.updateMesh = function (viewFacingPos) {
+		for (var id in controllers) {
+			var controller = controllers[id];
+			controller.updateMesh(viewFacingPos);
+		}
+	};
+
 	}
 });

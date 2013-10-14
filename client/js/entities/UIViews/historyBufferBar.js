@@ -19,6 +19,7 @@ define(function (require) {
 		self.PRIVATE_drawFunc = drawFunc;
 
 		self.faceViewOnAxis("x");
+		self.faceViewOnAxis("y");
 		self.faceViewOnAxis("z");
 
 		var playerOffset = localStorage.hpBars ? 
