@@ -2,7 +2,7 @@ define(function (require) {
 var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
 var LagInducer = require("./controllers/lagInducer");
-var EntityBar = require("./UIViews/entityBar");
+var HistoryBufferBar = require("./UIViews/historyBufferBar");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -33,7 +33,7 @@ return function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 
-		var entity = new PlayerEntity(id).initViews();
+		var entity = new PlayerEntity(id);
 
 		var initialState = protocolToLocal(payload);
 		var controller = new LagInducer(entity, clock, initialState);
@@ -41,7 +41,7 @@ return function EntityManager(scene, conn, world, clock) {
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
-			entity.add(new EntityBar(controller.drawState));
+			entity.add(new HistoryBufferBar(controller.drawState));
 		}
 
 		entity.addTo(scene);
@@ -91,11 +91,18 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	self.update = function(dt, viewFacingPos) {
+	self.update = function(dt) {
 		for (var id in controllers) {
 			var controller = controllers[id];
-			controller.update(viewFacingPos);
+			controller.update();
 		}
 	};
+	self.updateMesh = function (viewFacingPos) {
+		for (var id in controllers) {
+			var controller = controllers[id];
+			controller.updateMesh(viewFacingPos);
+		}
+	};
+
 	}
 });

@@ -4,9 +4,9 @@ define(function (require) {
 	var CanvasViewBase = require("./canvasViewBase");
 	var __extends = require("core/extends");
 	var __super = CanvasViewBase;
-	__extends(EntityBar, __super);
+	__extends(HistoryBufferBar, __super);
 
-	function EntityBar(drawFunc) {
+	function HistoryBufferBar(drawFunc) {
 		var self = this;
 
 		//Call super constructor first
@@ -19,6 +19,7 @@ define(function (require) {
 		self.PRIVATE_drawFunc = drawFunc;
 
 		self.faceViewOnAxis("x");
+		self.faceViewOnAxis("y");
 		self.faceViewOnAxis("z");
 
 		var playerOffset = localStorage.hpBars ? 
@@ -28,12 +29,12 @@ define(function (require) {
 		self.trackPlayer(playerOffset);
 	}
 
-	EntityBar.prototype.fixToPlayer = function () {
+	HistoryBufferBar.prototype.fixToPlayer = function () {
 		return false;
 	}
 
 	var throttle = 0;
-	EntityBar.prototype.update = function (entity, clock, viewFacingPos) {
+	HistoryBufferBar.prototype.update = function (entity, clock, viewFacingPos) {
 		__super.prototype.update.call(this, entity, clock, viewFacingPos);
 
 		var ctx = this.ctx;
@@ -43,5 +44,5 @@ define(function (require) {
 		this.updateCanvas();
 	}
 
-	return EntityBar;
+	return HistoryBufferBar;
 });

@@ -12,9 +12,13 @@ return function InputPredictor(entity, clock, controls, predictor) {
 		data: new EntityState(),
 	};
 
-	self.update = function (viewFacingPos) {
+	self.update = function () {
 		var latest = predictMovement();
-		entity.update(latest, clock, viewFacingPos);
+		entity.update(latest, clock);
+	};
+
+	self.updateMesh = function (viewFacingPos) {
+		entity.updateMesh(clock, viewFacingPos);
 	};
 
 	self.message = function (data) {

@@ -17,9 +17,10 @@ define(function (require) {
 		self.PRIVATE_userNameLbl = null;
 
 		self.faceViewOnAxis("x");
+		self.faceViewOnAxis("y");
 		self.faceViewOnAxis("z");
 
-		self.trackPlayer(new THREE.Vector3(0, 0.40, 0));
+		self.trackPlayer(new THREE.Vector3(0, 0.4, 0));
 	}
 
 	HpBar.prototype.fixToPlayer = function () {
@@ -52,7 +53,6 @@ define(function (require) {
 	HpBar.prototype.init = function (entity) {
 		__super.prototype.init.call(this);
 
-		//Username
 		var userNameLbl = new Text()
 			.contents(entity.id())
 			.color("white")

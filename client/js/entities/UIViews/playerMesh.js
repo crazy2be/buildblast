@@ -7,8 +7,6 @@ var __extends = require("core/extends");
 var __super = UIViewBase;
 __extends(PlayerMesh, __super);
 
-
-
 function PlayerMesh() {
 	var self = this;
 
