@@ -79,7 +79,7 @@ function main () {
 			lagStats.addDataPoint(lag);
 		};
 
-		var player = new PlayerEntity(clientID).initViews();
+		var player = new PlayerEntity(clientID);
 
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);

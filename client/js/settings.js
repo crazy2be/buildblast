@@ -1,11 +1,15 @@
-define(function () {
+define(["core/string"], function (string) {
+
 // Conventient bundles of settings which you can activate
 // at your leasure in the javascript console.
 function __loadSettingsScheme(name) {
+	if (string.startsWith(name, '!')) {
+		name = string.trimStart(name, '!');
+		__loadSettingsScheme("default");
+	}
+
 	switch (name) {
 	case "quentin":
-		//Clear the existing scheme... not sure if anyone else wants this?
-		__loadSettingsScheme();
 		localStorage.lagInductionTime = 300;
 		localStorage.thirdPerson = true;
 		localStorage.showHistoryBuffers = true;
@@ -15,7 +19,6 @@ function __loadSettingsScheme(name) {
 		localStorage.useDvorak = true;
 		localStorage.mouseMoveBug = true;
 		return "Success!";
-	case undefined:
 	case "default":
 		for (var k in localStorage) {
 			// Can't use = false, because it gets
