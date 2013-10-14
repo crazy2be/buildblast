@@ -1,7 +1,9 @@
-define(function (require) {
-var EntityState = require("./entityState");
+//Input prediction
 
-return function EntityInputPredictor(entity, clock, controls, predictor) {
+define(function (require) {
+var EntityState = require("../entityState");
+
+return function InputPredictor(entity, clock, controls, predictor) {
 	var self = this;
 	var controlStates = [];
 	var times = [];
@@ -13,6 +15,10 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 	self.update = function () {
 		var latest = predictMovement();
 		entity.update(latest, clock);
+	};
+
+	self.updateMesh = function (viewFacingPos) {
+		entity.updateMesh(clock, viewFacingPos);
 	};
 
 	self.message = function (data) {

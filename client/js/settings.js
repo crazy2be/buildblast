@@ -1,12 +1,19 @@
-define(function () {
+define(["core/string"], function (string) {
+
 // Conventient bundles of settings which you can activate
 // at your leasure in the javascript console.
 function __loadSettingsScheme(name) {
+	if (string.startsWith(name, '!')) {
+		name = string.trimStart(name, '!');
+		__loadSettingsScheme("default");
+	}
+
 	switch (name) {
 	case "quentin":
 		localStorage.lagInductionTime = 300;
 		localStorage.thirdPerson = true;
 		localStorage.showHistoryBuffers = true;
+		localStorage.hpBars = true;
 		return "Success!";
 	case "justin":
 		localStorage.useDvorak = true;

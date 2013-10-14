@@ -89,8 +89,9 @@ return function HistoryBuffer() {
 		ctx.beginPath();
 		for (var i = 0; i < len; i++) {
 			var x = xat(times[i]);
-			ctx.moveTo(x, 4);
-			ctx.lineTo(x, height - 4);
+			var heightMargin = localStorage.hpBars ? 0 : 4;
+			ctx.moveTo(x, heightMargin);
+			ctx.lineTo(x, height - heightMargin);
 		}
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = "green";
@@ -105,7 +106,7 @@ return function HistoryBuffer() {
 		ctx.strokeStyle = "orange";
 		ctx.stroke();
 
-		if (offset !== 0) {
+		if (offset !== 0 && !localStorage.hpBars) {
 			ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
 			ctx.fillRect(0, 0, width, height);
 			ctx.textAlign = 'center';

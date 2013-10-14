@@ -18,9 +18,7 @@ var PerfChart = require("perf/chart");
 var Box = require("geom/box");
 var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
-var EntityInputPredictor = require("entities/entityInputPredictor");
-
-var PlayerMesh = require("entities/UIViews/playerMesh");
+var InputPredictor = require("entities/controllers/inputPredictor");
 
 var fatalError = require("fatalError");
 
@@ -81,13 +79,12 @@ function main () {
 			lagStats.addDataPoint(lag);
 		};
 
-		var player = new PlayerEntity();
-		player.add(new PlayerMesh());
+		var player = new PlayerEntity(clientID);
 
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredictor(player, clock, controls, predictor);
+		var controller = new InputPredictor(player, clock, controls, predictor);
 		world.setPlayer(clientID, player, controller);
 		return player;
 	}
@@ -120,11 +117,14 @@ function main () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos());
+			world.update(dt);
 
 			updateLagStats();
 
 			playerUI.update(dt);
+			//Needs to be done after the world updates it's positions, which
+			//	are used by playerUI, which gives us cameraPos, which updateMesh needs...
+			world.updateMesh(playerUI.cameraPos());
 			playerUI.render(scene);
 
 			if (fatalError.fatalErrorTriggered) return;

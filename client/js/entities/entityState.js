@@ -3,6 +3,7 @@ return function EntityState(pos, look, health, vy) {
 	this.pos = pos || new THREE.Vector3(0, 0, 0);
 	this.look = look || new THREE.Vector3(0, 0, 0);
 	this.health = health || 100;
+	this.maxHealth = 100; //TODO, sync this with the server.
 	this.vy = vy || 0.0;
 	this.clone = function () {
 		var cloned = new EntityState(

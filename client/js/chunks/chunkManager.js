@@ -16,12 +16,15 @@ return function ChunkManager(scene, clientID) {
 	};
 
 	var accumulatedTime = 0;
-	self.update = function (dt, playerPos) {
-		accumulatedTime += dt;
+	self.update = function (dt) {
+		accumulatedTime += dt; //Should really be using new Date().getTime()
+	};
+
+	self.updateMesh = function (viewFacingPos) {
 		if (accumulatedTime < 1000 /*ms*/) return;
 
 		accumulatedTime -= 1000;
-		var p = playerPos;
+		var p = viewFacingPos;
 		geometryWorker.postMessage({
 			'kind': 'player-position',
 			'payload': {

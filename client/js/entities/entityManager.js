@@ -1,9 +1,8 @@
 define(function (require) {
 var PlayerEntity = require("./playerEntity");
 var EntityState = require("./entityState");
-var EntityLagInducer = require("./entityLagInducer");
-var EntityBar = require("./UIViews/entityBar");
-var PlayerMesh = require("./UIViews/playerMesh");
+var LagInducer = require("./controllers/lagInducer");
+var HistoryBufferBar = require("./UIViews/historyBufferBar");
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -28,21 +27,24 @@ return function EntityManager(scene, conn, world, clock) {
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
+			//if(id !== _playerId) {
+				console.warn("Got entity-create message for entity which already exists!", id);
+			//}
 			return;
 		}
-		var entity = new PlayerEntity();
-		entity.add(new PlayerMesh());
-		entity.addTo(scene);
+
+		var entity = new PlayerEntity(id);
 
 		var initialState = protocolToLocal(payload);
-		var controller = new EntityLagInducer(entity, clock, initialState);
+		var controller = new LagInducer(entity, clock, initialState);
 
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
-			entity.add(new EntityBar(controller.drawState));
+			entity.add(new HistoryBufferBar(controller.drawState));
 		}
+
+		entity.addTo(scene);
 	});
 
 	function protocolToLocal(payload) {
@@ -89,11 +91,18 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	self.update = function() {
+	self.update = function(dt) {
 		for (var id in controllers) {
 			var controller = controllers[id];
 			controller.update();
-			}
-		};
+		}
+	};
+	self.updateMesh = function (viewFacingPos) {
+		for (var id in controllers) {
+			var controller = controllers[id];
+			controller.updateMesh(viewFacingPos);
+		}
+	};
+
 	}
 });

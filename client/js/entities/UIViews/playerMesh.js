@@ -1,34 +1,39 @@
 define(function (require) {
-
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 
-return function PlayerMesh() {
+var UIViewBase = require("./UIViewBase");
+var __extends = require("core/extends");
+var __super = UIViewBase;
+__extends(PlayerMesh, __super);
+
+function PlayerMesh() {
 	var self = this;
+
+	//Call super constructor first
+	__super.call(self);
 
 	var headMesh = createHead();
 	var bodyMesh = createBody();
 	var leftArm = createArm(1);
 	var rightArm = createArm(-1);
-
+	
 	var jumpAngle = 0;
 	var maxJumpAngle = 4 * Math.PI / 5;
 	var jumpSpeed = maxJumpAngle / 300;
-
+	
 	var isMoving = false;
 	var vy = 0;
-
+	
 	var swingAngle = 0;
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
 
-	self.update = function (entity, clock) {
-		updatePosition(entity.pos());
-		updateLook(entity.look());
-		vy = entity.vy();
-		health = entity.health();
-
+	self.updateInternal = function (entity, clock) {
+		self.updatePosition(entity.pos());
+		self.updateLook(entity.look());
+		var vy = entity.vy();
 		var dt = clock.dt();
 
 		// Jump animation
@@ -49,16 +54,17 @@ return function PlayerMesh() {
 	};
 
 	var previousPos = new THREE.Vector3(0, 0, 0);
-	function updatePosition(newPos) {
+	var throttle = 0;
+	self.updatePosition = function (newPos) {
 		var diffX = previousPos.x - newPos.x;
 		var diffZ = previousPos.z - newPos.z;
 		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
 			isMoving = true;
 		}
-		previousPos = newPos;
+		previousPos = newPos.clone();
 	};
 
-	function updateLook(newLook) {
+	self.updateLook = function (newLook) {
 		function lookAt(obj, pos, x, y, z) {
 			var target = new THREE.Vector3(
 				pos.x + x,
@@ -135,8 +141,25 @@ return function PlayerMesh() {
 		return arm;
 	}
 
+	//Eh... don't really need the prototype I guess
 	self.meshes = function () {
 		return [headMesh, bodyMesh, leftArm, rightArm];
 	};
 }
+
+PlayerMesh.prototype.update = function (entity, clock, viewFacingPos) {
+	this.updateInternal(entity, clock);
+}
+//Called (by the base update implementation) on the first update call.
+PlayerMesh.prototype.init = function (entity) {
+}
+//If it returns true, the meshes are added to the entity mesh, so
+//	they track the players movement and rotation (this is likely much more
+//	efficient than manually setting the position). Otherwise the meshes
+//	are added independently to the scene.
+PlayerMesh.prototype.fixToPlayer = function () {
+	return true;
+}
+
+return PlayerMesh;
 });
