@@ -32,29 +32,6 @@ function PlayerMesh() {
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
 
-	var previousPos = new THREE.Vector3(0, 0, 0);
-	var throttle = 0;
-	self.updatePosition = function (newPos) {
-		var diffX = previousPos.x - newPos.x;
-		var diffZ = previousPos.z - newPos.z;
-		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
-			isMoving = true;
-		}
-		previousPos = newPos.clone();
-	};
-
-	self.updateLook = function (newLook) {
-		function lookAt(obj, pos, x, y, z) {
-			var target = new THREE.Vector3(
-				pos.x + x,
-				pos.y + y,
-				pos.z + z
-			);
-			obj.lookAt(target);
-		}
-		lookAt(headMesh, headMesh.position, 0, newLook.y, 1);
-	};
-
 	self.updateInternal = function (entity, clock) {
 		self.updatePosition(entity.pos());
 		self.updateLook(entity.look());
@@ -76,6 +53,29 @@ function PlayerMesh() {
 		}
 		leftArm.rotation.x = -swingAngle;
 		rightArm.rotation.x = swingAngle;
+	};
+
+	var previousPos = new THREE.Vector3(0, 0, 0);
+	var throttle = 0;
+	self.updatePosition = function (newPos) {
+		var diffX = previousPos.x - newPos.x;
+		var diffZ = previousPos.z - newPos.z;
+		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
+			isMoving = true;
+		}
+		previousPos = newPos.clone();
+	};
+
+	self.updateLook = function (newLook) {
+		function lookAt(obj, pos, x, y, z) {
+			var target = new THREE.Vector3(
+				pos.x + x,
+				pos.y + y,
+				pos.z + z
+			);
+			obj.lookAt(target);
+		}
+		lookAt(headMesh, headMesh.position, 0, newLook.y, 1);
 	};
 
 	// Model/geometry
