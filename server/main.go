@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"strconv"
+	"flag"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -141,14 +142,9 @@ func promptLoop(quit chan bool, state *liner.State) {
 func main() {
 	// 	setupPrompt()
 
-	portNumber := 8080;
-	if len(os.Args) > 1 {
-		convPortNumber, portErr := strconv.Atoi(os.Args[1]);
-		if portErr != nil {
-			log.Fatal("Error when passing port argument:", portErr);
-		}
-		portNumber = convPortNumber
-	}
+	portNumber := flag.Int("port", 8080, "Sets the port the server listens on for both http requests and websocket connections.")
+
+	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
@@ -158,7 +154,8 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(":" + strconv.Itoa(portNumber), nil)
+	fmt.Println("Beginning HTTP listening on port", *portNumber);
+	err := http.ListenAndServe(":" + strconv.Itoa(*portNumber), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
