@@ -82,7 +82,6 @@ function main () {
 		};
 
 		var player = new PlayerEntity();
-// 		player.add(new PlayerMesh());
 
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);

@@ -5,15 +5,33 @@ var PLAYER = require("player/playerSize");
 var EntityState = require("./entityState");
 var PlayerMesh = require("./UIViews/playerMesh");
 
+function HitboxMesh() {
+	var self = this;
+
+	var material = new THREE.MeshBasicMaterial({
+		color: 0x000000,
+		wireframe: true
+	});
+	var he = PLAYER.HALF_EXTENTS;
+	var geometry = new THREE.CubeGeometry(he.x * 2, he.y * 2, he.z * 2);
+	var mesh = new THREE.Mesh(geometry, material);
+
+	self.mesh = function () {
+		return mesh;
+	};
+
+	self.update = function () {};
+}
+
 return function PlayerEntity() {
 	var self = this;
 
 	self.pos = function () {
-		return state.pos;
+		return state.pos.clone();
 	};
 
 	self.look = function () {
-		return state.look;
+		return state.look.clone();
 	};
 
 	self.health = function () {
@@ -37,10 +55,10 @@ return function PlayerEntity() {
 		scene.remove(mesh);
 	};
 
-	var uIViews = [];
+	var pieces = [];
 	self.add = function (view) {
-		uIViews.push(view);
-		mesh.add(view.meshes()[0]);
+		pieces.push(view);
+		mesh.add(view.mesh());
 	}
 
 	var state = new EntityState();
@@ -61,23 +79,14 @@ return function PlayerEntity() {
 		);
 		mesh.position.set(c.x, c.y, c.z);
 
-// 		function lookAt(obj, pos, x, y, z) {
-// 			var target = new THREE.Vector3(
-// 				pos.x + x,
-// 				pos.y + y,
-// 				pos.z + z
-// 			);
-// 			obj.lookAt(target);
-// 		}
-// 		lookAt(mesh, c, look.x, 0, look.z);
-
-		for (var i = 0; i < uIViews.length; i++) {
-			uIViews[i].update(self, clock);
+		for (var i = 0; i < pieces.length; i++) {
+			pieces[i].update(self, clock);
 		}
 	};
 
 	function init() {
 		self.add(new PlayerMesh());
+		self.add(new HitboxMesh());
 	}
 	init();
 }

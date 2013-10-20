@@ -144,8 +144,8 @@ return function PlayerMesh() {
 		mesh.add(pieces[i].mesh());
 	}
 
-	self.meshes = function () {
-		return [mesh];
+	self.mesh = function () {
+		return mesh;
 	}
 
 	self.update = function (entity, clock) {
