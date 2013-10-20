@@ -3,6 +3,133 @@ define(function (require) {
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 
+var exports = {};
+
+function vec(x, y, z) {
+	return new THREE.Vector3(x, y, z);
+}
+
+function faceToward(mesh, direction) {
+	var target = vec(
+		mesh.position.x + direction.x,
+		mesh.position.y + direction.y,
+		mesh.position.z + direction.z
+	);
+	mesh.lookAt(target);
+}
+
+exports.LEFT = -1;
+exports.RIGHT = 1;
+exports.Arm = function (offset) {
+	var self = this;
+
+	var material = new THREE.MeshBasicMaterial({
+		color: 0xff0000,
+		wireframe: true
+	});
+	var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);
+	var innerMesh = new THREE.Mesh(geometry, material);
+	innerMesh.position.y = -0.3;
+
+	var mesh = new THREE.Object3D();
+	mesh.add(innerMesh);
+	mesh.position.x = offset * 0.4;
+	mesh.position.y = PLAYER.BODY_HEIGHT / 2;
+
+	self.meshes = function () {
+		return [mesh];
+	}
+
+	self.update = function (entity, clock) {
+// 		faceToward(mesh, entity.look());
+	}
+};
+
+exports.Body = function () {
+	var self = this;
+
+	var material = new THREE.MeshBasicMaterial({
+		color: 0x0000ff,
+		wireframe: true
+	});
+	var geometry = new THREE.CubeGeometry(0.6, PLAYER.BODY_HEIGHT, 0.4);
+	var mesh = new THREE.Mesh(geometry, material);
+	mesh.position.y = 0;
+
+	self.meshes = function () {
+		return [mesh];
+	};
+
+	self.update = function (entity, clock) {
+// 		faceToward(mesh, entity.look());
+	};
+};
+
+exports.Head = function () {
+	var self = this;
+
+	var headMat = new THREE.MeshBasicMaterial({
+		color: 0x0000ff
+	});
+	var faceMat = new THREE.MeshBasicMaterial({
+		color: 0x00ff00
+	});
+
+	var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
+	geometry.materials = [headMat, faceMat];
+	geometry.faces[0].materialIndex = 0;
+	geometry.faces[1].materialIndex = 0;
+	geometry.faces[2].materialIndex = 0;
+	geometry.faces[3].materialIndex = 0;
+	geometry.faces[4].materialIndex = 1;
+	geometry.faces[5].materialIndex = 0;
+
+	var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
+
+	var peh = PLAYER.EYE_HEIGHT;
+	var pbh = PLAYER.BODY_HEIGHT;
+	mesh.position.y = peh - pbh / 2;
+
+	self.meshes = function () {
+		return [mesh];
+	}
+
+	self.update = function (entity, clock) {
+		var look = entity.look();
+		faceToward(mesh, vec(0, look.y, 1));
+	}
+};
+
+exports.Player = function () {
+	var self = this;
+
+	var pieces = [
+		new exports.Arm(exports.LEFT),
+		new exports.Arm(exports.RIGHT),
+		new exports.Head(),
+		new exports.Body(),
+	];
+
+	var mesh = new THREE.Object3D();
+	for (var i = 0; i < pieces.length; i++) {
+		mesh.add(pieces[i].meshes()[0]);
+	}
+
+	self.meshes = function () {
+		return [mesh];
+	}
+
+	self.update = function (entity, clock) {
+		var look = entity.look();
+		faceToward(mesh, vec(look.x, 0, look.z));
+		for (var i = 0; i < pieces.length; i++) {
+			pieces[i].update(entity, clock);
+		}
+	}
+}
+
+return exports;
+
 return function PlayerMesh() {
 	var self = this;
 
@@ -73,7 +200,7 @@ return function PlayerMesh() {
 	// Model/geometry
 	function createHitbox() {
 		var hitboxMaterial = new THREE.MeshBasicMaterial({
-			color: 0xff0000,
+			color: 0x000000,
 			wireframe: true
 		});
 		var he = PLAYER.HALF_EXTENTS;
@@ -83,59 +210,18 @@ return function PlayerMesh() {
 	}
 
 	function createHead() {
-		var headMat = new THREE.MeshBasicMaterial({
-			color: 0x0000ff
-		});
-		var faceMat = new THREE.MeshBasicMaterial({
-			color: 0x00ff00
-		});
 
-		var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-		geometry.materials = [headMat, faceMat];
-		geometry.faces[0].materialIndex = 0;
-		geometry.faces[1].materialIndex = 0;
-		geometry.faces[2].materialIndex = 0;
-		geometry.faces[3].materialIndex = 0;
-		geometry.faces[4].materialIndex = 1;
-		geometry.faces[5].materialIndex = 0;
-
-		var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
-
-		var peh = PLAYER.EYE_HEIGHT;
-		var pbh = PLAYER.BODY_HEIGHT;
-		mesh.position.y = peh - pbh / 2;
-
-		return mesh;
 	}
 
 	function createBody() {
-		var material = new THREE.MeshBasicMaterial({
-			color: 0x0000ff,
-			wireframe: true
-		});
-		var geometry = new THREE.CubeGeometry(0.6, PLAYER.BODY_HEIGHT, 0.4);
-		var mesh = new THREE.Mesh(geometry, material);
-		mesh.position.y = 0;
-		return mesh;
+
 	}
 
 	function createArm(offset) {
-		var armMat = new THREE.MeshBasicMaterial({
-			color: 0xff0000,
-			wireframe: true
-		});
-		var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);
-		var mesh = new THREE.Mesh(geometry, armMat);
-		mesh.position.y = -0.3;
 
-		var arm = new THREE.Object3D();
-		arm.add(mesh);
-		arm.position.x = offset * 0.4;
-		arm.position.y = PLAYER.BODY_HEIGHT / 2;
-		return arm;
 	}
 
-	self.meshes = function () {
+	self.innerMeshes = function () {
 		return [headMesh, bodyMesh, leftArm, rightArm];
 	};
 }

@@ -32,7 +32,7 @@ return function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 		var entity = new PlayerEntity();
-		entity.add(new PlayerMesh());
+// 		entity.add(new PlayerMesh());
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);

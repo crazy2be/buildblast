@@ -3,6 +3,7 @@ define(function (require) {
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 var EntityState = require("./entityState");
+var playerMesh = require("./UIViews/playerMesh");
 
 return function PlayerEntity() {
 	var self = this;
@@ -29,22 +30,22 @@ return function PlayerEntity() {
 	};
 
 	self.addTo = function (scene) {
-		scene.add(entityMesh);
+		scene.add(mesh);
 	};
 
 	self.removeFrom = function (scene) {
-		scene.remove(entityMesh);
+		scene.remove(mesh);
 	};
 
 	var uIViews = [];
 	self.add = function (view) {
 		uIViews.push(view);
-		view.meshes().forEach(entityMesh.add.bind(entityMesh));
+		mesh.add(view.meshes()[0]);
 	}
 
 	var state = new EntityState();
 
-	var entityMesh = new THREE.Object3D();
+	var mesh = new THREE.Object3D();
 
 	self.update = function (newState, clock) {
 		state = newState;
@@ -58,21 +59,30 @@ return function PlayerEntity() {
 			pos.y + co.y,
 			pos.z + co.z
 		);
-		entityMesh.position.set(c.x, c.y, c.z);
+		mesh.position.set(c.x, c.y, c.z);
 
-		function lookAt(obj, pos, x, y, z) {
-			var target = new THREE.Vector3(
-				pos.x + x,
-				pos.y + y,
-				pos.z + z
-			);
-			obj.lookAt(target);
-		}
-		lookAt(entityMesh, c, look.x, 0, look.z);
+// 		function lookAt(obj, pos, x, y, z) {
+// 			var target = new THREE.Vector3(
+// 				pos.x + x,
+// 				pos.y + y,
+// 				pos.z + z
+// 			);
+// 			obj.lookAt(target);
+// 		}
+// 		lookAt(mesh, c, look.x, 0, look.z);
 
 		for (var i = 0; i < uIViews.length; i++) {
 			uIViews[i].update(self, clock);
 		}
+	};
+
+	function init() {
+		self.add(new playerMesh.Player());
+// 		self.add(new playerMesh.Arm(playerMesh.LEFT));
+// 		self.add(new playerMesh.Arm(playerMesh.RIGHT));
+// 		self.add(new playerMesh.Body());
+// 		self.add(new playerMesh.Head());
 	}
+	init();
 }
 });
