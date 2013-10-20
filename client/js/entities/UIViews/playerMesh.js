@@ -6,7 +6,7 @@ var PLAYER = require("player/playerSize");
 var exports = {};
 
 function vec(x, y, z) {
-	return new THREE.Vector3(x, y, z);
+	return new THREE.Vector3(x || 0, y || 0, z || 0);
 }
 
 function faceToward(mesh, direction) {
@@ -36,12 +36,45 @@ exports.Arm = function (offset) {
 	mesh.position.x = offset * 0.4;
 	mesh.position.y = PLAYER.BODY_HEIGHT / 2;
 
-	self.meshes = function () {
-		return [mesh];
+	self.mesh = function () {
+		return mesh;
 	}
 
+	var jumpAngle = 0;
+	var maxJumpAngle = 4 * Math.PI / 5;
+	var jumpSpeed = maxJumpAngle / 300;
+
+	var isMoving = false;
+	var previousPos = vec(0, 0, 0);
+
+	var swingAngle = 0;
+	var maxSwingAngle = Math.PI / 2;
+	var swingSpeed = 2 * Math.PI / 1000;
+	var totalSwingTime = 0;
 	self.update = function (entity, clock) {
-// 		faceToward(mesh, entity.look());
+		var dt = clock.dt();
+		var vy = entity.vy();
+		var newPos = entity.pos();
+
+		var diffX = previousPos.x - newPos.x;
+		var diffZ = previousPos.z - newPos.z;
+		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
+			isMoving = true;
+		}
+		previousPos = newPos;
+
+		jumpAngle = clamp(jumpAngle + signum(vy) * dt * jumpSpeed, 0, maxJumpAngle);
+		mesh.rotation.z = offset * jumpAngle;
+
+		// Arm swinging animation (as you walk)
+		if (!isMoving) return;
+		totalSwingTime += dt;
+		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
+		if (swingAngle > -0.1 && swingAngle < 0.1) {
+			isMoving = false;
+			swingAngle = 0;
+		}
+		mesh.rotation.x = offset * swingAngle;
 	}
 };
 
@@ -56,13 +89,11 @@ exports.Body = function () {
 	var mesh = new THREE.Mesh(geometry, material);
 	mesh.position.y = 0;
 
-	self.meshes = function () {
-		return [mesh];
+	self.mesh = function () {
+		return mesh;
 	};
 
-	self.update = function (entity, clock) {
-// 		faceToward(mesh, entity.look());
-	};
+	self.update = function (entity, clock) {};
 };
 
 exports.Head = function () {
@@ -90,8 +121,8 @@ exports.Head = function () {
 	var pbh = PLAYER.BODY_HEIGHT;
 	mesh.position.y = peh - pbh / 2;
 
-	self.meshes = function () {
-		return [mesh];
+	self.mesh = function () {
+		return mesh;
 	}
 
 	self.update = function (entity, clock) {
@@ -112,7 +143,7 @@ exports.Player = function () {
 
 	var mesh = new THREE.Object3D();
 	for (var i = 0; i < pieces.length; i++) {
-		mesh.add(pieces[i].meshes()[0]);
+		mesh.add(pieces[i].mesh());
 	}
 
 	self.meshes = function () {
@@ -138,17 +169,11 @@ return function PlayerMesh() {
 	var leftArm = createArm(1);
 	var rightArm = createArm(-1);
 
-	var jumpAngle = 0;
-	var maxJumpAngle = 4 * Math.PI / 5;
-	var jumpSpeed = maxJumpAngle / 300;
 
-	var isMoving = false;
+
 	var vy = 0;
 
-	var swingAngle = 0;
-	var maxSwingAngle = Math.PI / 2;
-	var swingSpeed = 2 * Math.PI / 1000;
-	var totalSwingTime = 0;
+
 
 	self.update = function (entity, clock) {
 		updatePosition(entity.pos());
@@ -159,30 +184,14 @@ return function PlayerMesh() {
 		var dt = clock.dt();
 
 		// Jump animation
-		jumpAngle = clamp(jumpAngle + signum(vy) * dt * jumpSpeed, 0, maxJumpAngle);
-		leftArm.rotation.z = jumpAngle;
-		rightArm.rotation.z = -jumpAngle;
 
-		// Arm swinging animation (as you walk)
-		if (!isMoving) return;
-		totalSwingTime += dt;
-		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
-		if (swingAngle > -0.1 && swingAngle < 0.1) {
-			isMoving = false;
-			swingAngle = 0;
-		}
-		leftArm.rotation.x = -swingAngle;
-		rightArm.rotation.x = swingAngle;
+
+
 	};
 
 	var previousPos = new THREE.Vector3(0, 0, 0);
 	function updatePosition(newPos) {
-		var diffX = previousPos.x - newPos.x;
-		var diffZ = previousPos.z - newPos.z;
-		if (abs(diffX) > 0.01 || abs(diffZ) > 0.01) {
-			isMoving = true;
-		}
-		previousPos = newPos;
+
 	};
 
 	function updateLook(newLook) {
