@@ -3,7 +3,7 @@ define(function (require) {
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 var EntityState = require("./entityState");
-var playerMesh = require("./UIViews/playerMesh");
+var PlayerMesh = require("./UIViews/playerMesh");
 
 return function PlayerEntity() {
 	var self = this;
@@ -77,11 +77,7 @@ return function PlayerEntity() {
 	};
 
 	function init() {
-		self.add(new playerMesh.Player());
-// 		self.add(new playerMesh.Arm(playerMesh.LEFT));
-// 		self.add(new playerMesh.Arm(playerMesh.RIGHT));
-// 		self.add(new playerMesh.Body());
-// 		self.add(new playerMesh.Head());
+		self.add(new PlayerMesh());
 	}
 	init();
 }

@@ -3,8 +3,6 @@ define(function (require) {
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 
-var exports = {};
-
 function vec(x, y, z) {
 	return new THREE.Vector3(x || 0, y || 0, z || 0);
 }
@@ -18,9 +16,9 @@ function faceToward(mesh, direction) {
 	mesh.lookAt(target);
 }
 
-exports.LEFT = -1;
-exports.RIGHT = 1;
-exports.Arm = function (offset) {
+var ARM_LEFT = -1;
+var ARM_RIGHT = 1;
+function Arm(offset) {
 	var self = this;
 
 	var material = new THREE.MeshBasicMaterial({
@@ -78,7 +76,7 @@ exports.Arm = function (offset) {
 	}
 };
 
-exports.Body = function () {
+function Body() {
 	var self = this;
 
 	var material = new THREE.MeshBasicMaterial({
@@ -96,7 +94,7 @@ exports.Body = function () {
 	self.update = function (entity, clock) {};
 };
 
-exports.Head = function () {
+function Head() {
 	var self = this;
 
 	var headMat = new THREE.MeshBasicMaterial({
@@ -131,14 +129,14 @@ exports.Head = function () {
 	}
 };
 
-exports.Player = function () {
+return function PlayerMesh() {
 	var self = this;
 
 	var pieces = [
-		new exports.Arm(exports.LEFT),
-		new exports.Arm(exports.RIGHT),
-		new exports.Head(),
-		new exports.Body(),
+		new Arm(ARM_LEFT),
+		new Arm(ARM_RIGHT),
+		new Head(),
+		new Body(),
 	];
 
 	var mesh = new THREE.Object3D();
