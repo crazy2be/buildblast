@@ -61,6 +61,7 @@ function Arm(offset) {
 		}
 		previousPos = newPos;
 
+		// Jump animation
 		jumpAngle = clamp(jumpAngle + signum(vy) * dt * jumpSpeed, 0, maxJumpAngle);
 		mesh.rotation.z = offset * jumpAngle;
 
@@ -155,81 +156,5 @@ return function PlayerMesh() {
 			pieces[i].update(entity, clock);
 		}
 	}
-}
-
-return exports;
-
-return function PlayerMesh() {
-	var self = this;
-
-	var headMesh = createHead();
-	var bodyMesh = createBody();
-	var leftArm = createArm(1);
-	var rightArm = createArm(-1);
-
-
-
-	var vy = 0;
-
-
-
-	self.update = function (entity, clock) {
-		updatePosition(entity.pos());
-		updateLook(entity.look());
-		vy = entity.vy();
-		health = entity.health();
-
-		var dt = clock.dt();
-
-		// Jump animation
-
-
-
-	};
-
-	var previousPos = new THREE.Vector3(0, 0, 0);
-	function updatePosition(newPos) {
-
-	};
-
-	function updateLook(newLook) {
-		function lookAt(obj, pos, x, y, z) {
-			var target = new THREE.Vector3(
-				pos.x + x,
-				pos.y + y,
-				pos.z + z
-			);
-			obj.lookAt(target);
-		}
-		lookAt(headMesh, headMesh.position, 0, newLook.y, 1);
-	};
-
-	// Model/geometry
-	function createHitbox() {
-		var hitboxMaterial = new THREE.MeshBasicMaterial({
-			color: 0x000000,
-			wireframe: true
-		});
-		var he = PLAYER.HALF_EXTENTS;
-		var hitboxGeometry = new THREE.CubeGeometry(he.x * 2, he.y * 2, he.z * 2);
-		var hitboxMesh = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
-		return hitboxMesh;
-	}
-
-	function createHead() {
-
-	}
-
-	function createBody() {
-
-	}
-
-	function createArm(offset) {
-
-	}
-
-	self.innerMeshes = function () {
-		return [headMesh, bodyMesh, leftArm, rightArm];
-	};
 }
 });
