@@ -3,16 +3,35 @@ define(function (require) {
 var THREE = require("THREE");
 var PLAYER = require("player/playerSize");
 var EntityState = require("./entityState");
+var PlayerMesh = require("./UIViews/playerMesh");
+
+function HitboxMesh() {
+	var self = this;
+
+	var material = new THREE.MeshBasicMaterial({
+		color: 0x000000,
+		wireframe: true
+	});
+	var he = PLAYER.HALF_EXTENTS;
+	var geometry = new THREE.CubeGeometry(he.x * 2, he.y * 2, he.z * 2);
+	var mesh = new THREE.Mesh(geometry, material);
+
+	self.mesh = function () {
+		return mesh;
+	};
+
+	self.update = function () {};
+}
 
 return function PlayerEntity() {
 	var self = this;
 
 	self.pos = function () {
-		return state.pos;
+		return state.pos.clone();
 	};
 
 	self.look = function () {
-		return state.look;
+		return state.look.clone();
 	};
 
 	self.health = function () {
@@ -29,22 +48,22 @@ return function PlayerEntity() {
 	};
 
 	self.addTo = function (scene) {
-		scene.add(entityMesh);
+		scene.add(mesh);
 	};
 
 	self.removeFrom = function (scene) {
-		scene.remove(entityMesh);
+		scene.remove(mesh);
 	};
 
-	var uIViews = [];
+	var pieces = [];
 	self.add = function (view) {
-		uIViews.push(view);
-		view.meshes().forEach(entityMesh.add.bind(entityMesh));
+		pieces.push(view);
+		mesh.add(view.mesh());
 	}
 
 	var state = new EntityState();
 
-	var entityMesh = new THREE.Object3D();
+	var mesh = new THREE.Object3D();
 
 	self.update = function (newState, clock) {
 		state = newState;
@@ -58,21 +77,17 @@ return function PlayerEntity() {
 			pos.y + co.y,
 			pos.z + co.z
 		);
-		entityMesh.position.set(c.x, c.y, c.z);
+		mesh.position.set(c.x, c.y, c.z);
 
-		function lookAt(obj, pos, x, y, z) {
-			var target = new THREE.Vector3(
-				pos.x + x,
-				pos.y + y,
-				pos.z + z
-			);
-			obj.lookAt(target);
+		for (var i = 0; i < pieces.length; i++) {
+			pieces[i].update(self, clock);
 		}
-		lookAt(entityMesh, c, look.x, 0, look.z);
+	};
 
-		for (var i = 0; i < uIViews.length; i++) {
-			uIViews[i].update(self, clock);
-		}
+	function init() {
+		self.add(new PlayerMesh());
+		self.add(new HitboxMesh());
 	}
+	init();
 }
 });

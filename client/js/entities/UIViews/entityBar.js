@@ -34,8 +34,8 @@ return function EntityBar(drawFunc) {
 		texture.needsUpdate = true;
 	};
 
-	self.meshes = function () {
-		return [mesh];
+	self.mesh = function () {
+		return mesh;
 	};
 }
 });

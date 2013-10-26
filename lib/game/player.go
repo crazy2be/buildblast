@@ -206,12 +206,19 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	// They were holding it down last frame
 	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
+	// TODO: I'm pretty sure this logic isn't quite correct.
+	// We want to prevent "machine gunning" your opponents by simply
+	// holding the trigger. But if you're holding left (say), and
+	// press right, it should still activate the right side. But
+	// this won't. Not really a huge deal, but worth noting.
+	// (we can/should fix this logic when we move this code to
+	// inventory, an write a unit test for it :D).
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
 		return nil
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
-	//We let the user shoot in the past, but they always move in the present.
+	// We let the user shoot in the past, but they always move in the present.
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
