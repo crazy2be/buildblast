@@ -21,9 +21,17 @@ define(function (require) {
 				return;
 			}
 
-			entity.setHealth(payload.Health);
-
 			entity.posMessage(payload);
+		});
+
+		conn.on('entity-hp', function (payload) {
+			var id = payload.ID;
+			var entity = entities[id];
+			if (!entity) {
+				console.warn("Got entity-hp message for entity which does not exist!", id);
+				return;
+			}
+			entity.setHealth(payload.Health);
 		});
 
 		conn.on('entity-create', function (payload) {
@@ -34,7 +42,7 @@ define(function (require) {
 				console.warn("Got entity-create message for entity which already exists!", id);
 				return;
 			}
-			var entity = new Entity(id, world, clock, scene).initViews();
+			var entity = new Entity(id, world, clock, scene, payload).initViews();
 			entity.addToScene();
 			entities[id] = entity;
 		});

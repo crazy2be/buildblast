@@ -11,17 +11,21 @@ define(function(require) {
 	
 	var EntityMainMesh = require("entities/entityViews/EntityMainMesh");
 
-	return function Entity(id, world, clock, scene) {
+	return function Entity(id, world, clock, scene, initialState) {
 		var self = this;
 
 		var rot = new THREE.Vector3(0, 0, 0);
 		var hp = 0;
 
-		var posPrediction = new PosPrediction(world, clock, {
-				pos: new THREE.Vector3(0, 0, 0),
-				dy: 0,
-				look: new THREE.Vector3(0, 0, 0),
-			});
+		initialState = initialState || {
+				ID: id,
+				Pos: new THREE.Vector3(0, 0, 0),
+				Vy: 0,
+				Look: new THREE.Vector3(0, 0, 0),
+				Timestamp: 0,
+			};
+
+		var posPrediction = new PosPrediction(world, clock, initialState);
 
 		var _isLagInduced = true;
 		posPrediction.lagInduce(_isLagInduced);

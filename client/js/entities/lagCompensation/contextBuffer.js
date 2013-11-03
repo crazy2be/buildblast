@@ -46,22 +46,31 @@ define(function (require) {
 
 		//Also recalculates the predictions for every aux data after this time, and
 		//removes the aux data associated with this time.
-		self.addConfirmed = function (time, pos) {
+		self.addConfirmed = function (time, metrics) {
 			lastConfirmed = Math.max(lastConfirmed, time);
 
-			var estimatedPos = dataHistory.getValueExact(time);
+			var estimated = dataHistory.getValueExact(time);
 
-			var dataIndex = dataHistory.setValue(time, pos);
+			var dataIndex = dataHistory.setValue(time, metrics);
 
 			var curAuxIndex = auxDataHistory.getIndexOf(time);
 			if (curAuxIndex !== null) {
 				auxDataHistory.removeAtIndex(curAuxIndex);
 			}
 
-			if (estimatedPos
-			&& estimatedPos.x == pos.x
-			&& estimatedPos.y == pos.y
-			&& estimatedPos.z == pos.z) {
+			function LhsHasRhs(lhs, rhs) {
+				if (typeof rhs !== 'object') {
+					return lhs === rhs;
+				}
+				for (var key in rhs) {
+					var rhsValue = rhs[key];
+					var lhsValue = lhs[key];
+					if (!LhsHasRhs(lhsValue, rhsValue)) return false;
+				}
+				return true;
+			}
+
+			if (estimated && LhsHasRhs(estimated, metrics)) {
 				//If our estimated position was correct, there is no need to resimulate!
 				return;
 			}

@@ -123,15 +123,6 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 
 	c.cm.QueueChunksNearby(w, c.player.Pos())
 
-	g.Broadcast(&MsgEntityState{
-		ID:        c.player.ID(),
-		Pos:       c.player.Pos(),
-		Look:      c.player.Look(),
-		Health:    c.player.Health(),
-		Vy:        c.player.Vy(),
-		Timestamp: c.player.LastUpdated(),
-	})
-
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
 			Pos: *hitPos,

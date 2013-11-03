@@ -36,31 +36,33 @@ func (e *EntitySync) EntityCreatedCallback(key observable.Object, value observab
 	e.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
-	fmt.Println("Sending entity created to client")
+	fmt.Println("Sending entity created", id, "to client")
 	e.conn.Send(&MsgEntityCreate{
 		ID:        id,
 		Pos:       entity.Pos(),
 		Look:      entity.Look(),
-		Health:    entity.Health(),
 		Vy:        entity.Vy(),
 		Timestamp: entity.LastUpdated(),
 	})
 
-	//player := entity.(*game.Player)
+	player := entity.(*game.Player)
 
-	/*
-	//TODO, pass in entity instead or EntitySync
-	player.HealthObserv.OnChanged(e, func (newHealth observable.Object, prevHealth observable.Object) {
-		e.conn.Send(&MsgEntityState{
+	player.HealthObserv.OnChanged(entity, func (newHealth observable.Object, prevHealth observable.Object) {
+		e.conn.Send(&MsgEntityHp{
 			ID:        player.ID(), //Or id
-			Pos:       player.Pos(),
-			Look:      player.Look(),
 			Health:    player.Health(), //Or newHealth works too
-			Vy:        player.Vy(),
-			Timestamp: player.LastUpdated(),
 		})
 	})
-	*/
+
+	player.Metrics.OnChanged(entity, func (new observable.Object, prev observable.Object) {
+		e.conn.Send(&MsgEntityState{
+			ID:			player.ID(), //Or id
+			Pos:		player.Pos(),
+			Look:		player.Look(),
+			Vy:			player.Vy(),
+			Timestamp:	new.(game.Metrics).Timestamp,
+		})
+	})
 }
 
 func (e *EntitySync) EntityRemovedCallback(key observable.Object, value observable.Object) {
@@ -71,6 +73,3 @@ func (e *EntitySync) EntityRemoved(id game.EntityID){
 		ID: id,
 	})
 }
-
-func (e *EntitySync) EntityDamaged(id game.EntityID, entity game.Entity) {}
-func (e *EntitySync) EntityDied(id game.EntityID, entity game.Entity, killer string){}

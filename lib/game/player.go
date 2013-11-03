@@ -42,6 +42,8 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
+	observable.DisposeExposedImpl
+
 	box      physics.Box
 	controls ControlState
 	history  *HistoryBuffer
@@ -50,28 +52,32 @@ type Player struct {
 
 	inventory *Inventory
 
-	pos				coords.World
-	look			coords.Direction
+	Metrics			*observable.Observable //Metrics
+
 	HealthObserv	*observable.Observable //int
-	vy				float64
 }
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		history:   NewHistoryBuffer(),
-		inventory: NewInventory(),
-		world:     world,
-		name:      name,
-		HealthObserv:    observable.NewObservable(PLAYER_MAX_HP),
+		history:		NewHistoryBuffer(),
+		inventory:		NewInventory(),
+		world:			world,
+		name:			name,
+		Metrics:		observable.NewObservable(Metrics {
+			Pos:			coords.World{},
+			Look:			coords.Direction{},
+			Vy:				0.0,
+		}),
+		HealthObserv:	observable.NewObservable(PLAYER_MAX_HP),
 	}
 }
 
 func (p *Player) Pos() coords.World {
-	return p.pos
+	return p.Metrics.Get().(Metrics).Pos
 }
 
 func (p *Player) Look() coords.Direction {
-	return p.look
+	return p.Metrics.Get().(Metrics).Look
 }
 
 func (p *Player) Damage(amount int) {
@@ -87,14 +93,18 @@ func (p *Player) Dead() bool {
 }
 
 func (p *Player) Respawn(pos coords.World) {
-	p.pos = pos
+	metrics := p.Metrics.Get().(Metrics)
+	metrics.Pos = pos
+	//TODO: Well this timestamp is wrong, make it right!
+	metrics.Timestamp = p.LastUpdated()
+	p.Metrics.Set(metrics)
 	p.HealthObserv.Set(PLAYER_MAX_HP)
 	p.history.Clear()
-	p.history.Add(p.LastUpdated(), p.pos)
+	p.history.Add(p.LastUpdated(), pos)
 }
 
 func (p *Player) Vy() float64 {
-	return p.vy
+	return p.Metrics.Get().(Metrics).Vy
 }
 
 // Returns the last time this entity's state was updated
@@ -130,20 +140,25 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
 	}
 
-	p.updateLook(controls)
-
 	hitPos := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
-	p.history.Add(controls.Timestamp, p.pos)
+	p.history.Add(controls.Timestamp, p.Pos())
 
 	return hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
-	p.vy += dt * -9.81
+	//Any changes to metrics will not be reflect in the player until we set
+	//	it. This means don't go calling function on yourself that expect
+	//	us to have changed stuff, as we don't set metrics until the end
+	//	of this function!
+	metrics := p.Metrics.Get().(Metrics)
+	metrics.Timestamp = controls.Timestamp
+
+	metrics.Vy += dt * -9.81
 
 	fw := 0.0
 	if controls.Forward {
@@ -164,7 +179,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	move := coords.Vec3{
 		X: -cos(controls.Lon)*fw + sin(controls.Lon)*rt,
-		Y: p.vy * dt,
+		Y: metrics.Vy * dt,
 		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
 	}
 
@@ -174,27 +189,28 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	if move.Y == 0 {
 		if controls.Jump {
-			p.vy = 6
+			metrics.Vy = 6.0
 		} else {
-			p.vy = 0
+			metrics.Vy = 0.0
 		}
 	}
 
-	p.pos.X += move.X
-	p.pos.Y += move.Y
-	p.pos.Z += move.Z
-}
+	metrics.Pos.X += move.X
+	metrics.Pos.Y += move.Y
+	metrics.Pos.Z += move.Z
 
-func (p *Player) updateLook(controls ControlState) {
-	cos := math.Cos
-	sin := math.Sin
 
+	//TODO, maybe pull look out of metrics (which will change lag compensation
+	//	client side, so maybe it is not worth it?)
 	lat := controls.Lat
 	lon := controls.Lon
 
-	p.look.X = sin(lat) * cos(lon)
-	p.look.Y = cos(lat)
-	p.look.Z = sin(lat) * sin(lon)
+	metrics.Look.X = sin(lat) * cos(lon)
+	metrics.Look.Y = cos(lat)
+	metrics.Look.Z = sin(lat) * sin(lon)
+
+
+	p.Metrics.Set(metrics)
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {
@@ -211,7 +227,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 		return nil
 	}
 
-	ray := physics.NewRay(p.pos, p.look)
+	ray := physics.NewRay(p.Pos(), p.Look())
 	//We let the user shoot in the past, but they always move in the present.
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
@@ -222,7 +238,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
-		p.pos,
+		p.Pos(),
 		PLAYER_HALF_EXTENTS,
 		PLAYER_CENTER_OFFSET)
 }

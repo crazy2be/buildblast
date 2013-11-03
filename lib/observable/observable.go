@@ -1,5 +1,12 @@
 package observable
 
+type IObservable interface {
+	Set(value Object)
+	Get() Object
+	OnChanged(owner CallbackOwner, callback ObservCallback)
+	NotOnChanged(owner CallbackOwner)
+}
+
 type ObservCallback func (newValue Object, oldValue Object)
 
 //Not thread safe
@@ -39,7 +46,7 @@ func (o *Observable) OnChanged(owner CallbackOwner, callback ObservCallback) {
 	owner.OnDispose(func() {
 		o.NotOnChanged(owner)
 	})
-	callback(o, nil)
+	callback(o.data, nil)
 }
 func (o *Observable) NotOnChanged(owner CallbackOwner) {
 	delete(o.changedCallbacks, owner)

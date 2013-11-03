@@ -165,14 +165,7 @@ func (g *Game) Tick() {
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
 
 func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {
-	g.Broadcast(&MsgEntityState{
-		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
-	})
+	
 }
 
 func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {

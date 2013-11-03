@@ -18,6 +18,7 @@ const (
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
 	MSG_ENTITY_STATE    = MessageKind("entity-state")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
+	MSG_ENTITY_HP		= MessageKind("entity-hp")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
@@ -38,6 +39,8 @@ func kindToType(kind MessageKind) Message {
 		return &MsgEntityState{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
+	case MSG_ENTITY_HP:
+		return &MsgEntityHp{}
 	case MSG_BLOCK:
 		return &MsgBlock{}
 	case MSG_CONTROLS_STATE:
@@ -68,6 +71,8 @@ func typeToKind(m Message) MessageKind {
 		return MSG_ENTITY_STATE
 	case *MsgEntityRemove:
 		return MSG_ENTITY_REMOVE
+	case *MsgEntityHp:
+		return MSG_ENTITY_HP
 	case *MsgChunk:
 		return MSG_CHUNK
 	case *MsgBlock:
@@ -109,13 +114,17 @@ type MsgEntityState struct {
 	ID        game.EntityID
 	Pos       coords.World
 	Look      coords.Direction
-	Health    int
 	Vy        float64
 	Timestamp float64
 }
 
 type MsgEntityRemove struct {
 	ID game.EntityID
+}
+
+type MsgEntityHp struct {
+	ID game.EntityID
+	Health		int
 }
 
 type MsgChunk struct {

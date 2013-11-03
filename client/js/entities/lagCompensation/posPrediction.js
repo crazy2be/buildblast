@@ -39,13 +39,17 @@ define(function(require) {
 			), lagInducedMaxHistory
 		);
 
-		posBuffer.addConfirmed(Number.NEGATIVE_INFINITY, initialPosState);
+		if(initialPosState) {
+			posMessageFnc(initialPosState);
+		}
 
 		self.predictMovement = function (controlState) {
 			posBuffer.addPrediction(controlState.Timestamp, controlState.Controls);
 		};
 
-		self.posMessage = function (payload) {
+		self.posMessage = posMessageFnc;
+
+		function posMessageFnc(payload) {
 			var p = payload.Pos;
 			var l = payload.Look;
 			var newPosState = {
