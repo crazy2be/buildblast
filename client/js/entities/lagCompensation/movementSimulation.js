@@ -104,8 +104,8 @@
 
 	function weightedValue (t, vOld, tOld, vNew, tNew) {
 		var timeSpan = tNew - tOld;
-		var oldWeight = (t - tOld) / timeSpan;
-		var newWeight = (tNew - t) / timeSpan;
+		var oldWeight = (tNew - t) / timeSpan;
+		var newWeight = (t - tOld) / timeSpan;
 
 		return vOld*oldWeight + vNew*newWeight;
 	}
@@ -113,8 +113,8 @@
 	//http://docs.unity3d.com/Documentation/ScriptReference/Vector3.Lerp.html
 	function lerp (t, pOld, tOld, pNew, tNew) {
 		var timeSpan = tNew - tOld;
-		var oldWeight = (t - tOld) / timeSpan;
-		var newWeight = (tNew - t) / timeSpan;
+		var oldWeight = (tNew - t) / timeSpan;
+		var newWeight = (t - tOld) / timeSpan;
 
 		return new THREE.Vector3(
 			pOld.x*oldWeight + pNew.x*newWeight,

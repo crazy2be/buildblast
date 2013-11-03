@@ -95,12 +95,12 @@ func (p *Player) Dead() bool {
 }
 
 func (p *Player) Respawn(pos coords.World) {
+	//TODO: I am on the fence of whether this should be now,
+	//	or the time the shot that killed us was fired...
 	currentTime := float64(time.Now().Unix() * 1000)
-	//currentTime = p.LastUpdated()
 
 	metrics := p.Metrics.Get().(Metrics)
 	metrics.Pos = pos
-	//TODO: Well this timestamp is wrong, make it right!
 	metrics.Timestamp = currentTime
 	p.Metrics.Set(metrics)
 	p.HealthObserv.Set(PLAYER_MAX_HP)
