@@ -3,10 +3,10 @@ package game
 import (
 	"log"
 	"math"
-	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
+	"buildblast/lib/observable"
 )
 
 type ControlState struct {
@@ -42,49 +42,69 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	look coords.Direction
-
 	box      physics.Box
 	controls ControlState
-	history  *PlayerHistory
+	history  *HistoryBuffer
 	world    *World
 	name     string
 
-	// Gameplay state
 	inventory *Inventory
 
-	hp  int
-	pos coords.World
-	vy  float64
-	//The time our position is "at" (last received time from client)
-	posTime float64
+	pos				coords.World
+	look			coords.Direction
+	HealthObserv	*observable.Observable //int
+	vy				float64
 }
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		history:   NewPlayerHistory(),
+		history:   NewHistoryBuffer(),
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
-		hp:        PLAYER_MAX_HP,
+		HealthObserv:    observable.NewObservable(PLAYER_MAX_HP),
 	}
 }
 
-func (p *Player) Vy() float64 {
-	return p.vy
+func (p *Player) Pos() coords.World {
+	return p.pos
 }
 
 func (p *Player) Look() coords.Direction {
 	return p.look
 }
 
-//Let there be a time for every position.
-func (p *Player) Pos() (coords.World, float64) {
-	return p.pos, p.posTime
+func (p *Player) Damage(amount int) {
+	p.HealthObserv.Set(p.HealthObserv.Get().(int) - amount)
 }
 
-func (p *Player) ID() string {
-	return p.name
+func (p *Player) Health() int {
+	return p.HealthObserv.Get().(int)
+}
+
+func (p *Player) Dead() bool {
+	return p.HealthObserv.Get().(int) <= 0
+}
+
+func (p *Player) Respawn(pos coords.World) {
+	p.pos = pos
+	p.HealthObserv.Set(PLAYER_MAX_HP)
+	p.history.Clear()
+	p.history.Add(p.LastUpdated(), p.pos)
+}
+
+func (p *Player) Vy() float64 {
+	return p.vy
+}
+
+// Returns the last time this entity's state was updated
+// (i.e. by a client sending a control-state packet).
+func (p *Player) LastUpdated() float64 {
+	return p.controls.Timestamp
+}
+
+func (p *Player) ID() EntityID {
+	return EntityID(p.name)
 }
 
 func (p *Player) Inventory() *Inventory {
@@ -93,11 +113,11 @@ func (p *Player) Inventory() *Inventory {
 
 func (p *Player) Tick(w *World) {}
 
-func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
+func (p *Player) ClientTick(controls ControlState) *coords.World {
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return nil, nil
+		return nil
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -112,15 +132,14 @@ func (p *Player) ClientTick(controls ControlState) (*coords.World, Entity) {
 
 	p.updateLook(controls)
 
-	hitPos, hitEntity := p.simulateBlaster(controls)
+	hitPos := p.simulateBlaster(controls)
 	p.simulateMovement(dt, controls)
-	p.posTime = controls.Timestamp
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
-	return hitPos, hitEntity
+	return hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
@@ -178,18 +197,18 @@ func (p *Player) updateLook(controls ControlState) {
 	p.look.Z = sin(lat) * sin(lon)
 }
 
-func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) {
+func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
-		return nil, nil
+		return nil
 	}
 
 	// They were holding it down last frame
 	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
 	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
 	if (shootingLeft && shootingLeftLast) || (shootingRight && shootingRightLast) {
-		return nil, nil
+		return nil
 	}
 
 	ray := physics.NewRay(p.pos, p.look)
@@ -198,7 +217,7 @@ func (p *Player) simulateBlaster(controls ControlState) (*coords.World, Entity) 
 	if hitEntity != nil {
 		p.world.DamageEntity(p.name, 10, hitEntity)
 	}
-	return hitPos, hitEntity
+	return hitPos
 }
 
 func (p *Player) Box() *physics.Box {
@@ -213,25 +232,4 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 		p.history.PositionAt(t),
 		PLAYER_HALF_EXTENTS,
 		PLAYER_CENTER_OFFSET)
-}
-
-func (p *Player) Health() int {
-	return p.hp
-}
-
-func (p *Player) Damage(amount int) {
-	p.hp -= amount
-}
-
-func (p *Player) Dead() bool {
-	return p.hp <= 0
-}
-
-func (p *Player) Respawn(pos coords.World) {
-	p.pos = pos
-	p.hp = PLAYER_MAX_HP
-	p.history.Clear()
-
-	curTime := float64(time.Now().UnixNano()) / 1e6
-	p.history.Add(curTime, p.pos)
 }

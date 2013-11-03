@@ -7,6 +7,7 @@ import (
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
 	"buildblast/lib/physics"
+	"buildblast/lib/observable"
 )
 
 type BlockListener interface {
@@ -22,6 +23,8 @@ type World struct {
 	entities        []Entity
 	entityListeners []EntityListener
 	blockListeners  []BlockListener
+	
+	EntitiesObserv	*observable.ObservableMap
 }
 
 func NewWorld(seed float64) *World {
@@ -36,25 +39,17 @@ func NewWorld(seed float64) *World {
 
 	w.entities = make([]Entity, 0)
 	w.entityListeners = make([]EntityListener, 0)
+
+	w.EntitiesObserv = observable.NewObservableMap()
+
 	return w
 }
 
 func (w *World) Tick() {
-	//curTime := float64(time.Now().UnixNano()) / 1e6
-
 	w.generationTick()
-	//For all entities, send as message to all entityListeners.
-	//This is the core of the whole scaling problem with any multiplayer game,
-	//this scales by N^2 with the number of players. Probably impossible to change.
 	for _, e := range w.entities {
 		e.Tick(w)
-		pos, posTime := e.Pos()
-		posTime = posTime
-		w.chunkGenerator.QueueChunksNearby(pos)
-
-		for _, listener := range w.entityListeners {
-			listener.EntityTick()
-		}
+		w.chunkGenerator.QueueChunksNearby(e.Pos())
 	}
 }
 
@@ -130,8 +125,10 @@ func (w *World) AddEntity(e Entity) {
 	e.Respawn(w.findSpawn())
 
 	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e, e.ID())
+		listener.EntityCreated(e.ID(), e)
 	}
+
+	w.EntitiesObserv.Set(e.ID(), e)
 }
 
 func (w *World) RemoveEntity(e Entity) {
@@ -145,6 +142,8 @@ func (w *World) RemoveEntity(e Entity) {
 			}
 		}
 	}
+
+	w.EntitiesObserv.Delete(e.ID())
 }
 
 func (w *World) DamageEntity(damager string, amount int, e Entity) {
@@ -152,39 +151,21 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	if e.Dead() {
 		e.Respawn(w.findSpawn())
 		for _, listener := range w.entityListeners {
-			listener.EntityDied(e, e.ID(), damager)
+			listener.EntityDied(e.ID(), e, damager)
+		}
+	} else {
+		// Should we fire Damaged events if they
+		// end up dying? I dunno. Currently we don't.
+		for _, listener := range w.entityListeners {
+			listener.EntityDamaged(e.ID(), e)
 		}
 	}
 }
 
-func (w *World) GetEntityIDs() []string {
-	result := make([]string, len(w.entities))
-	for i, entity := range w.entities {
-		result[i] = entity.ID()
-	}
-	return result
-}
-
-//Your architecture is messed
-type MsgEntityPos2 struct {
-	Timestamp float64
-	ID        string
-	Pos       coords.World
-	Vy        float64
-	Look      coords.Direction
-}
-
-func (w *World) GetEntityPosMessages() []MsgEntityPos2 {
-	result := make([]MsgEntityPos2, len(w.entities))
-	for i, entity := range w.entities {
-		pos, posTime := entity.Pos()
-		result[i] = MsgEntityPos2{
-			Timestamp: posTime,
-			ID:        entity.ID(),
-			Pos:       pos,
-			Vy:        entity.Vy(),
-			Look:      entity.Look(),
-		}
+func (w *World) Entities() map[EntityID]Entity {
+	result := make(map[EntityID]Entity, len(w.entities))
+	for _, entity := range w.entities {
+		result[entity.ID()] = entity
 	}
 	return result
 }
