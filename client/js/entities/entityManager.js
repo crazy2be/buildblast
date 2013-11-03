@@ -13,7 +13,7 @@ define(function (require) {
 			entities[player.id()] = player;
 		};
 
-		conn.on('entity-pos', function (payload) {
+		conn.on('entity-state', function (payload) {
 			var id = payload.ID;
 			var entity = entities[id];
 			if (!entity) {
@@ -21,18 +21,9 @@ define(function (require) {
 				return;
 			}
 
-			entity.posMessage(payload);
-		});
+			entity.setHealth(payload.Health);
 
-		//entity-hp
-		conn.on('entity-hp', function (payload) {
-			var id = payload.ID;
-			var entity = entities[id];
-			if (!entity) {
-				console.warn("Got entity-hp message for entity which does not exist!", id);
-				return;
-			}
-			entity.setHealth(payload.Hp);
+			entity.posMessage(payload);
 		});
 
 		conn.on('entity-create', function (payload) {

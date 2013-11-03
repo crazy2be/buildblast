@@ -46,8 +46,9 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		Timestamp: entity.LastUpdated(),
 	})
 
-	player := entity.(*game.Player)
+	//player := entity.(*game.Player)
 
+	/*
 	//TODO, pass in entity instead or EntitySync
 	player.HealthObserv.OnChanged(e, func (newHealth observable.Object, prevHealth observable.Object) {
 		e.conn.Send(&MsgEntityState{
@@ -59,6 +60,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 			Timestamp: player.LastUpdated(),
 		})
 	})
+	*/
 }
 
 func (e *EntitySync) EntityRemovedCallback(key observable.Object, value observable.Object) {

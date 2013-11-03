@@ -61,6 +61,8 @@ define(function(require) {
 		}
 	};
 
+	parent.postMessage({kind: 'booted'}, null);
+
 	function initConn(payload) {
 		var conn = new Conn(payload.uri);
 		conn.on('chunk', processChunk);

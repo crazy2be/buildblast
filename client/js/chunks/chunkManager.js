@@ -61,15 +61,12 @@ define(function(require) {
 			} else if (kind === 'log') {
 				var args = ["Geometry worker:"].concat(payload.message);
 				console[payload.type || 'log'].apply(console, args);
+			} else if (kind === 'booted') {
+				startChunkConn(clientID);
 			}
 		};
 
 		geometryWorker.onerror = fatalError;
-
-		//Now we can start the conn, after we subscribe to onmessage
-		//QTODO: remove this with a worker handshake.
-		//(Give the worker thread a little time to setup...)
-		setTimeout(startChunkConn.bind(null, clientID), 500);
 
 		//Payload contains vertices creates by the mesher.
 		function processChunk(payload) {
