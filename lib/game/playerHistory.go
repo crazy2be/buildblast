@@ -47,6 +47,7 @@ func (ph *HistoryBuffer) set(i int, val HistoryEntry) {
 
 func (ph *HistoryBuffer) Clear() {
 	l := len(ph.buf)
+	//Might not be enough
 	for i := 0; i < l; i++ {
 		ph.set(i, HistoryEntry{})
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,10 +9,9 @@ import (
 	"os/signal"
 	"runtime"
 	"runtime/pprof"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
-	"flag"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -161,8 +161,8 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	fmt.Println("Beginning HTTP listening on port", *portNumber);
-	err := http.ListenAndServe(":" + strconv.Itoa(*portNumber), nil)
+	fmt.Println("Beginning HTTP listening on port", *portNumber)
+	err := http.ListenAndServe(":"+strconv.Itoa(*portNumber), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}

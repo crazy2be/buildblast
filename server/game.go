@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
-	"fmt"
 
 	"os"
 	"runtime"
@@ -110,18 +110,17 @@ func (g *Game) Announce(message string) {
 	g.Chat("SERVER", message)
 }
 
-
 func (g *Game) Chat(user string, message string) {
-	switch(message) {
+	switch message {
 	case "memProfile":
 		n, _ := runtime.MemProfile(nil, true)
 		fmt.Println("Writing heap profile", n)
 		f, err := os.Create("leak.mprof")
-        if err != nil {
-            log.Fatal(err)
-        }
+		if err != nil {
+			log.Fatal(err)
+		}
 		pprof.WriteHeapProfile(f)
-        f.Close()
+		f.Close()
 	case "printLeaks":
 		observable.PrintLeaks()
 	}
@@ -165,7 +164,7 @@ func (g *Game) Tick() {
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
 
 func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {
-	
+
 }
 
 func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {

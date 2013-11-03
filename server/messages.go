@@ -18,7 +18,7 @@ const (
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
 	MSG_ENTITY_STATE    = MessageKind("entity-state")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
-	MSG_ENTITY_HP		= MessageKind("entity-hp")
+	MSG_ENTITY_HP       = MessageKind("entity-hp")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
@@ -123,8 +123,8 @@ type MsgEntityRemove struct {
 }
 
 type MsgEntityHp struct {
-	ID game.EntityID
-	Health		int
+	ID     game.EntityID
+	Health int
 }
 
 type MsgChunk struct {
