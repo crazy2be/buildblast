@@ -11,8 +11,7 @@ type IObservable interface {
 	//Generally only used if you are watching your super (owner),
 	//	as then you know it will outlast you (which is the only reason to use this,
 	//	or if you absolutely cannot make it implement DisposeExposed).
-	OnChangedSuper(owner CallbackOwner, callback ObservCallback)
-	OnChanged(owner CallbackOwner, observOwner DisposeExposed, callback ObservCallback)
+	OnChanged(owner CallbackOwner, callback ObservCallback)
 	NotOnChanged(owner CallbackOwner)
 }
 
@@ -20,12 +19,14 @@ type ObservCallback func (newValue Object, oldValue Object)
 
 //Not thread safe
 type Observable struct {
+    owner               DisposeExposed
 	data				Object
 	changedCallbacks	map[CallbackOwner]ObservCallback
 }
 
-func NewObservable(initialData Object) *Observable {
+func NewObservable(owner DisposeExposed, initialData Object) *Observable {
 	observ := new(Observable)
+    observ.owner = owner;
 	observ.data = initialData
 	observ.changedCallbacks = make(map[CallbackOwner]ObservCallback, 0)
 	return observ
@@ -50,20 +51,19 @@ func (o *Observable) changed(prevValue Object) {
 	}
 }
 
-func (o *Observable) OnChangedSuper(owner CallbackOwner, callback ObservCallback) {
-	o.changedCallbacks[owner] = callback
+//Just a really handy function, should always be called, unless you know for sure the
+//	object you are observing will outlast you.
+func (o *Observable) OnChanged(owner CallbackOwner, callback ObservCallback) {
+    o.changedCallbacks[owner] = callback
 	owner.OnDispose(func() {
 		o.NotOnChanged(owner)
 	})
-	callback(o.data, nil)
-}
-//Just a really handy function, should always be called, unless you know for sure the
-//	object you are observing will outlast you.
-func (o *Observable) OnChanged(owner CallbackOwner, observOwner DisposeExposed, callback ObservCallback) {
-	observOwner.OnDispose(func() {
-		o.NotOnChanged(owner)
-	})
-	o.OnChangedSuper(owner, callback)
+    if o.owner != nil {
+	    o.owner.OnDispose(func() {
+		    o.NotOnChanged(owner)
+	    })
+    }
+    callback(o.data, nil)
 }
 func (o *Observable) NotOnChanged(owner CallbackOwner) {
 	delete(o.changedCallbacks, owner)

@@ -4,13 +4,15 @@ type ObservMapCallback func (key Object, value Object)
 
 //Not thread safe
 type ObservableMap struct {
+    owner           DisposeExposed
 	data			map[Object]Object
 	addCallbacks	map[CallbackOwner]ObservMapCallback
 	removeCallbacks	map[CallbackOwner]ObservMapCallback
 }
 
-func NewObservableMap() *ObservableMap {
+func NewObservableMap(owner DisposeExposed) *ObservableMap {
 	observ := new(ObservableMap)
+    observ.owner = owner
 	observ.data = make(map[Object]Object)
 	observ.addCallbacks = make(map[CallbackOwner]ObservMapCallback, 0)
 	observ.removeCallbacks = make(map[CallbackOwner]ObservMapCallback, 0)
@@ -54,6 +56,11 @@ func (o *ObservableMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) {
 	owner.OnDispose(func() {
 		o.NotOnAdd(owner)
 	})
+    if o.owner != nil {
+	    o.owner.OnDispose(func() {
+		    o.NotOnAdd(owner)
+	    })
+    }
 	for key, value := range o.data {
 		callback(key, value)
 	}
@@ -63,10 +70,15 @@ func (o *ObservableMap) NotOnAdd(owner CallbackOwner) {
 }
 
 func (o *ObservableMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) {
-	o.removeCallbacks[owner] = callback
+    o.removeCallbacks[owner] = callback
 	owner.OnDispose(func() {
 		o.NotOnRemove(owner)
 	})
+    if o.owner != nil {
+	    o.owner.OnDispose(func() {
+		    o.NotOnRemove(owner)
+	    })
+    }
 }
 func (o *ObservableMap) NotOnRemove(owner CallbackOwner) {
 	delete(o.removeCallbacks, owner)

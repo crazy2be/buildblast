@@ -15,6 +15,8 @@ type BlockListener interface {
 }
 
 type World struct {
+    observable.DisposeExposedImpl
+
 	seed           float64
 	chunks         map[coords.Chunk]mapgen.Chunk
 	spawns         []coords.World
@@ -28,7 +30,9 @@ type World struct {
 }
 
 func NewWorld(seed float64) *World {
+    observable.PrintLeaks()
 	w := new(World)
+    w.WatchLeaks("World")
 	w.seed = seed
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
 	w.spawns = make([]coords.World, 0)
@@ -40,7 +44,7 @@ func NewWorld(seed float64) *World {
 	w.entities = make([]Entity, 0)
 	w.entityListeners = make([]EntityListener, 0)
 
-	w.EntitiesObserv = observable.NewObservableMap()
+	w.EntitiesObserv = observable.NewObservableMap(w)
 
 	return w
 }

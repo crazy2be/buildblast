@@ -65,12 +65,12 @@ func NewPlayer(world *World, name string) *Player {
 		inventory:		NewInventory(),
 		world:			world,
 		name:			name,
-		Metrics:		observable.NewObservable(Metrics {
+		Metrics:		observable.NewObservable(nil, Metrics {
 			Pos:			coords.World{},
 			Look:			coords.Direction{},
 			Vy:				0.0,
 		}),
-		HealthObserv:	observable.NewObservable(PLAYER_MAX_HP),
+		HealthObserv:	observable.NewObservable(nil, PLAYER_MAX_HP),
 	}
 }
 
