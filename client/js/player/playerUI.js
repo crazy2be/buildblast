@@ -84,6 +84,7 @@ define(function(require) {
 				var look = target.clone().sub(camPos);
 				look.setLength(3);
 				camPos.sub(look);
+				camPos.add(new THREE.Vector3(0, 1, 0));
 			}
 			camera.position.set(camPos.x, camPos.y, camPos.z);
 
