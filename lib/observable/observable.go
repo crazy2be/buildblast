@@ -1,9 +1,18 @@
 package observable
 
+import (
+	_ "fmt"
+)
+
+
 type IObservable interface {
 	Set(value Object)
 	Get() Object
-	OnChanged(owner CallbackOwner, callback ObservCallback)
+	//Generally only used if you are watching your super (owner),
+	//	as then you know it will outlast you (which is the only reason to use this,
+	//	or if you absolutely cannot make it implement DisposeExposed).
+	OnChangedSuper(owner CallbackOwner, callback ObservCallback)
+	OnChanged(owner CallbackOwner, observOwner DisposeExposed, callback ObservCallback)
 	NotOnChanged(owner CallbackOwner)
 }
 
@@ -35,18 +44,26 @@ func (o *Observable) Get() Object {
 	return o.data
 }
 
-func (o *Observable) changed(newValue Object) {
+func (o *Observable) changed(prevValue Object) {
 	for _, callback := range o.changedCallbacks {
-		callback(newValue, o.data)
+		callback(o.data, prevValue)
 	}
 }
 
-func (o *Observable) OnChanged(owner CallbackOwner, callback ObservCallback) {
+func (o *Observable) OnChangedSuper(owner CallbackOwner, callback ObservCallback) {
 	o.changedCallbacks[owner] = callback
 	owner.OnDispose(func() {
 		o.NotOnChanged(owner)
 	})
 	callback(o.data, nil)
+}
+//Just a really handy function, should always be called, unless you know for sure the
+//	object you are observing will outlast you.
+func (o *Observable) OnChanged(owner CallbackOwner, observOwner DisposeExposed, callback ObservCallback) {
+	observOwner.OnDispose(func() {
+		o.NotOnChanged(owner)
+	})
+	o.OnChangedSuper(owner, callback)
 }
 func (o *Observable) NotOnChanged(owner CallbackOwner) {
 	delete(o.changedCallbacks, owner)

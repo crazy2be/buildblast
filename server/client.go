@@ -149,6 +149,7 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
 
+	c.player.Dispose()
 	c.entitySync.Dispose()
 
 	c.conn.Close()

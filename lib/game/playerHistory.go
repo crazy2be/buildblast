@@ -64,13 +64,13 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 		panic("Attempt to access item in empty history buffer!")
 	}
 
-	newest := ph.at(l - 1)
+	newest := ph.at(0)
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
 		return newest.pos
 	}
 
-	oldest := ph.at(0)
+	oldest := ph.at(-1)
 	if oldest.t >= t {
 		// We don't go back that far :(
 		return oldest.pos
@@ -80,7 +80,7 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	newer := newest
 	// Go backwards, (in time and indicies), looking
 	// for a pair to interpolate between.
-	for i := l - 2; i >= 0; i-- {
+	for i := l - 1; i >= 0; i-- {
 		older = ph.at(i)
 		if older.t <= t {
 			break

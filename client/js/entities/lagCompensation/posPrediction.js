@@ -58,6 +58,10 @@ define(function(require) {
 				look: new THREE.Vector3(l.X, l.Y, l.Z),
 			};
 		
+			if(!_lagInduced) {
+				//debugger;
+			}
+
 			posBuffer.addConfirmed(payload.Timestamp, newPosState);
 		};
 

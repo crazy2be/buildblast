@@ -25,6 +25,8 @@ func NewRay(pos coords.World, direction coords.Direction) *Ray {
 
 func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coords.World, int) {
 	pos := ray.pos
+	//Man... you have the boxes, and a line... this should not be a loop (well maybe
+	//	a loop over the sides/triangles of the box, but that is it)
 	for dist := 0.0; dist < RAY_MAX_DIST; dist += RAY_PRECISION {
 		pos = pos.Move(ray.dir, RAY_PRECISION)
 

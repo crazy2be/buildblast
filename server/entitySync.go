@@ -47,17 +47,17 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 
 	player := entity.(*game.Player)
 
-	player.HealthObserv.OnChanged(entity, func (newHealth observable.Object, prevHealth observable.Object) {
+	player.HealthObserv.OnChanged(e, entity, func (newHealth observable.Object, prevHealth observable.Object) {
 		e.conn.Send(&MsgEntityHp{
 			ID:        player.ID(), //Or id
 			Health:    player.Health(), //Or newHealth works too
 		})
 	})
 
-	player.Metrics.OnChanged(entity, func (new observable.Object, prev observable.Object) {
+	player.Metrics.OnChanged(e, entity, func (new observable.Object, prev observable.Object) {
 		e.conn.Send(&MsgEntityState{
 			ID:			player.ID(), //Or id
-			Pos:		player.Pos(),
+			Pos:		new.(game.Metrics).Pos,//player.Pos(),
 			Look:		player.Look(),
 			Vy:			player.Vy(),
 			Timestamp:	new.(game.Metrics).Timestamp,

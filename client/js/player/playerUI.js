@@ -71,9 +71,8 @@ define(function(require) {
 				Timestamp: clock.time(),
 				ViewTimestamp: clock.entityTime()
 			};
-			conn.queue('controls-state', controlState);
-
 			playerEntity.predictMovement(controlState);
+			conn.queue('controls-state', controlState);
 
 			var camPos = pos().clone();
 

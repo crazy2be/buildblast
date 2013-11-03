@@ -3,6 +3,8 @@ package game
 import (
 	"log"
 	"math"
+	"fmt"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
@@ -93,14 +95,19 @@ func (p *Player) Dead() bool {
 }
 
 func (p *Player) Respawn(pos coords.World) {
+	currentTime := float64(time.Now().Unix() * 1000)
+	//currentTime = p.LastUpdated()
+
 	metrics := p.Metrics.Get().(Metrics)
 	metrics.Pos = pos
 	//TODO: Well this timestamp is wrong, make it right!
-	metrics.Timestamp = p.LastUpdated()
+	metrics.Timestamp = currentTime
 	p.Metrics.Set(metrics)
 	p.HealthObserv.Set(PLAYER_MAX_HP)
 	p.history.Clear()
-	p.history.Add(p.LastUpdated(), pos)
+	p.history.Add(currentTime, pos)
+
+	fmt.Println("Pos", pos ,"Respawned at box", p.BoxAt(currentTime + 1))
 }
 
 func (p *Player) Vy() float64 {
@@ -231,7 +238,10 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	//We let the user shoot in the past, but they always move in the present.
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
+		fmt.Println("Hit", p.name)
 		p.world.DamageEntity(p.name, 10, hitEntity)
+	} else {
+		fmt.Println("Missed")
 	}
 	return hitPos
 }
