@@ -113,7 +113,7 @@ define(function (require) {
 
 			var indexAfter = indexBefore + 1;
 
-			return moveSim.interpolatePosState(time, time,
+			return moveSim.interpolatePosState(time,
 				dataHistory.historyValues[indexBefore],
 				dataHistory.historyTimes[indexBefore],
 				dataHistory.historyValues[indexAfter],
