@@ -3,6 +3,8 @@
 //with speed, but has a minimum.
 
 define(function (require) {
+	var THREE = require("THREE");
+
 	return function PosHistoryBar(entity, posBuffer, clock) {
 		var self = this;
 
@@ -40,19 +42,10 @@ define(function (require) {
 			new THREE.PlaneGeometry(canvas1.width, canvas1.height),
 				material1
 			);
-			var p = entity.pos();
-			console.log(entity.posState());
-			mesh1.position.set(p.x, p.y + 0.6, p.z);
 			mesh1.scale.x = 1 / 200;
 			mesh1.scale.y = 1 / 200;
 			mesh1.scale.z = 1 / 200;
 
-			var rotVec = {};
-			rotVec.x = -entity.pos().x;
-			rotVec.z = -entity.pos().z;
-
-			var dirRadian = Math.atan2(rotVec.x, rotVec.z);
-			mesh1.rotation.y = dirRadian;
 			return mesh1;
 		}
 
@@ -138,9 +131,6 @@ define(function (require) {
 
 			var p = curPos;
 			mesh1.position.set(p.x, p.y + 0.26, p.z);
-			mesh1.scale.x = 1 / 200;
-			mesh1.scale.y = 1 / 200;
-			mesh1.scale.z = 1 / 200;
 
 			//I make an obj as I only use some components, and only use it once.
 			var rotVec = {};
