@@ -6,10 +6,10 @@ define(function(require) {
 
 	var PLAYER = require("player/playerSize");
 
-	var PosHistoryBar = require("entities/entityViews/PosHistoryBar");
-	var HpBar = require("entities/entityViews/HpBar");
+	var PosHistoryBar = require("entities/entityViews/posHistoryBar");
+	var HpBar = require("entities/entityViews/hpBar");
 	
-	var EntityMainMesh = require("entities/entityViews/EntityMainMesh");
+	var EntityMainMesh = require("entities/entityViews/entityMainMesh");
 
 	return function Entity(id, world, clock, scene, initialState) {
 		var self = this;

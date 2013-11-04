@@ -1,10 +1,10 @@
 define(function(require) {
-	var Controls = require("player/Controls");
-	var Chat = require("player/Chat");
+	var Controls = require("player/controls");
+	var Chat = require("player/chat");
 
 	var THREE = require("THREE");
 
-	var Inventory = require("player/Inventory");
+	var Inventory = require("player/inventory");
 
 	var PerfChart = require("perf/chart");
 

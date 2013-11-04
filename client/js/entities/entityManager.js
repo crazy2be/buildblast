@@ -1,5 +1,5 @@
 define(function (require) {
-	var Entity = require("entities/Entity");
+	var Entity = require("entities/entity");
 	
 	return function EntityManager(scene, conn, world, clock) {
 		var self = this;
