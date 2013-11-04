@@ -2,7 +2,7 @@ define(function(require) {
 
 	var Conn = require("shared/conn");
 	var Clock = require("shared/clock");
-	var FeatureTester = require("shared/ceatureTester");
+	var FeatureTester = require("shared/featureTester");
 	var settings = require("shared/settings");
 	var Models = require("shared/models");
 
