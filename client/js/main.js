@@ -1,10 +1,10 @@
 define(function(require) {
 
-	var Conn = require("shared/Conn");
-	var Clock = require("shared/Clock");
-	var FeatureTester = require("shared/FeatureTester");
+	var Conn = require("shared/conn");
+	var Clock = require("shared/clock");
+	var FeatureTester = require("shared/ceatureTester");
 	var settings = require("shared/settings");
-	var Models = require("shared/Models");
+	var Models = require("shared/models");
 
 	var async = require("/lib/async.js");
 
