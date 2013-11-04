@@ -257,7 +257,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		fmt.Println("Hit", p.name)
-		p.world.DamageEntity(p.name, 10, hitEntity)
+		p.world.DamageEntity(p.name, 40, hitEntity)
 	} else {
 		fmt.Println("Missed")
 	}
