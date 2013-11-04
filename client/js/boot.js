@@ -40,6 +40,7 @@
 	}],
 });
 
-require(["main"], function(main) {
+require(["main", "shared/settings"], function(main, settings) {
+	self.__loadSettingsScheme = settings;
 	main();
 });

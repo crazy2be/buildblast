@@ -1,4 +1,4 @@
-define(["core/string"], function (string) {
+define(["shared/string"], function (string) {
 
 // Conventient bundles of settings which you can activate
 // at your leasure in the javascript console.

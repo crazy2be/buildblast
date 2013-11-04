@@ -25,9 +25,6 @@ define(function(require) {
 
 		//We use this to expose certain variables for test code.
 		window.testExposure = { };
-	
-		//This loads the settings (currently just sets localStorage variables)
-		settings.loadSettings();
 
 		//Connect to server and shake our hands.
 		var conn = new Conn("main");
