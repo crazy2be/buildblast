@@ -19,7 +19,9 @@ define(function(require) {
 		conn.on('debug-ray', processRay);
 
 	    //TODO: Make this an entity
-	    var hillMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+	    //var hillMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+		var hillMaterial = new THREE.MeshNormalMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+		hillMaterial.side = THREE.DoubleSide;
 		var hillGeom = new THREE.SphereGeometry(1, 50, 50);
 		var hillMesh = new THREE.Mesh(hillGeom, hillMaterial);
 

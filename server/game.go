@@ -49,7 +49,7 @@ func NewGame() *Game {
     //TODO: This is not the appropriate structure, and our handling leads to messages
     //  being throw on message handling, leading to raceish conditions...
     g.world.HillPoints.OnAdd(g, func(key observable.Object, value observable.Object) {
-        if value.(int) > 1000 {
+        if value.(int) > 60 * 45 {
             g.Announce(string(key.(game.EntityID)) + " has won, game is restarting NOW.")
 
             //Hmm... maybe I should just set them all to 0?
