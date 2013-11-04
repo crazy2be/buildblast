@@ -1,3 +1,5 @@
+//TODO, put this in gemo
+
 package coords
 
 import (

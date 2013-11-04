@@ -45,6 +45,8 @@ define(function(require) {
 			return posPrediction.posState().dy;
 		};
 		self.posState = posPrediction.posState;
+
+		self.hillPoints = 0;
 		
 		self.getVelocity = posPrediction.getVelocity;
 	

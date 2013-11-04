@@ -4,7 +4,8 @@
 		THREE: '/lib/THREE.min',
 		jquery: '/lib/jquery.min',
 		jqueryui: '/lib/jquery-ui.min',
-		jqueryWaitImgs: '/lib/jquery.waitforimages.min'
+		jqueryWaitImgs: '/lib/jquery.waitforimages.min',
+        math: 'shared/math'
 
 		/*
 		<script src="lib/three.min.js"></script>

@@ -1,6 +1,7 @@
 package main
 
 import (
+    "buildblast/lib/geom"
 	"buildblast/lib/game"
 	"buildblast/lib/observable"
 	"fmt"
@@ -29,7 +30,32 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreatedCallback)
 	e.world.EntitiesObserv.OnRemove(e, e.EntityCreatedCallback)
 
+    e.world.HillPoints.OnAdd(e, func(entityID observable.Object, newPoints observable.Object) {
+        //We can't trust newPoints...
+        points := e.world.HillPoints.Get(entityID)
+        if points == nil {
+            points = 0
+        }
+        e.EntityHillPointsSet(entityID.(game.EntityID), points.(int))
+    })
+    e.world.HillPoints.OnRemove(e, func(entityID observable.Object, prevPoints observable.Object) {
+        e.EntityHillPointsSet(entityID.(game.EntityID), 0)
+    })
+
+    e.world.HillSphere.OnChanged(e, func(n observable.Object, o observable.Object){
+        e.conn.Send(&MsgHillMove{
+            Sphere:    e.world.HillSphere.Get().(geom.Sphere),
+        })
+    })
+
 	return e
+}
+
+func (e *EntitySync) EntityHillPointsSet(entityID game.EntityID, points int) {
+    e.conn.Send(&MsgHillPointsSet{
+        ID: entityID,
+        Points: points,
+    })
 }
 
 func (e *EntitySync) EntityCreatedCallback(key observable.Object, value observable.Object) {

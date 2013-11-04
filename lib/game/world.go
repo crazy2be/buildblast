@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"buildblast/lib/coords"
+    "buildblast/lib/geom"
 	"buildblast/lib/mapgen"
 	"buildblast/lib/physics"
 	"buildblast/lib/observable"
@@ -26,7 +27,16 @@ type World struct {
 	entityListeners []EntityListener
 	blockListeners  []BlockListener
 	
-	EntitiesObserv	*observable.ObservableMap
+	EntitiesObserv	*observable.ObservableMap //id string -> Entity
+
+    //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
+    //  the code. In the future it should be separated (once we write a few modes and find
+    //  a good boundary to create a separate of concerns).
+
+    //Observable, so we can move it, and so it can be more than just a value
+    HillSphere      *observable.Observable //Sphere
+
+    HillPoints	    *observable.ObservableMap //id string -> int
 }
 
 func NewWorld(seed float64) *World {
@@ -44,7 +54,18 @@ func NewWorld(seed float64) *World {
 	w.entities = make([]Entity, 0)
 	w.entityListeners = make([]EntityListener, 0)
 
+    //TODO: My use of these is probably not thread safe... should probably be
+    //  (maybe the threading logic could go right in the observable? but probably not...)
 	w.EntitiesObserv = observable.NewObservableMap(w)
+    w.HillSphere = observable.NewObservable(w, geom.Sphere{
+        Center: coords.World{
+			X: 0,
+			Y: 21,
+			Z: 0,
+		},
+        Radius: 20,
+    })
+    w.HillPoints = observable.NewObservableMap(w)
 
 	return w
 }
@@ -70,13 +91,13 @@ func (w *World) generationTick() {
 	}
 }
 
-func (w *World) findSpawn() coords.World {
+func (w *World) FindSpawn() coords.World {
 	l := len(w.spawns)
 	if l <= 0 {
 		return coords.World{
 			X: 0,
 			Y: 21,
-			Z: 0,
+			Z: 100,
 		}
 	}
 	//QTODO: Stop hardcoding the spawn.
@@ -126,7 +147,7 @@ func (w *World) RemoveBlockListener(listener BlockListener) {
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
-	e.Respawn(w.findSpawn())
+	e.Respawn(w.FindSpawn())
 
 	for _, listener := range w.entityListeners {
 		listener.EntityCreated(e.ID(), e)
@@ -153,7 +174,7 @@ func (w *World) RemoveEntity(e Entity) {
 func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	e.Damage(amount)
 	if e.Dead() {
-		e.Respawn(w.findSpawn())
+		e.Respawn(w.FindSpawn())
 		for _, listener := range w.entityListeners {
 			listener.EntityDied(e.ID(), e, damager)
 		}

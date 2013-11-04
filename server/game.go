@@ -24,6 +24,8 @@ type disconnectingClient struct {
 }
 
 type Game struct {
+    observable.DisposeExposedImpl
+
 	clients map[string]*Client
 
 	clientRequests       chan string
@@ -43,6 +45,22 @@ func NewGame() *Game {
 	g.disconnectingClients = make(chan disconnectingClient)
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
+
+    //TODO: This is not the appropriate structure, and our handling leads to messages
+    //  being throw on message handling, leading to raceish conditions...
+    g.world.HillPoints.OnAdd(g, func(key observable.Object, value observable.Object) {
+        if value.(int) > 1000 {
+            g.Announce(string(key.(game.EntityID)) + " has won, game is restarting NOW.")
+
+            //Hmm... maybe I should just set them all to 0?
+            g.world.HillPoints.Clear();
+
+            for _, entityID := range g.world.EntitiesObserv.GetKeys() {
+                entity := g.world.EntitiesObserv.Get(entityID)
+                entity.(game.Entity).Respawn(g.world.FindSpawn())
+            }
+        }
+    })
 
 	return g
 }

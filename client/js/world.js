@@ -18,6 +18,24 @@ define(function(require) {
 
 		conn.on('debug-ray', processRay);
 
+	    //TODO: Make this an entity
+	    var hillMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
+		var hillGeom = new THREE.SphereGeometry(1, 50, 50);
+		var hillMesh = new THREE.Mesh(hillGeom, hillMaterial);
+
+		scene.add(hillMesh);
+
+		self.hillSphere = null;
+		conn.on('hill-move', function (payload) {
+		    var hillCenter = new THREE.Vector3(payload.Sphere.Center.X, payload.Sphere.Center.Y, payload.Sphere.Center.Z);
+		    var radius = payload.Sphere.Radius;
+
+		    //http://stackoverflow.com/questions/17341297/three-js-change-radius-of-sphere-with-dat-gui
+		    hillMesh.scale.set(radius, radius, radius)
+		    hillGeom.needsUpdate = true;
+		    hillMesh.position = hillCenter;
+		})
+
 		function processRay(payload) {
 			var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
 			self.addSmallCube(pos);

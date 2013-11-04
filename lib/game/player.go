@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"buildblast/lib/coords"
+    "buildblast/lib/geom"
 	"buildblast/lib/physics"
 	"buildblast/lib/observable"
 )
@@ -107,7 +108,7 @@ func (p *Player) Respawn(pos coords.World) {
 	p.history.Clear()
 	p.history.Add(currentTime, pos)
 
-	fmt.Println("Pos", pos ,"Respawned at box", p.BoxAt(currentTime + 1))
+	//fmt.Println("Pos", pos ,"Respawned at box", p.BoxAt(currentTime + 1))
 }
 
 func (p *Player) Vy() float64 {
@@ -128,7 +129,24 @@ func (p *Player) Inventory() *Inventory {
 	return p.inventory
 }
 
-func (p *Player) Tick(w *World) {}
+func (p *Player) Tick(w *World) {
+    //TODO: Add proper sub, add, function on coords
+    hillSphere := w.HillSphere.Get().(geom.Sphere)
+    hillDelta := &coords.Direction{
+        hillSphere.Center.X - p.Pos().X,
+        hillSphere.Center.Y - p.Pos().Y,
+        hillSphere.Center.Z - p.Pos().Z,
+    };
+    hillDistance := hillDelta.Length()
+    if hillDistance < hillSphere.Radius {
+        //In sphere, give them a point
+        curPoints := w.HillPoints.Get(p.ID())
+        if curPoints == nil {
+            curPoints = 0
+        }
+        w.HillPoints.Set(p.ID(), curPoints.(int) + 1)
+    }
+}
 
 func (p *Player) ClientTick(controls ControlState) *coords.World {
 	// First frame

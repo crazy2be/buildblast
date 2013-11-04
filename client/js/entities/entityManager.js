@@ -57,6 +57,18 @@ define(function (require) {
 			delete entities[id];
 		});
 
+		conn.on('hill-points-set', function (payload) {
+		    var id = payload.ID;
+		    var entity = entities[id];
+		    if (!entity) {
+		        console.warn("Got hill-points-set message for entity which does not exist!", id);
+		        return;
+		    }
+
+		    console.log("Hill points " + payload.Points);
+		    entity.hillPoints = payload.Points;
+		});
+
 		self.entityAt = function (wcX, wcY, wcZ) {
 			for (var id in entities) {
 				var entity = entities[id];

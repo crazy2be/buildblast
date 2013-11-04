@@ -73,6 +73,7 @@ define(function (require) {
 			var hpPercent = (entity.health() / entity.maxHealth());
 			ctx.fillRect(0, 0, canvas1.width * hpPercent, canvas1.height);
 
+			userNameLbl.contents(entity.id() + " (" + entity.hillPoints + ")");
 			userNameLbl.draw(ctx);
 
 			// canvas contents will be used for a texture
@@ -88,7 +89,7 @@ define(function (require) {
 			curPos = pos;
 
 			var p = curPos;
-			mesh1.position.set(p.x, p.y + 0.5, p.z);
+			mesh1.position.set(p.x, p.y + 0.53, p.z);
 
 			//I make an obj as I only use some components, and only use it once.
 			var rotVec = {};

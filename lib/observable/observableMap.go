@@ -37,7 +37,23 @@ func (o *ObservableMap) Delete(key Object) Object {
 	return prevValue
 }
 func (o *ObservableMap) Get(key Object) Object {
-	return o.data[key]
+    val, ok := o.data[key]
+    if !ok {
+        return nil
+    }
+	return val
+}
+func (o *ObservableMap) GetKeys() []Object {
+    keys := []Object{}
+    for key, _ := range o.data {
+        keys = append(keys, key)
+    }
+    return keys
+}
+func (o *ObservableMap) Clear() {
+    for key, _ := range o.data {
+        o.Delete(key)
+    }
 }
 
 func (o *ObservableMap) added(key Object, value Object) {

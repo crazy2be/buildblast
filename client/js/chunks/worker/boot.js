@@ -6,7 +6,7 @@ importScripts("../../../../lib/requirejs/require.js");
 
 requirejs.config({
 	paths: {
-		math: "/js/math",
+		math: "/js/shared/math",
 	},
 	packages: [{
 		name: 'chunkManager',
