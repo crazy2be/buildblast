@@ -5,7 +5,7 @@ var THREE = require("THREE");
 // Could be used for various types of bars or canvases
 // we want to have in the scene if somebody wants to make
 // it generic.
-return function EntityBar(drawFunc) {
+return function EntityBar(drawFunc, playerEntity) {
 	var self = this;
 	var canvas = document.createElement('canvas');
 	canvas.width = 200;
@@ -32,6 +32,9 @@ return function EntityBar(drawFunc) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, clock.entityTime(), canvas.width, canvas.height);
 		texture.needsUpdate = true;
+		var look = playerEntity.look();
+		var r = Math.atan2(look.x, look.z) + Math.PI;
+		mesh.rotation.y = r;
 	};
 
 	self.mesh = function () {

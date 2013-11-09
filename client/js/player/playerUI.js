@@ -8,7 +8,7 @@ var Inventory = require("player/inventory");
 
 var PerfChart = require("perf/chart");
 
-return function PlayerUI(world, conn, clock, container, controls,  playerEntity) {
+return function PlayerUI(world, conn, clock, container, controls, playerEntity, playerController) {
 	var self = this;
 
 	var chat = new Chat(controls, conn, container);
@@ -16,17 +16,29 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
 
-	var speed = initSpeedChart();
+	var speedChart = initSpeedChart();
 	function initSpeedChart() {
-		var speed = new PerfChart({
+		var speedChart = new PerfChart({
 			title: ' render',
 			maxValue: 50,
 		});
-		speed.elm.style.position = 'absolute';
-		speed.elm.style.top = '74px';
-		speed.elm.style.right = '0px';
-		container.appendChild(speed.elm);
-		return speed;
+		speedChart.elm.style.position = 'absolute';
+		speedChart.elm.style.top = '74px';
+		speedChart.elm.style.right = '0px';
+		container.appendChild(speedChart.elm);
+		return speedChart;
+	}
+
+	var lagChart = initLagChart();
+	function initLagChart() {
+		var lagChart = new PerfChart({
+			title: ' lag'
+		});
+		lagChart.elm.style.position = 'absolute';
+		lagChart.elm.style.top = '74px';
+		lagChart.elm.style.right = '80px';
+		container.appendChild(lagChart.elm);
+		return lagChart;
 	}
 
 	var renderer = initRenderer();
@@ -69,6 +81,7 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 			ViewTimestamp: clock.entityTime()
 		};
 		conn.queue('controls-state', controlState);
+		playerController.realUpdate();
 
 		var camPos = pos().clone();
 
@@ -87,7 +100,9 @@ return function PlayerUI(world, conn, clock, container, controls,  playerEntity)
 		updatePositionText(pos(), pos().dy);
 		updateHealthBar(playerEntity.health());
 
-		speed.addDataPoint(clock.dt());
+		speedChart.addDataPoint(clock.dt());
+		var lag = playerController.predictionAheadBy();
+		lagChart.addDataPoint(lag);
 	};
 
 	function calcTarget(p, lat, lon) {

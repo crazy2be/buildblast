@@ -10,7 +10,13 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 		data: new EntityState(),
 	};
 
-	self.update = function () {
+	self.update = function () {};
+
+	// We only want to update when playerUI wants
+	// us to update, not when the EntityManager does.
+	// This lets us ensure we are updated *before* any
+	// of the other entities.
+	self.realUpdate = function () {
 		var latest = predictMovement();
 		entity.update(latest, clock);
 	};
@@ -22,6 +28,8 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 		var time = times.shift();
 		var state = controlStates.shift();
 		if (time != data.time) {
+			// The server must have dropped one of our packets.
+			// No worry, we'll just skip to the next one.
 			// Aww yeah, recursive iteration.
 			return self.message(data);
 		}

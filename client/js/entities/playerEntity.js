@@ -69,7 +69,6 @@ return function PlayerEntity() {
 		state = newState;
 
 		var pos = self.pos();
-		var look = self.look();
 
 		var co = PLAYER.CENTER_OFFSET;
 		var c = new THREE.Vector3(
