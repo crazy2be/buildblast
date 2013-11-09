@@ -46,23 +46,32 @@ func NewGame() *Game {
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
 
-    //TODO: This is not the appropriate structure, and our handling leads to messages
-    //  being throw on message handling, leading to raceish conditions...
-    g.world.HillPoints.OnAdd(g, func(key observable.Object, value observable.Object) {
-        if value.(int) > 60 * 45 {
-            g.Announce(string(key.(game.EntityID)) + " has won, game is restarting NOW.")
+	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
 
-            //Hmm... maybe I should just set them all to 0?
-            g.world.HillPoints.Clear();
+	//TODO: Do this with a status enum
+	//g.Announce(killer + " killed " + string(id))
+
+	return g
+}
+
+func (g *Game) EntityCreatedCallback(key observable.Object, value observable.Object) {
+	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
+}
+func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
+	entity.HillPoints().OnChanged(g, func(new observable.Object, prev observable.Object) {
+        if entity.HillPoints().Get().(int) > 60 * 45 {
+            g.Announce(string(id) + " has won, game is restarting NOW.")
+
+            for _, entity := range g.world.EntitiesObserv.GetValues() {
+				entity.(game.Entity).HillPoints().Set(0)
+            }
 
             for _, entityID := range g.world.EntitiesObserv.GetKeys() {
                 entity := g.world.EntitiesObserv.Get(entityID)
                 entity.(game.Entity).Respawn(g.world.FindSpawn())
             }
         }
-    })
-
-	return g
+	})
 }
 
 // Thread safe, blocking

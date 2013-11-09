@@ -50,6 +50,14 @@ func (o *ObservableMap) GetKeys() []Object {
     }
     return keys
 }
+func (o *ObservableMap) GetValues() []Object {
+    values := []Object{}
+    for _, value := range o.data {
+        values = append(values, value)
+    }
+    return values
+}
+
 func (o *ObservableMap) Clear() {
     for key, _ := range o.data {
         o.Delete(key)

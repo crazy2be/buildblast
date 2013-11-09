@@ -26,19 +26,18 @@ type Observable struct {
 
 func NewObservable(owner DisposeExposed, initialData Object) *Observable {
 	observ := new(Observable)
+	//TODO: Don't allow owner to be nil
     observ.owner = owner;
 	observ.data = initialData
 	observ.changedCallbacks = make(map[CallbackOwner]ObservCallback, 0)
 	return observ
 }
 
-func (o *Observable) Set(value Object) Object {
+func (o *Observable) Set(value Object) {
 	prevValue := o.data
 	o.data = value
 
 	o.changed(prevValue)
-
-	return prevValue
 }
 
 func (o *Observable) Get() Object {

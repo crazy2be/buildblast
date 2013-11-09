@@ -28,19 +28,7 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.WatchLeaks("EntitySync")
 
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreatedCallback)
-	e.world.EntitiesObserv.OnRemove(e, e.EntityCreatedCallback)
-
-    e.world.HillPoints.OnAdd(e, func(entityID observable.Object, newPoints observable.Object) {
-        //We can't trust newPoints...
-        points := e.world.HillPoints.Get(entityID)
-        if points == nil {
-            points = 0
-        }
-        e.EntityHillPointsSet(entityID.(game.EntityID), points.(int))
-    })
-    e.world.HillPoints.OnRemove(e, func(entityID observable.Object, prevPoints observable.Object) {
-        e.EntityHillPointsSet(entityID.(game.EntityID), 0)
-    })
+	e.world.EntitiesObserv.OnRemove(e, e.EntityRemovedCallback)
 
     e.world.HillSphere.OnChanged(e, func(n observable.Object, o observable.Object){
         e.conn.Send(&MsgHillMove{
@@ -51,18 +39,12 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	return e
 }
 
-func (e *EntitySync) EntityHillPointsSet(entityID game.EntityID, points int) {
-    e.conn.Send(&MsgHillPointsSet{
-        ID: entityID,
-        Points: points,
-    })
-}
-
 func (e *EntitySync) EntityCreatedCallback(key observable.Object, value observable.Object) {
 	e.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	fmt.Println("Sending entity created", id, "to client")
+	
 	e.conn.Send(&MsgEntityCreate{
 		ID:        id,
 		Pos:       entity.Pos(),
@@ -71,24 +53,31 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		Timestamp: entity.LastUpdated(),
 	})
 
-	player := entity.(*game.Player)
-
-	player.HealthObserv.OnChanged(e, func(newHealth observable.Object, prevHealth observable.Object) {
+	entity.HealthObserv().OnChanged(e, func(newHealth observable.Object, prevHealth observable.Object) {
 		e.conn.Send(&MsgEntityHp{
-			ID:     player.ID(),     //Or id
-			Health: player.Health(), //Or newHealth works too
+			ID:     entity.ID(),     //Or id
+			Health: entity.Health(), //Or newHealth works too
 		})
 	})
 
-	player.Metrics.OnChanged(e, func(new observable.Object, prev observable.Object) {
+	entity.Metrics().OnChanged(e, func(new observable.Object, prev observable.Object) {
 		e.conn.Send(&MsgEntityState{
-			ID:        player.ID(),            //Or id
-			Pos:       new.(game.Metrics).Pos, //player.Pos(),
-			Look:      player.Look(),
-			Vy:        player.Vy(),
-			Timestamp: new.(game.Metrics).Timestamp,
+			ID:        entity.ID(), 
+			Pos:       entity.Pos(),
+			Look:      entity.Look(),
+			Vy:        entity.Vy(),
+			Timestamp: entity.Metrics().Get().(game.Metrics).Timestamp,
 		})
 	})
+	
+    entity.HillPoints().OnChanged(e, func(new observable.Object, prev observable.Object) {
+        //We can't trust newPoints...
+        points := entity.HillPoints().Get().(int)
+	    e.conn.Send(&MsgHillPointsSet{
+	        ID: entity.ID(),
+	        Points: points,
+	    })
+    })
 }
 
 func (e *EntitySync) EntityRemovedCallback(key observable.Object, value observable.Object) {

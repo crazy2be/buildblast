@@ -55,9 +55,11 @@ type Player struct {
 
 	inventory *Inventory
 
-	Metrics			*observable.Observable //Metrics
+	metrics			*observable.Observable //Metrics
 
-	HealthObserv	*observable.Observable //int
+	healthObserv	*observable.Observable //int
+	
+	hillPoints		*observable.Observable //int
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -66,33 +68,46 @@ func NewPlayer(world *World, name string) *Player {
 		inventory:		NewInventory(),
 		world:			world,
 		name:			name,
-		Metrics:		observable.NewObservable(nil, Metrics {
+		metrics:		observable.NewObservable(nil, Metrics {
 			Pos:			coords.World{},
 			Look:			coords.Direction{},
 			Vy:				0.0,
 		}),
-		HealthObserv:	observable.NewObservable(nil, PLAYER_MAX_HP),
+		healthObserv:	observable.NewObservable(nil, PLAYER_MAX_HP),
+		hillPoints:     observable.NewObservable(nil, 0),
 	}
 }
 
+func (p *Player) Metrics() observable.IObservable {
+	return p.metrics
+}
+
+func (p *Player) HealthObserv() observable.IObservable {
+	return p.healthObserv
+}
+
+func (p *Player) HillPoints() observable.IObservable {
+	return p.hillPoints
+}
+
 func (p *Player) Pos() coords.World {
-	return p.Metrics.Get().(Metrics).Pos
+	return p.Metrics().Get().(Metrics).Pos
 }
 
 func (p *Player) Look() coords.Direction {
-	return p.Metrics.Get().(Metrics).Look
+	return p.Metrics().Get().(Metrics).Look
 }
 
 func (p *Player) Damage(amount int) {
-	p.HealthObserv.Set(p.HealthObserv.Get().(int) - amount)
+	p.HealthObserv().Set(p.HealthObserv().Get().(int) - amount)
 }
 
 func (p *Player) Health() int {
-	return p.HealthObserv.Get().(int)
+	return p.HealthObserv().Get().(int)
 }
 
 func (p *Player) Dead() bool {
-	return p.HealthObserv.Get().(int) <= 0
+	return p.HealthObserv().Get().(int) <= 0
 }
 
 func (p *Player) Respawn(pos coords.World) {
@@ -100,11 +115,11 @@ func (p *Player) Respawn(pos coords.World) {
 	//	or the time the shot that killed us was fired...
 	currentTime := float64(time.Now().Unix() * 1000)
 
-	metrics := p.Metrics.Get().(Metrics)
+	metrics := p.Metrics().Get().(Metrics)
 	metrics.Pos = pos
 	metrics.Timestamp = currentTime
-	p.Metrics.Set(metrics)
-	p.HealthObserv.Set(PLAYER_MAX_HP)
+	p.Metrics().Set(metrics)
+	p.HealthObserv().Set(PLAYER_MAX_HP)
 	p.history.Clear()
 	p.history.Add(currentTime, pos)
 
@@ -112,7 +127,7 @@ func (p *Player) Respawn(pos coords.World) {
 }
 
 func (p *Player) Vy() float64 {
-	return p.Metrics.Get().(Metrics).Vy
+	return p.Metrics().Get().(Metrics).Vy
 }
 
 // Returns the last time this entity's state was updated
@@ -140,11 +155,8 @@ func (p *Player) Tick(w *World) {
     hillDistance := hillDelta.Length()
     if hillDistance < hillSphere.Radius {
         //In sphere, give them a point
-        curPoints := w.HillPoints.Get(p.ID())
-        if curPoints == nil {
-            curPoints = 0
-        }
-        w.HillPoints.Set(p.ID(), curPoints.(int) + 1)
+        curPoints := p.HillPoints().Get().(int)
+        p.HillPoints().Set(curPoints + 1)
     }
 }
 
@@ -180,7 +192,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	//	it. This means don't go calling function on yourself that expect
 	//	us to have changed stuff, as we don't set metrics until the end
 	//	of this function!
-	metrics := p.Metrics.Get().(Metrics)
+	metrics := p.Metrics().Get().(Metrics)
 	metrics.Timestamp = controls.Timestamp
 
 	metrics.Vy += dt * -9.81
@@ -235,7 +247,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	metrics.Look.Z = sin(lat) * sin(lon)
 
 
-	p.Metrics.Set(metrics)
+	p.Metrics().Set(metrics)
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {

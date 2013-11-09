@@ -34,8 +34,6 @@ type World struct {
 
     //Observable, so we can move it, and so it can be more than just a value
     HillSphere      *observable.Observable //Sphere
-
-    HillPoints	    *observable.ObservableMap //id string -> int
 }
 
 func NewWorld(seed float64) *World {
@@ -63,7 +61,6 @@ func NewWorld(seed float64) *World {
 		},
         Radius: 20,
     })
-    w.HillPoints = observable.NewObservableMap(w)
 
 	return w
 }

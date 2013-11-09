@@ -15,7 +15,6 @@ type Entity interface {
 	Look() coords.Direction
 	Health() int
 	Vy() float64
-	LastUpdated() float64
 
 	Tick(w *World)
 	Damage(amount int)
@@ -23,6 +22,13 @@ type Entity interface {
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
 	ID() EntityID
+	
+	Metrics()		observable.IObservable //Metrics
+	LastUpdated() 	float64
+		
+	HealthObserv()	observable.IObservable //int
+	
+	HillPoints()	observable.IObservable //int
 }
 
 //Pos, speed, look, (size eventually)
@@ -31,14 +37,6 @@ type Metrics struct {
 	Look			coords.Direction
 	Vy				float64
 	Timestamp		float64
-}
-
-//This is only a struct so we can put observables in it, which are not 'really' data,
-//	they just expose a generic get/set/subscribe type interface...
-type NewEntity struct {
-	Metrics			observable.IObservable //Metrics
-
-	HealthObserv	observable.IObservable //int
 }
 
 // Should be an int someday...
