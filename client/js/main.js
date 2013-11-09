@@ -69,11 +69,11 @@ function main () {
 	// FIXME: Does this belong here?
 	// Also, the world should totally give us our
 	// initial state in the handshake.
-	function makePlayerController(player, world, clock, controls) {
+	function makePlayerController(player, world) {
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredictor(player, clock, controls, predictor);
+		var controller = new EntityInputPredictor(player, predictor);
 		return controller;
 	}
 
@@ -86,7 +86,7 @@ function main () {
 		var controls = new Controls(container);
 
 		var player = new PlayerEntity();
-		var playerController = makePlayerController(player, world, clock, controls);
+		var playerController = makePlayerController(player, world);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, player, playerController);
 		world.setPlayer(clientID, player, playerController);
 
