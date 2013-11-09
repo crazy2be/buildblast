@@ -19,6 +19,9 @@ func (fw *FlatWorld) Block(bc coords.Block) (Block, bool) {
 	if bc.Y < 16 {
 		return BLOCK_DIRT, false
 	}
+	if bc.X % 4 == 0 && bc.Z % 4 == 0 && bc.Y < 17 {
+		return BLOCK_STONE, false
+	}
 	return BLOCK_AIR, false
 }
 
