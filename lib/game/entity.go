@@ -43,10 +43,3 @@ type NewEntity struct {
 
 // Should be an int someday...
 type EntityID string
-
-type EntityListener interface {
-	EntityCreated(id EntityID, entity Entity)
-	EntityDamaged(id EntityID, entity Entity)
-	EntityDied(id EntityID, entity Entity, killer string)
-	EntityRemoved(id EntityID)
-}

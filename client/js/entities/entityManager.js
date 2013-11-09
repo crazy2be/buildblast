@@ -65,7 +65,7 @@ define(function (require) {
 		        return;
 		    }
 
-		    console.log("Hill points " + payload.Points);
+		    //console.log("Hill points " + payload.Points);
 		    entity.hillPoints = payload.Points;
 		});
 

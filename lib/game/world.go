@@ -24,7 +24,6 @@ type World struct {
 	chunkGenerator *ChunkGenerator
 
 	entities        []Entity
-	entityListeners []EntityListener
 	blockListeners  []BlockListener
 	
 	EntitiesObserv	*observable.ObservableMap //id string -> Entity
@@ -52,7 +51,6 @@ func NewWorld(seed float64) *World {
 	go w.chunkGenerator.Run()
 
 	w.entities = make([]Entity, 0)
-	w.entityListeners = make([]EntityListener, 0)
 
     //TODO: My use of these is probably not thread safe... should probably be
     //  (maybe the threading logic could go right in the observable? but probably not...)
@@ -149,10 +147,6 @@ func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
 	e.Respawn(w.FindSpawn())
 
-	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e.ID(), e)
-	}
-
 	w.EntitiesObserv.Set(e.ID(), e)
 }
 
@@ -161,10 +155,6 @@ func (w *World) RemoveEntity(e Entity) {
 		if entity == e {
 			w.entities[i] = w.entities[len(w.entities)-1]
 			w.entities = w.entities[:len(w.entities)-1]
-
-			for _, listener := range w.entityListeners {
-				listener.EntityRemoved(e.ID())
-			}
 		}
 	}
 
@@ -175,15 +165,6 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	e.Damage(amount)
 	if e.Dead() {
 		e.Respawn(w.FindSpawn())
-		for _, listener := range w.entityListeners {
-			listener.EntityDied(e.ID(), e, damager)
-		}
-	} else {
-		// Should we fire Damaged events if they
-		// end up dying? I dunno. Currently we don't.
-		for _, listener := range w.entityListeners {
-			listener.EntityDamaged(e.ID(), e)
-		}
 	}
 }
 
@@ -193,21 +174,6 @@ func (w *World) Entities() map[EntityID]Entity {
 		result[entity.ID()] = entity
 	}
 	return result
-}
-
-func (w *World) AddEntityListener(listener EntityListener) {
-	w.entityListeners = append(w.entityListeners, listener)
-}
-
-func (w *World) RemoveEntityListener(listener EntityListener) {
-	for i, other := range w.entityListeners {
-		if other == listener {
-			w.entityListeners[i] = w.entityListeners[len(w.entityListeners)-1]
-			w.entityListeners = w.entityListeners[:len(w.entityListeners)-1]
-			return
-		}
-	}
-	log.Println("WARN: Attempt to remove entity listener which does not exist.")
 }
 
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
