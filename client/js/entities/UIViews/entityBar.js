@@ -32,6 +32,14 @@ return function EntityBar(drawFunc, playerEntity) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, clock.entityTime(), canvas.width, canvas.height);
 		texture.needsUpdate = true;
+
+		// FIXME: I'm not sure this is 100% correct looking. We only consider
+		// the x and z components of the look vector, we probably have to
+		// consider y as well in order to get the bar to always be projected
+		// flat (we want it to appear as if the bar itself was drawn in 2d,
+		// using the 3d information to affect only size and position (but
+		// never rotation)). If you are good at math/rotation, please feel
+		// free to fix this.
 		var look = playerEntity.look();
 		var r = Math.atan2(look.x, look.z) + Math.PI;
 		mesh.rotation.y = r;
