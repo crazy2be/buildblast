@@ -66,9 +66,9 @@ function main () {
 		startGame();
 	});
 
-	// FIXME: Does this belong here?
-	// Also, the world should totally give us our
-	// initial state in the handshake.
+	// FIXME: the world should give us our initial state in the handshake
+	// message (including size and position!) so that we don't have end up
+	// in the wrong spot for a few frames.
 	function makePlayerController(player, world) {
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
