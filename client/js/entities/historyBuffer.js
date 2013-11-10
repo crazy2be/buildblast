@@ -53,7 +53,7 @@ return function HistoryBuffer() {
 	// Useful for debugging! Green lines correspond to
 	// history entries, orange to our current rendering
 	// time (well actually whatever time is passed in).
-	self.drawState = function (ctx, time, width, height) {
+	self.draw = function (ctx, width, height, time) {
 		oldest_t = times[0];
 		newest_t = times[len - 1];
 

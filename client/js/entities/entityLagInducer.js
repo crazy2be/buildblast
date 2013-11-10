@@ -18,6 +18,6 @@ return function EntityLagInducer(entity, clock, initialState) {
 		return entity;
 	};
 
-	self.drawState = history.drawState;
+	self.drawHistory = history.draw;
 }
 });

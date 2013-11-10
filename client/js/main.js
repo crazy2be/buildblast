@@ -68,7 +68,7 @@ function main () {
 		startGame();
 	});
 
-	function testDraw(ctx, _, w, h) {
+	function testDraw(ctx, w, h) {
 		ctx.fillStyle = 'white';
 		ctx.textBaseline = 'middle';
 		ctx.textAlign = 'center';

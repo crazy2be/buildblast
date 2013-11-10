@@ -31,7 +31,7 @@ return function EntityBar(drawFunc, playerEntity) {
 
 	self.update = function (entity, clock) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawFunc(ctx, clock.entityTime(), canvas.width, canvas.height);
+		drawFunc(ctx, canvas.width, canvas.height);
 		texture.needsUpdate = true;
 
 		// We want it to appear as if the bar itself was drawn in 2d,

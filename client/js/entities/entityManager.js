@@ -42,7 +42,10 @@ return function EntityManager(scene, conn, world, clock) {
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
-			entity.add(new EntityBar(controller.drawState, _playerEntity));
+			var draw = function (ctx, w, h) {
+				controller.drawHistory(ctx, w, h, clock.entityTime());
+			};
+			entity.add(new EntityBar(draw, _playerEntity));
 		}
 	});
 
