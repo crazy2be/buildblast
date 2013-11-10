@@ -24,6 +24,8 @@ var PlayerMesh = require("entities/UIViews/playerMesh");
 
 var fatalError = require("fatalError");
 
+var EntityBar = require("entities/UIViews/entityBar");
+
 function main () {
 	var container = document.getElementById('container');
 	var tester = new FeatureTester();
@@ -66,6 +68,11 @@ function main () {
 		startGame();
 	});
 
+	function testDraw(ctx, _, w, h) {
+		ctx.fillStyle = 'green';
+		ctx.fillRect(0, 0, w, h);
+	}
+
 	// FIXME: the world should give us our initial state in the handshake
 	// message (including size and position!) so that we don't have end up
 	// in the wrong spot for a few frames.
@@ -86,6 +93,7 @@ function main () {
 		var controls = new Controls(container);
 
 		var player = new PlayerEntity();
+		player.add(new EntityBar(testDraw, player));
 		var playerController = makePlayerController(player, world);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, player, playerController);
 		world.setPlayer(clientID, player, playerController);
