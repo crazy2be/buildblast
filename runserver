@@ -18,7 +18,7 @@ if go version; then
 
 	cd client
 	echo "Starting server..."
-	../bin/server
+	../bin/server "$@"
 
 	exit 0
 else

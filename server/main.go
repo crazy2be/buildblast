@@ -10,6 +10,7 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
+	"flag"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -143,6 +144,8 @@ func promptLoop(quit chan bool, state *liner.State) {
 
 func main() {
 	// 	setupPrompt()
+	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
@@ -152,7 +155,7 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(*host, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
