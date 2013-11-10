@@ -29,6 +29,11 @@ type Entity interface {
 	HealthObserv()	observable.IObservable //int
 	
 	HillPoints()	observable.IObservable //int
+	Status()		observable.IObservable //int
+}
+
+type Status struct {
+	
 }
 
 //Pos, speed, look, (size eventually)

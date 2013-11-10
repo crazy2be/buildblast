@@ -63,19 +63,22 @@ type Player struct {
 }
 
 func NewPlayer(world *World, name string) *Player {
-	return &Player{
+	player := &Player{
 		history:		NewHistoryBuffer(),
 		inventory:		NewInventory(),
 		world:			world,
 		name:			name,
-		metrics:		observable.NewObservable(nil, Metrics {
-			Pos:			coords.World{},
-			Look:			coords.Direction{},
-			Vy:				0.0,
-		}),
-		healthObserv:	observable.NewObservable(nil, PLAYER_MAX_HP),
-		hillPoints:     observable.NewObservable(nil, 0),
 	}
+	
+	player.metrics = observable.NewObservable(player, Metrics {
+		Pos:			coords.World{},
+		Look:			coords.Direction{},
+		Vy:				0.0,
+	})
+	player.healthObserv = observable.NewObservable(player, PLAYER_MAX_HP)
+	player.hillPoints = observable.NewObservable(player, 0)
+	
+	return player
 }
 
 func (p *Player) Metrics() observable.IObservable {

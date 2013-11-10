@@ -50,6 +50,32 @@ func NewGame() *Game {
 
 	//TODO: Do this with a status enum
 	//g.Announce(killer + " killed " + string(id))
+	observ := observable.NewObservable(g, 0)
+	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
+		if new.(int) < 1 {
+			return
+		}
+		
+		fmt.Println("First set", new, "(", old,") call gets", observ.Get());
+	})
+	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
+		if new.(int) < 1 {
+			return
+		}
+		
+		fmt.Println("Second set", new, "(", old,") call gets", observ.Get());
+		if new.(int) < 10 {
+			observ.Set(new.(int) + 1)
+		}
+	})
+	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
+		if new.(int) < 1 {
+			return
+		}
+		
+		fmt.Println("Third set", new, "(", old,") call gets", observ.Get());
+	})
+	observ.Set(1);
 
 	return g
 }
