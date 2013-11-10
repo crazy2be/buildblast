@@ -23,7 +23,6 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	entities        []Entity
 	blockListeners  []BlockListener
 	
 	EntitiesObserv	*observable.ObservableMap //id string -> Entity
@@ -48,8 +47,6 @@ func NewWorld(seed float64) *World {
 	w.chunkGenerator = NewChunkGenerator(generator)
 	go w.chunkGenerator.Run()
 
-	w.entities = make([]Entity, 0)
-
     //TODO: My use of these is probably not thread safe... should probably be
     //  (maybe the threading logic could go right in the observable? but probably not...)
 	w.EntitiesObserv = observable.NewObservableMap(w)
@@ -62,12 +59,36 @@ func NewWorld(seed float64) *World {
         Radius: 20,
     })
 
+    w.EntitiesObserv.OnAdd(w, func (entityID observable.Object, entity observable.Object) {
+        entity.(Entity).Status().OnChanged(w, func (new observable.Object, prev observable.Object) {
+            if entity.(Entity).Status().Get().(Status).StatusFlag == Status_Dead {
+                entity.(Entity).Respawn(w.FindSpawn())
+                entity.(Entity).Status().Set(Status{
+                    StatusFlag:     Status_Alive,
+                    StatusSetter:   "World",
+                })
+            }
+        })
+
+        entity.(Entity).HealthObserv().OnChanged(w, func (new observable.Object, prev observable.Object) {
+            if entity.(Entity).HealthObserv().Get().(Health).Points <= 0 {
+                entity.(Entity).Status().Set(Status{
+                    StatusFlag:     Status_Dead,
+                    StatusSetter:   entity.(Entity).HealthObserv().Get().(Health).Setter,
+                })
+            }
+        })
+
+        entity.(Entity).Respawn(w.FindSpawn())
+    })
+
 	return w
 }
 
 func (w *World) Tick() {
 	w.generationTick()
-	for _, e := range w.entities {
+	for _, entity := range w.EntitiesObserv.GetValues() {
+        e := entity.(Entity)
 		e.Tick(w)
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
 	}
@@ -140,52 +161,21 @@ func (w *World) RemoveBlockListener(listener BlockListener) {
 	log.Println("WARN: Attempt to remove block listener which does not exist.")
 }
 
-func (w *World) AddEntity(e Entity) {
-	w.entities = append(w.entities, e)
-	e.Respawn(w.FindSpawn())
-
-	w.EntitiesObserv.Set(e.ID(), e)
-}
-
-func (w *World) RemoveEntity(e Entity) {
-	for i, entity := range w.entities {
-		if entity == e {
-			w.entities[i] = w.entities[len(w.entities)-1]
-			w.entities = w.entities[:len(w.entities)-1]
-		}
-	}
-
-	w.EntitiesObserv.Delete(e.ID())
-}
-
-func (w *World) DamageEntity(damager string, amount int, e Entity) {
-	e.Damage(amount)
-	if e.Dead() {
-		e.Respawn(w.FindSpawn())
-	}
-}
-
-func (w *World) Entities() map[EntityID]Entity {
-	result := make(map[EntityID]Entity, len(w.entities))
-	for _, entity := range w.entities {
-		result[entity.ID()] = entity
-	}
-	return result
-}
-
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
-	boxes := make([]*physics.Box, len(w.entities))
-	for i, other := range w.entities {
+    entities := w.EntitiesObserv.GetValues()
+
+	boxes := make([]*physics.Box, len(entities))
+	for i, other := range entities {
 		if other == entity {
 			boxes[i] = nil
 		} else {
-			boxes[i] = other.BoxAt(t)
+			boxes[i] = other.(Entity).BoxAt(t)
 		}
 	}
 
 	hitPos, hitIndex := ray.FindAnyIntersect(w, boxes)
 	if hitIndex != -1 {
-		return hitPos, w.entities[hitIndex]
+		return hitPos, entities[hitIndex].(Entity)
 	}
 	return hitPos, nil
 }

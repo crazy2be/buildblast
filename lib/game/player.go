@@ -60,6 +60,8 @@ type Player struct {
 	healthObserv	*observable.Observable //int
 	
 	hillPoints		*observable.Observable //int
+
+    status          *observable.Observable //int
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -75,8 +77,15 @@ func NewPlayer(world *World, name string) *Player {
 		Look:			coords.Direction{},
 		Vy:				0.0,
 	})
-	player.healthObserv = observable.NewObservable(player, PLAYER_MAX_HP)
+	player.healthObserv = observable.NewObservable(player, Health{
+        Points: PLAYER_MAX_HP,
+        Setter: EntityID("Self"),
+    })
 	player.hillPoints = observable.NewObservable(player, 0)
+    player.status = observable.NewObservable(player, Status{
+        StatusFlag:     Status_Alive,
+        StatusSetter:   EntityID("Self"),
+    })
 	
 	return player
 }
@@ -93,6 +102,10 @@ func (p *Player) HillPoints() observable.IObservable {
 	return p.hillPoints
 }
 
+func (p *Player) Status() observable.IObservable {
+	return p.status
+}
+
 func (p *Player) Pos() coords.World {
 	return p.Metrics().Get().(Metrics).Pos
 }
@@ -101,16 +114,13 @@ func (p *Player) Look() coords.Direction {
 	return p.Metrics().Get().(Metrics).Look
 }
 
-func (p *Player) Damage(amount int) {
-	p.HealthObserv().Set(p.HealthObserv().Get().(int) - amount)
-}
-
+//TODO: Remove these
 func (p *Player) Health() int {
-	return p.HealthObserv().Get().(int)
+	return p.HealthObserv().Get().(Health).Points
 }
 
 func (p *Player) Dead() bool {
-	return p.HealthObserv().Get().(int) <= 0
+	return p.Health() <= 0
 }
 
 func (p *Player) Respawn(pos coords.World) {
@@ -122,7 +132,10 @@ func (p *Player) Respawn(pos coords.World) {
 	metrics.Pos = pos
 	metrics.Timestamp = currentTime
 	p.Metrics().Set(metrics)
-	p.HealthObserv().Set(PLAYER_MAX_HP)
+	p.HealthObserv().Set(Health{
+        Points:     PLAYER_MAX_HP,
+        Setter:     "Self",
+    })
 	p.history.Clear()
 	p.history.Add(currentTime, pos)
 
@@ -272,7 +285,11 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		fmt.Println("Hit", p.name)
-		p.world.DamageEntity(p.name, 40, hitEntity)
+        prevHp := hitEntity.HealthObserv().Get().(Health).Points
+        hitEntity.HealthObserv().Set(Health{
+            Points:     prevHp - 40,
+            Setter:     EntityID(p.name),
+        })
 	} else {
 		fmt.Println("Missed")
 	}

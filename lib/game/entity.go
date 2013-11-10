@@ -17,7 +17,6 @@ type Entity interface {
 	Vy() float64
 
 	Tick(w *World)
-	Damage(amount int)
 	Dead() bool
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
@@ -26,14 +25,26 @@ type Entity interface {
 	Metrics()		observable.IObservable //Metrics
 	LastUpdated() 	float64
 		
-	HealthObserv()	observable.IObservable //int
+	HealthObserv()	observable.IObservable //Health
 	
 	HillPoints()	observable.IObservable //int
-	Status()		observable.IObservable //int
+	Status()		observable.IObservable //Status
 }
 
+type Health struct {
+    Points      int
+    Setter      EntityID
+}
+
+//May become a bit field (so we can put slowed, onfire, etc in here)
+const (
+    Status_Alive = iota
+    Status_Dead = iota
+)
+
 type Status struct {
-	
+    StatusFlag      int
+    StatusSetter    EntityID
 }
 
 //Pos, speed, look, (size eventually)

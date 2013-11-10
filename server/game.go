@@ -48,35 +48,6 @@ func NewGame() *Game {
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
 
-	//TODO: Do this with a status enum
-	//g.Announce(killer + " killed " + string(id))
-	observ := observable.NewObservable(g, 0)
-	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
-		if new.(int) < 1 {
-			return
-		}
-		
-		fmt.Println("First set", new, "(", old,") call gets", observ.Get());
-	})
-	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
-		if new.(int) < 1 {
-			return
-		}
-		
-		fmt.Println("Second set", new, "(", old,") call gets", observ.Get());
-		if new.(int) < 10 {
-			observ.Set(new.(int) + 1)
-		}
-	})
-	observ.OnChanged(g, func(new observable.Object, old observable.Object) {
-		if new.(int) < 1 {
-			return
-		}
-		
-		fmt.Println("Third set", new, "(", old,") call gets", observ.Get());
-	})
-	observ.Set(1);
-
 	return g
 }
 
@@ -98,6 +69,12 @@ func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
             }
         }
 	})
+
+    entity.Status().OnChanged(g, func(new observable.Object, prev observable.Object) {
+        if entity.Status().Get().(game.Status).StatusFlag == game.Status_Dead {
+            g.Announce(string(entity.Status().Get().(game.Status).StatusSetter) + " killed " + string(entity.ID()))            
+        }
+    })
 }
 
 // Thread safe, blocking

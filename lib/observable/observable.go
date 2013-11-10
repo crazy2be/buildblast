@@ -1,7 +1,7 @@
 package observable
 
 import (
-	"fmt"
+	_ "fmt"
 )
 
 type IObservable interface {
@@ -85,7 +85,7 @@ func (o *Observable) Get() Object {
 func (o *Observable) change(newValue Object) {
 	prevValue := o.data
 	o.data = newValue
-	fmt.Println("Calling", len(o.changedCallbacks), "callbacks")
+	//fmt.Println("Calling", len(o.changedCallbacks), "callbacks")
 	for _, callback := range o.changedCallbacks {
 		callback(newValue, prevValue)
 	}
