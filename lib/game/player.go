@@ -221,7 +221,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	// We let the user shoot in the past, but they always move in the present.
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
-		p.world.DamageEntity(p.name, 10, hitEntity)
+		p.world.DamageEntity(p.name, 40, hitEntity)
 	}
 	return hitPos
 }
