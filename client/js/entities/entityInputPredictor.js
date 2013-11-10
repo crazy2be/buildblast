@@ -1,7 +1,7 @@
 define(function (require) {
 var EntityState = require("./entityState");
 
-return function EntityInputPredictor(entity, clock, controls, predictor) {
+return function EntityInputPredictor(entity, predictor) {
 	var self = this;
 	var controlStates = [];
 	var times = [];
@@ -10,9 +10,15 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 		data: new EntityState(),
 	};
 
-	self.update = function () {
-		var latest = predictMovement();
-		entity.update(latest, clock);
+	self.update = function () {};
+
+	// We only want to update when playerUI wants
+	// us to update, not when the EntityManager does.
+	// This lets us ensure we are updated *before* any
+	// of the other entities.
+	self.realUpdate = function (clock, controls, camera) {
+		var latest = predictMovement(clock, controls);
+		entity.update(latest, clock, camera);
 	};
 
 	self.message = function (data) {
@@ -22,6 +28,8 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 		var time = times.shift();
 		var state = controlStates.shift();
 		if (time != data.time) {
+			// The server must have dropped one of our packets.
+			// No worry, we'll just skip to the next one.
 			// Aww yeah, recursive iteration.
 			return self.message(data);
 		}
@@ -41,7 +49,7 @@ return function EntityInputPredictor(entity, clock, controls, predictor) {
 		return times[times.length - 1] - lastConfirmed.time;
 	}
 
-	function predictMovement() {
+	function predictMovement(clock, controls) {
 		var c = controls.sample();
 		var t = clock.time();
 		controlStates.push(c);

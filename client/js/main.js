@@ -66,29 +66,15 @@ function main () {
 		startGame();
 	});
 
-	var updateLagStats;
-	function makePlayer(world, clock, controls) {
-		var lagStats = new PerfChart({
-			title: ' lag'
-		});
-		lagStats.elm.style.position = 'absolute';
-		lagStats.elm.style.top = '74px';
-		lagStats.elm.style.right = '80px';
-		container.appendChild(lagStats.elm);
-
-		updateLagStats = function () {
-			var lag = controller.predictionAheadBy()
-			lagStats.addDataPoint(lag);
-		};
-
-		var player = new PlayerEntity();
-
+	// FIXME: the world should give us our initial state in the handshake
+	// message (including size and position!) so that we don't have end up
+	// in the wrong spot for a few frames.
+	function makePlayerController(player, world) {
 		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredictor(player, clock, controls, predictor);
-		world.setPlayer(clientID, player, controller);
-		return player;
+		var controller = new EntityInputPredictor(player, predictor);
+		return controller;
 	}
 
 	function startGame() {
@@ -99,9 +85,10 @@ function main () {
 		var world = new World(scene, conn, clientID, clock);
 		var controls = new Controls(container);
 
-		var player = makePlayer(world, clock, controls)
-		var playerUI = new PlayerUI(world, conn, clock, container, controls, player);
-
+		var player = new PlayerEntity(clientID);
+		var playerController = makePlayerController(player, world);
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, player, playerController);
+		world.setPlayer(clientID, player, playerController);
 
 		window.testExposure.playerUI = playerUI;
 		window.testExposure.world = world;
@@ -116,14 +103,13 @@ function main () {
 
 			conn.update();
 
+			playerUI.update(dt);
+
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
 			world.update(dt, player.pos());
 
-			updateLagStats();
-
-			playerUI.update(dt);
 			playerUI.render(scene);
 
 			if (fatalError.fatalErrorTriggered) return;

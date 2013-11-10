@@ -30,7 +30,7 @@ func NewWorld(seed float64) *World {
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
 	w.spawns = make([]coords.World, 0)
 
-	generator := mapgen.NewMazeArena(seed)
+	generator := mapgen.NewFlatWorld(seed)
 	w.chunkGenerator = NewChunkGenerator(generator)
 	go w.chunkGenerator.Run()
 
@@ -69,10 +69,7 @@ func (w *World) findSpawn() coords.World {
 			Z: 0,
 		}
 	}
-	//QTODO: Stop hardcoding the spawn.
-	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
-	index = index + 1
-	return w.spawns[0] //return w.spawns[rand.Intn(l)];
+	return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
