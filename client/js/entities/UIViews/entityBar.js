@@ -41,6 +41,7 @@ return function EntityBar(drawFunc, playerEntity) {
 		mesh.rotation.y = Math.atan2(look.x, look.z);
 		var lookXZ = sqrt(pow(look.x, 2) + pow(look.z, 2));
 		mesh.rotation.x = Math.atan2(lookXZ, look.y) + Math.PI/2;
+		mesh.rotation.z = Math.PI;
 	};
 
 	self.mesh = function () {

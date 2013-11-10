@@ -69,8 +69,12 @@ function main () {
 	});
 
 	function testDraw(ctx, _, w, h) {
-		ctx.fillStyle = 'green';
-		ctx.fillRect(0, 0, w, h);
+		ctx.fillStyle = 'white';
+		ctx.textBaseline = 'middle';
+		ctx.textAlign = 'center';
+		ctx.font = 'bold 20px courier';
+		ctx.fillText("Testing", w/2, h/2);
+		ctx.strokeRect(0, 0, w, h);
 	}
 
 	// FIXME: the world should give us our initial state in the handshake
