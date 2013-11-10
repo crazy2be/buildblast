@@ -106,7 +106,6 @@ function Head() {
 	});
 
 	var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
-	geometry.materials = [headMat, faceMat];
 	geometry.faces[0].materialIndex = 0;
 	geometry.faces[1].materialIndex = 0;
 	geometry.faces[2].materialIndex = 0;
@@ -114,7 +113,7 @@ function Head() {
 	geometry.faces[4].materialIndex = 1;
 	geometry.faces[5].materialIndex = 0;
 
-	var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(geometry.materials));
+	var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([headMat, headMat, headMat, headMat, faceMat, headMat]));
 
 	var peh = PLAYER.EYE_HEIGHT;
 	var pbh = PLAYER.BODY_HEIGHT;

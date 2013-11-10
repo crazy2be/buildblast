@@ -24,7 +24,7 @@ return function EntityBar(drawFunc) {
 
 	mesh.scale.set(1/100, 1/100, 1/100);
 	mesh.position.set(0, 1.25, 0);
-	mesh.eulerOrder = 'YXZ';
+	mesh.rotation.order = 'YXZ';
 
 	self.update = function (entity, clock, camera) {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);

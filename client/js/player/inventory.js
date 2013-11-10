@@ -299,13 +299,13 @@ function Inventory(world, camera, conn, controls) {
 	function postitionPerspective() {
 		var p = model.position;
 		var r = new THREE.Matrix4();
-		r.setRotationFromEuler(model.rotation, model.eulerOrder);
+		r.makeRotationFromEuler(model.rotation, model.rotation.order);
 
 		var amount = leftward * aspectRatio * 0.05;
 
 		// Move left / right
 		var mov = new THREE.Vector3(amount, 0, 0);
-		mov.applyMatrix3(r);
+		mov.applyMatrix4(r);
 
 		p.add(mov);
 	}
