@@ -16,9 +16,9 @@ return function EntityInputPredictor(entity, predictor) {
 	// us to update, not when the EntityManager does.
 	// This lets us ensure we are updated *before* any
 	// of the other entities.
-	self.realUpdate = function (clock, controls) {
+	self.realUpdate = function (clock, controls, camera) {
 		var latest = predictMovement(clock, controls);
-		entity.update(latest, clock);
+		entity.update(latest, clock, camera);
 	};
 
 	self.message = function (data) {

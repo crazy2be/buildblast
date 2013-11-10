@@ -33,19 +33,21 @@ return function EntityManager(scene, conn, world, clock) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new PlayerEntity();
+		var entity = new PlayerEntity(id);
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload);
-		var controller = new EntityLagInducer(entity, clock, initialState);
+		var controller = new EntityLagInducer(entity, initialState);
 
 		controllers[id] = controller;
 
 		if (localStorage.showHistoryBuffers) {
-			var draw = function (ctx, w, h) {
+			var drawHistory = function (ctx, w, h) {
 				controller.drawHistory(ctx, w, h, clock.entityTime());
 			};
-			entity.add(new EntityBar(draw, _playerEntity));
+			var historyBar = new EntityBar(drawHistory);
+			historyBar.setOffset(0.3);
+			entity.add(historyBar);
 		}
 	});
 
@@ -96,7 +98,11 @@ return function EntityManager(scene, conn, world, clock) {
 	self.update = function() {
 		for (var id in controllers) {
 			var controller = controllers[id];
-			controller.update();
+			// PlayerEntity has a look and position, which
+			// corresponds to the camera look and position,
+			// so we can just pass it as the camera.
+			var camera = _playerEntity;
+			controller.update(clock, camera);
 		}
 	};
 }

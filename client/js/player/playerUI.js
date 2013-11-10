@@ -81,7 +81,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 			ViewTimestamp: clock.entityTime()
 		};
 		conn.queue('controls-state', controlState);
-		playerController.realUpdate(clock, controls);
+		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();
 
