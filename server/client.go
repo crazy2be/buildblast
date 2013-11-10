@@ -132,11 +132,11 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	w.AddEntity(p)
-
 	for id, e := range w.Entities() {
 		c.EntityCreated(id, e)
 	}
+
+	w.AddEntity(p)
 
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
