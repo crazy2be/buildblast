@@ -65,8 +65,19 @@ define(function (require) {
 		        return;
 		    }
 
-		    //console.log("Hill points " + payload.Points);
 		    entity.hillPoints = payload.Points;
+		});
+		
+		conn.on('string-property-set', function (payload) {
+		    var id = payload.ID;
+		    var entity = entities[id];
+			var name = payload.Name;
+		    if (!entity) {
+		        console.warn("Got string-property-set ("+name+") message for entity which does not exist!", id);
+		        return;
+		    }
+
+		    entity[name] = payload.Value;
 		});
 
 		self.entityAt = function (wcX, wcY, wcZ) {

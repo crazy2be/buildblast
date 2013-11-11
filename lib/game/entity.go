@@ -29,6 +29,8 @@ type Entity interface {
 	
 	HillPoints()	observable.IObservable //int
 	Status()		observable.IObservable //Status
+	
+	Team()			observable.IObservable //string
 }
 
 type Health struct {

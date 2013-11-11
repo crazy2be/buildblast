@@ -30,6 +30,9 @@ define(function(require) {
 			setLook(entity.look(), playerPos);
 			updatePos(entity.pos());
 			
+			headMat.color.setHex(0xffffff);
+			bodyParts.needsUpdate = true;
+			
 			// Jump animation
 			var dy = entity.dy();
 			jumpAngle = clamp(jumpAngle + signum(dy)*dt*jumpSpeed, 0, maxJumpAngle);
@@ -93,13 +96,21 @@ define(function(require) {
 			return hitboxMesh;
 		}
 
+		var headMat;
 		function createHead() {
-			var headMat = new THREE.MeshBasicMaterial({
-				color: 0x0000ff
+			headMat = new THREE.MeshNormalMaterial({
+				color: 0x0000ff,
+				transparent: true
 			});
-			var faceMat = new THREE.MeshBasicMaterial({
-				color: 0x00ff00
+			var faceMat = new THREE.MeshNormalMaterial({
+				color: 0x00ff00,
+				transparent: true
 			});
+			
+			if(localStorage.thirdPerson) {
+				headMat.opacity = 0.3;
+				faceMat.opacity = 0.3;
+			}
 		
 			var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
 			geometry.materials = [headMat, faceMat];

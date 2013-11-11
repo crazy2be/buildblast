@@ -71,13 +71,20 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	})
 	
     entity.HillPoints().OnChanged(e, func(new observable.Object, prev observable.Object) {
-        //We can't trust newPoints...
         points := entity.HillPoints().Get().(int)
 	    e.conn.Send(&MsgHillPointsSet{
 	        ID: entity.ID(),
 	        Points: points,
 	    })
     })
+	
+	entity.Team().OnChanged(e, func(new observable.Object, prev observable.Object) {
+		e.conn.Send(&MsgStringPropertySet{
+			ID: entity.ID(),
+			Name: "team",
+			Value: entity.Team().Get().(string),
+		})
+	})
 }
 
 func (e *EntitySync) EntityRemovedCallback(key observable.Object, value observable.Object) {

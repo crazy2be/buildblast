@@ -30,6 +30,7 @@ const (
 	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
     MSG_HILL_MOVE       = MessageKind("hill-move")
     MSG_HILL_POINTS_SET = MessageKind("hill-points-set")
+	MSG_STRING_PROPERTY_SET = MessageKind("string-property-set")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -62,6 +63,8 @@ func kindToType(kind MessageKind) Message {
         return &MsgHillMove{}
     case MSG_HILL_POINTS_SET:
         return &MsgHillPointsSet{}
+	case MSG_STRING_PROPERTY_SET:
+		return &MsgStringPropertySet{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -100,6 +103,8 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HILL_MOVE
     case *MsgHillPointsSet:
 		return MSG_HILL_POINTS_SET
+    case *MsgStringPropertySet:
+		return MSG_STRING_PROPERTY_SET
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -193,6 +198,12 @@ type MsgHillMove struct {
 type MsgHillPointsSet struct {
 	ID          game.EntityID
     Points      int
+}
+
+type MsgStringPropertySet struct {
+	ID          game.EntityID
+    Name		string
+	Value		string
 }
 
 type ClientMessage struct {

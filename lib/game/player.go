@@ -62,6 +62,8 @@ type Player struct {
 	hillPoints		*observable.Observable //int
 
     status          *observable.Observable //int
+	
+	team			*observable.Observable //string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -86,6 +88,7 @@ func NewPlayer(world *World, name string) *Player {
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
+	player.team = observable.NewObservable(player, "forever alone")
 	
 	return player
 }
@@ -104,6 +107,10 @@ func (p *Player) HillPoints() observable.IObservable {
 
 func (p *Player) Status() observable.IObservable {
 	return p.status
+}
+
+func (p *Player) Team() observable.IObservable {
+	return p.team
 }
 
 func (p *Player) Pos() coords.World {
