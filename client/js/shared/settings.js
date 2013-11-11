@@ -12,10 +12,12 @@ function __loadSettingsScheme(name) {
 	case "quentin":
 		localStorage.lagInductionTime = 300;
 		localStorage.thirdPerson = true;
+		localStorage.viewsVisible = true;
 		localStorage.showHistoryBuffers = true;
 		localStorage.hpBars = true;
 		return "Success!";
 	case "justin":
+	    localStorage.viewsVisible = true;
 		localStorage.useDvorak = true;
 		localStorage.mouseMoveBug = true;
 		return "Success!";
