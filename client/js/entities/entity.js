@@ -13,6 +13,9 @@ define(function(require) {
 
 	return function Entity(id, world, clock, scene, initialState) {
 		var self = this;
+		
+		//Eh... nice for views... I don't see how this could cause any problems
+		self.world = world;
 
 		var rot = new THREE.Vector3(0, 0, 0);
 		var hp = 0;

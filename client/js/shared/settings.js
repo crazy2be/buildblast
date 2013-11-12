@@ -7,6 +7,8 @@ function __loadSettingsScheme(name) {
 		name = string.trimStart(name, '!');
 		__loadSettingsScheme("default");
 	}
+	
+	localStorage.settingsSet = true;
 
 	switch (name) {
 	case "quentin":

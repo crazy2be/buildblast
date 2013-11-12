@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"buildblast/lib/coords"
-    "buildblast/lib/geom"
+    //"buildblast/lib/geom"
 	"buildblast/lib/physics"
 	"buildblast/lib/observable"
 )
@@ -63,7 +63,7 @@ type Player struct {
 
     status          *observable.Observable //int
 	
-	team			*observable.Observable //string
+	teamName		*observable.Observable //string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -75,10 +75,11 @@ func NewPlayer(world *World, name string) *Player {
 	}
 	
 	player.metrics = observable.NewObservable(player, Metrics {
-		Pos:			coords.World{},
-		Look:			coords.Direction{},
-		Vy:				0.0,
+          	Pos:                    coords.World{},
+          	Look:                   coords.Direction{},
+          	Vy:                             0.0,
 	})
+		
 	player.healthObserv = observable.NewObservable(player, Health{
         Points: PLAYER_MAX_HP,
         Setter: EntityID("Self"),
@@ -88,7 +89,7 @@ func NewPlayer(world *World, name string) *Player {
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
-	player.team = observable.NewObservable(player, "forever alone")
+	player.teamName = observable.NewObservable(player, "Red")
 	
 	return player
 }
@@ -109,8 +110,8 @@ func (p *Player) Status() observable.IObservable {
 	return p.status
 }
 
-func (p *Player) Team() observable.IObservable {
-	return p.team
+func (p *Player) TeamName() observable.IObservable {
+	return p.teamName
 }
 
 func (p *Player) Pos() coords.World {
@@ -168,19 +169,7 @@ func (p *Player) Inventory() *Inventory {
 }
 
 func (p *Player) Tick(w *World) {
-    //TODO: Add proper sub, add, function on coords
-    hillSphere := w.HillSphere.Get().(geom.Sphere)
-    hillDelta := &coords.Direction{
-        hillSphere.Center.X - p.Pos().X,
-        hillSphere.Center.Y - p.Pos().Y,
-        hillSphere.Center.Z - p.Pos().Z,
-    };
-    hillDistance := hillDelta.Length()
-    if hillDistance < hillSphere.Radius {
-        //In sphere, give them a point
-        curPoints := p.HillPoints().Get().(int)
-        p.HillPoints().Set(curPoints + 1)
-    }
+    
 }
 
 func (p *Player) ClientTick(controls ControlState) *coords.World {

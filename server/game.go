@@ -47,7 +47,7 @@ func NewGame() *Game {
 	g.world = game.NewWorld(float64(time.Now().Unix()))
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
-
+	
 	return g
 }
 

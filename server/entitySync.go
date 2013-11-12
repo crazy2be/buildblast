@@ -35,8 +35,28 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
             Sphere:    e.world.HillSphere.Get().(geom.Sphere),
         })
     })
+	
+    e.world.HillColor.OnChanged(e, func(n observable.Object, o observable.Object){
+        e.conn.Send(&MsgHillColorSet{
+            Color:    e.world.HillColor.Get().(string),
+        })
+    })
+	
+	e.world.Teams.OnAdd(e, e.TeamAddedCallback)
 
 	return e
+}
+
+
+func (e *EntitySync) TeamAddedCallback(key observable.Object, value observable.Object) {
+	e.TeamAdded(key.(string), value.(game.Team))
+}
+func (e *EntitySync) TeamAdded(key string, value game.Team) {
+	e.conn.Send(&MsgObjPropSet{
+		ObjectName: "Teams",
+	    PropName:	key,
+		Value:		value,
+	})
 }
 
 func (e *EntitySync) EntityCreatedCallback(key observable.Object, value observable.Object) {
@@ -78,11 +98,11 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	    })
     })
 	
-	entity.Team().OnChanged(e, func(new observable.Object, prev observable.Object) {
-		e.conn.Send(&MsgStringPropertySet{
+	entity.TeamName().OnChanged(e, func(new observable.Object, prev observable.Object) {
+		e.conn.Send(&MsgPropertySet{
 			ID: entity.ID(),
-			Name: "team",
-			Value: entity.Team().Get().(string),
+			Name: "TeamName",
+			Value: entity.TeamName().Get(),
 		})
 	})
 }

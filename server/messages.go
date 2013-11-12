@@ -29,8 +29,10 @@ const (
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
     MSG_HILL_MOVE       = MessageKind("hill-move")
+	MSG_HILL_COLOR_SET  = MessageKind("hill-color-set")
     MSG_HILL_POINTS_SET = MessageKind("hill-points-set")
-	MSG_STRING_PROPERTY_SET = MessageKind("string-property-set")
+	MSG_PROPERTY_SET 	= MessageKind("property-set")
+	MSG_OBJ_PROP_SET	= MessageKind("obj-prop-set")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -61,10 +63,14 @@ func kindToType(kind MessageKind) Message {
 		return &MsgInventoryMove{}
     case MSG_HILL_MOVE:
         return &MsgHillMove{}
+    case MSG_HILL_COLOR_SET:
+        return &MsgHillColorSet{}
     case MSG_HILL_POINTS_SET:
         return &MsgHillPointsSet{}
-	case MSG_STRING_PROPERTY_SET:
-		return &MsgStringPropertySet{}
+	case MSG_PROPERTY_SET:
+		return &MsgPropertySet{}
+	case MSG_OBJ_PROP_SET:
+		return &MsgObjPropSet{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -101,10 +107,14 @@ func typeToKind(m Message) MessageKind {
 		return MSG_INVENTORY_MOVE
     case *MsgHillMove:
 		return MSG_HILL_MOVE
+	case *MsgHillColorSet:
+		return MSG_HILL_COLOR_SET
     case *MsgHillPointsSet:
 		return MSG_HILL_POINTS_SET
-    case *MsgStringPropertySet:
-		return MSG_STRING_PROPERTY_SET
+    case *MsgPropertySet:
+		return MSG_PROPERTY_SET
+	case *MsgObjPropSet:
+		return MSG_OBJ_PROP_SET
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -192,7 +202,11 @@ type MsgInventoryMove struct {
 }
 
 type MsgHillMove struct {
-	Sphere     geom.Sphere
+	Sphere     	geom.Sphere
+}
+
+type MsgHillColorSet struct {
+	Color 		string
 }
 
 type MsgHillPointsSet struct {
@@ -200,10 +214,19 @@ type MsgHillPointsSet struct {
     Points      int
 }
 
-type MsgStringPropertySet struct {
+//Hmm... eventually I should make a system so these are abstracted so they
+//	can handle everything.
+//Really entity property set
+type MsgPropertySet struct {
 	ID          game.EntityID
     Name		string
-	Value		string
+	Value		interface{}
+}
+
+type MsgObjPropSet struct {
+	ObjectName	string
+    PropName	string
+	Value		interface{}
 }
 
 type ClientMessage struct {

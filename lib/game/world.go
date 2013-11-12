@@ -26,6 +26,7 @@ type World struct {
 	blockListeners  []BlockListener
 	
 	EntitiesObserv	*observable.ObservableMap //id string -> Entity
+	Teams			*observable.ObservableMap //id string -> Team
 
     //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
     //  the code. In the future it should be separated (once we write a few modes and find
@@ -33,6 +34,7 @@ type World struct {
 
     //Observable, so we can move it, and so it can be more than just a value
     HillSphere      *observable.Observable //Sphere
+	HillColor		*observable.Observable //string
 }
 
 func NewWorld(seed float64) *World {
@@ -50,6 +52,20 @@ func NewWorld(seed float64) *World {
     //TODO: My use of these is probably not thread safe... should probably be
     //  (maybe the threading logic could go right in the observable? but probably not...)
 	w.EntitiesObserv = observable.NewObservableMap(w)
+	w.Teams = observable.NewObservableMap(w)
+	
+	w.Teams.Set("Red", Team {
+		Name: "Red",
+		Color: "red",
+		Points: 0,
+	})
+	
+	w.Teams.Set("Blue", Team {
+		Name: "Blue",
+		Color: "blue",
+		Points: 0,
+	})
+	
     w.HillSphere = observable.NewObservable(w, geom.Sphere{
         Center: coords.World{
 			X: 0,
@@ -58,6 +74,7 @@ func NewWorld(seed float64) *World {
 		},
         Radius: 20,
     })
+	w.HillColor = observable.NewObservable(w, "white")
 
     w.EntitiesObserv.OnAdd(w, func (entityID observable.Object, entity observable.Object) {
         entity.(Entity).Status().OnChanged(w, func (new observable.Object, prev observable.Object) {
@@ -87,10 +104,52 @@ func NewWorld(seed float64) *World {
 
 func (w *World) Tick() {
 	w.generationTick()
+	
+	entitiesInHill := make([]Entity, 0)
+	
 	for _, entity := range w.EntitiesObserv.GetValues() {
         e := entity.(Entity)
 		e.Tick(w)
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
+		
+	    //TODO: Add proper sub, add, function on coords
+	    hillSphere := w.HillSphere.Get().(geom.Sphere)
+	    hillDelta := &coords.Direction{
+	        hillSphere.Center.X - e.Pos().X,
+	        hillSphere.Center.Y - e.Pos().Y,
+	        hillSphere.Center.Z - e.Pos().Z,
+	    }
+	    hillDistance := hillDelta.Length()
+	    if hillDistance < hillSphere.Radius {
+			entitiesInHill = append(entitiesInHill, e)
+	    }
+	}
+	
+	aTeamOnHill := ""
+	teamsOnHill := make(map[string]int, 0)
+	
+	for _, e := range entitiesInHill {
+		teamName := e.TeamName().Get().(string)
+		_, exists := teamsOnHill[teamName]
+		if !exists {
+			teamsOnHill[teamName] = 0
+		}
+		teamsOnHill[teamName]++
+		aTeamOnHill = teamName
+	}
+	
+	if len(teamsOnHill) > 1 {
+		//Stale mate
+		w.HillColor.Set("black")
+	} else if len(teamsOnHill) == 1 {
+		teamOnHill := w.Teams.Get(aTeamOnHill).(Team)
+		w.HillColor.Set(teamOnHill.Color)
+		
+		teamOnHill.Points += teamsOnHill[aTeamOnHill]
+		
+		w.Teams.Set(aTeamOnHill, teamOnHill)
+	} else {
+		w.HillColor.Set("white")
 	}
 }
 

@@ -1,20 +1,23 @@
 define(function(require) {
 	var THREE = require("THREE");
 	var PLAYER = require("player/playerSize");
+	var colorPicker = require("shared/colorPicker");
 	
 	return function EntityMainMesh(entity) {
 		var self = this;
 		
 		var isMoving = false;
 	
+		var color = 0xffffff;
+	
 		var bodyParts = new THREE.Object3D();
-		var headMesh = createHead();
+		var headMesh = createHead(color);
 		bodyParts.add(headMesh);
-		var bodyMesh = createBody();
+		var bodyMesh = createBody(color);
 		bodyParts.add(bodyMesh);
-		var leftArm = createArm(1);
+		var leftArm = createArm(1, color);
 		bodyParts.add(leftArm);
-		var rightArm = createArm(-1);
+		var rightArm = createArm(-1, color);
 		bodyParts.add(rightArm);
 
 		var jumpAngle = 0;
@@ -30,8 +33,25 @@ define(function(require) {
 			setLook(entity.look(), playerPos);
 			updatePos(entity.pos());
 			
-			headMat.color.setHex(0xffffff);
-			bodyParts.needsUpdate = true;
+			var team = entity.world.Teams[entity.TeamName];
+			var newColor = team ? colorPicker(team.Color, true) : color;
+			if(newColor !== color) {
+				color = newColor;
+				bodyParts.remove(headMesh);
+				bodyParts.remove(bodyMesh);
+				bodyParts.remove(leftArm);
+				bodyParts.remove(rightArm);
+				
+				headMesh = createHead(color);
+				bodyMesh = createBody(color);
+				leftArm = createArm(1, color);
+				rightArm = createArm(-1, color);
+				
+				bodyParts.add(headMesh);
+				bodyParts.add(bodyMesh);
+				bodyParts.add(leftArm);
+				bodyParts.add(rightArm);
+			}
 			
 			// Jump animation
 			var dy = entity.dy();
@@ -96,20 +116,21 @@ define(function(require) {
 			return hitboxMesh;
 		}
 
-		var headMat;
-		function createHead() {
-			headMat = new THREE.MeshNormalMaterial({
-				color: 0x0000ff,
+		function createHead(color) {
+			var headMat = new THREE.MeshLambertMaterial({
+				color: color,
+				ambient: color,
 				transparent: true
 			});
-			var faceMat = new THREE.MeshNormalMaterial({
-				color: 0x00ff00,
+			var faceMat = new THREE.MeshLambertMaterial({
+				color: color,
+				ambient: color,
 				transparent: true
 			});
 			
 			if(localStorage.thirdPerson) {
-				headMat.opacity = 0.3;
-				faceMat.opacity = 0.3;
+				headMat.opacity = 0.7;
+				faceMat.opacity = 0.7;
 			}
 		
 			var geometry = new THREE.CubeGeometry(0.3, 0.3, 0.3);
@@ -130,9 +151,9 @@ define(function(require) {
 			return mesh;
 		}
 
-		function createBody() {
+		function createBody(color) {
 			var material = new THREE.MeshBasicMaterial({
-				color: 0x0000ff,
+				color: color,
 				wireframe: true
 			});
 			var geometry = new THREE.CubeGeometry(0.6, PLAYER.BODY_HEIGHT, 0.4);
@@ -141,9 +162,9 @@ define(function(require) {
 			return mesh;
 		}
 
-		function createArm(offset) {
+		function createArm(offset, color) {
 			var armMat = new THREE.MeshBasicMaterial({
-				color: 0xff0000,
+				color: color,
 				wireframe: true
 			});
 			var geometry = new THREE.CubeGeometry(0.2, 0.6, 0.2);

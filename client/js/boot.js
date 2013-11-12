@@ -41,6 +41,10 @@
 });
 
 require(["main", "shared/settings"], function(main, settings) {
+	if(!localStorage.settingsSet) {
+		settings("quentin");
+	}
 	self.__loadSettingsScheme = settings;
+	self.load = settings;
 	main();
 });

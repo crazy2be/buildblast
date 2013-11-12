@@ -68,15 +68,14 @@ define(function (require) {
 		    entity.hillPoints = payload.Points;
 		});
 		
-		conn.on('string-property-set', function (payload) {
+		conn.on('property-set', function (payload) {
 		    var id = payload.ID;
 		    var entity = entities[id];
 			var name = payload.Name;
 		    if (!entity) {
-		        console.warn("Got string-property-set ("+name+") message for entity which does not exist!", id);
+		        console.warn("Got property-set ("+name+") message for entity which does not exist!", id);
 		        return;
 		    }
-
 		    entity[name] = payload.Value;
 		});
 
