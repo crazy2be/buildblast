@@ -27,6 +27,7 @@ type World struct {
 	
 	EntitiesObserv	*observable.ObservableMap //id string -> Entity
 	Teams			*observable.ObservableMap //id string -> Team
+	MaxPoints		*observable.Observable //int
 
     //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
     //  the code. In the future it should be separated (once we write a few modes and find
@@ -53,18 +54,6 @@ func NewWorld(seed float64) *World {
     //  (maybe the threading logic could go right in the observable? but probably not...)
 	w.EntitiesObserv = observable.NewObservableMap(w)
 	w.Teams = observable.NewObservableMap(w)
-	
-	w.Teams.Set("Red", Team {
-		Name: "Red",
-		Color: "red",
-		Points: 0,
-	})
-	
-	w.Teams.Set("Blue", Team {
-		Name: "Blue",
-		Color: "blue",
-		Points: 0,
-	})
 	
     w.HillSphere = observable.NewObservable(w, geom.Sphere{
         Center: coords.World{
@@ -145,6 +134,7 @@ func (w *World) Tick() {
 		teamOnHill := w.Teams.Get(aTeamOnHill).(Team)
 		w.HillColor.Set(teamOnHill.Color)
 		
+		//TODO: give points based on your long the tick was
 		teamOnHill.Points += teamsOnHill[aTeamOnHill]
 		
 		w.Teams.Set(aTeamOnHill, teamOnHill)

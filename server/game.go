@@ -48,7 +48,44 @@ func NewGame() *Game {
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
 	
+	g.world.MaxPoints = observable.NewObservable(g, 60 * 10)
+	
+	g.world.Teams.Set("Red", game.Team {
+		Name: "Red",
+		Color: "red",
+		Points: 0,
+	})
+	
+	g.world.Teams.Set("Blue", game.Team {
+		Name: "Blue",
+		Color: "blue",
+		Points: 0,
+	})
+	
+	g.world.Teams.OnAdd(g, g.TeamAddedCallback)
+	
 	return g
+}
+
+func (g *Game) TeamAddedCallback(key observable.Object, value observable.Object) {
+	g.TeamAdded(key.(string), value.(game.Team))
+}
+func (g *Game) TeamAdded(key string, team game.Team) {
+	if team.Points < g.world.MaxPoints.Get().(int) { return }
+	
+	//They won
+	g.Announce(team.Name + " has won, game is restarting NOW")
+	
+	for _, teamObj := range g.world.Teams.GetValues() {
+		team := teamObj.(game.Team)
+		team.Points = 0
+		g.world.Teams.Set(team.Name, team)
+	}
+	
+    for _, entityID := range g.world.EntitiesObserv.GetKeys() {
+        entity := g.world.EntitiesObserv.Get(entityID)
+        entity.(game.Entity).Respawn(g.world.FindSpawn())
+    }
 }
 
 func (g *Game) EntityCreatedCallback(key observable.Object, value observable.Object) {
