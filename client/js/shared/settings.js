@@ -16,7 +16,7 @@ function __loadSettingsScheme(name) {
 		localStorage.thirdPerson = true;
 		localStorage.viewsVisible = true;
 		localStorage.showHistoryBuffers = true;
-		localStorage.posHistoryBars = true;
+		localStorage.posHistoryBar = true;
 		localStorage.hpBars = true;
 		return "Success!";
 	case "justin":
