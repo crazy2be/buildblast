@@ -89,7 +89,7 @@ func NewPlayer(world *World, name string) *Player {
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
-	player.teamName = observable.NewObservable(player, "Red")
+	player.teamName = observable.NewObservable(player, world.NextTeamName())
 	
 	return player
 }

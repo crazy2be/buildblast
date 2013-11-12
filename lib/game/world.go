@@ -153,6 +153,37 @@ func (w *World) Tick() {
 	}
 }
 
+func (w *World) NextTeamName() string {
+	//Maybe should base it on score?
+	teamCounts := make(map[string]int, 0)
+	for _, team := range w.Teams.GetValues() {
+		teamCounts[team.(Team).Name] = 0
+	}
+	for _, entity := range w.EntitiesObserv.GetValues() {
+        e := entity.(Entity)
+		teamName := e.TeamName().Get().(string)
+		_, exists := teamCounts[teamName]
+		if !exists {
+			teamCounts[teamName] = 0
+		}
+		teamCounts[teamName]++
+	}
+	
+	//Eh... hardcoding is bad?
+	smallestTeam := "Red"
+	//Hmm...
+	//http://stackoverflow.com/questions/6878590/the-maximum-value-for-an-int-type-in-go
+	smallestCount := int(^uint(0) >> 1)
+	
+	for teamName, count := range teamCounts {
+		if count >= smallestCount { continue }
+		smallestTeam = teamName
+		smallestCount = count
+	}
+	
+	return smallestTeam
+}
+
 func (w *World) generationTick() {
 	select {
 	case generationResult := <-w.chunkGenerator.Generated:
