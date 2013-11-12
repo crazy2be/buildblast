@@ -84,7 +84,7 @@ define(function (require) {
 
 		var curPos = entity.pos();
 		function updatePos(pos, playerPos, forceChanged) {
-			if (!forceChanged && pos.x == curPos.x && pos.y == curPos.y) return;
+			if (!forceChanged && pos.x == curPos.x && pos.y == curPos.y && pos.z == curPos.z) return;
 
 			curPos = pos;
 
