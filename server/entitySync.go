@@ -43,6 +43,15 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
     })
 	
 	e.world.Teams.OnAdd(e, e.TeamAddedCallback)
+	
+	e.world.MaxPoints.OnChanged(e, func(n observable.Object, p observable.Object){
+		//This is overkill...
+		e.conn.Send(&MsgObjPropSet{
+			ObjectName: "KOTH_CONSTS",
+		    PropName:	"MaxPoints",
+			Value:		e.world.MaxPoints.Get(),
+		})
+	})
 
 	return e
 }

@@ -9,6 +9,7 @@
 		<link rel="stylesheet" href="css/chat.css" />
 		<link rel="stylesheet" href="css/health.css" />
 		<link rel="stylesheet" href="css/splash.css" />
+		<link rel="stylesheet" href="css/teamScore.css" />
 		<script data-main="js/boot.js" src="lib/requirejs/require.js"></script>
 	</head>
 	<body class="no-select">
@@ -29,14 +30,21 @@
 					<p>Press F11 to go fullscreen for maximum performance.</p>
 				</div>
 			</div>
-			<div id="hud">
-				<div id="info"></div>
-				<div id="health">
-					<img src="/img/health.png" alt="Health" height="32" width="32">
+			<div id="hud" class="textLeft box boxTop">
+				<div class="health flowLeft health-width box boxCenter topHUDHeight">
+					<img class="noShrink" src="/img/health.png" alt="Health" height="32" width="32">
 					<div id="health-bar">
 						<div id="health-value"></div>
 					</div>
 				</div>
+				<div class="scoreHolder flowLeft topHUDHeight box" 
+					data-bind="foreach: TeamsArray()">
+					<div class="teamScore" data-bind="style: {'background-color': Color, width: Points / $root.KOTH_CONSTS().MaxPoints * 100 + '%'}"></div>
+				</div>
+				<div class="scoreRightPlaceHolder health-width topHUDHeight">
+					
+				</div>
+				<div id="info" class="center"></div>
 				<div id="crosshair"></div>
 				<div class="bottom">
 					<div id="chat">

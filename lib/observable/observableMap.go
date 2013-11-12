@@ -2,33 +2,74 @@ package observable
 
 type ObservMapCallback func (key Object, value Object)
 
+type KVP struct {
+	Key 	Object
+	Value 	Object
+}
+
 //Not thread safe
 type ObservableMap struct {
     owner           DisposeExposed
 	data			map[Object]Object
-	addCallbacks	map[CallbackOwner]ObservMapCallback
-	removeCallbacks	map[CallbackOwner]ObservMapCallback
+	
+	//TODO: Put this into an embedded struct
+	//We sometimes need to buffer setting our data, as data may
+	//	be set in a changed handler, and the other handlers will
+	//	still want the original data that was set. They also
+	//	want to be called in the order the data was set.
+	dataFutureCount		int
+	maxDataFuture		int
+	dataFuture			[]KVP
+	
+	dataChanging		bool
+	
+	curCallbackNum		int
+	
+	addCallbacks	map[int]ObservMapCallback
+	removeCallbacks	map[int]ObservMapCallback
 }
 
 func NewObservableMap(owner DisposeExposed) *ObservableMap {
 	observ := new(ObservableMap)
     observ.owner = owner
 	observ.data = make(map[Object]Object)
-	observ.addCallbacks = make(map[CallbackOwner]ObservMapCallback, 0)
-	observ.removeCallbacks = make(map[CallbackOwner]ObservMapCallback, 0)
+	
+	observ.dataFutureCount = 0
+	observ.maxDataFuture = 100
+	observ.dataFuture = make([]KVP, observ.maxDataFuture)
+	
+	observ.curCallbackNum = 0
+	
+	observ.addCallbacks = make(map[int]ObservMapCallback, 0)
+	observ.removeCallbacks = make(map[int]ObservMapCallback, 0)
 	return observ
 }
 
-func (o *ObservableMap) Set(key Object, value Object) Object{
-	prevValue := o.data[key]
-	o.data[key] = value
-
-	if prevValue != nil {
-		o.removed(key, prevValue)
+func (o *ObservableMap) Set(key Object, value Object) {
+	if o.dataChanging {
+		if o.dataFutureCount >= o.maxDataFuture {
+			panic("Observable buffer size exceeded, your observables likely form an infinite loop")
+		}
+		o.dataFuture[o.dataFutureCount] = KVP{key, value}
+		o.dataFutureCount++
+		return
 	}
+	
+	o.dataChanging = true
+	
 	o.added(key, value)
-
-	return prevValue
+	
+	for o.dataFutureCount > 0 {
+		kvp := o.dataFuture[0]
+		
+		o.dataFutureCount--
+		for index := 0; index < o.dataFutureCount; index++ {
+			o.dataFuture[index] = o.dataFuture[index + 1]
+		}
+		
+		o.added(kvp.Key, kvp.Value)
+	}
+	o.dataChanging = false
 }
 func (o *ObservableMap) Delete(key Object) Object {
 	prevValue := o.data[key]
@@ -65,6 +106,7 @@ func (o *ObservableMap) Clear() {
 }
 
 func (o *ObservableMap) added(key Object, value Object) {
+	o.data[key] = value
 	for _, callback := range o.addCallbacks {
 		callback(key, value)
 	}
@@ -75,35 +117,46 @@ func (o *ObservableMap) removed(key Object, value Object) {
 	}
 }
 
-func (o *ObservableMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) {
-	o.addCallbacks[owner] = callback
+func (o *ObservableMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) int {
+	ourCallbackNum := o.curCallbackNum
+	o.curCallbackNum++
+	
+	o.addCallbacks[ourCallbackNum] = callback
+	
 	owner.OnDispose(func() {
-		o.NotOnAdd(owner)
+		o.NotOnAdd(ourCallbackNum)
 	})
     if o.owner != nil {
 	    o.owner.OnDispose(func() {
-		    o.NotOnAdd(owner)
+		    o.NotOnAdd(ourCallbackNum)
 	    })
     }
 	for key, value := range o.data {
 		callback(key, value)
 	}
+	return ourCallbackNum
 }
-func (o *ObservableMap) NotOnAdd(owner CallbackOwner) {
-	delete(o.addCallbacks, owner)
+func (o *ObservableMap) NotOnAdd(callbackNum int) {
+	delete(o.addCallbacks, callbackNum)
 }
 
-func (o *ObservableMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) {
-    o.removeCallbacks[owner] = callback
+func (o *ObservableMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) int {	
+	ourCallbackNum := o.curCallbackNum
+	o.curCallbackNum++
+	
+    o.removeCallbacks[ourCallbackNum] = callback
+	
 	owner.OnDispose(func() {
-		o.NotOnRemove(owner)
+		o.NotOnRemove(ourCallbackNum)
 	})
     if o.owner != nil {
 	    o.owner.OnDispose(func() {
-		    o.NotOnRemove(owner)
+		    o.NotOnRemove(ourCallbackNum)
 	    })
     }
+	
+	return ourCallbackNum
 }
-func (o *ObservableMap) NotOnRemove(owner CallbackOwner) {
-	delete(o.removeCallbacks, owner)
+func (o *ObservableMap) NotOnRemove(callbackNum int) {
+	delete(o.removeCallbacks, callbackNum)
 }

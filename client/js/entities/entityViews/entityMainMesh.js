@@ -33,7 +33,7 @@ define(function(require) {
 			setLook(entity.look(), playerPos);
 			updatePos(entity.pos());
 			
-			var team = entity.world.Teams[entity.TeamName];
+			var team = entity.world.Teams()[entity.TeamName];
 			var newColor = team ? colorPicker(team.Color, true) : color;
 			if(newColor !== color) {
 				color = newColor;

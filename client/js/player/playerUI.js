@@ -3,6 +3,7 @@ define(function(require) {
 	var Chat = require("player/chat");
 
 	var THREE = require("THREE");
+	//var ko = require("knockout")
 
 	var Inventory = require("player/inventory");
 

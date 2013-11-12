@@ -40,6 +40,38 @@ a {
 	z-index: 3;
 }
 
+.box {
+	display:flex;
+}
+
+.boxCenter {
+	align-items: center;
+}
+
+.boxTop{
+	align-items: top;
+}
+
+.noShrink {
+	flex-shrink:0;
+}
+
+.textLeft {
+	text-align: left;
+}
+
+.inline {
+	display:inline-block;
+}
+
+.center {
+	text-align: center;
+}
+
+.topHUDHeight {
+	height: 44px;
+}
+
 .bottom {
 	position: absolute;
 	left: 0px;

@@ -1,0 +1,11 @@
+.scoreHolder {
+	background-color: pink;
+	padding: 6px;
+	flex-grow: 1;
+}
+.teamScore {
+	flex-grow: 0;
+}
+.scoreRightPlaceHolder {
+	flex-shrink:0;
+}

@@ -20,6 +20,8 @@ type ObservCallback func (newValue Object, oldValue Object)
 type Observable struct {
     owner               DisposeExposed
 	data				Object
+	
+	//TODO: Put this into an embedded struct
 	//We sometimes need to buffer setting our data, as data may
 	//	be set in a changed handler, and the other handlers will
 	//	still want the original data that was set. They also
@@ -31,6 +33,7 @@ type Observable struct {
 	dataChanging		bool
 	
 	curCallbackNum		int
+	
 	changedCallbacks	map[int]ObservCallback
 }
 

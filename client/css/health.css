@@ -1,12 +1,18 @@
-#health {
-	float: left;
+.health {
+	text-align: left;
 	padding: 6px;
+	flex-shrink:0;
 }
+
+.health-width {
+	width: 120px;
+}
+
 #health-bar {
-	width: 100px;
 	height: 20px;
-	margin-bottom: 6px;
+	width: 100%;
 	display: inline-block;
+	margin:2px;
 	background: rgba(255, 255, 255, 0.05);
 	border: 2px solid rgba(255, 255, 255, 0.1);
 }

@@ -5,6 +5,8 @@ define(function(require) {
 
 	var common = require("chunks/chunkCommon");
 	var colorPicker = require("shared/colorPicker");
+	
+	var ko = require("knockout");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;
@@ -12,7 +14,22 @@ define(function(require) {
 		var chunkManager = new ChunkManager(scene, clientID);
 		var entityManager = new EntityManager(scene, conn, self, clock);
 		
-		self.Teams = {}; //name -> Team
+		self.Teams = ko.observable({}); //name -> Team
+		self.KOTH_CONSTS = ko.observable({
+			MaxPoints: 1
+		});
+		
+		//Grumble grumble...
+		self.TeamsArray = ko.computed(function() {
+			var arr = [];
+			var obj = self.Teams();
+			for(var key in obj) {
+				arr.push(obj[key]);
+			}
+			return arr;
+		})
+
+		ko.applyBindings(self, $(".scoreHolder")[0])
 
 		self.addUserPlayer = entityManager.addUserPlayer;
 
@@ -50,9 +67,10 @@ define(function(require) {
 		
 		conn.on('obj-prop-set', function(payload) {
 			if(!self[payload.ObjectName]) {
-				self[payload.ObjectName] = {};
+				self[payload.ObjectName] = ko.observable({});
 			}
-			self[payload.ObjectName][payload.PropName] = payload.Value;
+			self[payload.ObjectName]()[payload.PropName] = payload.Value;
+			self[payload.ObjectName].valueHasMutated();
 		})
 
 		function processRay(payload) {

@@ -73,7 +73,7 @@ define(function (require) {
 			var hpPercent = (entity.health() / entity.maxHealth());
 			ctx.fillRect(0, 0, canvas1.width * hpPercent, canvas1.height);
 
-			userNameLbl.contents(entity.id() + " (" + entity.hillPoints + ")");
+			userNameLbl.contents(entity.id());
 			userNameLbl.draw(ctx);
 
 			// canvas contents will be used for a texture

@@ -5,6 +5,7 @@
 		jquery: '/lib/jquery.min',
 		jqueryui: '/lib/jquery-ui.min',
 		jqueryWaitImgs: '/lib/jquery.waitforimages.min',
+		knockout: '/lib/knockout',
         math: 'shared/math'
 
 		/*
