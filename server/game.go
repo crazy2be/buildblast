@@ -49,7 +49,7 @@ func NewGame() *Game {
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
 	
-	g.world.MaxPoints = observable.NewObservable(g, 60 * 10)
+	g.world.MaxPoints = observable.NewObservable(g, 60 * 35)
 	
 	g.world.Teams.Set("Red", game.Team {
 		Name: "Red",
