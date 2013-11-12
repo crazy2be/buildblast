@@ -10,6 +10,7 @@ import (
 	"runtime/pprof"
 
 	"buildblast/lib/game"
+	"buildblast/lib/geom"
 	"buildblast/lib/observable"
 )
 
@@ -75,6 +76,11 @@ func (g *Game) TeamAdded(key string, team game.Team) {
 	
 	//They won
 	g.Announce(team.Name + " has won, game is restarting NOW")
+	
+	//Move hill
+	sphere := g.world.HillSphere.Get().(geom.Sphere)
+	sphere.Center = g.world.FindSpawn()
+	g.world.HillSphere.Set(sphere)
 	
 	for _, teamObj := range g.world.Teams.GetValues() {
 		team := teamObj.(game.Team)

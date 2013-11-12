@@ -199,7 +199,7 @@ func (w *World) FindSpawn() coords.World {
 	//QTODO: Stop hardcoding the spawn.
 	index := rand.Intn(l) //Needed to prevent complaint about not using math/rand
 	index = index + 1
-	return w.spawns[0] //return w.spawns[rand.Intn(l)];
+	return w.spawns[rand.Intn(l)];
 }
 
 func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
