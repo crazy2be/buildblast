@@ -63,6 +63,12 @@ func NewGame() *Game {
 		Points: 0,
 	})
 	
+	g.world.Teams.Set("Yellow", game.Team {
+		Name: "Yellow",
+		Color: "yellow",
+		Points: 0,
+	})
+	
 	g.world.Teams.OnAdd(g, g.TeamAddedCallback)
 	
 	return g
