@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"math/rand"
+	"math"
 
 	"buildblast/lib/coords"
     "buildblast/lib/geom"
@@ -136,6 +137,70 @@ func (w *World) Tick() {
 		
 		//TODO: give points based on your long the tick was
 		teamOnHill.Points += teamsOnHill[aTeamOnHill]
+		
+		//We cap the sum of all points in the game to MaxPoints
+		MaxPoints := w.MaxPoints.Get().(int)
+		
+		fncSumTeamStuff := func(fncSelect func(team Team) int) int {
+			curCount := 0
+			for _, t := range w.Teams.GetValues() {
+				team := t.(Team)
+				if team.Points <= 0 { continue }
+				
+				curCount += fncSelect(team)
+			}
+			return curCount
+		}
+		
+		teamsWithPoints := fncSumTeamStuff(func(team Team) int{
+			return 1;
+		})
+		
+		sumPoints := fncSumTeamStuff(func(team Team) int{
+			return team.Points
+		})
+		
+		if sumPoints < MaxPoints || teamsWithPoints <= 1 { 
+			w.Teams.Set(aTeamOnHill, teamOnHill)
+			return 
+		}
+		
+		//Too many points in the world, time to take some (from other people)
+		newTeamPoints := make(map[string]int, 0)
+		fncSumTeamStuff(func(team Team) int{
+			if team.Name == teamOnHill.Name { return 0 }
+			newTeamPoints[team.Name] = team.Points
+			return 1
+		})
+		
+		for teamsWithPoints > 1 && sumPoints >= MaxPoints {
+			takePerTeam := int(math.Ceil(
+				float64(sumPoints - MaxPoints) / 
+				float64(teamsWithPoints - 1)))
+
+			fncSumTeamStuff(func(team Team) int{
+				if team.Name == teamOnHill.Name { return 0 }
+				newTeamPoints[team.Name] -= takePerTeam
+				if newTeamPoints[team.Name] < 0 {
+					newTeamPoints[team.Name] = 0
+				}
+				return 1
+			})
+			
+			sumPoints = fncSumTeamStuff(func(team Team) int {
+				return newTeamPoints[team.Name]
+			})
+			teamsWithPoints = fncSumTeamStuff(func(team Team) int {
+				if newTeamPoints[team.Name] <= 0 { return 0 }
+				return 1
+			})
+		}
+		
+		for teamName, points := range newTeamPoints {
+			otherTeam := w.Teams.Get(teamName).(Team)
+			otherTeam.Points = points
+			w.Teams.Set(teamName, otherTeam)
+		}
 		
 		w.Teams.Set(aTeamOnHill, teamOnHill)
 	} else {
