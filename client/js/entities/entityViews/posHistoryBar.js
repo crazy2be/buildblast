@@ -59,7 +59,7 @@ define(function (require) {
 				posPastTime = Math.max(posPastTime, clock.time() - clock.entityTime())
 			}
 
-			var posViewTime = posPastTime + 500;
+			var posViewTime = posPastTime + 100;
 
 			var posStartTime = clock.time() - posPastTime;
 			var posEndTime = clock.time() + posViewTime;

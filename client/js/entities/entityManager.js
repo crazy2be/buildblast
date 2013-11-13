@@ -1,6 +1,8 @@
 define(function (require) {
 	var Entity = require("entities/entity");
 	
+	var HpBar = require("entities/entityViews/hpBar");
+	
 	return function EntityManager(scene, conn, world, clock) {
 		var self = this;
 
@@ -43,6 +45,7 @@ define(function (require) {
 				return;
 			}
 			var entity = new Entity(id, world, clock, scene, payload).initViews();
+			entity.addView(new HpBar(entity));
 			entity.addToScene();
 			entities[id] = entity;
 		});

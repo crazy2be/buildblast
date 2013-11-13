@@ -7,7 +7,6 @@ define(function(require) {
 	var PLAYER = require("player/playerSize");
 
 	var PosHistoryBar = require("entities/entityViews/posHistoryBar");
-	var HpBar = require("entities/entityViews/hpBar");
 	
 	var EntityMainMesh = require("entities/entityViews/entityMainMesh");
 
@@ -62,13 +61,14 @@ define(function(require) {
 			if (localStorage.posHistoryBar) {
 				UIViews.push(new PosHistoryBar(self, posPrediction, clock));
 			}
-			if(localStorage.hpBars) {
-				UIViews.push(new HpBar(self));
-			}
 			
 			UIViews.push(new EntityMainMesh(self));
 
 			return self;
+		};
+		
+		self.addView = function(view) {
+			UIViews.push(view);
 		};
 
 		self.lagInduce = function(yes) {
