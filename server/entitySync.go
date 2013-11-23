@@ -30,26 +30,26 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreated)
 	e.world.EntitiesObserv.OnRemove(e, e.EntityRemoved)
 
-    e.world.HillSphere.OnChanged(e, func(n observ.Object){
+    e.world.HillSphere.OnChanged(e, func(sphere geom.Sphere){
         e.conn.Send(&MsgHillMove{
-            Sphere:    e.world.HillSphere.Get().(geom.Sphere),
+            Sphere:   sphere,
         })
     })
 	
-    e.world.HillColor.OnChanged(e, func(n observ.Object){
+    e.world.HillColor.OnChanged(e, func(color string){
         e.conn.Send(&MsgHillColorSet{
-            Color:    e.world.HillColor.Get().(string),
+            Color:    color,
         })
     })
 	
-	e.world.Teams.OnAdd(e, e.TeamAddedCallback)
+	e.world.Teams.OnAdd(e, e.TeamAdded)
 	
-	e.world.MaxPoints.OnChanged(e, func(n observ.Object){
+	e.world.MaxPoints.OnChanged(e, func(maxPoints int){
 		//This is overkill...
 		e.conn.Send(&MsgObjPropSet{
 			ObjectName: "KOTH_CONSTS",
 		    PropName:	"MaxPoints",
-			Value:		e.world.MaxPoints.Get(),
+			Value:		maxPoints,
 		})
 	})
 
@@ -57,9 +57,6 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 }
 
 
-func (e *EntitySync) TeamAddedCallback(key observ.Object, value observ.Object) {
-	e.TeamAdded(key.(string), value.(game.Team))
-}
 func (e *EntitySync) TeamAdded(key string, value game.Team) {
 	e.conn.Send(&MsgObjPropSet{
 		ObjectName: "Teams",

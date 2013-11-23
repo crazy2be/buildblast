@@ -10,7 +10,6 @@ import (
 	"runtime/pprof"
 
 	"buildblast/lib/game"
-	"buildblast/lib/geom"
 	"buildblast/lib/observ"
 )
 
@@ -48,9 +47,7 @@ func NewGame() *Game {
 	g.world = game.NewWorld(float64(time.Now().Unix()))
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreated)
-	
-	g.world.MaxPoints = observ.NewObserv(g, 60 * 35)
-	
+		
 	g.world.Teams.Set("Red", game.Team {
 		Name: "Red",
 		Color: "red",
@@ -69,27 +66,23 @@ func NewGame() *Game {
 		Points: 0,
 	})
 	
-	g.world.Teams.OnAdd(g, g.TeamAddedCallback)
+	g.world.Teams.OnAdd(g, g.TeamAdded)
 	
 	return g
 }
 
-func (g *Game) TeamAddedCallback(key observ.Object, value observ.Object) {
-	g.TeamAdded(key.(string), value.(game.Team))
-}
 func (g *Game) TeamAdded(key string, team game.Team) {
-	if team.Points < g.world.MaxPoints.Get().(int) { return }
+	if team.Points < g.world.MaxPoints.Get() { return }
 	
 	//They won
 	g.Announce(team.Name + " has won, game is restarting NOW")
 	
 	//Move hill
-	sphere := g.world.HillSphere.Get().(geom.Sphere)
+	sphere := g.world.HillSphere.Get()
 	sphere.Center = g.world.FindSpawn()
 	g.world.HillSphere.Set(sphere)
 	
-	for _, teamObj := range g.world.Teams.GetValues() {
-		team := teamObj.(game.Team)
+	for _, team := range g.world.Teams.GetValues() {
 		team.Points = 0
 		g.world.Teams.Set(team.Name, team)
 	}

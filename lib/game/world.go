@@ -10,6 +10,7 @@ import (
 	"buildblast/lib/mapgen"
 	"buildblast/lib/physics"
 	"buildblast/lib/observ"
+	"buildblast/lib/observT"
 )
 
 type BlockListener interface {
@@ -27,16 +28,16 @@ type World struct {
 	blockListeners  []BlockListener
 	
 	EntitiesObserv	*ObservMap_string_Entity
-	Teams			*observ.ObservMap //id string -> Team
-	MaxPoints		*observ.Observ //int
+	Teams			*ObservMap_string_Team
+	MaxPoints		*observT.Observ_int
 
     //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
     //  the code. In the future it should be separated (once we write a few modes and find
     //  a good boundary to create a separate of concerns).
 
     //Observ, so we can move it, and so it can be more than just a value
-    HillSphere      *observ.Observ //Sphere
-	HillColor		*observ.Observ //string
+    HillSphere      *geom.Observ_Sphere
+	HillColor		*observT.Observ_string
 }
 
 func NewWorld(seed float64) *World {
@@ -54,9 +55,11 @@ func NewWorld(seed float64) *World {
     //TODO: My use of these is probably not thread safe... should probably be
     //  (maybe the threading logic could go right in the observ? but probably not...)
 	w.EntitiesObserv = NewObservMap_string_Entity(w)
-	w.Teams = observ.NewObservMap(w)
+	w.Teams = NewObservMap_string_Team(w)
 	
-    w.HillSphere = observ.NewObserv(w, geom.Sphere{
+	w.MaxPoints = observT.NewObserv_int(w, 60 * 35)
+	
+    w.HillSphere = geom.NewObserv_Sphere(w, geom.Sphere{
         Center: coords.World{
 			X: 0,
 			Y: 21,
@@ -64,7 +67,7 @@ func NewWorld(seed float64) *World {
 		},
         Radius: 20,
     })
-	w.HillColor = observ.NewObserv(w, "white")
+	w.HillColor = observT.NewObserv_string(w, "white")
 
     w.EntitiesObserv.OnAdd(w, func (entityID string, entity Entity) {
         entity.Status().OnChanged(w, func (status Status) {
@@ -103,7 +106,7 @@ func (w *World) Tick() {
 		w.chunkGenerator.QueueChunksNearby(e.Pos())
 		
 	    //TODO: Add proper sub, add, function on coords
-	    hillSphere := w.HillSphere.Get().(geom.Sphere)
+	    hillSphere := w.HillSphere.Get()
 	    hillDelta := &coords.Direction{
 	        hillSphere.Center.X - e.Pos().X,
 	        hillSphere.Center.Y - e.Pos().Y,
@@ -132,19 +135,18 @@ func (w *World) Tick() {
 		//Stale mate
 		w.HillColor.Set("black")
 	} else if len(teamsOnHill) == 1 {
-		teamOnHill := w.Teams.Get(aTeamOnHill).(Team)
+		teamOnHill := w.Teams.Get(aTeamOnHill)
 		w.HillColor.Set(teamOnHill.Color)
 		
 		//TODO: give points based on your long the tick was
 		teamOnHill.Points += teamsOnHill[aTeamOnHill]
 		
 		//We cap the sum of all points in the game to MaxPoints
-		MaxPoints := w.MaxPoints.Get().(int)
+		MaxPoints := w.MaxPoints.Get()
 		
 		fncSumTeamStuff := func(fncSelect func(team Team) int) int {
 			curCount := 0
-			for _, t := range w.Teams.GetValues() {
-				team := t.(Team)
+			for _, team := range w.Teams.GetValues() {
 				if team.Points <= 0 { continue }
 				
 				curCount += fncSelect(team)
@@ -197,7 +199,7 @@ func (w *World) Tick() {
 		}
 		
 		for teamName, points := range newTeamPoints {
-			otherTeam := w.Teams.Get(teamName).(Team)
+			otherTeam := w.Teams.Get(teamName)
 			otherTeam.Points = points
 			w.Teams.Set(teamName, otherTeam)
 		}
@@ -212,7 +214,7 @@ func (w *World) NextTeamName() string {
 	//Maybe should base it on score?
 	teamCounts := make(map[string]int, 0)
 	for _, team := range w.Teams.GetValues() {
-		teamCounts[team.(Team).Name] = 0
+		teamCounts[team.Name] = 0
 	}
 	for _, entity := range w.EntitiesObserv.GetValues() {
         e := entity.(Entity)
@@ -224,8 +226,7 @@ func (w *World) NextTeamName() string {
 		teamCounts[teamName]++
 	}
 	
-	//Eh... hardcoding is bad?
-	smallestTeam := "Red"
+	smallestTeam := ""
 	//Hmm...
 	//http://stackoverflow.com/questions/6878590/the-maximum-value-for-an-int-type-in-go
 	smallestCount := int(^uint(0) >> 1)
