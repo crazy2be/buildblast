@@ -27,23 +27,25 @@ type Observable struct {
 }
 
 func NewObservable(owner DisposeExposed, initialData Object) *Observable {
-	observ := &Observable{
+	o := &Observable{
 		ObservableBase: NewObservableBase(owner), 
 		data: initialData,
 		curCallbackNum: 0,
 	 	changedCallbacks: make(map[int]ObservCallback, 0),
 	}
 	
-	observ.SetCallback(observ.ObservSet)
+	o.SetCallback(func (data Object) {
+		o.data = data
+		for _, callback := range o.changedCallbacks {
+			callback(data)
+		}
+	})
 	
-	return observ
+	return o
 }
 
-func (o *Observable) ObservSet(data Object) {
-	o.data = data
-	for _, callback := range o.changedCallbacks {
-		callback(data)
-	}
+func (o *Observable) Set(data Object) {
+	o.set(data)
 }
 
 func (o *Observable) Get() Object {

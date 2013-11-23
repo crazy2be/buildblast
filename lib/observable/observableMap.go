@@ -20,7 +20,7 @@ type ObservableMap struct {
 }
 
 func NewObservableMap(owner DisposeExposed) *ObservableMap {
-	observ := &ObservableMap{
+	o := &ObservableMap{
 		ObservableBase: NewObservableBase(owner),
 		data: make(map[Object]Object),
 		curCallbackNum: 0,
@@ -28,20 +28,18 @@ func NewObservableMap(owner DisposeExposed) *ObservableMap {
 		removeCallbacks: make(map[int]ObservMapCallback, 0),
 	}
 	
-	observ.SetCallback(observ.ObservMapSet)
+	o.SetCallback(func (kvpObj Object) {
+		kvp := kvpObj.(KVP);
+		if kvp.Value == nil {
+			prevValue := o.Get(kvp.Key)
+			delete(o.data, kvp.Key)
+			o.removed(kvp.Key, prevValue)
+		} else {
+			o.added(kvp.Key, kvp.Value)
+		}
+	})
 	
-	return observ
-}
-
-func (o *ObservableMap) ObservMapSet(kvpObj Object) {
-	kvp := kvpObj.(KVP);
-	if kvp.Value == nil {
-		prevValue := o.Get(kvp.Key)
-		delete(o.data, kvp.Key)
-		o.removed(kvp.Key, prevValue)
-	} else {
-		o.added(kvp.Key, kvp.Value)
-	}
+	return o
 }
 
 func (o *ObservableMap) Get(key Object) Object {

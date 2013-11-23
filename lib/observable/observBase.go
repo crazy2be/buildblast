@@ -41,7 +41,7 @@ func (o *ObservableBase) SetCallback(setCallback func(data Object)) {
 	o.setCallback = setCallback
 }
 
-func (o *ObservableBase) Set(value Object) {
+func (o *ObservableBase) set(value Object) {
 	if o.dataChanging {
 		if o.dataFutureCount >= o.maxDataFuture {
 			panic("Observable buffer size exceeded, your observables likely form an infinite loop")

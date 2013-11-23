@@ -1,11 +1,11 @@
 package observable
 
 func (o *ObservableMap) Set(key Object, value Object) {
-	o.ObservMapSet(KVP{key, value})
+	o.set(KVP{key, value})
 }
 
 func (o *ObservableMap) Delete(key Object) {
-	o.ObservMapSet(KVP{key, nil})
+	o.set(KVP{key, nil})
 }
 
 func (o *ObservableMap) GetKeys() []Object {
