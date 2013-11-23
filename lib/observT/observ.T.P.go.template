@@ -1,0 +1,33 @@
+package P
+
+import (
+	_ "fmt"
+	"buildblast/lib/observ"
+)
+
+type ObservCallback_T func (data T)
+
+//Not thread safe
+type Observ_T struct {
+	base *observ.Observ
+}
+
+func NewObserv_T(owner observ.DisposeExposed, initialData T) *Observ_T {
+	return &Observ_T{observ.NewObserv(owner, initialData)}
+}
+
+func (o *Observ_T) Set(data T) {
+	o.base.Set(data)
+}
+
+func (o *Observ_T) Get() T {
+	return o.base.Get().(T)
+}
+
+//Just a really handy function, should always be called, unless you know for sure the
+//	object you are observing will outlast you.
+func (o *Observ_T) OnChanged(owner observ.CallbackOwner, callback ObservCallback_T) int {
+	return o.base.OnChanged(owner, func(obj observ.Object) {
+		callback(obj.(T))
+	})
+}

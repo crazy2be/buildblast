@@ -10,6 +10,7 @@ import (
     //"buildblast/lib/geom"
 	"buildblast/lib/physics"
 	"buildblast/lib/observ"
+	"buildblast/lib/observT"
 )
 
 type ControlState struct {
@@ -55,7 +56,7 @@ type Player struct {
 
 	inventory *Inventory
 
-	metrics			*observ.Observ //Metrics
+	metrics			*Observ_Metrics //Metrics
 
 	healthObserv	*observ.Observ //int
 	
@@ -63,7 +64,7 @@ type Player struct {
 
     status          *observ.Observ //int
 	
-	teamName		*observ.Observ_string //string
+	teamName		*observT.Observ_string //string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -74,10 +75,10 @@ func NewPlayer(world *World, name string) *Player {
 		name:			name,
 	}
 	
-	player.metrics = observ.NewObserv(player, Metrics {
+	player.metrics = NewObserv_Metrics(player, Metrics {
           	Pos:                    coords.World{},
           	Look:                   coords.Direction{},
-          	Vy:                             0.0,
+          	Vy:                     0.0,
 	})
 		
 	player.healthObserv = observ.NewObserv(player, Health{
@@ -89,37 +90,37 @@ func NewPlayer(world *World, name string) *Player {
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
-	player.teamName = observ.NewObserv_string(player, world.NextTeamName())
+	player.teamName = observT.NewObserv_string(player, world.NextTeamName())
 	
 	return player
 }
 
-func (p *Player) Metrics() observ.IObserv {
+func (p *Player) Metrics() *Observ_Metrics {
 	return p.metrics
 }
 
-func (p *Player) HealthObserv() observ.IObserv {
+func (p *Player) HealthObserv() *observ.Observ {
 	return p.healthObserv
 }
 
-func (p *Player) HillPoints() observ.IObserv {
+func (p *Player) HillPoints() *observ.Observ {
 	return p.hillPoints
 }
 
-func (p *Player) Status() observ.IObserv {
+func (p *Player) Status() *observ.Observ {
 	return p.status
 }
 
-func (p *Player) TeamName() *observ.Observ_string {
+func (p *Player) TeamName() *observT.Observ_string {
 	return p.teamName
 }
 
 func (p *Player) Pos() coords.World {
-	return p.Metrics().Get().(Metrics).Pos
+	return p.Metrics().Get().Pos
 }
 
 func (p *Player) Look() coords.Direction {
-	return p.Metrics().Get().(Metrics).Look
+	return p.Metrics().Get().Look
 }
 
 //TODO: Remove these
@@ -136,7 +137,7 @@ func (p *Player) Respawn(pos coords.World) {
 	//	or the time the shot that killed us was fired...
 	currentTime := float64(time.Now().Unix() * 1000)
 
-	metrics := p.Metrics().Get().(Metrics)
+	metrics := p.Metrics().Get()
 	metrics.Pos = pos
 	metrics.Timestamp = currentTime
 	p.Metrics().Set(metrics)
@@ -151,7 +152,7 @@ func (p *Player) Respawn(pos coords.World) {
 }
 
 func (p *Player) Vy() float64 {
-	return p.Metrics().Get().(Metrics).Vy
+	return p.Metrics().Get().Vy
 }
 
 // Returns the last time this entity's state was updated
@@ -204,7 +205,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	//	it. This means don't go calling function on yourself that expect
 	//	us to have changed stuff, as we don't set metrics until the end
 	//	of this function!
-	metrics := p.Metrics().Get().(Metrics)
+	metrics := p.Metrics().Get()
 	metrics.Timestamp = controls.Timestamp
 
 	metrics.Vy += dt * -9.81

@@ -4,6 +4,7 @@ import (
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
 	"buildblast/lib/observ"
+	"buildblast/lib/observT"
 )
 
 //Interface currently implemented by Player (not to say anything cannot
@@ -22,14 +23,14 @@ type Entity interface {
 	BoxAt(t float64) *physics.Box
 	ID() EntityID
 	
-	Metrics()		observ.IObserv //Metrics
+	Metrics()		*Observ_Metrics //Metrics
 	LastUpdated() 	float64
 		
-	HealthObserv()	observ.IObserv //Health
+	HealthObserv()	*observ.Observ //Health
 	
-	Status()		observ.IObserv //Status
+	Status()		*observ.Observ //Status
 	
-	TeamName()		*observ.Observ_string //string
+	TeamName()		*observT.Observ_string //string
 }
 
 type Team struct {
