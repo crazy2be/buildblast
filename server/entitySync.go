@@ -3,12 +3,12 @@ package main
 import (
     "buildblast/lib/geom"
 	"buildblast/lib/game"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 	"fmt"
 )
 
 type EntitySync struct {
-	observable.DisposeExposedImpl
+	observ.DisposeExposedImpl
 
 	world *game.World
 	conn  *ClientConn
@@ -18,7 +18,7 @@ type EntitySync struct {
 func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	fmt.Println("Making entity sync")
 
-	observable.PrintLeaks()
+	observ.PrintLeaks()
 
 	e := &EntitySync{
 		world: world,
@@ -30,13 +30,13 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreatedCallback)
 	e.world.EntitiesObserv.OnRemove(e, e.EntityRemovedCallback)
 
-    e.world.HillSphere.OnChanged(e, func(n observable.Object){
+    e.world.HillSphere.OnChanged(e, func(n observ.Object){
         e.conn.Send(&MsgHillMove{
             Sphere:    e.world.HillSphere.Get().(geom.Sphere),
         })
     })
 	
-    e.world.HillColor.OnChanged(e, func(n observable.Object){
+    e.world.HillColor.OnChanged(e, func(n observ.Object){
         e.conn.Send(&MsgHillColorSet{
             Color:    e.world.HillColor.Get().(string),
         })
@@ -44,7 +44,7 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	e.world.Teams.OnAdd(e, e.TeamAddedCallback)
 	
-	e.world.MaxPoints.OnChanged(e, func(n observable.Object){
+	e.world.MaxPoints.OnChanged(e, func(n observ.Object){
 		//This is overkill...
 		e.conn.Send(&MsgObjPropSet{
 			ObjectName: "KOTH_CONSTS",
@@ -57,7 +57,7 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 }
 
 
-func (e *EntitySync) TeamAddedCallback(key observable.Object, value observable.Object) {
+func (e *EntitySync) TeamAddedCallback(key observ.Object, value observ.Object) {
 	e.TeamAdded(key.(string), value.(game.Team))
 }
 func (e *EntitySync) TeamAdded(key string, value game.Team) {
@@ -68,7 +68,7 @@ func (e *EntitySync) TeamAdded(key string, value game.Team) {
 	})
 }
 
-func (e *EntitySync) EntityCreatedCallback(key observable.Object, value observable.Object) {
+func (e *EntitySync) EntityCreatedCallback(key observ.Object, value observ.Object) {
 	e.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
@@ -82,14 +82,14 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		Timestamp: entity.LastUpdated(),
 	})
 
-	entity.HealthObserv().OnChanged(e, func(newHealth observable.Object) {
+	entity.HealthObserv().OnChanged(e, func(newHealth observ.Object) {
 		e.conn.Send(&MsgEntityHp{
 			ID:     entity.ID(),     //Or id
 			Health: entity.Health(), //Or newHealth works too
 		})
 	})
 
-	entity.Metrics().OnChanged(e, func(new observable.Object) {
+	entity.Metrics().OnChanged(e, func(new observ.Object) {
 		e.conn.Send(&MsgEntityState{
 			ID:        entity.ID(), 
 			Pos:       entity.Pos(),
@@ -99,7 +99,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		})
 	})
 	
-    entity.HillPoints().OnChanged(e, func(new observable.Object) {
+    entity.HillPoints().OnChanged(e, func(new observ.Object) {
         points := entity.HillPoints().Get().(int)
 	    e.conn.Send(&MsgHillPointsSet{
 	        ID: entity.ID(),
@@ -107,7 +107,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	    })
     })
 	
-	entity.TeamName().OnChanged(e, func(new observable.Object) {
+	entity.TeamName().OnChanged(e, func(new observ.Object) {
 		e.conn.Send(&MsgPropertySet{
 			ID: entity.ID(),
 			Name: "TeamName",
@@ -116,7 +116,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	})
 }
 
-func (e *EntitySync) EntityRemovedCallback(key observable.Object, value observable.Object) {
+func (e *EntitySync) EntityRemovedCallback(key observ.Object, value observ.Object) {
 	e.EntityRemoved(key.(game.EntityID))
 }
 func (e *EntitySync) EntityRemoved(id game.EntityID) {

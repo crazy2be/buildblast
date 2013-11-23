@@ -9,7 +9,7 @@ import (
 	"buildblast/lib/coords"
     //"buildblast/lib/geom"
 	"buildblast/lib/physics"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 )
 
 type ControlState struct {
@@ -45,7 +45,7 @@ var PLAYER_CENTER_OFFSET = coords.Vec3{
 var PLAYER_MAX_HP = 100
 
 type Player struct {
-	observable.DisposeExposedImpl
+	observ.DisposeExposedImpl
 
 	box      physics.Box
 	controls ControlState
@@ -55,15 +55,15 @@ type Player struct {
 
 	inventory *Inventory
 
-	metrics			*observable.Observable //Metrics
+	metrics			*observ.Observ //Metrics
 
-	healthObserv	*observable.Observable //int
+	healthObserv	*observ.Observ //int
 	
-	hillPoints		*observable.Observable //int
+	hillPoints		*observ.Observ //int
 
-    status          *observable.Observable //int
+    status          *observ.Observ //int
 	
-	teamName		*observable.Observable //string
+	teamName		*observ.Observ //string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -74,43 +74,43 @@ func NewPlayer(world *World, name string) *Player {
 		name:			name,
 	}
 	
-	player.metrics = observable.NewObservable(player, Metrics {
+	player.metrics = observ.NewObserv(player, Metrics {
           	Pos:                    coords.World{},
           	Look:                   coords.Direction{},
           	Vy:                             0.0,
 	})
 		
-	player.healthObserv = observable.NewObservable(player, Health{
+	player.healthObserv = observ.NewObserv(player, Health{
         Points: PLAYER_MAX_HP,
         Setter: EntityID("Self"),
     })
-	player.hillPoints = observable.NewObservable(player, 0)
-    player.status = observable.NewObservable(player, Status{
+	player.hillPoints = observ.NewObserv(player, 0)
+    player.status = observ.NewObserv(player, Status{
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
-	player.teamName = observable.NewObservable(player, world.NextTeamName())
+	player.teamName = observ.NewObserv(player, world.NextTeamName())
 	
 	return player
 }
 
-func (p *Player) Metrics() observable.IObservable {
+func (p *Player) Metrics() observ.IObserv {
 	return p.metrics
 }
 
-func (p *Player) HealthObserv() observable.IObservable {
+func (p *Player) HealthObserv() observ.IObserv {
 	return p.healthObserv
 }
 
-func (p *Player) HillPoints() observable.IObservable {
+func (p *Player) HillPoints() observ.IObserv {
 	return p.hillPoints
 }
 
-func (p *Player) Status() observable.IObservable {
+func (p *Player) Status() observ.IObserv {
 	return p.status
 }
 
-func (p *Player) TeamName() observable.IObservable {
+func (p *Player) TeamName() observ.IObserv {
 	return p.teamName
 }
 

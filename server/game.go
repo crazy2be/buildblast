@@ -11,7 +11,7 @@ import (
 
 	"buildblast/lib/game"
 	"buildblast/lib/geom"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 )
 
 type clientResponse struct {
@@ -25,7 +25,7 @@ type disconnectingClient struct {
 }
 
 type Game struct {
-    observable.DisposeExposedImpl
+    observ.DisposeExposedImpl
 
 	clients map[string]*Client
 
@@ -49,7 +49,7 @@ func NewGame() *Game {
 
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
 	
-	g.world.MaxPoints = observable.NewObservable(g, 60 * 35)
+	g.world.MaxPoints = observ.NewObserv(g, 60 * 35)
 	
 	g.world.Teams.Set("Red", game.Team {
 		Name: "Red",
@@ -74,7 +74,7 @@ func NewGame() *Game {
 	return g
 }
 
-func (g *Game) TeamAddedCallback(key observable.Object, value observable.Object) {
+func (g *Game) TeamAddedCallback(key observ.Object, value observ.Object) {
 	g.TeamAdded(key.(string), value.(game.Team))
 }
 func (g *Game) TeamAdded(key string, team game.Team) {
@@ -100,11 +100,11 @@ func (g *Game) TeamAdded(key string, team game.Team) {
     }
 }
 
-func (g *Game) EntityCreatedCallback(key observable.Object, value observable.Object) {
+func (g *Game) EntityCreatedCallback(key observ.Object, value observ.Object) {
 	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
-	entity.HillPoints().OnChanged(g, func(new observable.Object) {
+	entity.HillPoints().OnChanged(g, func(new observ.Object) {
         if entity.HillPoints().Get().(int) > 60 * 45 {
             g.Announce(string(id) + " has won, game is restarting NOW.")
 
@@ -119,7 +119,7 @@ func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
         }
 	})
 
-    entity.Status().OnChanged(g, func(new observable.Object) {
+    entity.Status().OnChanged(g, func(new observ.Object) {
         if entity.Status().Get().(game.Status).StatusFlag == game.Status_Dead {
             g.Announce(string(entity.Status().Get().(game.Status).StatusSetter) + " killed " + string(entity.ID()))            
         }
@@ -201,7 +201,7 @@ func (g *Game) Chat(user string, message string) {
 		pprof.WriteHeapProfile(f)
 		f.Close()
 	case "printLeaks":
-		observable.PrintLeaks()
+		observ.PrintLeaks()
 	}
 
 	log.Println("[CHAT]", user+":", message)

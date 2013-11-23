@@ -9,11 +9,11 @@ import (
 	"buildblast/lib/coords"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 )
 
 type Client struct {
-	observable.DisposeExposedImpl
+	observ.DisposeExposedImpl
 
 	conn *ClientConn
 
@@ -31,7 +31,7 @@ type Client struct {
 }
 
 func NewClient(name string) *Client {
-	observable.PrintLeaks()
+	observ.PrintLeaks()
 
 	c := new(Client)
 	c.WatchLeaks("Client")

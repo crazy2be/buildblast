@@ -3,13 +3,13 @@ package game
 import (
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 )
 
 //Interface currently implemented by Player (not to say anything cannot
 //implement it, but for now it is just implemented by player).
 type Entity interface {
-	observable.DisposeExposed
+	observ.DisposeExposed
 
 	Pos() coords.World
 	Look() coords.Direction
@@ -22,15 +22,15 @@ type Entity interface {
 	BoxAt(t float64) *physics.Box
 	ID() EntityID
 	
-	Metrics()		observable.IObservable //Metrics
+	Metrics()		observ.IObserv //Metrics
 	LastUpdated() 	float64
 		
-	HealthObserv()	observable.IObservable //Health
+	HealthObserv()	observ.IObserv //Health
 	
-	HillPoints()	observable.IObservable //int
-	Status()		observable.IObservable //Status
+	HillPoints()	observ.IObserv //int
+	Status()		observ.IObserv //Status
 	
-	TeamName()		observable.IObservable //string
+	TeamName()		observ.IObserv //string
 }
 
 type Team struct {

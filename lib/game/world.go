@@ -9,7 +9,7 @@ import (
     "buildblast/lib/geom"
 	"buildblast/lib/mapgen"
 	"buildblast/lib/physics"
-	"buildblast/lib/observable"
+	"buildblast/lib/observ"
 )
 
 type BlockListener interface {
@@ -17,7 +17,7 @@ type BlockListener interface {
 }
 
 type World struct {
-    observable.DisposeExposedImpl
+    observ.DisposeExposedImpl
 
 	seed           float64
 	chunks         map[coords.Chunk]mapgen.Chunk
@@ -26,21 +26,21 @@ type World struct {
 
 	blockListeners  []BlockListener
 	
-	EntitiesObserv	*observable.ObservableMap //id string -> Entity
-	Teams			*observable.ObservableMap //id string -> Team
-	MaxPoints		*observable.Observable //int
+	EntitiesObserv	*observ.ObservMap //id string -> Entity
+	Teams			*observ.ObservMap //id string -> Team
+	MaxPoints		*observ.Observ //int
 
     //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
     //  the code. In the future it should be separated (once we write a few modes and find
     //  a good boundary to create a separate of concerns).
 
-    //Observable, so we can move it, and so it can be more than just a value
-    HillSphere      *observable.Observable //Sphere
-	HillColor		*observable.Observable //string
+    //Observ, so we can move it, and so it can be more than just a value
+    HillSphere      *observ.Observ //Sphere
+	HillColor		*observ.Observ //string
 }
 
 func NewWorld(seed float64) *World {
-    observable.PrintLeaks()
+    observ.PrintLeaks()
 	w := new(World)
     w.WatchLeaks("World")
 	w.seed = seed
@@ -52,11 +52,11 @@ func NewWorld(seed float64) *World {
 	go w.chunkGenerator.Run()
 
     //TODO: My use of these is probably not thread safe... should probably be
-    //  (maybe the threading logic could go right in the observable? but probably not...)
-	w.EntitiesObserv = observable.NewObservableMap(w)
-	w.Teams = observable.NewObservableMap(w)
+    //  (maybe the threading logic could go right in the observ? but probably not...)
+	w.EntitiesObserv = observ.NewObservMap(w)
+	w.Teams = observ.NewObservMap(w)
 	
-    w.HillSphere = observable.NewObservable(w, geom.Sphere{
+    w.HillSphere = observ.NewObserv(w, geom.Sphere{
         Center: coords.World{
 			X: 0,
 			Y: 21,
@@ -64,10 +64,10 @@ func NewWorld(seed float64) *World {
 		},
         Radius: 20,
     })
-	w.HillColor = observable.NewObservable(w, "white")
+	w.HillColor = observ.NewObserv(w, "white")
 
-    w.EntitiesObserv.OnAdd(w, func (entityID observable.Object, entity observable.Object) {
-        entity.(Entity).Status().OnChanged(w, func (new observable.Object) {
+    w.EntitiesObserv.OnAdd(w, func (entityID observ.Object, entity observ.Object) {
+        entity.(Entity).Status().OnChanged(w, func (new observ.Object) {
             if entity.(Entity).Status().Get().(Status).StatusFlag == Status_Dead {
                 entity.(Entity).Respawn(w.FindSpawn())
                 entity.(Entity).Status().Set(Status{
@@ -77,7 +77,7 @@ func NewWorld(seed float64) *World {
             }
         })
 
-        entity.(Entity).HealthObserv().OnChanged(w, func (new observable.Object) {
+        entity.(Entity).HealthObserv().OnChanged(w, func (new observ.Object) {
             if entity.(Entity).HealthObserv().Get().(Health).Points <= 0 {
                 entity.(Entity).Status().Set(Status{
                     StatusFlag:     Status_Dead,
