@@ -119,7 +119,7 @@ func (w *World) Tick() {
 	teamsOnHill := make(map[string]int, 0)
 	
 	for _, e := range entitiesInHill {
-		teamName := e.TeamName().Get().(string)
+		teamName := e.TeamName().Get()
 		_, exists := teamsOnHill[teamName]
 		if !exists {
 			teamsOnHill[teamName] = 0
@@ -216,7 +216,7 @@ func (w *World) NextTeamName() string {
 	}
 	for _, entity := range w.EntitiesObserv.GetValues() {
         e := entity.(Entity)
-		teamName := e.TeamName().Get().(string)
+		teamName := e.TeamName().Get()
 		_, exists := teamCounts[teamName]
 		if !exists {
 			teamCounts[teamName] = 0

@@ -104,21 +104,6 @@ func (g *Game) EntityCreatedCallback(key observ.Object, value observ.Object) {
 	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
-	entity.HillPoints().OnChanged(g, func(new observ.Object) {
-        if entity.HillPoints().Get().(int) > 60 * 45 {
-            g.Announce(string(id) + " has won, game is restarting NOW.")
-
-            for _, entity := range g.world.EntitiesObserv.GetValues() {
-				entity.(game.Entity).HillPoints().Set(0)
-            }
-
-            for _, entityID := range g.world.EntitiesObserv.GetKeys() {
-                entity := g.world.EntitiesObserv.Get(entityID)
-                entity.(game.Entity).Respawn(g.world.FindSpawn())
-            }
-        }
-	})
-
     entity.Status().OnChanged(g, func(new observ.Object) {
         if entity.Status().Get().(game.Status).StatusFlag == game.Status_Dead {
             g.Announce(string(entity.Status().Get().(game.Status).StatusSetter) + " killed " + string(entity.ID()))            

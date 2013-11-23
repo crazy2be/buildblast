@@ -59,17 +59,6 @@ define(function (require) {
 			entity.removeFromScene();
 			delete entities[id];
 		});
-
-		conn.on('hill-points-set', function (payload) {
-		    var id = payload.ID;
-		    var entity = entities[id];
-		    if (!entity) {
-		        console.warn("Got hill-points-set message for entity which does not exist!", id);
-		        return;
-		    }
-
-		    entity.hillPoints = payload.Points;
-		});
 		
 		conn.on('property-set', function (payload) {
 		    var id = payload.ID;

@@ -63,7 +63,7 @@ type Player struct {
 
     status          *observ.Observ //int
 	
-	teamName		*observ.Observ //string
+	teamName		*observ.Observ_string //string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -89,7 +89,7 @@ func NewPlayer(world *World, name string) *Player {
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
-	player.teamName = observ.NewObserv(player, world.NextTeamName())
+	player.teamName = observ.NewObserv_string(player, world.NextTeamName())
 	
 	return player
 }
@@ -110,7 +110,7 @@ func (p *Player) Status() observ.IObserv {
 	return p.status
 }
 
-func (p *Player) TeamName() observ.IObserv {
+func (p *Player) TeamName() *observ.Observ_string {
 	return p.teamName
 }
 

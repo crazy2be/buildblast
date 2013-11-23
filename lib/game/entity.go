@@ -27,10 +27,9 @@ type Entity interface {
 		
 	HealthObserv()	observ.IObserv //Health
 	
-	HillPoints()	observ.IObserv //int
 	Status()		observ.IObserv //Status
 	
-	TeamName()		observ.IObserv //string
+	TeamName()		*observ.Observ_string //string
 }
 
 type Team struct {

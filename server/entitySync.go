@@ -99,19 +99,11 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		})
 	})
 	
-    entity.HillPoints().OnChanged(e, func(new observ.Object) {
-        points := entity.HillPoints().Get().(int)
-	    e.conn.Send(&MsgHillPointsSet{
-	        ID: entity.ID(),
-	        Points: points,
-	    })
-    })
-	
-	entity.TeamName().OnChanged(e, func(new observ.Object) {
+	entity.TeamName().OnChanged(e, func(teamName string) {
 		e.conn.Send(&MsgPropertySet{
 			ID: entity.ID(),
 			Name: "TeamName",
-			Value: entity.TeamName().Get(),
+			Value: teamName,
 		})
 	})
 }
