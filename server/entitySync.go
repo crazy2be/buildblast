@@ -30,13 +30,13 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreatedCallback)
 	e.world.EntitiesObserv.OnRemove(e, e.EntityRemovedCallback)
 
-    e.world.HillSphere.OnChanged(e, func(n observable.Object, o observable.Object){
+    e.world.HillSphere.OnChanged(e, func(n observable.Object){
         e.conn.Send(&MsgHillMove{
             Sphere:    e.world.HillSphere.Get().(geom.Sphere),
         })
     })
 	
-    e.world.HillColor.OnChanged(e, func(n observable.Object, o observable.Object){
+    e.world.HillColor.OnChanged(e, func(n observable.Object){
         e.conn.Send(&MsgHillColorSet{
             Color:    e.world.HillColor.Get().(string),
         })
@@ -44,7 +44,7 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	e.world.Teams.OnAdd(e, e.TeamAddedCallback)
 	
-	e.world.MaxPoints.OnChanged(e, func(n observable.Object, p observable.Object){
+	e.world.MaxPoints.OnChanged(e, func(n observable.Object){
 		//This is overkill...
 		e.conn.Send(&MsgObjPropSet{
 			ObjectName: "KOTH_CONSTS",
@@ -82,14 +82,14 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		Timestamp: entity.LastUpdated(),
 	})
 
-	entity.HealthObserv().OnChanged(e, func(newHealth observable.Object, prevHealth observable.Object) {
+	entity.HealthObserv().OnChanged(e, func(newHealth observable.Object) {
 		e.conn.Send(&MsgEntityHp{
 			ID:     entity.ID(),     //Or id
 			Health: entity.Health(), //Or newHealth works too
 		})
 	})
 
-	entity.Metrics().OnChanged(e, func(new observable.Object, prev observable.Object) {
+	entity.Metrics().OnChanged(e, func(new observable.Object) {
 		e.conn.Send(&MsgEntityState{
 			ID:        entity.ID(), 
 			Pos:       entity.Pos(),
@@ -99,7 +99,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		})
 	})
 	
-    entity.HillPoints().OnChanged(e, func(new observable.Object, prev observable.Object) {
+    entity.HillPoints().OnChanged(e, func(new observable.Object) {
         points := entity.HillPoints().Get().(int)
 	    e.conn.Send(&MsgHillPointsSet{
 	        ID: entity.ID(),
@@ -107,7 +107,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	    })
     })
 	
-	entity.TeamName().OnChanged(e, func(new observable.Object, prev observable.Object) {
+	entity.TeamName().OnChanged(e, func(new observable.Object) {
 		e.conn.Send(&MsgPropertySet{
 			ID: entity.ID(),
 			Name: "TeamName",

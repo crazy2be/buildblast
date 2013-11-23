@@ -8,7 +8,6 @@ import (
 //Not thread safe
 type ObservableBase struct {
     owner               DisposeExposed
-	data				Object
 	
 	//We sometimes need to buffer setting our data, as data may
 	//	be set in a changed handler, and the other handlers will
@@ -20,16 +19,15 @@ type ObservableBase struct {
 	
 	dataChanging		bool
 	
-	setCallback			func(newData Object, oldValue Object)
+	setCallback			func(data Object)
 }
 
-func NewObservableBase(owner DisposeExposed, initialData Object) *ObservableBase {
+func NewObservableBase(owner DisposeExposed) *ObservableBase {
 	observ := new(ObservableBase)
 	if owner == nil {
 		panic("Owner cannot be nil")
 	}
     observ.owner = owner
-	observ.data = initialData
 	
 	observ.dataFutureCount = 0
 	observ.maxDataFuture = 100
@@ -39,7 +37,7 @@ func NewObservableBase(owner DisposeExposed, initialData Object) *ObservableBase
 
 //Eh... can't do it in the constructor as our parent embeds us, yet wants
 //	to pass us a member function... so this will work
-func (o *ObservableBase) SetCallback(setCallback func(newData Object, oldValue Object)) {
+func (o *ObservableBase) SetCallback(setCallback func(data Object)) {
 	o.setCallback = setCallback
 }
 
@@ -69,12 +67,6 @@ func (o *ObservableBase) Set(value Object) {
 	o.dataChanging = false
 }
 
-func (o *ObservableBase) Get() Object {
-	return o.data
-}
-
-func (o *ObservableBase) change(newValue Object) {
-	prevValue := o.data
-	o.data = newValue
-	o.setCallback(o.data, prevValue)
+func (o *ObservableBase) change(data Object) {
+	o.setCallback(data)
 }

@@ -14,11 +14,13 @@ type IObservable interface {
 	NotOnChanged(callbackNum int)
 }
 
-type ObservCallback func (newValue Object, oldValue Object)
+type ObservCallback func (data Object)
 
 //Not thread safe
 type Observable struct {
     *ObservableBase
+	
+	data				Object
 	
 	curCallbackNum		int
 	changedCallbacks	map[int]ObservCallback
@@ -26,9 +28,10 @@ type Observable struct {
 
 func NewObservable(owner DisposeExposed, initialData Object) *Observable {
 	observ := &Observable{
-		NewObservableBase(owner, initialData), 
-		0,
-	 	make(map[int]ObservCallback, 0),
+		ObservableBase: NewObservableBase(owner), 
+		data: initialData,
+		curCallbackNum: 0,
+	 	changedCallbacks: make(map[int]ObservCallback, 0),
 	}
 	
 	observ.SetCallback(observ.ObservSet)
@@ -36,10 +39,15 @@ func NewObservable(owner DisposeExposed, initialData Object) *Observable {
 	return observ
 }
 
-func (o *Observable) ObservSet(newValue Object, prevValue Object) {
+func (o *Observable) ObservSet(data Object) {
+	o.data = data
 	for _, callback := range o.changedCallbacks {
-		callback(newValue, prevValue)
+		callback(data)
 	}
+}
+
+func (o *Observable) Get() Object {
+	return o.data
 }
 
 //Just a really handy function, should always be called, unless you know for sure the
@@ -59,7 +67,7 @@ func (o *Observable) OnChanged(owner CallbackOwner, callback ObservCallback) int
 	o.owner.OnDispose(func() {
 		o.NotOnChanged(ourCallbackNum)
 	})
-    callback(o.data, nil)
+    callback(o.data)
 	
 	return ourCallbackNum
 }

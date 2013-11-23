@@ -67,7 +67,7 @@ func NewWorld(seed float64) *World {
 	w.HillColor = observable.NewObservable(w, "white")
 
     w.EntitiesObserv.OnAdd(w, func (entityID observable.Object, entity observable.Object) {
-        entity.(Entity).Status().OnChanged(w, func (new observable.Object, prev observable.Object) {
+        entity.(Entity).Status().OnChanged(w, func (new observable.Object) {
             if entity.(Entity).Status().Get().(Status).StatusFlag == Status_Dead {
                 entity.(Entity).Respawn(w.FindSpawn())
                 entity.(Entity).Status().Set(Status{
@@ -77,7 +77,7 @@ func NewWorld(seed float64) *World {
             }
         })
 
-        entity.(Entity).HealthObserv().OnChanged(w, func (new observable.Object, prev observable.Object) {
+        entity.(Entity).HealthObserv().OnChanged(w, func (new observable.Object) {
             if entity.(Entity).HealthObserv().Get().(Health).Points <= 0 {
                 entity.(Entity).Status().Set(Status{
                     StatusFlag:     Status_Dead,

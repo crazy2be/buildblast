@@ -104,7 +104,7 @@ func (g *Game) EntityCreatedCallback(key observable.Object, value observable.Obj
 	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
-	entity.HillPoints().OnChanged(g, func(new observable.Object, prev observable.Object) {
+	entity.HillPoints().OnChanged(g, func(new observable.Object) {
         if entity.HillPoints().Get().(int) > 60 * 45 {
             g.Announce(string(id) + " has won, game is restarting NOW.")
 
@@ -119,7 +119,7 @@ func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
         }
 	})
 
-    entity.Status().OnChanged(g, func(new observable.Object, prev observable.Object) {
+    entity.Status().OnChanged(g, func(new observable.Object) {
         if entity.Status().Get().(game.Status).StatusFlag == game.Status_Dead {
             g.Announce(string(entity.Status().Get().(game.Status).StatusSetter) + " killed " + string(entity.ID()))            
         }
