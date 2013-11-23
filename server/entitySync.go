@@ -89,13 +89,13 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		})
 	})
 
-	entity.Metrics().OnChanged(e, func(new observ.Object) {
+	entity.Metrics().OnChanged(e, func(metrics game.Metrics) {
 		e.conn.Send(&MsgEntityState{
 			ID:        entity.ID(), 
-			Pos:       entity.Pos(),
-			Look:      entity.Look(),
-			Vy:        entity.Vy(),
-			Timestamp: entity.Metrics().Get().(game.Metrics).Timestamp,
+			Pos:       metrics.Pos,
+			Look:      metrics.Look,
+			Vy:        metrics.Vy,
+			Timestamp: metrics.Timestamp,
 		})
 	})
 	
