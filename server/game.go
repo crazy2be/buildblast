@@ -104,9 +104,9 @@ func (g *Game) EntityCreatedCallback(key observ.Object, value observ.Object) {
 	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
 }
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
-    entity.Status().OnChanged(g, func(new observ.Object) {
-        if entity.Status().Get().(game.Status).StatusFlag == game.Status_Dead {
-            g.Announce(string(entity.Status().Get().(game.Status).StatusSetter) + " killed " + string(entity.ID()))            
+    entity.Status().OnChanged(g, func(status game.Status) {
+        if status.StatusFlag == game.Status_Dead {
+            g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))            
         }
     })
 }

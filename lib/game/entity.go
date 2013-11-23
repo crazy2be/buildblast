@@ -23,14 +23,14 @@ type Entity interface {
 	BoxAt(t float64) *physics.Box
 	ID() EntityID
 	
-	Metrics()		*Observ_Metrics //Metrics
+	Metrics()		*Observ_Metrics
 	LastUpdated() 	float64
 		
-	HealthObserv()	*observ.Observ //Health
+	HealthObserv()	*Observ_Health
 	
-	Status()		*observ.Observ //Status
+	Status()		*Observ_Status
 	
-	TeamName()		*observT.Observ_string //string
+	TeamName()		*observT.Observ_string
 }
 
 type Team struct {

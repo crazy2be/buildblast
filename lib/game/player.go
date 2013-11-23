@@ -56,15 +56,13 @@ type Player struct {
 
 	inventory *Inventory
 
-	metrics			*Observ_Metrics //Metrics
+	metrics			*Observ_Metrics
 
-	healthObserv	*observ.Observ //int
-	
-	hillPoints		*observ.Observ //int
+	healthObserv	*Observ_Health
 
-    status          *observ.Observ //int
+    status          *Observ_Status
 	
-	teamName		*observT.Observ_string //string
+	teamName		*observT.Observ_string
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -81,12 +79,11 @@ func NewPlayer(world *World, name string) *Player {
           	Vy:                     0.0,
 	})
 		
-	player.healthObserv = observ.NewObserv(player, Health{
+	player.healthObserv = NewObserv_Health(player, Health{
         Points: PLAYER_MAX_HP,
         Setter: EntityID("Self"),
     })
-	player.hillPoints = observ.NewObserv(player, 0)
-    player.status = observ.NewObserv(player, Status{
+    player.status = NewObserv_Status(player, Status{
         StatusFlag:     Status_Alive,
         StatusSetter:   EntityID("Self"),
     })
@@ -99,15 +96,11 @@ func (p *Player) Metrics() *Observ_Metrics {
 	return p.metrics
 }
 
-func (p *Player) HealthObserv() *observ.Observ {
+func (p *Player) HealthObserv() *Observ_Health {
 	return p.healthObserv
 }
 
-func (p *Player) HillPoints() *observ.Observ {
-	return p.hillPoints
-}
-
-func (p *Player) Status() *observ.Observ {
+func (p *Player) Status() *Observ_Status {
 	return p.status
 }
 
@@ -125,7 +118,7 @@ func (p *Player) Look() coords.Direction {
 
 //TODO: Remove these
 func (p *Player) Health() int {
-	return p.HealthObserv().Get().(Health).Points
+	return p.HealthObserv().Get().Points
 }
 
 func (p *Player) Dead() bool {
@@ -282,7 +275,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		fmt.Println("Hit", p.name)
-        prevHp := hitEntity.HealthObserv().Get().(Health).Points
+        prevHp := hitEntity.HealthObserv().Get().Points
         hitEntity.HealthObserv().Set(Health{
             Points:     prevHp - 40,
             Setter:     EntityID(p.name),

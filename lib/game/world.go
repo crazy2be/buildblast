@@ -67,8 +67,8 @@ func NewWorld(seed float64) *World {
 	w.HillColor = observ.NewObserv(w, "white")
 
     w.EntitiesObserv.OnAdd(w, func (entityID observ.Object, entity observ.Object) {
-        entity.(Entity).Status().OnChanged(w, func (new observ.Object) {
-            if entity.(Entity).Status().Get().(Status).StatusFlag == Status_Dead {
+        entity.(Entity).Status().OnChanged(w, func (status Status) {
+            if status.StatusFlag == Status_Dead {
                 entity.(Entity).Respawn(w.FindSpawn())
                 entity.(Entity).Status().Set(Status{
                     StatusFlag:     Status_Alive,
@@ -77,11 +77,11 @@ func NewWorld(seed float64) *World {
             }
         })
 
-        entity.(Entity).HealthObserv().OnChanged(w, func (new observ.Object) {
-            if entity.(Entity).HealthObserv().Get().(Health).Points <= 0 {
+        entity.(Entity).HealthObserv().OnChanged(w, func (health Health) {
+            if health.Points <= 0 {
                 entity.(Entity).Status().Set(Status{
                     StatusFlag:     Status_Dead,
-                    StatusSetter:   entity.(Entity).HealthObserv().Get().(Health).Setter,
+                    StatusSetter:   health.Setter,
                 })
             }
         })

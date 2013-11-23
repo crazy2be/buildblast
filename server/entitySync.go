@@ -82,10 +82,10 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 		Timestamp: entity.LastUpdated(),
 	})
 
-	entity.HealthObserv().OnChanged(e, func(newHealth observ.Object) {
+	entity.HealthObserv().OnChanged(e, func(health game.Health) {
 		e.conn.Send(&MsgEntityHp{
 			ID:     entity.ID(),     //Or id
-			Health: entity.Health(), //Or newHealth works too
+			Health: health.Points,
 		})
 	})
 
