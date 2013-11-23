@@ -80,14 +80,14 @@ for key in templateInsts:
             
                 for defiPart, instPart in zip(defi.parts, inst.parts):
                     #Vanilla
-                    defiRegex = r"" + defiPart
-                    instRegex = instPart
+                    defiRegex = r"(\W)" + defiPart + "(\W)"
+                    instRegex = r"\1" + instPart + r"\2" #Huh... python handles adding regexes to strings properly (escapes the string)
                 
                     instText = re.sub(defiRegex, instRegex, instText)
                 
                     #Underscore concatention
-                    defiRegex = r"[a-zA-Z_0-9]+(_" + defiPart + ")"
-                    instRegex = "_" + instPart
+                    defiRegex = r"(\w+_)" + defiPart
+                    instRegex = r"\1" + instPart
                 
                     instText = re.sub(defiRegex, instRegex, instText)
         
