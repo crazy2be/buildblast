@@ -4,16 +4,6 @@ import (
 	_ "fmt"
 )
 
-type IObserv interface {
-	Set(value Object)
-	Get() Object
-	//Generally only used if you are watching your super (owner),
-	//	as then you know it will outlast you (which is the only reason to use this,
-	//	or if you absolutely cannot make it implement DisposeExposed).
-	OnChanged(owner CallbackOwner, callback ObservCallback) int
-	NotOnChanged(callbackNum int)
-}
-
 type ObservCallback func (data Object)
 
 //Not thread safe
