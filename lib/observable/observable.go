@@ -18,77 +18,25 @@ type ObservCallback func (newValue Object, oldValue Object)
 
 //Not thread safe
 type Observable struct {
-    owner               DisposeExposed
-	data				Object
-	
-	//TODO: Put this into an embedded struct
-	//We sometimes need to buffer setting our data, as data may
-	//	be set in a changed handler, and the other handlers will
-	//	still want the original data that was set. They also
-	//	want to be called in the order the data was set.
-	dataFutureCount		int
-	maxDataFuture		int
-	dataFuture			[]Object
-	
-	dataChanging		bool
+    *ObservableBase
 	
 	curCallbackNum		int
-	
 	changedCallbacks	map[int]ObservCallback
 }
 
 func NewObservable(owner DisposeExposed, initialData Object) *Observable {
-	observ := new(Observable)
-	if owner == nil {
-		panic("Owner cannot be nil")
+	observ := &Observable{
+		NewObservableBase(owner, initialData), 
+		0,
+	 	make(map[int]ObservCallback, 0),
 	}
-    observ.owner = owner
-	observ.data = initialData
 	
-	observ.dataFutureCount = 0
-	observ.maxDataFuture = 100
-	observ.dataFuture = make([]Object, observ.maxDataFuture)
+	observ.SetCallback(observ.ObservSet)
 	
-	observ.curCallbackNum = 0
-	
-	observ.changedCallbacks = make(map[int]ObservCallback, 0)
 	return observ
 }
 
-func (o *Observable) Set(value Object) {
-	if o.dataChanging {
-		if o.dataFutureCount >= o.maxDataFuture {
-			panic("Observable buffer size exceeded, your observables likely form an infinite loop")
-		}
-		o.dataFuture[o.dataFutureCount] = value
-		o.dataFutureCount++
-		return
-	}
-	
-	o.dataChanging = true
-	o.change(value)
-	
-	for o.dataFutureCount > 0 {
-		value = o.dataFuture[0]
-		
-		o.dataFutureCount--
-		for index := 0; index < o.dataFutureCount; index++ {
-			o.dataFuture[index] = o.dataFuture[index + 1]
-		}
-		
-		o.change(value)
-	}
-	o.dataChanging = false
-}
-
-func (o *Observable) Get() Object {
-	return o.data
-}
-
-func (o *Observable) change(newValue Object) {
-	prevValue := o.data
-	o.data = newValue
-	//fmt.Println("Calling", len(o.changedCallbacks), "callbacks")
+func (o *Observable) ObservSet(newValue Object, prevValue Object) {
 	for _, callback := range o.changedCallbacks {
 		callback(newValue, prevValue)
 	}
