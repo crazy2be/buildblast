@@ -81,11 +81,11 @@ func NewPlayer(world *World, name string) *Player {
 		
 	player.healthObserv = NewObserv_Health(player, Health{
         Points: PLAYER_MAX_HP,
-        Setter: EntityID("Self"),
+        Setter: string("Self"),
     })
     player.status = NewObserv_Status(player, Status{
         StatusFlag:     Status_Alive,
-        StatusSetter:   EntityID("Self"),
+        StatusSetter:   string("Self"),
     })
 	player.teamName = observT.NewObserv_string(player, world.NextTeamName())
 	
@@ -154,8 +154,8 @@ func (p *Player) LastUpdated() float64 {
 	return p.controls.Timestamp
 }
 
-func (p *Player) ID() EntityID {
-	return EntityID(p.name)
+func (p *Player) ID() string {
+	return string(p.name)
 }
 
 func (p *Player) Inventory() *Inventory {
@@ -278,7 +278,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
         prevHp := hitEntity.HealthObserv().Get().Points
         hitEntity.HealthObserv().Set(Health{
             Points:     prevHp - 40,
-            Setter:     EntityID(p.name),
+            Setter:     string(p.name),
         })
 	} else {
 		fmt.Println("Missed")

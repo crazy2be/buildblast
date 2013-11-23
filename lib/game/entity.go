@@ -21,7 +21,7 @@ type Entity interface {
 	Dead() bool
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
-	ID() EntityID
+	ID() string
 	
 	Metrics()		*Observ_Metrics
 	LastUpdated() 	float64
@@ -41,7 +41,7 @@ type Team struct {
 
 type Health struct {
     Points      int
-    Setter      EntityID
+    Setter      string
 }
 
 //May become a bit field (so we can put slowed, onfire, etc in here)
@@ -52,7 +52,7 @@ const (
 
 type Status struct {
     StatusFlag      int
-    StatusSetter    EntityID
+    StatusSetter    string
 }
 
 //Pos, speed, look, (size eventually)
@@ -62,6 +62,3 @@ type Metrics struct {
 	Vy				float64
 	Timestamp		float64
 }
-
-// Should be an int someday...
-type EntityID string

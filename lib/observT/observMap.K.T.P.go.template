@@ -2,7 +2,7 @@ package P
 
 import "buildblast/lib/observ"
 
-type ObservMapCallback func (key K, value T)
+type ObservMapCallback_K_T func (key K, value T)
 
 //Not thread safe
 type ObservMap_K_T struct {
@@ -13,31 +13,50 @@ func NewObservMap_K_T(owner observ.DisposeExposed) *ObservMap_K_T {
 	return &ObservMap_K_T{observ.NewObservMap(owner)}
 }
 
+func (o *ObservMap_K_T) Get(key K) T {
+	return o.base.Get(key).(T)
+}
+
 func (o *ObservMap_K_T) Set(key K, value T) {
-	o.base.set(observ.KVP{key, value})
+	o.base.Set(key, value)
 }
 
 func (o *ObservMap_K_T) Delete(key K) {
-	o.base.set(observ.KVP{key, nil})
+	o.base.Delete(key)
+}
+
+func (o *ObservMap_K_T) OnAdd(owner observ.CallbackOwner, callback ObservMapCallback_K_T) int {
+	return o.base.OnAdd(owner, func(key observ.Object, value observ.Object) {
+		callback(key.(K), value.(T))
+	})
+}
+func (o *ObservMap_K_T) NotOnAdd(callbackNum int) {
+	o.base.NotOnAdd(callbackNum)
+}
+func (o *ObservMap_K_T) OnRemove(owner observ.CallbackOwner, callback ObservMapCallback_K_T) int {
+	return o.base.OnRemove(owner, func(key observ.Object, value observ.Object) {
+		callback(key.(K), value.(T))
+	})
+}
+func (o *ObservMap_K_T) NotOnRemove(callbackNum int) {
+	o.base.NotOnAdd(callbackNum)
 }
 
 func (o *ObservMap_K_T) GetKeys() []K {
     keys := []K{}
-    for key, _ := range o.data {
-        keys = append(keys, key)
+    for _, key := range o.base.GetKeys() {
+        keys = append(keys, key.(K))
     }
     return keys
 }
 func (o *ObservMap_K_T) GetValues() []T {
     values := []T{}
-    for _, value := range o.data {
-        values = append(values, value)
+    for _, value := range o.base.GetValues() {
+        values = append(values, value.(T))
     }
     return values
 }
 
 func (o *ObservMap_K_T) Clear() {
-    for key, _ := range o.data {
-        o.Delete(key)
-    }
+    o.base.Clear()
 }

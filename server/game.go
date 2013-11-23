@@ -47,7 +47,7 @@ func NewGame() *Game {
 
 	g.world = game.NewWorld(float64(time.Now().Unix()))
 
-	g.world.EntitiesObserv.OnAdd(g, g.EntityCreatedCallback)
+	g.world.EntitiesObserv.OnAdd(g, g.EntityCreated)
 	
 	g.world.MaxPoints = observ.NewObserv(g, 60 * 35)
 	
@@ -94,16 +94,12 @@ func (g *Game) TeamAdded(key string, team game.Team) {
 		g.world.Teams.Set(team.Name, team)
 	}
 	
-    for _, entityID := range g.world.EntitiesObserv.GetKeys() {
-        entity := g.world.EntitiesObserv.Get(entityID)
-        entity.(game.Entity).Respawn(g.world.FindSpawn())
+    for _, entity := range g.world.EntitiesObserv.GetValues() {
+        entity.Respawn(g.world.FindSpawn())
     }
 }
 
-func (g *Game) EntityCreatedCallback(key observ.Object, value observ.Object) {
-	g.EntityCreated(key.(game.EntityID), value.(game.Entity))
-}
-func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
+func (g *Game) EntityCreated(id string, entity game.Entity) {
     entity.Status().OnChanged(g, func(status game.Status) {
         if status.StatusFlag == game.Status_Dead {
             g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))            

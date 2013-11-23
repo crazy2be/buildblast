@@ -27,8 +27,8 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 
 	e.WatchLeaks("EntitySync")
 
-	e.world.EntitiesObserv.OnAdd(e, e.EntityCreatedCallback)
-	e.world.EntitiesObserv.OnRemove(e, e.EntityRemovedCallback)
+	e.world.EntitiesObserv.OnAdd(e, e.EntityCreated)
+	e.world.EntitiesObserv.OnRemove(e, e.EntityRemoved)
 
     e.world.HillSphere.OnChanged(e, func(n observ.Object){
         e.conn.Send(&MsgHillMove{
@@ -68,10 +68,7 @@ func (e *EntitySync) TeamAdded(key string, value game.Team) {
 	})
 }
 
-func (e *EntitySync) EntityCreatedCallback(key observ.Object, value observ.Object) {
-	e.EntityCreated(key.(game.EntityID), value.(game.Entity))
-}
-func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
+func (e *EntitySync) EntityCreated(id string, entity game.Entity) {
 	fmt.Println("Sending entity created", id, "to client")
 	
 	e.conn.Send(&MsgEntityCreate{
@@ -108,10 +105,7 @@ func (e *EntitySync) EntityCreated(id game.EntityID, entity game.Entity) {
 	})
 }
 
-func (e *EntitySync) EntityRemovedCallback(key observ.Object, value observ.Object) {
-	e.EntityRemoved(key.(game.EntityID))
-}
-func (e *EntitySync) EntityRemoved(id game.EntityID) {
+func (e *EntitySync) EntityRemoved(id string, entity game.Entity) {
 	e.conn.Send(&MsgEntityRemove{
 		ID: id,
 	})

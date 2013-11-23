@@ -26,7 +26,7 @@ type World struct {
 
 	blockListeners  []BlockListener
 	
-	EntitiesObserv	*observ.ObservMap //id string -> Entity
+	EntitiesObserv	*ObservMap_string_Entity
 	Teams			*observ.ObservMap //id string -> Team
 	MaxPoints		*observ.Observ //int
 
@@ -53,7 +53,7 @@ func NewWorld(seed float64) *World {
 
     //TODO: My use of these is probably not thread safe... should probably be
     //  (maybe the threading logic could go right in the observ? but probably not...)
-	w.EntitiesObserv = observ.NewObservMap(w)
+	w.EntitiesObserv = NewObservMap_string_Entity(w)
 	w.Teams = observ.NewObservMap(w)
 	
     w.HillSphere = observ.NewObserv(w, geom.Sphere{
@@ -66,27 +66,27 @@ func NewWorld(seed float64) *World {
     })
 	w.HillColor = observ.NewObserv(w, "white")
 
-    w.EntitiesObserv.OnAdd(w, func (entityID observ.Object, entity observ.Object) {
-        entity.(Entity).Status().OnChanged(w, func (status Status) {
+    w.EntitiesObserv.OnAdd(w, func (entityID string, entity Entity) {
+        entity.Status().OnChanged(w, func (status Status) {
             if status.StatusFlag == Status_Dead {
-                entity.(Entity).Respawn(w.FindSpawn())
-                entity.(Entity).Status().Set(Status{
+                entity.Respawn(w.FindSpawn())
+                entity.Status().Set(Status{
                     StatusFlag:     Status_Alive,
                     StatusSetter:   "World",
                 })
             }
         })
 
-        entity.(Entity).HealthObserv().OnChanged(w, func (health Health) {
+        entity.HealthObserv().OnChanged(w, func (health Health) {
             if health.Points <= 0 {
-                entity.(Entity).Status().Set(Status{
+                entity.Status().Set(Status{
                     StatusFlag:     Status_Dead,
                     StatusSetter:   health.Setter,
                 })
             }
         })
 
-        entity.(Entity).Respawn(w.FindSpawn())
+        entity.Respawn(w.FindSpawn())
     })
 
 	return w

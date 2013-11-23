@@ -137,7 +137,7 @@ type MsgHandshakeError struct {
 type MsgEntityCreate MsgEntityState
 
 type MsgEntityState struct {
-	ID        game.EntityID
+	ID        string
 	Pos       coords.World
 	Look      coords.Direction
 	Vy        float64
@@ -145,11 +145,11 @@ type MsgEntityState struct {
 }
 
 type MsgEntityRemove struct {
-	ID game.EntityID
+	ID string
 }
 
 type MsgEntityHp struct {
-	ID     game.EntityID
+	ID     string
 	Health int
 }
 
@@ -210,7 +210,7 @@ type MsgHillColorSet struct {
 }
 
 type MsgHillPointsSet struct {
-	ID          game.EntityID
+	ID          string
     Points      int
 }
 
@@ -218,7 +218,7 @@ type MsgHillPointsSet struct {
 //	can handle everything.
 //Really entity property set
 type MsgPropertySet struct {
-	ID          game.EntityID
+	ID          string
     Name		string
 	Value		interface{}
 }
