@@ -37,10 +37,19 @@ define(function(require) {
 			currentDataPoint = (currentDataPoint + 1) % dataPoints.length;
 		};
 
+		var canvasWrapper = document.createElement('div');
+		
 		var canvas = document.createElement('canvas');
 		canvas.width = opts.width;
 		canvas.height = opts.height;
-		self.elm = canvas;
+		
+		var titleElem = document.createElement('div');
+		titleElem.textContent = "{Title}";
+		
+		canvasWrapper.appendChild(titleElem);
+		canvasWrapper.appendChild(canvas);
+		
+		self.elm = canvasWrapper;
 
 		var c = canvas.getContext('2d');
 		function drawBackground(color) {
@@ -49,10 +58,7 @@ define(function(require) {
 		}
 
 		function drawTitle(text) {
-			c.fillStyle = '#0f0';
-			c.font = opts.fontSize + 'px monospace';
-			c.textBaseline = 'top';
-			c.fillText(text, opts.padding, opts.padding);
+			titleElem.textContent = text;
 		}
 
 		var graphX = opts.padding + 0.5;

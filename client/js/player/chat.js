@@ -65,55 +65,21 @@ define(function(require) {
 			var message = document.createElement('div');
 			message.className = "message";
 			message.innerText = payload.DisplayName + ": " + payload.Message;
-			addTween(message);
 
 			var wrapper = document.createElement("div");
 			wrapper.className = "message-wrapper";
 			wrapper.appendChild(message);
 
+			//TODO: Figure out how to do this naturally in html/css
+			//	(there must be a way to align the bottom of the div)
+			//	as... messages.scrollHeight takes a lot of time.
 			var messages = chat.querySelector(".messages");
 			messages.appendChild(wrapper);
 			messages.scrollTop = messages.scrollHeight;
-		}
-
-		var tweens = [];
-		function addTween(elm) {
-			var tween = new Tween(elm);
-			tweens.push(tween);
-		}
-		function updateTweens(dt) {
-			for (var i = 0; i < tweens.length; i++) {
-				var tween = tweens[i];
-				tween.update(dt, focused);
-				if (tween.finished()) {
-					tween.end();
-					tweens.splice(i, 1);
-				}
+			
+			while(messages.children.length > 50) {
+				messages.removeChild(messages.children[0]);
 			}
-		}
-
-		function Tween(elm) {
-			var self = this;
-			var totalTime = 6000.0;
-			var elapsedTime = 0.0;
-
-			self.update = function (dt, focused) {
-				elapsedTime += dt;
-				var completion = elapsedTime / totalTime;
-				var alpha = 1.0;
-				if (!focused && completion > 0.75) {
-					alpha = (1.0 - completion) * 4;
-				}
-				elm.style.opacity = alpha;
-			};
-
-			self.finished = function () {
-				return elapsedTime >= totalTime;
-			};
-
-			self.end = function () {
-				elm.style.opacity = '';
-			};
 		}
 	}
 });
