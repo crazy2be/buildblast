@@ -63,7 +63,13 @@ define(function (require) {
 			return mesh1;
 		}
 
-		function updateView(playerPos) {
+		var lastHP = -1;
+		var lastMaxHP = -1;
+		function updateView() {
+			if(entity.health() === lastHP && entity.maxHealth() === lastMaxHP) return;
+			lastHP = entity.health();
+			lastMaxHP = entity.maxHealth();
+			
 			//Background
 			ctx.fillStyle = "rgba(87, 87, 87, 0.6)"; //grey
 			ctx.fillRect(0, 0, canvas1.width, canvas1.height);
@@ -78,17 +84,10 @@ define(function (require) {
 
 			// canvas contents will be used for a texture
 			texture1.needsUpdate = true;
-
-			updatePos(curPos, playerPos, true);
 		}
 
-		var curPos = entity.pos();
-		function updatePos(pos, playerPos, forceChanged) {
-			if (!forceChanged && pos.x == curPos.x && pos.y == curPos.y && pos.z == curPos.z) return;
-
-			curPos = pos;
-
-			var p = curPos;
+		function updatePos(pos, playerPos) {
+			var p = pos;
 			mesh1.position.set(p.x, p.y + 0.53, p.z);
 
 			//I make an obj as I only use some components, and only use it once.
@@ -107,10 +106,6 @@ define(function (require) {
 
 		self.update = function (dt, playerPos) {
 			updateView(playerPos);
-			if (!entity.pos()) {
-				debugger;
-				var test = entity.pos();
-			}
 			updatePos(entity.pos(), playerPos);
 		}
 	}
