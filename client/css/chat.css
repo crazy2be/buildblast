@@ -10,13 +10,32 @@
 #chat .message {
 	display: inline-block;
 	padding: 4px;
-	opacity: 0;
 	background-color: rgba(255, 255, 255, 0.5);
 }
 #chat.active .message {
-	opacity: 1;
 	color: black;
+	opacity: 1;
+	/* I just can't get this to properly transition in... oh well...
+	transition: opacity 1s ease-in-out;*/
 }
+
+#chat:not(.active) .message{
+	-webkit-animation-delay: 3s;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-fill-mode: forwards;
+	-webkit-animation-name: fadeOut;
+}
+
+@-webkit-keyframes fadeOut {
+	0% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
 #chat .input {
 	width: 100%;
 	opacity: 0;
