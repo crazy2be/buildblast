@@ -45,6 +45,7 @@ define(function(require) {
 		
 		var titleElem = document.createElement('div');
 		titleElem.textContent = "{Title}";
+		titleElem.className = "chartTitle"
 		
 		canvasWrapper.appendChild(titleElem);
 		canvasWrapper.appendChild(canvas);
@@ -62,7 +63,7 @@ define(function(require) {
 		}
 
 		var graphX = opts.padding + 0.5;
-		var graphY = opts.padding*2 + opts.fontSize + 0.5;
+		var graphY = opts.padding*2;
 		var graphHeight = opts.height - graphY - opts.padding;
 		var graphWidth = opts.width - graphX - opts.padding;
 		function drawGraph() {

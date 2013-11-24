@@ -18,8 +18,6 @@ define(function(require) {
 		$input.on('blur'   , blur   );
 
 		self.update = function (dt) {
-			updateTweens(dt);
-
 			if (!controls.sample().chat) return;
 
 			if (focused) return;

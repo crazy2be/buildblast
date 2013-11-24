@@ -85,3 +85,9 @@ a {
 	-khtml-user-select: none;
 	-webkit-user-select: none;
 }
+
+.chartTitle {
+	font-size: 9px;
+	background-color: #020;
+	color:white;
+}
