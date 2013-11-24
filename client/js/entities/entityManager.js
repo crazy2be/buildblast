@@ -45,7 +45,9 @@ define(function (require) {
 				return;
 			}
 			var entity = new Entity(id, world, clock, scene, payload).initViews();
-			entity.addView(new HpBar(entity));
+			if(localStorage.hpBars) {
+				entity.addView(new HpBar(entity));
+			}
 			entity.addToScene();
 			entities[id] = entity;
 		});
