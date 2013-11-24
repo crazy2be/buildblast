@@ -44,52 +44,12 @@ func NewGame() *Game {
 	g.clientResponses = make(chan clientResponse)
 	g.disconnectingClients = make(chan disconnectingClient)
 
-	g.world = game.NewWorld(float64(time.Now().Unix()))
+	g.world = game.NewWorld(float64(time.Now().Unix()), g.Announce)
 
+	//TODO: Pass the Annouce function into world, so it can have this logic instead of us?
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreated)
-		
-	g.world.Teams.Set("Red", game.Team {
-		Name: "Red",
-		Color: "red",
-		Points: 0,
-	})
-	
-	g.world.Teams.Set("Blue", game.Team {
-		Name: "Blue",
-		Color: "blue",
-		Points: 0,
-	})
-	
-	g.world.Teams.Set("Yellow", game.Team {
-		Name: "Yellow",
-		Color: "yellow",
-		Points: 0,
-	})
-	
-	g.world.Teams.OnAdd(g, g.TeamAdded)
 	
 	return g
-}
-
-func (g *Game) TeamAdded(key string, team game.Team) {
-	if team.Points < g.world.MaxPoints.Get() { return }
-	
-	//They won
-	g.Announce(team.Name + " has won, game is restarting NOW")
-	
-	//Move hill
-	sphere := g.world.HillSphere.Get()
-	sphere.Center = g.world.FindSpawn()
-	g.world.HillSphere.Set(sphere)
-	
-	for _, team := range g.world.Teams.GetValues() {
-		team.Points = 0
-		g.world.Teams.Set(team.Name, team)
-	}
-	
-    for _, entity := range g.world.EntitiesObserv.GetValues() {
-        entity.Respawn(g.world.FindSpawn())
-    }
 }
 
 func (g *Game) EntityCreated(id string, entity game.Entity) {

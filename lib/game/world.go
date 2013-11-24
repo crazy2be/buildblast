@@ -38,11 +38,16 @@ type World struct {
     //Observ, so we can move it, and so it can be more than just a value
     HillSphere      *geom.Observ_Sphere
 	HillColor		*observT.Observ_string
+	
+	announce 		func (message string)
 }
 
-func NewWorld(seed float64) *World {
+func NewWorld(seed float64, announce func (message string)) *World {
     observ.PrintLeaks()
 	w := new(World)
+	
+	w.announce = announce
+	
     w.WatchLeaks("World")
 	w.seed = seed
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
@@ -56,6 +61,8 @@ func NewWorld(seed float64) *World {
     //  (maybe the threading logic could go right in the observ? but probably not...)
 	w.EntitiesObserv = NewObservMap_string_Entity(w)
 	w.Teams = NewObservMap_string_Team(w)
+	
+	w.Teams.OnAdd(w, w.TeamAdded)
 	
 	w.MaxPoints = observT.NewObserv_int(w, 60 * 35)
 	
@@ -92,7 +99,47 @@ func NewWorld(seed float64) *World {
         entity.Respawn(w.FindSpawn())
     })
 
+	w.Teams.Set("Red", Team {
+		Name: "Red",
+		Color: "red",
+		Points: 0,
+	})
+	
+	w.Teams.Set("Blue", Team {
+		Name: "Blue",
+		Color: "blue",
+		Points: 0,
+	})
+	
+	w.Teams.Set("Yellow", Team {
+		Name: "Yellow",
+		Color: "yellow",
+		Points: 0,
+	})
+	
+	w.EntitiesObserv.Set("AI 1", NewAi(w, "AI 1"))
+
 	return w
+}
+
+func (w *World) TeamAdded(key string, team Team) {
+	if team.Points < w.MaxPoints.Get() { return }
+	
+	w.announce(team.Name + " has won, game is restarting NOW")
+	
+	//Move hill
+	sphere := w.HillSphere.Get()
+	sphere.Center = w.FindSpawn()
+	w.HillSphere.Set(sphere)
+	
+	for _, team := range w.Teams.GetValues() {
+		team.Points = 0
+		w.Teams.Set(team.Name, team)
+	}
+	
+    for _, entity := range w.EntitiesObserv.GetValues() {
+        entity.Respawn(w.FindSpawn())
+    }
 }
 
 func (w *World) Tick() {
