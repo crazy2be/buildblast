@@ -14,6 +14,8 @@ type EntitySync struct {
 	conn  *ClientConn
 }
 
+
+
 //Should just use conn to send data, never to receive
 func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	fmt.Println("Making entity sync")
@@ -24,6 +26,21 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 		world: world,
 		conn:  conn,
 	}
+	
+	type TestData struct{
+		Truth	bool
+		Text	string
+		Num 	float64
+	}
+	
+	e.conn.Send(&MsgKoIntegrate{
+		Name: "TestData",
+		Value: TestData {
+			Truth: true,
+			Text: "texty",
+			Num: 5.234032,
+		},
+	});
 
 	e.WatchLeaks("EntitySync")
 

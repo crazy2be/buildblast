@@ -33,6 +33,8 @@ const (
     MSG_HILL_POINTS_SET = MessageKind("hill-points-set")
 	MSG_PROPERTY_SET 	= MessageKind("property-set")
 	MSG_OBJ_PROP_SET	= MessageKind("obj-prop-set")
+	//The message to end all messages
+	MSG_KO_INTEGRATE	= MessageKind("ko-integrate")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -71,6 +73,8 @@ func kindToType(kind MessageKind) Message {
 		return &MsgPropertySet{}
 	case MSG_OBJ_PROP_SET:
 		return &MsgObjPropSet{}
+	case MSG_KO_INTEGRATE:
+		return &MsgKoIntegrate{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -115,6 +119,8 @@ func typeToKind(m Message) MessageKind {
 		return MSG_PROPERTY_SET
 	case *MsgObjPropSet:
 		return MSG_OBJ_PROP_SET
+	case *MsgKoIntegrate:
+		return MSG_KO_INTEGRATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -226,6 +232,14 @@ type MsgPropertySet struct {
 type MsgObjPropSet struct {
 	ObjectName	string
     PropName	string
+	Value		interface{}
+}
+
+//Basically all messages sent to the client should be in this format...
+//	there is no need to make it handle messages specially, it can easily
+//	decipher the intent based on the structure.
+type MsgKoIntegrate struct {
+	Name		string
 	Value		interface{}
 }
 

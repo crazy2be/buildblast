@@ -37,7 +37,7 @@ define(function(require) {
 		window.testExposure.entityManager = entityManager;
 
 		conn.on('debug-ray', processRay);
-
+		
 	    //TODO: Make this an entity
 	    //var hillMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 });
 		var hillMaterial = new THREE.MeshLambertMaterial({ 
@@ -72,6 +72,29 @@ define(function(require) {
 			self[payload.ObjectName]()[payload.PropName] = payload.Value;
 			self[payload.ObjectName].valueHasMutated();
 		})
+		
+		function koIntegrate(dest, data) {
+			//Hmm... basic data types will be observables
+			
+			for(var key in data) {
+				if(typeof data[key] === 'object') {
+					dest[key] = dest[key] || {};
+					koIntegrate(dest[key], data[key])
+				} else {
+					dest[key] = dest[key] || ko.observable();
+					dest[key](data[key]);
+				}
+			}
+			
+			return dest;
+		}
+		conn.on('ko-integrate', function(data) {
+			//So much easier to do this repackaging on the Javascript side
+			var obj = {};
+			obj[data.Name] = data.Value;
+			koIntegrate(self, obj);
+		});
+		
 
 		function processRay(payload) {
 			var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
