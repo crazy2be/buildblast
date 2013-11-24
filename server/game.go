@@ -55,7 +55,7 @@ func NewGame() *Game {
 func (g *Game) EntityCreated(id string, entity game.Entity) {
     entity.Status().OnChanged(g, func(status game.Status) {
         if status.StatusFlag == game.Status_Dead {
-            //g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))            
+            g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))            
         }
     })
 }
