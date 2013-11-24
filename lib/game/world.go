@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"math"
+	"strconv"
 
 	"buildblast/lib/coords"
     "buildblast/lib/geom"
@@ -117,7 +118,10 @@ func NewWorld(seed float64, announce func (message string)) *World {
 		Points: 0,
 	})
 	
-	w.EntitiesObserv.Set("AI 1", NewAi(w, "AI 1"))
+	for i := 0; i < 10; i++ {
+		name := "AI " + strconv.Itoa(i)
+		w.EntitiesObserv.Set(name, NewAi(w, name))
+	}
 
 	return w
 }
