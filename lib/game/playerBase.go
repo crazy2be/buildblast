@@ -135,7 +135,7 @@ func (p *PlayerBase) Dead() bool {
 func (p *PlayerBase) Respawn(pos coords.World) {
 	//TODO: I am on the fence of whether this should be now,
 	//	or the time the shot that killed us was fired...
-	currentTime := float64(time.Now().Unix() * 1000)
+	currentTime := float64(time.Now().UnixNano() / 1e6)
 
 	metrics := p.Metrics().Get()
 	metrics.Pos = pos

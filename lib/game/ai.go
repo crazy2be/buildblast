@@ -15,7 +15,7 @@ func NewAi(world *World, name string) *Ai {
 }
 
 func (a *Ai) Tick(w *World) {
-	currentTime := float64(time.Now().Unix() * 1000)
+	currentTime := float64(time.Now().UnixNano() / 1e6)
 		
-    a.ClientTick(ControlState{Forward: true, Timestamp: currentTime})
+    a.ClientTick(ControlState{Forward: true, Lon: 0, Lat: 0, Timestamp: currentTime})
 }
