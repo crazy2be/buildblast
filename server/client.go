@@ -119,13 +119,13 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 }
 
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	hitPos := c.player.ClientTick(m.Controls)
+	shotPos, _ := c.player.ClientTick(m.Controls)
 
 	c.cm.QueueChunksNearby(w, c.player.Pos())
 
-	if hitPos != nil {
+	if shotPos != nil {
 		g.Broadcast(&MsgDebugRay{
-			Pos: *hitPos,
+			Pos: *shotPos,
 		})
 	}
 }

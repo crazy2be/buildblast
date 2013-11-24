@@ -169,11 +169,11 @@ func (p *PlayerBase) Inventory() *Inventory {
 	return p.inventory
 }
 
-func (p *PlayerBase) ClientTick(controls ControlState) *coords.World {
+func (p *PlayerBase) ClientTick(controls ControlState) (*coords.World, bool) {
 	// First frame
 	if p.controls.Timestamp == 0 {
 		p.controls = controls
-		return nil
+		return nil, false
 	}
 
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
@@ -187,16 +187,16 @@ func (p *PlayerBase) ClientTick(controls ControlState) *coords.World {
 	}
 
 	hitPos := p.simulateBlaster(controls)
-	p.simulateMovement(dt, controls)
+	collided := p.simulateMovement(dt, controls)
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.Pos())
 
-	return hitPos
+	return hitPos, collided
 }
 
-func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) {
+func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) bool {
 	//Any changes to metrics will not be reflect in the player until we set
 	//	it. This means don't go calling function on yourself that expect
 	//	us to have changed stuff, as we don't set metrics until the end
@@ -231,7 +231,10 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) {
 
 	box := p.Box()
 
-	move = box.AttemptMove(p.world, move)
+	newMove := box.AttemptMove(p.world, move)
+	
+	collided := newMove != move
+	move = newMove
 
 	if move.Y == 0 {
 		if controls.Jump {
@@ -255,8 +258,9 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) {
 	metrics.Look.Y = cos(lat)
 	metrics.Look.Z = sin(lat) * sin(lon)
 
-
 	p.Metrics().Set(metrics)
+	
+	return collided
 }
 
 func (p *PlayerBase) simulateBlaster(controls ControlState) *coords.World {

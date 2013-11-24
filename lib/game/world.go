@@ -118,7 +118,7 @@ func NewWorld(seed float64, announce func (message string)) *World {
 		Points: 0,
 	})
 	
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 50; i++ {
 		name := "AI " + strconv.Itoa(i)
 		w.EntitiesObserv.Set(name, NewAi(w, name))
 	}
@@ -306,11 +306,11 @@ func (w *World) generationTick() {
 
 func (w *World) FindSpawn() coords.World {
 	l := len(w.spawns)
-	if l <= 0 {
+	if l <= 0 || true {	
 		return coords.World{
-			X: 0,
+			X: rand.Float64() * 20 - 10,
 			Y: 21,
-			Z: 100,
+			Z: rand.Float64() * 100,
 		}
 	}
 	//QTODO: Stop hardcoding the spawn.
