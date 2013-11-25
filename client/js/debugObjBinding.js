@@ -170,6 +170,24 @@ define(function(require) {
 		}
 	}
 
+	var runningAnims = {};
+	var minTime = 1 / 60 * 1000;
+	function applyAnimation(elem, className) {
+		var curTime = new Date().getTime();
+		var debugID = elem.parentElement.getAttribute("debugID");
+		if(runningAnims[debugID] + minTime > curTime) return;
+		runningAnims[debugID] = curTime;
+		
+		$(elem).on('webkitAnimationEnd', function() {
+			runningAnims[debugID] = 0;
+		})
+		
+		$(elem).removeClass(className);
+		setTimeout(function(){
+			$(elem).addClass(className);
+		}, 0)
+	}
+
 	//TODO: Accept and observable and handle updates efficiently..
 	ko.bindingHandlers.foreachObject = {
 		init: function(element, valueAccessor) {
@@ -273,6 +291,17 @@ define(function(require) {
 				localData.selected(selectedNode === localData);
 			});
 			
+			localData.collapsed = ko.observable(false);
+			
+			localData.collapsed.subscribe(function(collapse){
+				localData.children.forEach(function(child){
+					if(collapse) {
+						$(child.elem).hide();
+					} else {
+						$(child.elem).show();
+					}
+				})
+			})
 			
 			
 			if(!localData.isObj) {
@@ -282,6 +311,10 @@ define(function(require) {
 				element.appendChild(leafNode);
 				
 				localData.refresh = function(data) {
+					if(!localData.isObserv) {
+						applyAnimation(selIndiNode, "observChanged");
+					}
+					
 					localData.data = data;
 					var titlePart = localData.name + ": ";
 					leafNode.textContent = makeIndents(localData.level * 4) + titlePart + localData.getData();
@@ -300,7 +333,6 @@ define(function(require) {
 				
 				selIndiNode = titleNode;
 				
-				
 				var ourObserv = localData.isObserv ? 
 					localData.data.obs :
 					ko.observable(localData.data);
@@ -308,6 +340,9 @@ define(function(require) {
 				var mapObs = new MapObservable(ourObserv, true);
 				
 				localData.refresh = function(data) {
+					if(!localData.isObserv) {
+						applyAnimation(selIndiNode, "observChanged");
+					}
 					localData.data = data;
 					ourObserv(localData.getData());
 				};
@@ -351,6 +386,8 @@ define(function(require) {
 				});
 				
 				mapObs.onChange(function(key, value){
+					applyAnimation(selIndiNode, "observChanged");
+					
 					for(var k in localData.children) {
 						var child = localData.children[k];
 						if(child.name !== key) continue;
@@ -385,17 +422,23 @@ define(function(require) {
 				if(!$(element).is(":visible")) return;
 				if(!event.altKey) return;
 				
-				var curNode = selectedNode();
-				switch(event.keyCode) {
-				case 32: //' ', toggle collapsed
-					curNode.collapsed(!curNode.collapsed());
-					break;
-				case 37: //left arrow, move to parent node
-					if(!curNode.parent) return;
+				function toParent() {
+					var curNode = selectedNode();
+					if(!curNode.parent) return false;
 					selectedNode(curNode.parent);
-					break;
-				case 38: //up arrow, move to sibling node
-					if(!curNode.parent) return;
+					return true;
+				}
+				function toFirstChild() {
+					var curNode = selectedNode();
+					if(curNode.collapsed()) return false;
+					var firstChild = firstProp(curNode.children);
+					if(!firstChild) return false;
+					selectedNode(firstChild);
+					return true;
+				}
+				function toPrevSibling() {
+					var curNode = selectedNode();
+					if(!curNode.parent) return false;
 					var prevSibling;
 					for(var key in curNode.parent.children) {
 						var sibling = curNode.parent.children[key];
@@ -404,28 +447,69 @@ define(function(require) {
 						}
 						prevSibling = sibling;
 					}
-					if(!prevSibling) return;
+					if(!prevSibling) return false;
 					selectedNode(prevSibling);
-					break;
-				case 39: //right arrow, move to first child node
-					var firstChild = firstProp(curNode.children);
-					if(!firstChild) return;
-					selectedNode(firstChild);
-					break;
-				case 40: //down arrow, move to sibling node
-					if(!curNode.parent) return;
+					return true;
+				}
+				function toNextSibling() {
+					var curNode = selectedNode();
+					if(!curNode.parent) return false;
 					var breakNext;
 					var nextSibling;
 					for(var key in curNode.parent.children) {
 						var sibling = curNode.parent.children[key];
-						nextSibling = sibling;
-						if(breakNext) break;
+						if(breakNext) {
+							nextSibling = sibling;
+							break;
+						}
 						if(sibling === curNode) {
 							breakNext = true;
 						}
 					}
-					if(!nextSibling) return;
+					if(!nextSibling) return false;
 					selectedNode(nextSibling);
+					return true;
+				}
+				function toLastChild() {
+					var curNode = selectedNode();
+					var breakNext;
+					var child;
+					for(var key in curNode.children) {
+						child = curNode.children[key];
+					}
+					if(!child) return false;
+					selectedNode(child);
+					return true;
+				}
+				
+				var curNode = selectedNode();
+				switch(event.keyCode) {
+				case 32: //' ', toggle collapsed
+					curNode.collapsed(!curNode.collapsed());
+					break;
+				case 37: //left arrow, move to parent node
+					toParent();
+					break;
+				case 38: //up arrow, move to sibling node
+					if(!toPrevSibling()) {
+						toParent();
+					}
+					break;
+				case 39: //right arrow, move to first child node
+					if(!toFirstChild()) {
+						if(!toNextSibling()) {
+							toParent();
+							toNextSibling();
+						}
+					}
+					break;
+				case 40: //down arrow, move to sibling node
+					if(!toNextSibling()) {
+						if(!toFirstChild()) {
+							toParent();
+							toNextSibling();
+						}
+					}
 					break;
 				}
 			});

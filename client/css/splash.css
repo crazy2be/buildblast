@@ -61,6 +61,36 @@
 	height: 570px; /*calc(100% - 200px) doesn't work... so I just give up...*/
 }
 
+.debugDataChanged {
+	-webkit-animation-delay: 0.5s;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-fill-mode: forwards;
+	-webkit-animation-name: fadeHalfOut;
+}
+@-webkit-keyframes fadeHalfOut {
+	0% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0.5;
+	}
+}
+
+.observChanged {
+	-webkit-animation-duration: 0.5s;
+	-webkit-animation-name: observChangedFrames;
+}
+@-webkit-keyframes observChangedFrames {
+	0% {
+		color: white;
+	}
+
+	100% {
+		color: black;
+	}
+}
+
 #container.interactive #stats {
 	display: none;
 }
