@@ -140,14 +140,14 @@ define(function () {
         }
 
         function keyDown(event) {
-            if (actionStart(event.keyCode)) {
+            if (!event.altKey && actionStart(event.keyCode)) {
                 event.preventDefault();
                 event.stopPropagation();
             }
         }
 
         function keyUp(event) {
-            if (actionEnd(event.keyCode)) {
+            if (!event.altKey && actionEnd(event.keyCode)) {
                 event.preventDefault();
                 event.stopPropagation();
             }

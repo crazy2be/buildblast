@@ -42,9 +42,27 @@
 					<div class="teamScore" data-bind="style: {'background-color': Color, width: Points / $root.KOTH_CONSTS().MaxPoints * 100 + '%'}"></div>
 				</div>
 				<div class="scoreRightPlaceHolder health-width topHUDHeight">
-					
+					<button data-bind="showHideDebug: $('.debugData')">Show Debug Data</button>
 				</div>
 				<div id="info" class="center"></div>
+				<div class="center1"><div class="center2"><div class="center3">
+					<div class="debugData" data-bind="debugObj: $data"></div>
+					<!--
+					<div class="debugData" data-bind="template: { name: 'data-view-template', data: $data }">
+					</div>
+					<script type="text/html" id="data-view-template">
+						<div data-bind="foreachObject: $data">
+					    	<div data-bind="text: key"></div>
+							<div data-bind="if: typeof data !== 'object'">
+								<div data-bind="text: data"></div>
+							</div>
+							<div data-bind="if: typeof data === 'object'">
+								<div data-bind="template: { name: 'data-view-template', data: data }"></div>
+							</div>
+						</div>
+					</script>
+					-->
+				</div></div></div>
 				<div id="crosshair"></div>
 				<div class="bottom">
 					<div id="chat">

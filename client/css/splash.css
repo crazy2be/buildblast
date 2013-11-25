@@ -29,9 +29,36 @@
 }
 #info {
 	position: absolute;
-	top: 0px;
+	top: 50px;
+	left: 0px;
 	width: 100%;
 	padding: 5px;
+}
+
+.center1 {
+	pointer-events: none;
+	position: absolute;
+	top: 70px;
+	left: 0px;
+	margin-left: 50vw;
+	
+	width: 100vw;
+	height: 100vh;
+}
+.center2 {
+	display: inline-block;
+}
+.center3 {
+	margin-left: -50%;
+	
+	display:inline-block;
+}
+.debugData {
+	white-space: pre;
+	padding: 5px;
+	background: hsla(0, 0%, 100%, 0.5);
+	overflow: auto;
+	height: 570px; /*calc(100% - 200px) doesn't work... so I just give up...*/
 }
 
 #container.interactive #stats {

@@ -7,6 +7,8 @@ define(function(require) {
 	var colorPicker = require("shared/colorPicker");
 	
 	var ko = require("knockout");
+	
+	var debugObjBinding = require("debugObjBinding");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;
@@ -29,7 +31,7 @@ define(function(require) {
 			return arr;
 		})
 
-		ko.applyBindings(self, $(".scoreHolder")[0])
+		ko.applyBindings(self, $("#container")[0])
 
 		self.addUserPlayer = entityManager.addUserPlayer;
 
@@ -59,6 +61,7 @@ define(function(require) {
 		    hillMesh.scale.set(radius, radius, radius)
 		    hillGeom.needsUpdate = true;
 		    hillMesh.position = hillCenter;
+			self.hillSphere = hillCenter;
 		})
 		
 		conn.on('hill-color-set', function (payload) {

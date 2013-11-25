@@ -68,6 +68,10 @@ a {
 	text-align: center;
 }
 
+.hide {
+	opacity: 0;
+}
+
 .topHUDHeight {
 	height: 44px;
 }
