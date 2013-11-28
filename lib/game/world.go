@@ -118,7 +118,7 @@ func NewWorld(seed float64, announce func (message string)) *World {
 		Points: 0,
 	})
 	
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 0; i++ {
 		name := "AI " + strconv.Itoa(i)
 		w.EntitiesObserv.Set(name, NewAi(w, name))
 	}

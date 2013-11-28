@@ -13,6 +13,9 @@ define(function(require) {
 	return function World(scene, conn, clientID, clock) {
 		var self = this;
 
+		//Hmm... this really makes testing easier
+		window.world = self;
+
 		var chunkManager = new ChunkManager(scene, clientID);
 		var entityManager = new EntityManager(scene, conn, self, clock);
 		

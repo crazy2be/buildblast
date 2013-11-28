@@ -10,9 +10,6 @@ define(function(require) {
 	
 	var $ = require("jquery");
 
-	//We polute the object hierarchy sooo much... as long as anything speed critical is private
-	//	inside world we should be fine though...
-
 	function makeIndents(level) {
 		var text = '';
 		while(level --> 0) {
@@ -28,7 +25,8 @@ define(function(require) {
 	}
 
 	function LhsHasRhs(lhs, rhs) {
-		if (typeof rhs !== 'object') {
+		if(lhs === rhs) return true;
+		if (typeof lhs !== 'object' || typeof rhs !== 'object') {
 			return lhs === rhs;
 		}
 		for (var key in rhs) {
@@ -40,34 +38,37 @@ define(function(require) {
 	}
 	
 	function ObjEqual(lhs, rhs) {
-		return LhsHasRhs(lhs, rhs) && LhsHasRhs(lhs, rhs)
+		return LhsHasRhs(lhs, rhs) && LhsHasRhs(rhs, lhs)
 	}
 
 	function StripObservables(obj) {
-		var copy;
 		if(typeof obj === 'function') {
 			if(!obj.subscribe) return;
-			copy = obj();
+			obj = obj();
 		}
 		
 		if(typeof obj !== 'object') {
 			return obj;
 		}
 		
-		copy = {};
+		var copy = {};
 		for(var key in obj) {
 			copy[key] = StripObservables(obj[key]);
 		}
 		return copy;
 	}
-
+	
 	//We have no recursive handingly... so don't do that...
 	//	(adding/removing in an onAdd/onRemove)
 	function MapObservable(observ, myObjsRequireOnChanged) {
 		var self = this;
 		
-		var cachedData = observ();
+		var cachedData = {};
 		observ.subscribe(onNewData);
+			
+		function Skip(obj) {
+			return obj && typeof obj === 'function' && (obj.name === "dependentObservable" || !obj.subscribe);
+		}
 			
 		function onNewData(newData){
 			var removedKeys = {};
@@ -75,7 +76,7 @@ define(function(require) {
 			var changedKeys = {}
 			
 			for(var key in newData) {				
-				if(newData[key].name === "dependentObservable") continue;
+				if(Skip(newData[key])) continue;
 				
 				var newDatum = StripObservables(newData[key]);
 				
@@ -94,7 +95,7 @@ define(function(require) {
 			}
 			
 			for(var key in cachedData) {
-				if(cachedData[key].name === "dependentObservable") continue;
+				if(Skip(cachedData[key])) continue;
 				if(typeof newData === 'undefined') {
 					removedKeys[key] = key;
 				}
@@ -115,7 +116,7 @@ define(function(require) {
 			
 			cachedData = {};
 			for(var key in newData) {				
-				if(newData[key].name === "dependentObservable") continue;
+				if(Skip(newData[key])) continue;
 				
 				var newDatum = StripObservables(newData[key]);
 				cachedData[key] = newDatum;
@@ -146,7 +147,7 @@ define(function(require) {
 			addCallbacks.push(callback);
 			
 			for(var key in cachedData) {
-				if(cachedData[key].name === "dependentObservable") continue;
+				if(Skip(cachedData[key])) continue;
 				callback(key, cachedData[key]);
 			}
 		}
@@ -168,6 +169,8 @@ define(function(require) {
 		self.set = function(data) {
 			observ(data);
 		}
+		
+		onNewData(observ());
 	}
 
 	var runningAnims = {};
@@ -235,9 +238,11 @@ define(function(require) {
 			var data = params.data;
 			var level = params.level;
 			var isObserv = params.isObserv;
+			var displayedName = name;
 			
 			if(isObserv) {
-				name = "(obs)" + name;
+				displayedName = "(obs)" + name;
+				data = params.data.obs;
 			}
 			
 			var ourNumber = curNumber++;
@@ -253,10 +258,11 @@ define(function(require) {
 			localData.name = name;
 			localData.isObserv = isObserv;
 			localData.elem = element;
+			localData.displayedName = displayedName;
 			
 			localData.getData = function() {
 				if(localData.isObserv) {
-					return localData.data.obs();
+					return localData.data();
 				} else {
 					return localData.data;
 				}
@@ -316,25 +322,25 @@ define(function(require) {
 					}
 					
 					localData.data = data;
-					var titlePart = localData.name + ": ";
+					var titlePart = localData.displayedName + ": ";
 					leafNode.textContent = makeIndents(localData.level * 4) + titlePart + localData.getData();
 				};
 				
 				if(localData.isObserv) {
-					localData.data.obs.subscribe(function() {
+					localData.data.subscribe(function() {
 						localData.refresh(localData.data);
 					});
 				}
 				
 			} else {
 				var titleNode = document.createElement('div');
-				titleNode.textContent = makeIndents(localData.level * 4) + localData.name;
+				titleNode.textContent = makeIndents(localData.level * 4) + localData.displayedName;
 				element.appendChild(titleNode);
 				
 				selIndiNode = titleNode;
 				
 				var ourObserv = localData.isObserv ? 
-					localData.data.obs :
+					localData.data :
 					ko.observable(localData.data);
 				
 				var mapObs = new MapObservable(ourObserv, true);
@@ -407,16 +413,19 @@ define(function(require) {
 			var debugDisplay = document.createElement('div');
 			
 			var dataSource = valueAccessor();
+
+			var dataObserv = ko.observable(dataSource);
+
+			debugDisplay.setAttribute('data-bind', 'debugDisplayNode: {name: "ALT-Space to collapse", data: $data, level: -1}');			
+			element.appendChild(debugDisplay);
+			ko.applyBindings({obs: dataObserv}, debugDisplay);
 			
-			//Give the world some time to populate (our update logic is non-existent, so we don't recognize new properties)
-			setTimeout(function () {
-				debugDisplay.setAttribute('data-bind', 'debugDisplayNode: {name: "ALT-Space to collapse", data: $data, level: -1}');
-
-				element.appendChild(debugDisplay);
-
-				//debugDisplay.appendChild(objectToNestedDivs(plainObject, 0));
-				ko.applyBindings(dataSource, debugDisplay);
-			}, 500);
+			//Our top level world doesn't have proper observable structure (or may
+			//	not, as this is for debugging that would be something to debug)...
+			//	so we have to poll to update it.
+			setInterval(function () {
+				dataObserv(dataSource);
+			}, 5500, 500);
 			
 			$('#container').keydown(function(event){
 				if(!$(element).is(":visible")) return;

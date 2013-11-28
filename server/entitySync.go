@@ -5,6 +5,7 @@ import (
 	"buildblast/lib/game"
 	"buildblast/lib/observ"
 	"fmt"
+	"time"
 )
 
 type EntitySync struct {
@@ -26,21 +27,6 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 		world: world,
 		conn:  conn,
 	}
-	
-	type TestData struct{
-		Truth	bool
-		Text	string
-		Num 	float64
-	}
-	
-	e.conn.Send(&MsgKoIntegrate{
-		Name: "TestData",
-		Value: TestData {
-			Truth: true,
-			Text: "texty",
-			Num: 5.234032,
-		},
-	});
 
 	e.WatchLeaks("EntitySync")
 
@@ -70,7 +56,29 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 		})
 	})
 
+	go e.TestFnc()
+
 	return e
+}
+
+func (e *EntitySync) TestFnc() {
+	type TestData struct{
+		Truth	bool
+		Text	string
+		Num 	float64
+	}
+	
+	select {
+    case <-time.After(1 * time.Second):
+		e.conn.Send(&MsgKoIntegrate{
+			Name: "TestData",
+			Value: TestData {
+				Truth: true,
+				Text: "texty",
+				Num: 5.234032,
+			},
+		});
+    }
 }
 
 
