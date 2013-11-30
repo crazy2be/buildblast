@@ -433,7 +433,7 @@ define(function(require) {
 			//	so we have to poll to update it.
 			setInterval(function () {
 				dataObserv(dataSource);
-			}, 5500, 500);
+			}, 500, 500);
 			
 			$('#container').keydown(function(event){
 				if(!$(element).is(":visible")) return;
