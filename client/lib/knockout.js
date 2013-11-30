@@ -1083,6 +1083,7 @@ ko.dependencyDetection = (function () {
         }
     };
 })();
+var koCurID = 0;
 ko.observable = function (initialValue) {
     var _latestValue = initialValue;
 
@@ -1111,6 +1112,8 @@ ko.observable = function (initialValue) {
     observable.valueHasMutated = function () { observable["notifySubscribers"](_latestValue); }
     observable.valueWillMutate = function () { observable["notifySubscribers"](_latestValue, "beforeChange"); }
     ko.utils.extend(observable, ko.observable['fn']);
+
+	observable.koID = koCurID++;
 
     ko.exportProperty(observable, 'peek', observable.peek);
     ko.exportProperty(observable, "valueHasMutated", observable.valueHasMutated);

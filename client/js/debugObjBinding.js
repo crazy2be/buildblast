@@ -64,6 +64,7 @@ define(function(require) {
 		var self = this;
 		
 		var cachedData = {};
+		var curData = observ();
 		observ.subscribe(onNewData);
 			
 		function Skip(obj) {
@@ -121,14 +122,16 @@ define(function(require) {
 				var newDatum = StripObservables(newData[key]);
 				cachedData[key] = newDatum;
 			}
+			
+			curData = newData;
 		}
 		
-		function removed(key, value) {
+		function added(key, value) {
 			addCallbacks.forEach(function(callback){
 				callback(key, value);
 			})
 		}
-		function added(key, value) {
+		function removed(key, value) {
 			removeCallbacks.forEach(function(callback){
 				callback(key, value);
 			})
@@ -146,9 +149,9 @@ define(function(require) {
 		self.onAdd = function(callback) {
 			addCallbacks.push(callback);
 			
-			for(var key in cachedData) {
-				if(Skip(cachedData[key])) continue;
-				callback(key, cachedData[key]);
+			for(var key in curData) {
+				if(Skip(curData[key])) continue;
+				callback(key, curData[key]);
 			}
 		}
 		
@@ -237,12 +240,12 @@ define(function(require) {
 			var name = params.name;
 			var data = params.data;
 			var level = params.level;
-			var isObserv = params.isObserv;
+			var isObserv = params.isObserv || (data && data.obs);
 			var displayedName = name;
 			
 			if(isObserv) {
 				displayedName = "(obs)" + name;
-				data = params.data.obs;
+				data = data.obs;
 			}
 			
 			var ourNumber = curNumber++;
@@ -346,11 +349,16 @@ define(function(require) {
 				var mapObs = new MapObservable(ourObserv, true);
 				
 				localData.refresh = function(data) {
+					localData.data = data;
+					
 					if(!localData.isObserv) {
 						applyAnimation(selIndiNode, "observChanged");
+						//ourObserv.valueHasMutated() will work too... but this is safer
+						//	(cause the whole observable may have been destroyed and remade)
+						ourObserv(localData.getData());
+					} else {
+						ourObserv(localData.getData());
 					}
-					localData.data = data;
-					ourObserv(localData.getData());
 				};
 		
 				var subLevel = localData.level + 1;
