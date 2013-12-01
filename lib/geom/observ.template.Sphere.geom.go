@@ -32,6 +32,10 @@ func (o *Observ_Sphere) OnChanged(owner observ.CallbackOwner, callback ObservCal
 	})
 }
 
-func (o *Observ_Sphere) MakeSerializable() *observ.ObservSerialized {
-	return o.base.MakeSerializable();
+func (o *Observ_Sphere) MarshalJSON() ([]byte, error) {
+	return o.base.MarshalJSON();
+}
+
+func (o *Observ_Sphere) GetBase() *observ.Observ {
+	return o.base
 }

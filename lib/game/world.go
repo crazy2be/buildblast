@@ -18,6 +18,10 @@ type BlockListener interface {
 	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
 }
 
+type KOTH_CONSTS struct {
+	MaxPoints		*observT.Observ_int
+}
+
 type World struct {
     observ.DisposeExposedImpl
 
@@ -30,7 +34,8 @@ type World struct {
 	
 	EntitiesObserv	*ObservMap_string_Entity
 	Teams			*ObservMap_string_Team
-	MaxPoints		*observT.Observ_int
+	//MaxPoints		*observT.Observ_int
+	KOTH_CONSTS		*KOTH_CONSTS
 
     //Currently the gamemode is always KOTH (king of the hill), and KOTH is hardcoded into
     //  the code. In the future it should be separated (once we write a few modes and find
@@ -65,7 +70,9 @@ func NewWorld(seed float64, announce func (message string)) *World {
 	
 	w.Teams.OnAdd(w, w.TeamAdded)
 	
-	w.MaxPoints = observT.NewObserv_int(w, 60 * 35)
+	w.KOTH_CONSTS = &KOTH_CONSTS{
+		MaxPoints: 	observT.NewObserv_int(w, 60 * 35),
+	}
 	
     w.HillSphere = geom.NewObserv_Sphere(w, geom.Sphere{
         Center: coords.World{
@@ -127,7 +134,7 @@ func NewWorld(seed float64, announce func (message string)) *World {
 }
 
 func (w *World) TeamAdded(key string, team Team) {
-	if team.Points < w.MaxPoints.Get() { return }
+	if team.Points < w.KOTH_CONSTS.MaxPoints.Get() { return }
 	
 	w.announce(team.Name + " has won, game is restarting NOW")
 	
@@ -193,7 +200,7 @@ func (w *World) Tick() {
 		teamOnHill.Points += teamsOnHill[aTeamOnHill]
 		
 		//We cap the sum of all points in the game to MaxPoints
-		MaxPoints := w.MaxPoints.Get()
+		MaxPoints := w.KOTH_CONSTS.MaxPoints.Get()
 		
 		fncSumTeamStuff := func(fncSelect func(team Team) int) int {
 			curCount := 0

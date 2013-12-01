@@ -4,6 +4,7 @@ import (
     "buildblast/lib/geom"
 	"buildblast/lib/game"
 	"buildblast/lib/observ"
+	"buildblast/lib/observT"
 	"fmt"
 	"time"
 	"math/rand"
@@ -14,9 +15,8 @@ type EntitySync struct {
 
 	world *game.World
 	conn  *ClientConn
+	testObserv  *observT.Observ_int
 }
-
-
 
 //Should just use conn to send data, never to receive
 func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
@@ -24,10 +24,13 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 
 	observ.PrintLeaks()
 
-	e := &EntitySync{
-		world: world,
-		conn:  conn,
-	}
+	e := new(EntitySync)
+	e.world = world
+	e.conn = conn
+	
+	e.testObserv = observT.NewObserv_int(e, 5)
+
+	SyncObserv(e.conn, e, "testObserv", e.testObserv.GetBase())
 
 	e.WatchLeaks("EntitySync")
 
@@ -48,7 +51,9 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	e.world.Teams.OnAdd(e, e.TeamAdded)
 	
-	e.world.MaxPoints.OnChanged(e, func(maxPoints int){
+	SyncObject(e.conn, e, "testObserv2", e.testObserv)
+	
+	e.world.KOTH_CONSTS.MaxPoints.OnChanged(e, func(maxPoints int){
 		//This is overkill...
 		e.conn.Send(&MsgObjPropSet{
 			ObjectName: "KOTH_CONSTS",
@@ -70,7 +75,8 @@ func (e *EntitySync) TestFnc() {
 	}
 	
 	select {
-    case <-time.After(1 * time.Second):
+    case <-time.After(1000 * time.Millisecond):
+		e.testObserv.Set(rand.Int())
 		e.conn.Send(&MsgKoIntegrate{
 			Name: "TestData",
 			Value: TestData {
