@@ -3,7 +3,7 @@ BuildBlast
 
 Experimental, voxel-based, interactive, multiplayer, dynamic, real-time world. Features server side validation and lag compensation.
 
-Try it: **[buildblast.com](http://www.buildblast.com)**
+Try it: **[bb.jmcgirr.com](http://bb.jmcgirr.com)**
 
 Installation
 ---------------
