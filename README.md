@@ -1,12 +1,12 @@
 BuildBlast
-======
+==========
 
-Experimental, 3d, voxel-based, interactive, multiplayer, dynamic, real-time world. Features server side validation and lag compensation.
+![screenshot from 2013-11-11 21 30 30](https://f.cloud.github.com/assets/667720/1649707/9facbdc8-5a20-11e3-846e-02a3234c9d58.png)
 
-Try it: **[bb.jmcgirr.com](http://bb.jmcgirr.com)**
+Try it: **[Stable server](http://bb.jmcgirr.com)** or [dev server](http://quentinbrooks.com)
 
 Installation
----------------
+------------
 
 [Install go](http://golang.org/doc/install), set up your [GOPATH](http://golang.org/doc/code.html#GOPATH), then
 
