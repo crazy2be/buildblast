@@ -320,9 +320,7 @@ define(function(require) {
 				element.appendChild(leafNode);
 				
 				localData.refresh = function(data) {
-					if(!localData.isObserv) {
-						applyAnimation(selIndiNode, "observChanged");
-					}
+					applyAnimation(selIndiNode, "observChanged");
 					
 					localData.data = data;
 					var titlePart = localData.displayedName + ": ";
@@ -351,14 +349,10 @@ define(function(require) {
 				localData.refresh = function(data) {
 					localData.data = data;
 					
-					if(!localData.isObserv) {
-						applyAnimation(selIndiNode, "observChanged");
-						//ourObserv.valueHasMutated() will work too... but this is safer
-						//	(cause the whole observable may have been destroyed and remade)
-						ourObserv(localData.getData());
-					} else {
-						ourObserv(localData.getData());
-					}
+					applyAnimation(selIndiNode, "observChanged");
+					//ourObserv.valueHasMutated() will work too... but this is safer
+					//	(cause the whole observable may have been destroyed and remade)
+					ourObserv(localData.getData());
 				};
 		
 				var subLevel = localData.level + 1;

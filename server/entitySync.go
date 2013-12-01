@@ -6,6 +6,7 @@ import (
 	"buildblast/lib/observ"
 	"fmt"
 	"time"
+	"math/rand"
 )
 
 type EntitySync struct {
@@ -75,9 +76,10 @@ func (e *EntitySync) TestFnc() {
 			Value: TestData {
 				Truth: true,
 				Text: "texty",
-				Num: 5.234032,
+				Num: rand.Float64(),
 			},
 		});
+		e.TestFnc()
     }
 }
 
