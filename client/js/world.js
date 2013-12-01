@@ -56,6 +56,11 @@ define(function(require) {
 
 		scene.add(hillMesh);
 
+		self.testObserv = ko.observable(5);
+		window.setInterval(function() {
+			self.testObserv.valueHasMutated();
+		}, 1000);
+
 		self.hillSphere = null;
 		conn.on('hill-move', function (payload) {
 		    var hillCenter = new THREE.Vector3(payload.Sphere.Center.X, payload.Sphere.Center.Y, payload.Sphere.Center.Z);
@@ -79,17 +84,56 @@ define(function(require) {
 			self[payload.ObjectName].valueHasMutated();
 		})
 		
+		var SerialCtors = {
+			Observable: function() { return ko.observable(); }
+		};
+		
+		var IntegrateFncs = {
+			Observable: function(ctxHolder, key, newData) {				
+				var data = newData.Data;
+				if(typeof data === 'object') {
+					koIntegrate(ctxHolder[key](), data)
+					ctxHolder[key].valueHasMutated();
+				} else {
+					ctxHolder[key](data);
+				}
+			}
+		};
+		
 		function koIntegrate(dest, data) {
 			//Hmm... basic data types will be observables
-			
 			for(var key in data) {
-				if(typeof data[key] === 'object') {
-					dest[key] = dest[key] || {};
-					koIntegrate(dest[key], data[key])
-				} else {
-					dest[key] = dest[key] || ko.observable();
-					dest[key](data[key]);
+				var ctorFnc = function(data) {
+					if(typeof data === 'object') {
+						return {};
+					} else {
+						return ko.observable();
+					}
+				};
+				var integrateFnc = function(destHolder, key, data) {
+					if(typeof data[key] === 'object') {
+						koIntegrate(destHolder[key], data);
+					} else {
+						destHolder[key](data);
+					}
+				};
+				var Type = data[key].Type;
+				if(typeof Type !== 'undefined') {
+					var ctor = SerialCtors[Type];
+					if(!ctor) {
+						console.warn("Constructor for " + Type + " cannot be found, just serializing as Object");
+					} else {
+						ctorFnc = ctor;
+					}
+					
+					integrateFnc = IntegrateFncs[Type] || integrateFnc;
 				}
+				
+				if(typeof dest[key] === 'undefined') {
+					dest[key] = ctorFnc();
+				}
+				
+				integrateFnc(dest, key, data[key]);
 			}
 			
 			return dest;

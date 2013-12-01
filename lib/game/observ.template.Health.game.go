@@ -31,3 +31,7 @@ func (o *Observ_Health) OnChanged(owner observ.CallbackOwner, callback ObservCal
 		callback(obj.(Health))
 	})
 }
+
+func (o *Observ_Health) MakeSerializable() *observ.ObservSerialized {
+	return o.base.MakeSerializable();
+}

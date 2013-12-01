@@ -31,3 +31,7 @@ func (o *Observ_int) OnChanged(owner observ.CallbackOwner, callback ObservCallba
 		callback(obj.(int))
 	})
 }
+
+func (o *Observ_int) MakeSerializable() *observ.ObservSerialized {
+	return o.base.MakeSerializable();
+}

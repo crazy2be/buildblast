@@ -31,3 +31,7 @@ func (o *Observ_string) OnChanged(owner observ.CallbackOwner, callback ObservCal
 		callback(obj.(string))
 	})
 }
+
+func (o *Observ_string) MakeSerializable() *observ.ObservSerialized {
+	return o.base.MakeSerializable();
+}

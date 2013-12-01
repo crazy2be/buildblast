@@ -31,3 +31,7 @@ func (o *Observ_Metrics) OnChanged(owner observ.CallbackOwner, callback ObservCa
 		callback(obj.(Metrics))
 	})
 }
+
+func (o *Observ_Metrics) MakeSerializable() *observ.ObservSerialized {
+	return o.base.MakeSerializable();
+}

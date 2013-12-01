@@ -31,3 +31,7 @@ func (o *Observ_Sphere) OnChanged(owner observ.CallbackOwner, callback ObservCal
 		callback(obj.(Sphere))
 	})
 }
+
+func (o *Observ_Sphere) MakeSerializable() *observ.ObservSerialized {
+	return o.base.MakeSerializable();
+}
