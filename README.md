@@ -1,18 +1,17 @@
 BuildBlast
 ======
 
-Experimental, voxel-based, interactive, multiplayer, dynamic, real-time world. Features server side validation and lag compensation.
+Experimental, 3d, voxel-based, interactive, multiplayer, dynamic, real-time world. Features server side validation and lag compensation.
 
 Try it: **[bb.jmcgirr.com](http://bb.jmcgirr.com)**
 
 Installation
 ---------------
 
+Install go, set up your [GOPATH](http://golang.org/doc/code.html#GOPATH), then
+
 	cd $GOPATH/src
 	git clone git://github.com/crazy2be/buildblast.git buildblast
-	go get buildblast/server
-
-(Note that you will need to [install go](http://golang.org/doc/install) and have a [working GOPATH](http://golang.org/doc/code.html) for this to work.)
 
 To play,
 
@@ -20,7 +19,8 @@ To play,
 	./runserver
 	google-chrome http://localhost:8080
 	
-	
+
+<!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. -->
 Development
 -----------
 Make a branch, develop your feature/bugfix, and send a pull request. A couple tips:
