@@ -51,16 +51,18 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	e.world.Teams.OnAdd(e, e.TeamAdded)
 	
-	SyncObject(e.conn, e, "testObserv2", e.testObserv)
+	SyncObject(e.conn, e, "testObserv2", e.testObserv.GetBase())
+	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
 	
+	/*
 	e.world.KOTH_CONSTS.MaxPoints.OnChanged(e, func(maxPoints int){
-		//This is overkill...
 		e.conn.Send(&MsgObjPropSet{
 			ObjectName: "KOTH_CONSTS",
 		    PropName:	"MaxPoints",
 			Value:		maxPoints,
 		})
 	})
+	*/
 
 	go e.TestFnc()
 
@@ -74,19 +76,20 @@ func (e *EntitySync) TestFnc() {
 		Num 	float64
 	}
 	
-	select {
-    case <-time.After(1000 * time.Millisecond):
-		e.testObserv.Set(rand.Int())
-		e.conn.Send(&MsgKoIntegrate{
-			Name: "TestData",
-			Value: TestData {
-				Truth: true,
-				Text: "texty",
-				Num: rand.Float64(),
-			},
-		});
-		e.TestFnc()
-    }
+	for {
+		select {
+	    case <-time.After(1000 * time.Millisecond):
+			e.testObserv.Set(rand.Int())
+			e.conn.Send(&MsgKoIntegrate{
+				Name: "TestData.nested.alot",
+				Value: TestData {
+					Truth: true,
+					Text: "texty",
+					Num: rand.Float64(),
+				},
+			})
+	    }
+	}
 }
 
 

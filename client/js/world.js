@@ -141,7 +141,15 @@ define(function(require) {
 		conn.on('ko-integrate', function(data) {
 			//So much easier to do this repackaging on the Javascript side
 			var obj = {};
-			obj[data.Name] = data.Value;
+			var name = data.Name;
+			var curName = name;
+			var curObj = obj;
+			while(name.indexOf(".") >= 0) {
+				curName = name.substring(0, name.indexOf("."));
+				curObj[curName] = curObj = {};
+				name = name.substring(curName.length + 1);
+			}
+			curObj[name] = data.Value;
 			koIntegrate(self, obj);
 		});
 		

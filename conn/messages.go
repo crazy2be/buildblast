@@ -239,7 +239,7 @@ type MsgObjPropSet struct {
 //	there is no need to make it handle messages specially, it can easily
 //	decipher the intent based on the structure.
 type MsgKoIntegrate struct {
-	Name		string
+	Name		string //Name should not contain the . symbol, as this is used to nest the Value
 	Value		interface{}
 }
 
