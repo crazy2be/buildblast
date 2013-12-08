@@ -5,7 +5,6 @@ import (
 	"reflect"
 
     "buildblast/lib/coords"
-	"buildblast/lib/geom"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 )
@@ -28,9 +27,6 @@ const (
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
-    MSG_HILL_MOVE       = MessageKind("hill-move")
-	MSG_HILL_COLOR_SET  = MessageKind("hill-color-set")
-    MSG_HILL_POINTS_SET = MessageKind("hill-points-set")
 	//The message to end all messages
 	MSG_KO_INTEGRATE	= MessageKind("ko-integrate")
 )
@@ -61,12 +57,6 @@ func kindToType(kind MessageKind) Message {
 		return &MsgInventoryState{}
 	case MSG_INVENTORY_MOVE:
 		return &MsgInventoryMove{}
-    case MSG_HILL_MOVE:
-        return &MsgHillMove{}
-    case MSG_HILL_COLOR_SET:
-        return &MsgHillColorSet{}
-    case MSG_HILL_POINTS_SET:
-        return &MsgHillPointsSet{}
 	case MSG_KO_INTEGRATE:
 		return &MsgKoIntegrate{}
 	}
@@ -103,13 +93,7 @@ func typeToKind(m Message) MessageKind {
 		return MSG_INVENTORY_STATE
 	case *MsgInventoryMove:
 		return MSG_INVENTORY_MOVE
-    case *MsgHillMove:
-		return MSG_HILL_MOVE
-	case *MsgHillColorSet:
-		return MSG_HILL_COLOR_SET
-    case *MsgHillPointsSet:
-		return MSG_HILL_POINTS_SET
-	case *MsgKoIntegrate:
+    case *MsgKoIntegrate:
 		return MSG_KO_INTEGRATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
@@ -195,19 +179,6 @@ type MsgInventoryState struct {
 type MsgInventoryMove struct {
 	From int
 	To   int
-}
-
-type MsgHillMove struct {
-	Sphere     	geom.Sphere
-}
-
-type MsgHillColorSet struct {
-	Color 		string
-}
-
-type MsgHillPointsSet struct {
-	ID          string
-    Points      int
 }
 
 //Basically all messages sent to the client should be in this format...
