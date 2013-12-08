@@ -17,6 +17,7 @@ type ObservMap struct {
 	
 	addCallbacks		map[int]ObservMapCallback
 	removeCallbacks		map[int]ObservMapCallback
+	changeCallbacks		map[int]ObservMapCallback
 }
 
 func NewObservMap(owner DisposeExposed) *ObservMap {
@@ -26,16 +27,21 @@ func NewObservMap(owner DisposeExposed) *ObservMap {
 		curCallbackNum: 0,
 		addCallbacks: make(map[int]ObservMapCallback, 0),
 		removeCallbacks: make(map[int]ObservMapCallback, 0),
+		changeCallbacks: make(map[int]ObservMapCallback, 0),
 	}
 	
 	o.SetCallback(func (kvpObj Object) {
 		kvp := kvpObj.(KVP);
+		prevValue := o.Get(kvp.Key)
 		if kvp.Value == nil {
-			prevValue := o.Get(kvp.Key)
 			delete(o.data, kvp.Key)
 			o.removed(kvp.Key, prevValue)
+			return
 		} else {
-			o.added(kvp.Key, kvp.Value)
+			if prevValue == nil {
+				o.added(kvp.Key, kvp.Value)
+			}
+			o.changed(kvp.Key, kvp.Value)
 		}
 	})
 	
@@ -61,47 +67,60 @@ func (o *ObservMap) removed(key Object, value Object) {
 		callback(key, value)
 	}
 }
+func (o *ObservMap) changed(key Object, value Object) {
+	for _, callback := range o.changedCallbacks {
+		callback(key, value)
+	}
+}
 
-func (o *ObservMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) int {
+func (o *ObservMap) addACallback(
+	owner CallbackOwner, 
+	callback ObservMapCallback, 
+	callbacks map[int]ObservMapCallback, 
+	offCallback func(callbackNum int)
+) int {
 	ourCallbackNum := o.curCallbackNum
 	o.curCallbackNum++
 	
-	o.addCallbacks[ourCallbackNum] = callback
+	callbacks[ourCallbackNum] = callback
 	
 	owner.OnDispose(func() {
-		o.NotOnAdd(ourCallbackNum)
+		offCallback(ourCallbackNum)
 	})
     if o.owner != nil {
 	    o.owner.OnDispose(func() {
-		    o.NotOnAdd(ourCallbackNum)
+		    offCallback(ourCallbackNum)
 	    })
     }
+}
+
+func (o *ObservMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) int {
+	ourCallbackNum := o.addACallback(owner, callback, o.addCallbacks, o.NotOnAdd);
+	
 	for key, value := range o.data {
 		callback(key, value)
 	}
 	return ourCallbackNum
 }
-func (o *ObservMap) NotOnAdd(callbackNum int) {
+func (o *ObservMap) OffAdd(callbackNum int) {
 	delete(o.addCallbacks, callbackNum)
 }
 
 func (o *ObservMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) int {	
-	ourCallbackNum := o.curCallbackNum
-	o.curCallbackNum++
+	return o.addACallback(owner, callback, o.removeCallbacks, o.NotOnRemove)
+}
+func (o *ObservMap) OffRemove(callbackNum int) {
+	delete(o.removeCallbacks, callbackNum)
+}
+
+func (o *ObservMap) OnChange(owner CallbackOwner, callback ObservMapCallback) int {
+	ourCallbackNum := o.addACallback(owner, callback, o.changeCallbacks, o.OffChanged);
 	
-    o.removeCallbacks[ourCallbackNum] = callback
-	
-	owner.OnDispose(func() {
-		o.NotOnRemove(ourCallbackNum)
-	})
-    if o.owner != nil {
-	    o.owner.OnDispose(func() {
-		    o.NotOnRemove(ourCallbackNum)
-	    })
-    }
-	
+	for key, value := range o.data {
+		callback(key, value)
+	}
 	return ourCallbackNum
 }
-func (o *ObservMap) NotOnRemove(callbackNum int) {
-	delete(o.removeCallbacks, callbackNum)
+func (o *ObservMap) OffChange(callbackNum int) {
+	delete(o.changeCallbacks, callbackNum)
 }
