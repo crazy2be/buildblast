@@ -16,15 +16,27 @@ func SyncObserv(conn *ClientConn, owner observ.CallbackOwner, name string, obs *
 }
 
 func SyncObject(conn *ClientConn, owner observ.CallbackOwner, name string, obj interface{}) {
+	SyncObjectDebug(conn, owner, name, obj, false)
+}
+
+func SyncObjectDebug(conn *ClientConn, owner observ.CallbackOwner, name string, obj interface{}, verbose bool) {
 	conn.Send(&MsgKoIntegrate{
 		Name: name,
 		Value: obj,
 	})
 	
-	keepSynced(conn, owner, name, obj)
+	keepSyncedDebug(conn, owner, name, obj, verbose)
 }
 
 func keepSynced(conn *ClientConn, owner observ.CallbackOwner, name string, obj interface{}) {
+	keepSyncedDebug(conn, owner, name, obj, false)
+}
+
+func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, obj interface{}, verbose bool) {
+	if verbose {
+		fmt.Println("Syncing", name)
+	}
+	
 	//Now we use reflection to recursively find observables in obj, so we can keep it synced
 	typ := reflect.TypeOf(obj)
 	
@@ -35,12 +47,17 @@ func keepSynced(conn *ClientConn, owner observ.CallbackOwner, name string, obj i
 	if hasBaseFnc {
 		baseFnc := reflect.ValueOf(obj).MethodByName("GetBase")
 		obs = baseFnc.Call([]reflect.Value{})[0].Interface().(*observ.Observ)
-		fmt.Println("Found obs from base", obs)
+		if verbose {
+			fmt.Println("Found obs from base", obs)
+		}
 	}
 	
 	if typ.AssignableTo(reflect.TypeOf((*observ.Observ)(nil))) {
 		obs = obj.(*observ.Observ)
-		fmt.Println("Found obs from given", obs)
+		
+		if verbose {
+			fmt.Println("Found obs from given", obs)
+		}
 	}
 	
 	if obs != nil {
@@ -60,12 +77,16 @@ func keepSynced(conn *ClientConn, owner observ.CallbackOwner, name string, obj i
 	if hasBaseFncMap {
 		baseFnc := reflect.ValueOf(obj).MethodByName("GetMapBase")
 		obsMap = baseFnc.Call([]reflect.Value{})[0].Interface().(*observ.ObservMap)
-		fmt.Println("Found obs mp from base", obsMap)
+		if verbose {
+			fmt.Println("Found obs mp from base", obsMap)
+		}
 	}
 	
 	if typ.AssignableTo(reflect.TypeOf((*observ.ObservMap)(nil))) {
 		obsMap = obj.(*observ.ObservMap)
-		fmt.Println("Found obs map from given", obsMap)
+		if verbose {
+			fmt.Println("Found obs map from given", obsMap)
+		}
 	}
 	
 	if obsMap != nil {
@@ -122,13 +143,23 @@ func keepSynced(conn *ClientConn, owner observ.CallbackOwner, name string, obj i
 	//	mutated... hmm...)
 	val := reflect.ValueOf(obj)
 	
-	fmt.Println("Kind", val.Kind())
+	if verbose {
+		fmt.Println("Kind", val.Kind())
+	}
 	
 	for val.Kind() == reflect.Ptr {
-		fmt.Println("Pointer indirection")
+		if verbose {
+			fmt.Println("Pointer indirection")
+		}
 		val = val.Elem()
 		typ = typ.Elem()
+		
+		if verbose {
+			fmt.Println("New Kind", val.Kind())
+		}
 	}
+	
+	if(val.Kind() != reflect.Struct) { return; }
 	
 	numFields := val.NumField()
 	

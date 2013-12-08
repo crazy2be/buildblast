@@ -61,17 +61,6 @@ define(function (require) {
 			entity.removeFromScene();
 			delete entities[id];
 		});
-		
-		conn.on('property-set', function (payload) {
-		    var id = payload.ID;
-		    var entity = entities[id];
-			var name = payload.Name;
-		    if (!entity) {
-		        console.warn("Got property-set ("+name+") message for entity which does not exist!", id);
-		        return;
-		    }
-		    entity[name] = payload.Value;
-		});
 
 		self.entityAt = function (wcX, wcY, wcZ) {
 			for (var id in entities) {
