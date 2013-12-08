@@ -52,6 +52,70 @@ func keepSynced(conn *ClientConn, owner observ.CallbackOwner, name string, obj i
 		})
 	}
 	
+	
+	obsMap := (*observ.ObservMap)(nil)
+	
+	//Eh... should probably not do it based on name
+	_, hasBaseFncMap := typ.MethodByName("GetMapBase")
+	if hasBaseFncMap {
+		baseFnc := reflect.ValueOf(obj).MethodByName("GetMapBase")
+		obsMap = baseFnc.Call([]reflect.Value{})[0].Interface().(*observ.ObservMap)
+		fmt.Println("Found obs mp from base", obsMap)
+	}
+	
+	if typ.AssignableTo(reflect.TypeOf((*observ.ObservMap)(nil))) {
+		obsMap = obj.(*observ.ObservMap)
+		fmt.Println("Found obs map from given", obsMap)
+	}
+	
+	if obsMap != nil {
+		obsMap.OnAdd(owner, func(key observ.Object, value observ.Object){
+			//Ugh... should probably merge this with the code in observSerialization...
+			KVPs := make(map[string]observ.Object)
+			keyStr := fmt.Sprintf("%s", key)
+			KVPs[keyStr] = value
+			
+			conn.Send(&MsgKoIntegrate{
+				Name: name,
+				Value: &observ.ObservMapSerialized{
+					KVPs: KVPs,
+					Type: "ObservableMap",
+				},
+			})
+		})
+		
+		obsMap.OnRemove(owner, func(key observ.Object, value observ.Object){
+			//Ugh... should probably merge this with the code in observSerialization...
+			KVPs := make(map[string]observ.Object)
+			keyStr := fmt.Sprintf("%s", key)
+			KVPs[keyStr] = nil
+			
+			conn.Send(&MsgKoIntegrate{
+				Name: name,
+				Value: &observ.ObservMapSerialized{
+					KVPs: KVPs,
+					Type: "ObservableMap",
+				},
+			})
+		})
+		
+		obsMap.OnChange(owner, func(key observ.Object, value observ.Object){
+			//Ugh... should probably merge this with the code in observSerialization...
+			KVPs := make(map[string]observ.Object)
+			keyStr := fmt.Sprintf("%s", key)
+			KVPs[keyStr] = value
+			
+			conn.Send(&MsgKoIntegrate{
+				Name: name,
+				Value: &observ.ObservMapSerialized{
+					KVPs: KVPs,
+					Type: "ObservableMap",
+				},
+			})
+		})
+	}
+	
+	
 	//Hmm... can probably do this more efficient... but w/e
 	//	(also, could probably cache a lot of this stuff, but also w/e)...
 	//	keepSynced won't be called often (unless we have maps which are often

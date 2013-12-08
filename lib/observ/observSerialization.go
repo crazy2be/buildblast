@@ -16,7 +16,7 @@ func (o *Observ) MarshalJSON() ([]byte, error) {
 
 //Not thread safe
 type ObservMapSerialized struct {
-    Data	map[string]Object
+    KVPs	map[string]Object
 	Type	string
 }
 
