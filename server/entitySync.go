@@ -1,12 +1,12 @@
 package main
 
 import (
-    "buildblast/lib/geom"
+    _ "buildblast/lib/geom"
 	"buildblast/lib/game"
 	"buildblast/lib/observ"
 	_ "buildblast/lib/observT"
 	"fmt"
-	"time"
+	_ "time"
 	_ "math/rand"
 )
 
@@ -28,72 +28,22 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e.world = world
 	e.conn = conn
 	
-	//e.testObserv = observT.NewObserv_int(e, 5)
-
-	//SyncObserv(e.conn, e, "testObserv", e.testObserv.GetBase())
-
 	e.WatchLeaks("EntitySync")
 
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreated)
 	e.world.EntitiesObserv.OnRemove(e, e.EntityRemoved)
 
-    e.world.HillSphere.OnChanged(e, func(sphere geom.Sphere){
-        e.conn.Send(&MsgHillMove{
-            Sphere:   sphere,
-        })
-    })
+	SyncObject(e.conn, e, "hillSphere", e.world.HillSphere)
 	
-    e.world.HillColor.OnChanged(e, func(color string){
-        e.conn.Send(&MsgHillColorSet{
-            Color:    color,
-        })
-    })
+	SyncObject(e.conn, e, "hillColor", e.world.HillColor);
 	
 	e.world.Teams.OnAdd(e, e.TeamAdded)
 	
 	//SyncObject(e.conn, e, "testObserv2", e.testObserv.GetBase())
 	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
-	
-	/*
-	e.world.KOTH_CONSTS.MaxPoints.OnChanged(e, func(maxPoints int){
-		e.conn.Send(&MsgObjPropSet{
-			ObjectName: "KOTH_CONSTS",
-		    PropName:	"MaxPoints",
-			Value:		maxPoints,
-		})
-	})
-	*/
-
-	go e.TestFnc()
 
 	return e
 }
-
-func (e *EntitySync) TestFnc() {
-	type TestData struct{
-		Truth	bool
-		Text	string
-		Num 	float64
-	}
-	
-	for {
-		select {
-	    case <-time.After(1000 * time.Millisecond):
-			//e.testObserv.Set(rand.Int())
-			/*
-			e.conn.Send(&MsgKoIntegrate{
-				Name: "TestData.nested.alot",
-				Value: TestData {
-					Truth: true,
-					Text: "texty",
-					Num: rand.Float64(),
-				},
-			})
-			*/
-	    }
-	}
-}
-
 
 func (e *EntitySync) TeamAdded(key string, value game.Team) {
 	e.conn.Send(&MsgObjPropSet{

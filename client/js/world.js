@@ -20,9 +20,10 @@ define(function(require) {
 		var entityManager = new EntityManager(scene, conn, self, clock);
 		
 		self.Teams = ko.observable({}); //name -> Team
-		self.KOTH_CONSTS = ko.observable({
-			//MaxPoints: 1
-		});
+		self.KOTH_CONSTS = { MaxPoints: ko.observable(-1) };
+		
+		self.hillSphere = ko.observable({}).extend({notify: 'always'});
+		self.hillColor = ko.observable("black").extend({notify: 'always'});
 		
 		//Grumble grumble...
 		self.TeamsArray = ko.computed(function() {
@@ -56,20 +57,18 @@ define(function(require) {
 
 		scene.add(hillMesh);
 
-		self.hillSphere = null;
-		conn.on('hill-move', function (payload) {
-		    var hillCenter = new THREE.Vector3(payload.Sphere.Center.X, payload.Sphere.Center.Y, payload.Sphere.Center.Z);
-		    var radius = payload.Sphere.Radius;
+		self.hillSphere.subscribe(function(Sphere){
+		    var hillCenter = new THREE.Vector3(Sphere.Center.X, Sphere.Center.Y, Sphere.Center.Z);
+		    var radius = Sphere.Radius;
     //http://stackoverflow.com/questions/17341297/three-js-change-radius-of-sphere-with-dat-gui
 		    hillMesh.scale.set(radius, radius, radius)
 		    hillGeom.needsUpdate = true;
 		    hillMesh.position = hillCenter;
-			self.hillSphere = hillCenter;
-		})
+		});
 		
-		conn.on('hill-color-set', function (payload) {
-			hillMaterial.ambient.setHex(colorPicker(payload.Color, true));
-		})
+		self.hillColor.subscribe(function(color){
+			hillMaterial.ambient.setHex(colorPicker(color, true));
+		});
 		
 		conn.on('obj-prop-set', function(payload) {
 			if(!self[payload.ObjectName]) {
@@ -80,12 +79,12 @@ define(function(require) {
 		})
 		
 		var SerialCtors = {
-			Observable: function() { return ko.observable(); },
+			Observable: function() { return ko.observable({}).extend({notify: 'alawys'}); },
 			Default: function(data){
 				if(typeof data === 'object') {
 					return {};
 				} else {
-					return ko.observable();
+					return -1;
 				}
 			},
 		};
@@ -103,7 +102,7 @@ define(function(require) {
 				if(typeof data === 'object') {
 					koIntegrate(destHolder[key], data);
 				} else {
-					destHolder[key](data);
+					destHolder[key] = data;
 				}
 			}
 		};
