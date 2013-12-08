@@ -329,6 +329,13 @@ define(function(require) {
 				
 				if(localData.isObserv) {
 					localData.data.subscribe(function() {
+						if(typeof localData.data === 'object') {
+							//TODO: Change the color of the node, and give it a tooltip explaining the problem.
+							//Your object changed from a basic datatype to an object... congratulations!
+							//	(you probably initialized it to a basic datatype when the server initialized it to an observable...)
+							//	(it will not display correctly, so you probably want to just not initialize it client side)
+							debugger;
+						}
 						localData.refresh(localData.data);
 					});
 				}

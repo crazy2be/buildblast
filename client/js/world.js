@@ -21,7 +21,7 @@ define(function(require) {
 		
 		self.Teams = ko.observable({}); //name -> Team
 		self.KOTH_CONSTS = ko.observable({
-			MaxPoints: 1
+			//MaxPoints: 1
 		});
 		
 		//Grumble grumble...
@@ -56,11 +56,6 @@ define(function(require) {
 
 		scene.add(hillMesh);
 
-		self.testObserv = ko.observable(5);
-		window.setInterval(function() {
-			self.testObserv.valueHasMutated();
-		}, 1000);
-
 		self.hillSphere = null;
 		conn.on('hill-move', function (payload) {
 		    var hillCenter = new THREE.Vector3(payload.Sphere.Center.X, payload.Sphere.Center.Y, payload.Sphere.Center.Z);
@@ -85,52 +80,47 @@ define(function(require) {
 		})
 		
 		var SerialCtors = {
-			Observable: function() { return ko.observable(); }
+			Observable: function() { return ko.observable(); },
+			Default: function(data){
+				if(typeof data === 'object') {
+					return {};
+				} else {
+					return ko.observable();
+				}
+			},
 		};
 		
 		var IntegrateFncs = {
-			Observable: function(ctxHolder, key, newData) {				
+			Observable: function(destHolder, key, newData) {				
 				var data = newData.Data;
 				if(typeof data === 'object') {
-					koIntegrate(ctxHolder[key](), data)
-					ctxHolder[key].valueHasMutated();
+					koIntegrate(destHolder[key](), data)
+					destHolder[key].valueHasMutated();
 				} else {
-					ctxHolder[key](data);
+					destHolder[key](data);
+				}
+			}, Default: function(destHolder, key, data) {
+				if(typeof data === 'object') {
+					koIntegrate(destHolder[key], data);
+				} else {
+					destHolder[key](data);
 				}
 			}
 		};
 		
 		function koIntegrate(dest, data) {
 			//Hmm... basic data types will be observables
-			for(var key in data) {
-				var ctorFnc = function(data) {
-					if(typeof data === 'object') {
-						return {};
-					} else {
-						return ko.observable();
-					}
-				};
-				var integrateFnc = function(destHolder, key, data) {
-					if(typeof data[key] === 'object') {
-						koIntegrate(destHolder[key], data);
-					} else {
-						destHolder[key](data);
-					}
-				};
-				var Type = data[key].Type;
-				if(typeof Type !== 'undefined') {
-					var ctor = SerialCtors[Type];
-					if(!ctor) {
-						console.warn("Constructor for " + Type + " cannot be found, just serializing as Object");
-					} else {
-						ctorFnc = ctor;
-					}
-					
-					integrateFnc = IntegrateFncs[Type] || integrateFnc;
+			for(var key in data) {		
+				if(data[key].Type && !SerialCtors[data[key].Type]) {
+					console.warn("Constructor for " + data[key].Type + " cannot be found, just serializing as Object");
 				}
 				
+				var Type = data[key].Type;
+				var ctorFnc = SerialCtors[Type] || SerialCtors.Default;
+				var integrateFnc = IntegrateFncs[Type] || IntegrateFncs.Default;
+				
 				if(typeof dest[key] === 'undefined') {
-					dest[key] = ctorFnc();
+					dest[key] = ctorFnc(data[key]);
 				}
 				
 				integrateFnc(dest, key, data[key]);
