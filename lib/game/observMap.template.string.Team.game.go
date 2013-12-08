@@ -70,3 +70,11 @@ func (o *ObservMap_string_Team) GetValues() []Team {
 func (o *ObservMap_string_Team) Clear() {
     o.base.Clear()
 }
+
+func (o *ObservMap_string_Team) MarshalJSON() ([]byte, error) {
+	return o.base.MarshalJSON();
+}
+
+func (o *ObservMap_string_Team) GetMapBase() *observ.ObservMap {
+	return o.base
+}

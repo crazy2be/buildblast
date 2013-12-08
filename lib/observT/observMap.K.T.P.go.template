@@ -70,3 +70,11 @@ func (o *ObservMap_K_T) GetValues() []T {
 func (o *ObservMap_K_T) Clear() {
     o.base.Clear()
 }
+
+func (o *ObservMap_K_T) MarshalJSON() ([]byte, error) {
+	return o.base.MarshalJSON();
+}
+
+func (o *ObservMap_K_T) GetMapBase() *observ.ObservMap {
+	return o.base
+}

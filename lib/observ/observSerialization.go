@@ -1,11 +1,10 @@
 package observ
 
 import (
-	_ "fmt"
+	"fmt"
 	"encoding/json"
 )
 
-//Not thread safe
 type ObservSerialized struct {
     Data	Object
 	Type	string
@@ -13,4 +12,26 @@ type ObservSerialized struct {
 
 func (o *Observ) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&ObservSerialized{o.Get(), "Observable"})
+}
+
+//Not thread safe
+type ObservMapSerialized struct {
+    Data	map[string]Object
+	Type	string
+}
+
+func (o *ObservMap) MarshalJSON() ([]byte, error) {
+	strMap := make(map[string]Object)
+	
+	for key, value := range o.data {
+		keyStr := fmt.Sprintf("%s", key)
+		val, ok := strMap[keyStr]
+		if ok {
+			fmt.Println("Colliding key when serializing", o, "(key:", keyStr, ", val1: ", val, ", val2:", value, ").")
+			fmt.Println("\t(You should implement a String() string function that does not collide.)")
+		}
+		strMap[keyStr] = value
+	}
+	
+	return json.Marshal(&ObservMapSerialized{strMap, "ObservableMap"})
 }

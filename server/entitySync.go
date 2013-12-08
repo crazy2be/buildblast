@@ -35,11 +35,11 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 
 	SyncObject(e.conn, e, "hillSphere", e.world.HillSphere)
 	
-	SyncObject(e.conn, e, "hillColor", e.world.HillColor);
+	SyncObject(e.conn, e, "hillColor", e.world.HillColor)
 	
-	e.world.Teams.OnChange(e, e.TeamChanged)
+	//e.world.Teams.OnChange(e, e.TeamChanged)
+	SyncObject(e.conn, e, "TeamsTest", e.world.Teams)
 	
-	//SyncObject(e.conn, e, "testObserv2", e.testObserv.GetBase())
 	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
 
 	return e

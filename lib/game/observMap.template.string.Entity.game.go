@@ -70,3 +70,11 @@ func (o *ObservMap_string_Entity) GetValues() []Entity {
 func (o *ObservMap_string_Entity) Clear() {
     o.base.Clear()
 }
+
+func (o *ObservMap_string_Entity) MarshalJSON() ([]byte, error) {
+	return o.base.MarshalJSON();
+}
+
+func (o *ObservMap_string_Entity) GetMapBase() *observ.ObservMap {
+	return o.base
+}

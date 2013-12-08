@@ -22,7 +22,7 @@ define(function(require) {
 		self.Teams = ko.observable({}); //name -> Team
 		self.KOTH_CONSTS = { MaxPoints: ko.observable(-1) };
 		
-		self.hillSphere = ko.observable({}).extend({notify: 'always'});
+		self.hillSphere = ko.observable({});
 		self.hillColor = ko.observable("black").extend({notify: 'always'});
 		
 		//Grumble grumble...
