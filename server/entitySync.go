@@ -63,14 +63,16 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	SyncObjectDebug(e.conn, e, "testObserv", e.testObserv, true)
 	fmt.Println("Done syncing testObserv")
 
+	go e.TestSync()
+
 	return e
 }
 
 func (e *EntitySync) TestSync() {
 	for {
 		select {
-		case <-time.After(1 * time.Second):
-			if(rand.Float64() > 0.75) {
+		case <-time.After(100 * time.Millisecond):
+			if(rand.Float64() > 0.75 && false) {
 				//TODO: Make setting an observable call dispose on the previous value if it has a Dispose
 				//	(and then set up the SmallSyncStruct to have the correct owner)
 				//This probably leaks... because we don't call Dispose on observNum...
