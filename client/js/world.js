@@ -11,6 +11,7 @@ define(function(require) {
 	var debugObjBinding = require("debugObjBinding");
 	
 	var acceptKoIntegrate = require("koIntegrate/acceptKoIntegrate");
+	var ctorObservableMap = require("koIntegrate/ctorObservableMap");
 
 	return function World(scene, conn, clientID, clock) {
 		var self = this;
@@ -21,7 +22,7 @@ define(function(require) {
 		var chunkManager = new ChunkManager(scene, clientID);
 		var entityManager = new EntityManager(scene, conn, self, clock);
 		
-		self.Teams = ko.observable({});//SerialCtors.ObservableMap();//ko.observable({}); //name -> Team
+		self.Teams = ctorObservableMap();
 		self.KOTH_CONSTS = { MaxPoints: ko.observable(-1) };
 		
 		self.hillSphere = ko.observable({});

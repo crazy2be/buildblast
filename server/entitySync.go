@@ -37,20 +37,11 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	SyncObject(e.conn, e, "hillColor", e.world.HillColor)
 	
-	//e.world.Teams.OnChange(e, e.TeamChanged)
-	SyncObject(e.conn, e, "TeamsTest", e.world.Teams)
+	SyncObject(e.conn, e, "Teams", e.world.Teams)
 	
 	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
 
 	return e
-}
-
-func (e *EntitySync) TeamChanged(key string, value game.Team) {
-	e.conn.Send(&MsgObjPropSet{
-		ObjectName: "Teams",
-	    PropName:	key,
-		Value:		value,
-	})
 }
 
 func (e *EntitySync) EntityCreated(id string, entity game.Entity) {
@@ -81,6 +72,7 @@ func (e *EntitySync) EntityCreated(id string, entity game.Entity) {
 		})
 	})
 	
+	/*
 	entity.TeamName().OnChanged(e, func(teamName string) {
 		e.conn.Send(&MsgPropertySet{
 			ID: entity.ID(),
@@ -88,6 +80,7 @@ func (e *EntitySync) EntityCreated(id string, entity game.Entity) {
 			Value: teamName,
 		})
 	})
+	*/
 }
 
 func (e *EntitySync) EntityRemoved(id string, entity game.Entity) {

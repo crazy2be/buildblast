@@ -31,8 +31,6 @@ const (
     MSG_HILL_MOVE       = MessageKind("hill-move")
 	MSG_HILL_COLOR_SET  = MessageKind("hill-color-set")
     MSG_HILL_POINTS_SET = MessageKind("hill-points-set")
-	MSG_PROPERTY_SET 	= MessageKind("property-set")
-	MSG_OBJ_PROP_SET	= MessageKind("obj-prop-set")
 	//The message to end all messages
 	MSG_KO_INTEGRATE	= MessageKind("ko-integrate")
 )
@@ -69,10 +67,6 @@ func kindToType(kind MessageKind) Message {
         return &MsgHillColorSet{}
     case MSG_HILL_POINTS_SET:
         return &MsgHillPointsSet{}
-	case MSG_PROPERTY_SET:
-		return &MsgPropertySet{}
-	case MSG_OBJ_PROP_SET:
-		return &MsgObjPropSet{}
 	case MSG_KO_INTEGRATE:
 		return &MsgKoIntegrate{}
 	}
@@ -115,10 +109,6 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HILL_COLOR_SET
     case *MsgHillPointsSet:
 		return MSG_HILL_POINTS_SET
-    case *MsgPropertySet:
-		return MSG_PROPERTY_SET
-	case *MsgObjPropSet:
-		return MSG_OBJ_PROP_SET
 	case *MsgKoIntegrate:
 		return MSG_KO_INTEGRATE
 	}
@@ -218,21 +208,6 @@ type MsgHillColorSet struct {
 type MsgHillPointsSet struct {
 	ID          string
     Points      int
-}
-
-//Hmm... eventually I should make a system so these are abstracted so they
-//	can handle everything.
-//Really entity property set
-type MsgPropertySet struct {
-	ID          string
-    Name		string
-	Value		interface{}
-}
-
-type MsgObjPropSet struct {
-	ObjectName	string
-    PropName	string
-	Value		interface{}
 }
 
 //Basically all messages sent to the client should be in this format...
