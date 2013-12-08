@@ -38,6 +38,8 @@ func NewObservMap(owner DisposeExposed) *ObservMap {
 			o.removed(kvp.Key, prevValue)
 			return
 		} else {
+			o.data[kvp.Key] = kvp.Value
+			
 			if prevValue == nil {
 				o.added(kvp.Key, kvp.Value)
 			}
@@ -57,7 +59,6 @@ func (o *ObservMap) Get(key Object) Object {
 }
 
 func (o *ObservMap) added(key Object, value Object) {
-	o.data[key] = value
 	for _, callback := range o.addCallbacks {
 		callback(key, value)
 	}
