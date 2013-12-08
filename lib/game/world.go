@@ -68,7 +68,7 @@ func NewWorld(seed float64, announce func (message string)) *World {
 	w.EntitiesObserv = NewObservMap_string_Entity(w)
 	w.Teams = NewObservMap_string_Team(w)
 	
-	w.Teams.OnAdd(w, w.TeamAdded)
+	w.Teams.OnChange(w, w.TeamChanged)
 	
 	w.KOTH_CONSTS = &KOTH_CONSTS{
 		MaxPoints: 	observT.NewObserv_int(w, 60 * 35),
@@ -133,7 +133,7 @@ func NewWorld(seed float64, announce func (message string)) *World {
 	return w
 }
 
-func (w *World) TeamAdded(key string, team Team) {
+func (w *World) TeamChanged(key string, team Team) {
 	if team.Points < w.KOTH_CONSTS.MaxPoints.Get() { return }
 	
 	w.announce(team.Name + " has won, game is restarting NOW")

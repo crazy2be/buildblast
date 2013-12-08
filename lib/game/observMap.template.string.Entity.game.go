@@ -30,16 +30,26 @@ func (o *ObservMap_string_Entity) OnAdd(owner observ.CallbackOwner, callback Obs
 		callback(key.(string), value.(Entity))
 	})
 }
-func (o *ObservMap_string_Entity) NotOnAdd(callbackNum int) {
-	o.base.NotOnAdd(callbackNum)
+func (o *ObservMap_string_Entity) OffAdd(callbackNum int) {
+	o.base.OffAdd(callbackNum)
 }
+
 func (o *ObservMap_string_Entity) OnRemove(owner observ.CallbackOwner, callback ObservMapCallback_string_Entity) int {
 	return o.base.OnRemove(owner, func(key observ.Object, value observ.Object) {
 		callback(key.(string), value.(Entity))
 	})
 }
-func (o *ObservMap_string_Entity) NotOnRemove(callbackNum int) {
-	o.base.NotOnAdd(callbackNum)
+func (o *ObservMap_string_Entity) OffRemove(callbackNum int) {
+	o.base.OffRemove(callbackNum)
+}
+
+func (o *ObservMap_string_Entity) OnChange(owner observ.CallbackOwner, callback ObservMapCallback_string_Entity) int {
+	return o.base.OnChange(owner, func(key observ.Object, value observ.Object) {
+		callback(key.(string), value.(Entity))
+	})
+}
+func (o *ObservMap_string_Entity) OffChange(callbackNum int) {
+	o.base.OffChange(callbackNum)
 }
 
 func (o *ObservMap_string_Entity) GetKeys() []string {

@@ -68,17 +68,12 @@ func (o *ObservMap) removed(key Object, value Object) {
 	}
 }
 func (o *ObservMap) changed(key Object, value Object) {
-	for _, callback := range o.changedCallbacks {
+	for _, callback := range o.changeCallbacks {
 		callback(key, value)
 	}
 }
 
-func (o *ObservMap) addACallback(
-	owner CallbackOwner, 
-	callback ObservMapCallback, 
-	callbacks map[int]ObservMapCallback, 
-	offCallback func(callbackNum int)
-) int {
+func (o *ObservMap) addACallback(owner CallbackOwner, callback ObservMapCallback, callbacks map[int]ObservMapCallback, offCallback func(callbackNum int)) int {
 	ourCallbackNum := o.curCallbackNum
 	o.curCallbackNum++
 	
@@ -92,10 +87,12 @@ func (o *ObservMap) addACallback(
 		    offCallback(ourCallbackNum)
 	    })
     }
+	
+	return ourCallbackNum
 }
 
 func (o *ObservMap) OnAdd(owner CallbackOwner, callback ObservMapCallback) int {
-	ourCallbackNum := o.addACallback(owner, callback, o.addCallbacks, o.NotOnAdd);
+	ourCallbackNum := o.addACallback(owner, callback, o.addCallbacks, o.OffAdd);
 	
 	for key, value := range o.data {
 		callback(key, value)
@@ -107,14 +104,14 @@ func (o *ObservMap) OffAdd(callbackNum int) {
 }
 
 func (o *ObservMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) int {	
-	return o.addACallback(owner, callback, o.removeCallbacks, o.NotOnRemove)
+	return o.addACallback(owner, callback, o.removeCallbacks, o.OffRemove)
 }
 func (o *ObservMap) OffRemove(callbackNum int) {
 	delete(o.removeCallbacks, callbackNum)
 }
 
 func (o *ObservMap) OnChange(owner CallbackOwner, callback ObservMapCallback) int {
-	ourCallbackNum := o.addACallback(owner, callback, o.changeCallbacks, o.OffChanged);
+	ourCallbackNum := o.addACallback(owner, callback, o.changeCallbacks, o.OffChange);
 	
 	for key, value := range o.data {
 		callback(key, value)
