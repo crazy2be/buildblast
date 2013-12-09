@@ -1,7 +1,7 @@
 define(function () {
 return function EntityState(pos, look, health, vy) {
-	this.pos = pos || new THREE.Vector3(0, 0, 0);
-	this.look = look || new THREE.Vector3(0, 0, 0);
+	this.pos = pos || new THREE.DVector3(0, 0, 0);
+	this.look = look || new THREE.DVector3(0, 0, 0);
 	this.health = health || 100;
 	this.vy = vy || 0.0;
 	this.clone = function () {
@@ -19,11 +19,18 @@ return function EntityState(pos, look, health, vy) {
 		this.vy = this.vy*(1 - frac) + other.vy*frac;
 		return this;
 	};
-	this.equals = function (other) {
-		return this.pos.equals(other.pos) &&
-			this.look.equals(other.look) &&
-			this.health === other.health &&
-			this.vy === other.vy;
+	function close(a, b) {
+		return Math.abs(a - b) < 0.0001;
+	}
+	this.prettyCloseTo = function (other) {
+		return close(this.pos.x, other.pos.x) &&
+			close(this.pos.y, other.pos.y) &&
+			close(this.pos.z, other.pos.z) &&
+			close(this.look.x, other.look.x) &&
+			close(this.look.y, other.look.y) &&
+			close(this.look.z, other.look.z) &&
+			close(this.health, other.health) &&
+			close(this.vy, other.vy);
 	};
 }
 });

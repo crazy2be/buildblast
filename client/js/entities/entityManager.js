@@ -53,7 +53,7 @@ return function EntityManager(scene, conn, world, clock) {
 
 	function protocolToLocal(payload) {
 		function vec(obj) {
-			return new THREE.Vector3(obj.X, obj.Y, obj.Z)
+			return new THREE.DVector3(obj.X, obj.Y, obj.Z)
 		}
 		return {
 			time: payload.Timestamp,

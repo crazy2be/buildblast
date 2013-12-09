@@ -3,25 +3,33 @@ var EntityState = require("./entityState");
 
 function PredictionBuffer(predictor) {
 	var self = this;
-	var times = [0];
-	var predictions = [new EntityState()];
-	// controlss because it's a list of controls.
-	var controlss = [];
-
-	var len = 1;
+	var times = [];
+	var predictions = [];
+	var controlStates = [];
+	var confirmed = {
+		time: 0,
+		state: new EntityState(),
+	};
+	var len = 0;
 	var maxLen = 100;
 
-	self.add = function (t, controls) {
-		var dt = t - times[len - 1]
+	self.add = function (t, controlState) {
+		var lastT = len > 0 ? times[len - 1] : confirmed.time;
+		var dt = t - lastT;
+		if (dt != dt) debugger;
 		if (dt <= 0) {
 			throw "Attempted to add prediction in the past at t = " +
 				t + ", newest prediction is at " + times[len - 1];
 		}
+
+		var lastState = len > 0 ? predictions[len - 1] : confirmed.state;
+		var prediction = predictor(lastState, controlState, dt);
+
 		times.push(t);
-		controlss.push(controls);
-		prediction = predictor(predictions[len - 1], controls, dt);
+		controlStates.push(controlState);
 		predictions.push(prediction);
 		len++;
+
 		return prediction;
 	};
 
@@ -32,16 +40,16 @@ function PredictionBuffer(predictor) {
 		return -1;
 	}
 
-	function repredictAll(start_t, start_state) {
-		var prev_t = start_t;
-		var state = start_state;
-		for (var i = 0; i < controlss.length; i++) {
-			var c = controlss[i];
+	function repredictAll() {
+		var prev_t = confirmed.time;
+		var state = confirmed.state;
+		for (var i = 0; i < controlStates.length; i++) {
+			var c = controlStates[i];
 			var t = times[i];
 			var dt = t - prev_t;
 			prev_t = t;
 			state = predictor(state, c, dt);
-			predictions[i + 1] = state;
+			predictions[i] = state;
 		}
 	}
 
@@ -51,26 +59,27 @@ function PredictionBuffer(predictor) {
 			throw "No matching prediction data for prediction given by server.";
 		}
 
-		times.splice(0, i + 1);
-		predictions.splice(0, i + 1);
-		controls = controlss[i];
-		controlss.splice(0, i + 1);
-		len -= i + 1;
+		confirmed.time = t;
+		confirmed.state = state;
+		var predicted = predictions[i];
 
-		if (!predictions[0].equals(state)) {
+		i++;
+		times.splice(0, i);
+		predictions.splice(0, i);
+		controlStates.splice(0, i);
+		len -= i;
+
+		if (!predicted.prettyCloseTo(state)) {
 			// Oh crap, the server disagreed with us :(
 			// We could maybe adjust the player's state/position gradually if
 			// it's just off by a little bit, but hopefully this disagreement
 			// will happen rarely enough that it's not a huge deal.
-			times.unshift(t);
-			predictions.unshift(state);
-			len++;
-			repredictAll(t, state);
+			repredictAll();
 		}
 	};
 
 	self.duration = function () {
-		return (times[len - 1] - times[0]) || 0.0;
+		return (times[len - 1] - confirmed.time) || 0.0;
 	};
 }
 
@@ -85,7 +94,8 @@ return function EntityInputPredictor(entity, predictor) {
 	// This lets us ensure we are updated *before* any
 	// of the other entities.
 	self.realUpdate = function (clock, controls, camera) {
-		return buf.add(clock.time(), controls);
+		var latest = buf.add(clock.time(), controls.sample());
+		entity.update(latest, clock, camera);
 	};
 
 	self.message = function (data) {
