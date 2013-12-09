@@ -419,6 +419,10 @@ define(function(require) {
 
 	ko.bindingHandlers.debugObj = {
 		init: function(element, valueAccessor) {
+			if(!localStorage.debugDisplay) {
+				return { controlsDescendentsBindings: true };
+			}
+			
 			var debugDisplay = document.createElement('div');
 			
 			var dataSource = valueAccessor();
