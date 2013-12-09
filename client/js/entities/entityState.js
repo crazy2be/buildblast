@@ -18,6 +18,19 @@ return function EntityState(pos, look, health, vy) {
 		this.health = this.health*(1 - frac) + other.health*frac;
 		this.vy = this.vy*(1 - frac) + other.vy*frac;
 		return this;
+	};
+	function close(a, b) {
+		return Math.abs(a - b) < 0.0001;
 	}
+	this.prettyCloseTo = function (other) {
+		return close(this.pos.x, other.pos.x) &&
+			close(this.pos.y, other.pos.y) &&
+			close(this.pos.z, other.pos.z) &&
+			close(this.look.x, other.look.x) &&
+			close(this.look.y, other.look.y) &&
+			close(this.look.z, other.look.z) &&
+			close(this.health, other.health) &&
+			close(this.vy, other.vy);
+	};
 }
 });

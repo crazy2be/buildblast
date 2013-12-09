@@ -30,7 +30,9 @@
 	}],
 });
 
-define(["main", "settings", "math", "fatalError"], function(main, __loadSettingsScheme, mathFnc, fatalError) {
+define(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, mathFnc, fatalError, debug, THREE) {
+	THREE.DVector3 = debug.DVector3;
+
 	window.onerror = function (msg, url, lineno) {
 		fatalError({
 			message: msg,
