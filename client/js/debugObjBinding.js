@@ -242,6 +242,7 @@ define(function(require) {
 			var level = params.level;
 			var isObserv = params.isObserv || (data && data.obs);
 			var displayedName = name;
+			var path = params.path + "." + name;
 			
 			if(isObserv) {
 				displayedName = "(obs)" + name;
@@ -303,6 +304,8 @@ define(function(require) {
 			localData.collapsed = ko.observable(false);
 			
 			localData.collapsed.subscribe(function(collapse){
+				localStorage['collapseCache' + path] = collapse;
+				
 				localData.children.forEach(function(child){
 					if(collapse) {
 						$(child.elem).hide();
@@ -311,6 +314,10 @@ define(function(require) {
 					}
 				})
 			})
+			
+			setTimeout(function() {
+				localData.collapsed(localStorage['collapseCache' + path] === "true");
+			}, 0);
 			
 			
 			if(!localData.isObj) {
@@ -380,6 +387,7 @@ define(function(require) {
 						+ 'level: '+subLevel+', '
 						+ 'parentID: '+localData.ID+', '
 						+ 'isObserv: '+isObservSub+', '
+						+ 'path: \''+path+'\', '
 						+'}');
 						
 					element.appendChild(debugNode);
@@ -431,7 +439,7 @@ define(function(require) {
 
 			debugDisplay.setAttribute('data-bind', 'debugDisplayNode: {name: "ALT-Space to collapse", data: $data, level: -1}');			
 			element.appendChild(debugDisplay);
-			ko.applyBindings({obs: dataObserv}, debugDisplay);
+			ko.applyBindings({obs: dataObserv, path: "world"}, debugDisplay);
 			
 			//Our top level world doesn't have proper observable structure (or may
 			//	not, as this is for debugging that would be something to debug)...
