@@ -18,6 +18,12 @@ return function EntityState(pos, look, health, vy) {
 		this.health = this.health*(1 - frac) + other.health*frac;
 		this.vy = this.vy*(1 - frac) + other.vy*frac;
 		return this;
-	}
+	};
+	this.equals = function (other) {
+		return this.pos.equals(other.pos) &&
+			this.look.equals(other.look) &&
+			this.health === other.health &&
+			this.vy === other.vy;
+	};
 }
 });
