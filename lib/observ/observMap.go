@@ -104,7 +104,7 @@ func (o *ObservMap) OffAdd(callbackNum int) {
 	delete(o.addCallbacks, callbackNum)
 }
 
-func (o *ObservMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) int {	
+func (o *ObservMap) OnRemove(owner CallbackOwner, callback ObservMapCallback) int {
 	return o.addACallback(owner, callback, o.removeCallbacks, o.OffRemove)
 }
 func (o *ObservMap) OffRemove(callbackNum int) {

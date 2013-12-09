@@ -26,7 +26,7 @@ define(function(require) {
 				destHolder[key](data);
 			}
 		}, ObservableMap: function(destHolder, key, newData) {
-			var newKVPs = newData.KVPs;
+			var newKVPs = newData.KVPs || newData;
 			var observMap = destHolder[key];
 			
 			for(var key in newKVPs) {
@@ -35,11 +35,10 @@ define(function(require) {
 					//Haven't tested this...
 					debugger;
 					observMap.Remove(key);
-				}
-				else if(observMap()[key]) {
-					observMap.Set(key, value);
+				} else if(observMap()[key]) {
+					observMap.Set(key, value, koIntegrateSingle);
 				} else {
-					observMap.Add(key, value);
+					observMap.Add(key, value, koIntegrateSingle);
 				}
 			}
 		}, Default: function(destHolder, key, data) {
@@ -51,22 +50,32 @@ define(function(require) {
 		}
 	};
 	
+	function koIntegrateSingle(destHolder, key, newData) {
+		if(newData.Type && !SerialCtors[newData.Type]) {
+			console.warn("Constructor for " + newData.Type + " cannot be found, just serializing as Object");
+		}
+		
+		var Type = newData.Type || "Default";
+		
+		if(typeof destHolder[key] !== 'undefined') {
+			Type = destHolder[key].Type || Type;
+		}
+		
+		var ctorFnc = SerialCtors[Type];
+		var integrateFnc = IntegrateFncs[Type];
+		
+		if(typeof destHolder[key] === 'undefined') {
+			destHolder[key] = ctorFnc(newData);
+			destHolder[key].Type = Type;
+		}
+		
+		integrateFnc(destHolder, key, newData);
+	}
+	
 	function koIntegrate(dest, data) {
 		//Hmm... basic data types will be observables
 		for(var key in data) {		
-			if(data[key].Type && !SerialCtors[data[key].Type]) {
-				console.warn("Constructor for " + data[key].Type + " cannot be found, just serializing as Object");
-			}
-			
-			var Type = data[key].Type;
-			var ctorFnc = SerialCtors[Type] || SerialCtors.Default;
-			var integrateFnc = IntegrateFncs[Type] || IntegrateFncs.Default;
-			
-			if(typeof dest[key] === 'undefined') {
-				dest[key] = ctorFnc(data[key]);
-			}
-			
-			integrateFnc(dest, key, data[key]);
+			koIntegrateSingle(dest, key, data[key]);
 		}
 		
 		return dest;

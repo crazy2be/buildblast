@@ -37,6 +37,8 @@ define(function(require) {
 			}
 			return arr;
 		})
+		
+		//self.EntitiesTest = ctorObservableMap();
 
 		ko.applyBindings(self, $("#container")[0])
 

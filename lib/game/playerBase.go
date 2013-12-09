@@ -56,7 +56,8 @@ type PlayerBase struct {
 
 	inventory *Inventory
 
-	metrics			*Observ_Metrics
+	//TODO: Rename Metrics() to GetMetrics() or something...
+	MetricsBase		*Observ_Metrics
 
 	healthObserv	*Observ_Health
 
@@ -76,7 +77,7 @@ func NewPlayerBase(world *World, name string, tick func (w *World)) *PlayerBase 
 		tickFnc:        tick,
 	}
 	
-	player.metrics = NewObserv_Metrics(player, Metrics {
+	player.MetricsBase = NewObserv_Metrics(player, Metrics {
           	Pos:                    coords.World{},
           	Look:                   coords.Direction{},
           	Vy:                     0.0,
@@ -100,7 +101,7 @@ func (p *PlayerBase) Tick(w *World) {
 }
 
 func (p *PlayerBase) Metrics() *Observ_Metrics {
-	return p.metrics
+	return p.MetricsBase
 }
 
 func (p *PlayerBase) HealthObserv() *Observ_Health {

@@ -59,9 +59,9 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	
 	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
 
-	fmt.Println("Syncing testObserv")
-	SyncObjectDebug(e.conn, e, "testObserv", e.testObserv, true)
-	fmt.Println("Done syncing testObserv")
+	SyncObjectDebug(e.conn, e, "EntitiesTest", e.world.EntitiesObserv, true)
+
+	SyncObject(e.conn, e, "testObserv", e.testObserv)
 
 	go e.TestSync()
 

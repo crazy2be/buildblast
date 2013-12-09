@@ -31,13 +31,17 @@ define(function(require) {
 			}
 		}
 		
-		mapObserv.Add = function(key, value) {
+		mapObserv.Add = function(key, value, koIntegrateFnc) {
 			var data = mapObserv();
 			if(data[key]) {
 				console.error("Tried to add existing key to map ", key, data);
 				return;
 			}
-			data[key] = value;
+			if(koIntegrateFnc) {
+				koIntegrateFnc(data, key, value);
+			} else {
+				data[key] = value;				
+			}
 			added(key, value);
 			changed(key, value);
 			mapObserv.valueHasMutated();
@@ -55,13 +59,17 @@ define(function(require) {
 			mapObserv.valueHasMutated();
 		}
 		
-		mapObserv.Set = function(key, value) {
+		mapObserv.Set = function(key, value, koIntegrate) {
 			var data = mapObserv();
 			if(!data[key]) {
 				console.error("Tried to change non-existent key in map ", key, data);
 				return;
 			}
-			data[key] = value;
+			if(koIntegrate) {
+				koIntegrate(data, key, value);
+			} else {
+				data[key] = value;				
+			}
 			changed(key, value);
 			mapObserv.valueHasMutated();
 		}

@@ -37,6 +37,9 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 		fmt.Println("Syncing", name)
 	}
 	
+	//Lol, this function has gotten out of control
+	customIteration := false
+	
 	//Now we use reflection to recursively find observables in obj, so we can keep it synced
 	typ := reflect.TypeOf(obj)
 	
@@ -61,7 +64,7 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 	}
 	
 	if obs != nil {
-		obs.OnChanged(owner, func(_ observ.Object){
+		obs.OnChanged(owner, func(_ observ.Object){	
 			conn.Send(&MsgKoIntegrate{
 				Name: name,
 				Value: obs,
@@ -90,6 +93,8 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 	}
 	
 	if obsMap != nil {
+		customIteration = true
+		
 		obsMap.OnAdd(owner, func(key observ.Object, value observ.Object){
 			//Ugh... should probably merge this with the code in observSerialization...
 			KVPs := make(map[string]observ.Object)
@@ -103,6 +108,10 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 					Type: "ObservableMap",
 				},
 			})
+			
+			subName := name + "." + keyStr
+			
+			keepSyncedDebug(conn, owner, subName, value, verbose)
 		})
 		
 		obsMap.OnRemove(owner, func(key observ.Object, value observ.Object){
@@ -120,7 +129,7 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 			})
 		})
 		
-		obsMap.OnChange(owner, func(key observ.Object, value observ.Object){
+		obsMap.OnChange(owner, func(key observ.Object, value observ.Object){			
 			//Ugh... should probably merge this with the code in observSerialization...
 			KVPs := make(map[string]observ.Object)
 			keyStr := fmt.Sprintf("%s", key)
@@ -136,6 +145,8 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 		})
 	}
 	
+	
+	if customIteration { return }
 	
 	//Hmm... can probably do this more efficient... but w/e
 	//	(also, could probably cache a lot of this stuff, but also w/e)...
@@ -159,9 +170,13 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 		}
 	}
 	
-	if(val.Kind() != reflect.Struct) { return; }
+	if(val.Kind() != reflect.Struct) { return }
 	
 	numFields := val.NumField()
+	
+	if verbose {
+		fmt.Println(name, "has", numFields, "fields")
+	}
 	
 	for ix := 0; ix < numFields; ix++ {
 		subField := val.Field(ix)
@@ -170,6 +185,6 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 		
 		subName := name + "." + typ.Field(ix).Name
 		
-		keepSynced(conn, owner, subName, subField.Interface());
+		keepSyncedDebug(conn, owner, subName, subField.Interface(), verbose);
 	}
 }
