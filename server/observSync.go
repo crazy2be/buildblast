@@ -180,10 +180,19 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 	
 	for ix := 0; ix < numFields; ix++ {
 		subField := val.Field(ix)
+		subType := typ.Field(ix)
 		
 		if !subField.CanSet() { continue }
 		
 		subName := name + "." + typ.Field(ix).Name
+		
+		//Embedding
+		if subType.Anonymous {
+			if verbose {
+				fmt.Println("Detected embedded field", subName," so it is being treated as", name)
+			}
+			subName = name
+		}
 		
 		keepSyncedDebug(conn, owner, subName, subField.Interface(), verbose);
 	}
