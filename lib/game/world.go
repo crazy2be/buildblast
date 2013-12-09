@@ -172,6 +172,14 @@ func (w *World) RemoveEntityListener(listener EntityListener) {
 	log.Println("WARN: Attempt to remove entity listener which does not exist.")
 }
 
+// TODO(crazy2be): Either the world or the Entity itself should figure this
+// out automatically. Having this triggered by Client is a bit knarly.
+func (w *World) FireEntityUpdated(id EntityID, entity Entity) {
+	for _, listener := range w.entityListeners {
+		listener.EntityUpdated(id, entity)
+	}
+}
+
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
 	boxes := make([]*physics.Box, len(w.entities))
 	for i, other := range w.entities {

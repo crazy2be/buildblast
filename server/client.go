@@ -113,14 +113,7 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 
 	c.cm.QueueChunksNearby(w, c.player.Pos())
 
-	g.Broadcast(&MsgEntityState{
-		ID:        c.player.ID(),
-		Pos:       c.player.Pos(),
-		Look:      c.player.Look(),
-		Health:    c.player.Health(),
-		Vy:        c.player.Vy(),
-		Timestamp: c.player.LastUpdated(),
-	})
+	w.FireEntityUpdated(c.player.ID(), c.player)
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -181,8 +174,24 @@ func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
 	})
 }
 
-func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity)             {}
-func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {}
+func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
+	c.SendLossy(&MsgEntityState{
+		ID:        c.player.ID(),
+		Pos:       c.player.Pos(),
+		Look:      c.player.Look(),
+		Health:    c.player.Health(),
+		Vy:        c.player.Vy(),
+		Timestamp: c.player.LastUpdated(),
+	})
+}
+
+func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity) {
+	c.EntityUpdated(id, entity)
+}
+
+func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {
+	c.EntityUpdated(id, entity)
+}
 
 func (c *Client) EntityRemoved(id game.EntityID) {
 	c.Send(&MsgEntityRemove{
