@@ -28,15 +28,7 @@ define(function(require) {
 		self.hillSphere = ko.observable({});
 		self.hillColor = ko.observable("black").extend({notify: 'always'});
 		
-		//Grumble grumble...
-		self.TeamsArray = ko.computed(function() {
-			var arr = [];
-			var obj = self.Teams();
-			for(var key in obj) {
-				arr.push(obj[key]);
-			}
-			return arr;
-		})
+		self.TeamsArray = self.Teams.CtorObservableArray();
 		
 		//self.EntitiesTest = ctorObservableMap();
 

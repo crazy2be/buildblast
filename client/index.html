@@ -38,11 +38,11 @@
 					</div>
 				</div>
 				<div class="scoreHolder flowLeft topHUDHeight box" 
-					data-bind="foreach: TeamsArray()">
+					data-bind="foreach: TeamsArray">
 					<div class="teamScore" data-bind="style: {'background-color': Color, width: Points / $root.KOTH_CONSTS.MaxPoints() * 100 + '%'}"></div>
 				</div>
 				<div class="scoreRightPlaceHolder health-width topHUDHeight">
-					<button data-bind="showHideDebug: $('.debugData')">Show Debug Data</button>
+					<!-- <button data-bind="showHideDebug: $('.debugData')">Show Debug Data</button> -->
 				</div>
 				<div id="info" class="center"></div>
 				<div class="center1"><div class="center2"><div class="center3">

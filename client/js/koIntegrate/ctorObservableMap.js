@@ -75,18 +75,48 @@ define(function(require) {
 		}
 		
 		function added(key, value) {
-			mapObserv.addCallbacks.forEach(triggerCallback);
+			mapObserv.addCallbacks.forEach(function(callback) {
+				callback(key, value);
+			});
 		}
 		function removed(key, value) {
-			mapObserv.addCallbacks.forEach(triggerCallback);
+			mapObserv.removeCallbacks.forEach(function(callback) {
+				callback(key, value);
+			});
 		}
 		function changed(key, value) {
-			mapObserv.addCallbacks.forEach(triggerCallback);
+			mapObserv.changeCallbacks.forEach(function(callback) {
+				callback(key, value);
+			});
 		}
 		
 		mapObserv.OnAdd = makeCallbackFnc(mapObserv.addCallbacks, true);
 		mapObserv.OnRemove = makeCallbackFnc(mapObserv.removeCallbacks, true);
 		mapObserv.OnChange = makeCallbackFnc(mapObserv.changeCallbacks, false);
+		
+		mapObserv.CtorObservableArray = function() {	
+			var obsArrayMap = {};
+			
+			var observArray = ko.observableArray();
+			mapObserv.OnAdd(function(key, value){
+				var observ = ko.observable(value);
+				obsArrayMap[key] = observ;
+				observArray.push(observ);
+			});
+			mapObserv.OnRemove(function(key, value){
+				//Will cause problems if the same value is in the map multiple times...
+				for(var ix = observArray.length - 1; ix >= 0; ix--) {
+					if(observArray()[ix]() !== value) continue;
+					observArray.splice(ix, 1);
+				}
+				delete obsArrayMap[key];
+			});
+			mapObserv.OnChange(function(key, value){
+				obsArrayMap[key](value);
+			});
+			
+			return observArray;
+		}
 		
 		return mapObserv;
 	}
