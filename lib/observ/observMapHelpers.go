@@ -9,22 +9,22 @@ func (o *ObservMap) Delete(key Object) {
 }
 
 func (o *ObservMap) GetKeys() []Object {
-    keys := []Object{}
-    for key, _ := range o.data {
-        keys = append(keys, key)
-    }
-    return keys
+	keys := []Object{}
+	for key, _ := range o.data {
+		keys = append(keys, key)
+	}
+	return keys
 }
 func (o *ObservMap) GetValues() []Object {
-    values := []Object{}
-    for _, value := range o.data {
-        values = append(values, value)
-    }
-    return values
+	values := []Object{}
+	for _, value := range o.data {
+		values = append(values, value)
+	}
+	return values
 }
 
 func (o *ObservMap) Clear() {
-    for key, _ := range o.data {
-        o.Delete(key)
-    }
+	for key, _ := range o.data {
+		o.Delete(key)
+	}
 }

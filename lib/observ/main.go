@@ -1,6 +1,6 @@
 package observ
 
-type Object interface { }
+type Object interface{}
 
 type CallbackOwner interface {
 	DisposeExposed

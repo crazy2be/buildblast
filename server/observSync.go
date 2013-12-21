@@ -7,9 +7,9 @@ import (
 )
 
 func SyncObserv(conn *ClientConn, owner observ.CallbackOwner, name string, obs *observ.Observ) {
-	obs.OnChanged(owner, func(val observ.Object){
+	obs.OnChanged(owner, func(val observ.Object) {
 		conn.Send(&MsgKoIntegrate{
-			Name: name,
+			Name:  name,
 			Value: obs,
 		})
 	})
@@ -21,10 +21,10 @@ func SyncObject(conn *ClientConn, owner observ.CallbackOwner, name string, obj i
 
 func SyncObjectDebug(conn *ClientConn, owner observ.CallbackOwner, name string, obj interface{}, verbose bool) {
 	conn.Send(&MsgKoIntegrate{
-		Name: name,
+		Name:  name,
 		Value: obj,
 	})
-	
+
 	keepSyncedDebug(conn, owner, name, obj, verbose)
 }
 
@@ -36,15 +36,15 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 	if verbose {
 		fmt.Println("Syncing", name)
 	}
-	
+
 	//Lol, this function has gotten out of control
 	customIteration := false
-	
+
 	//Now we use reflection to recursively find observables in obj, so we can keep it synced
 	typ := reflect.TypeOf(obj)
-	
+
 	obs := (*observ.Observ)(nil)
-	
+
 	//Eh... should probably not do it based on name
 	_, hasBaseFnc := typ.MethodByName("GetBase")
 	if hasBaseFnc {
@@ -54,27 +54,26 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 			fmt.Println("Found obs from base", obs)
 		}
 	}
-	
+
 	if typ.AssignableTo(reflect.TypeOf((*observ.Observ)(nil))) {
 		obs = obj.(*observ.Observ)
-		
+
 		if verbose {
 			fmt.Println("Found obs from given", obs)
 		}
 	}
-	
+
 	if obs != nil {
-		obs.OnChanged(owner, func(_ observ.Object){	
+		obs.OnChanged(owner, func(_ observ.Object) {
 			conn.Send(&MsgKoIntegrate{
-				Name: name,
+				Name:  name,
 				Value: obs,
 			})
 		})
 	}
-	
-	
+
 	obsMap := (*observ.ObservMap)(nil)
-	
+
 	//Eh... should probably not do it based on name
 	_, hasBaseFncMap := typ.MethodByName("GetMapBase")
 	if hasBaseFncMap {
@@ -84,23 +83,23 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 			fmt.Println("Found obs mp from base", obsMap)
 		}
 	}
-	
+
 	if typ.AssignableTo(reflect.TypeOf((*observ.ObservMap)(nil))) {
 		obsMap = obj.(*observ.ObservMap)
 		if verbose {
 			fmt.Println("Found obs map from given", obsMap)
 		}
 	}
-	
+
 	if obsMap != nil {
 		customIteration = true
-		
-		obsMap.OnAdd(owner, func(key observ.Object, value observ.Object){
+
+		obsMap.OnAdd(owner, func(key observ.Object, value observ.Object) {
 			//Ugh... should probably merge this with the code in observSerialization...
 			KVPs := make(map[string]observ.Object)
 			keyStr := fmt.Sprintf("%s", key)
 			KVPs[keyStr] = value
-			
+
 			conn.Send(&MsgKoIntegrate{
 				Name: name,
 				Value: &observ.ObservMapSerialized{
@@ -108,18 +107,18 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 					Type: "ObservableMap",
 				},
 			})
-			
+
 			subName := name + "." + keyStr
-			
+
 			keepSyncedDebug(conn, owner, subName, value, verbose)
 		})
-		
-		obsMap.OnRemove(owner, func(key observ.Object, value observ.Object){
+
+		obsMap.OnRemove(owner, func(key observ.Object, value observ.Object) {
 			//Ugh... should probably merge this with the code in observSerialization...
 			KVPs := make(map[string]observ.Object)
 			keyStr := fmt.Sprintf("%s", key)
 			KVPs[keyStr] = nil
-			
+
 			conn.Send(&MsgKoIntegrate{
 				Name: name,
 				Value: &observ.ObservMapSerialized{
@@ -128,13 +127,13 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 				},
 			})
 		})
-		
-		obsMap.OnChange(owner, func(key observ.Object, value observ.Object){			
+
+		obsMap.OnChange(owner, func(key observ.Object, value observ.Object) {
 			//Ugh... should probably merge this with the code in observSerialization...
 			KVPs := make(map[string]observ.Object)
 			keyStr := fmt.Sprintf("%s", key)
 			KVPs[keyStr] = value
-			
+
 			conn.Send(&MsgKoIntegrate{
 				Name: name,
 				Value: &observ.ObservMapSerialized{
@@ -144,56 +143,61 @@ func keepSyncedDebug(conn *ClientConn, owner observ.CallbackOwner, name string, 
 			})
 		})
 	}
-	
-	
-	if customIteration { return }
-	
+
+	if customIteration {
+		return
+	}
+
 	//Hmm... can probably do this more efficient... but w/e
 	//	(also, could probably cache a lot of this stuff, but also w/e)...
 	//	keepSynced won't be called often (unless we have maps which are often
 	//	mutated... hmm...)
 	val := reflect.ValueOf(obj)
-	
+
 	if verbose {
 		fmt.Println("Kind", val.Kind())
 	}
-	
+
 	for val.Kind() == reflect.Ptr {
 		if verbose {
 			fmt.Println("Pointer indirection")
 		}
 		val = val.Elem()
 		typ = typ.Elem()
-		
+
 		if verbose {
 			fmt.Println("New Kind", val.Kind())
 		}
 	}
-	
-	if(val.Kind() != reflect.Struct) { return }
-	
+
+	if val.Kind() != reflect.Struct {
+		return
+	}
+
 	numFields := val.NumField()
-	
+
 	if verbose {
 		fmt.Println(name, "has", numFields, "fields")
 	}
-	
+
 	for ix := 0; ix < numFields; ix++ {
 		subField := val.Field(ix)
 		subType := typ.Field(ix)
-		
-		if !subField.CanSet() { continue }
-		
+
+		if !subField.CanSet() {
+			continue
+		}
+
 		subName := name + "." + typ.Field(ix).Name
-		
+
 		//Embedding
 		if subType.Anonymous {
 			if verbose {
-				fmt.Println("Detected embedded field", subName," so it is being treated as", name)
+				fmt.Println("Detected embedded field", subName, " so it is being treated as", name)
 			}
 			subName = name
 		}
-		
-		keepSyncedDebug(conn, owner, subName, subField.Interface(), verbose);
+
+		keepSyncedDebug(conn, owner, subName, subField.Interface(), verbose)
 	}
 }

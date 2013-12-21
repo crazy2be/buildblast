@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "fmt"
 	"buildblast/lib/observ"
+	_ "fmt"
 )
 
-type ObservCallback_SmallSyncStruct func (data SmallSyncStruct)
+type ObservCallback_SmallSyncStruct func(data SmallSyncStruct)
 
 //Not thread safe
 type Observ_SmallSyncStruct struct {
@@ -33,7 +33,7 @@ func (o *Observ_SmallSyncStruct) OnChanged(owner observ.CallbackOwner, callback 
 }
 
 func (o *Observ_SmallSyncStruct) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *Observ_SmallSyncStruct) GetBase() *observ.Observ {

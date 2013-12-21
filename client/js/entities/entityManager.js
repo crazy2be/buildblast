@@ -6,15 +6,27 @@ define(function (require) {
 	return function EntityManager(scene, conn, world, clock) {
 		var self = this;
 
-		var entities = {};
+		var entities = world.Entities;
 
 		var _playerId = null;
 		//This is only for the player which represents the player!
 		self.addUserPlayer = function (player) {
 			_playerId = player.id();
-			entities[player.id()] = player;
+			//entities.Add(player.id(), player);
 		};
 
+		conn.on('entity-state', function (payload) {
+			var id = payload.ID;
+			var entity = entities.Get(id);
+			if (!entity) {
+				console.warn("Got entity-pos message for entity which does not exist!", id);
+				return;
+			}
+
+			entity.posMessage(payload);
+		});
+		
+		/*
 		conn.on('entity-state', function (payload) {
 			var id = payload.ID;
 			var entity = entities[id];
@@ -61,6 +73,7 @@ define(function (require) {
 			entity.removeFromScene();
 			delete entities[id];
 		});
+		*/
 
 		self.entityAt = function (wcX, wcY, wcZ) {
 			for (var id in entities) {

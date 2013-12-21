@@ -19,9 +19,9 @@ type DisposeExposed interface {
 }
 
 type DisposeExposedImpl struct {
-	disposeCallbacks	[]func()
-	objName				string
-	disposed			bool
+	disposeCallbacks []func()
+	objName          string
+	disposed         bool
 }
 
 //TODO: Add a way to unsubscribe for OnDispose
@@ -65,7 +65,7 @@ func (c *DisposeExposedImpl) WatchLeaks(objName string) {
 
 	runtime.SetFinalizer(c, ObjFinalizer)
 }
-func ObjFinalizer(c* DisposeExposedImpl) {
+func ObjFinalizer(c *DisposeExposedImpl) {
 	_finalizedObjectCounts[c.objName] = _finalizedObjectCounts[c.objName] + 1
 }
 

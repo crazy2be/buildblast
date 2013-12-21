@@ -1,10 +1,10 @@
 package geom
 
 import (
-    "buildblast/lib/coords"
+	"buildblast/lib/coords"
 )
 
 type Sphere struct {
-    Center  coords.World
-    Radius  float64
+	Center coords.World
+	Radius float64
 }

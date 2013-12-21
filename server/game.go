@@ -24,7 +24,7 @@ type disconnectingClient struct {
 }
 
 type Game struct {
-    observ.DisposeExposedImpl
+	observ.DisposeExposedImpl
 
 	clients map[string]*Client
 
@@ -48,16 +48,16 @@ func NewGame() *Game {
 
 	//TODO: Pass the Annouce function into world, so it can have this logic instead of us?
 	g.world.EntitiesObserv.OnAdd(g, g.EntityCreated)
-	
+
 	return g
 }
 
 func (g *Game) EntityCreated(id string, entity game.Entity) {
-    entity.Status().OnChanged(g, func(status game.Status) {
-        if status.StatusFlag == game.Status_Dead {
-            g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))            
-        }
-    })
+	entity.GetStatus().OnChanged(g, func(status game.Status) {
+		if status.StatusFlag == game.Status_Dead {
+			g.Announce(string(status.StatusSetter) + " killed " + string(entity.ID()))
+		}
+	})
 }
 
 // Thread safe, blocking

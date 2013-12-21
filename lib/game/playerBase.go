@@ -1,16 +1,18 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"math"
-	"fmt"
 	"time"
 
+	"encoding/json"
+
 	"buildblast/lib/coords"
-    //"buildblast/lib/geom"
-	"buildblast/lib/physics"
+	//"buildblast/lib/geom"
 	"buildblast/lib/observ"
 	"buildblast/lib/observT"
+	"buildblast/lib/physics"
 )
 
 type ControlState struct {
@@ -54,83 +56,83 @@ type PlayerBase struct {
 	world    *World
 	name     string
 
+	//TODO: Make this or its properties observables
 	inventory *Inventory
 
-	//TODO: Rename Metrics() to GetMetrics() or something...
-	MetricsBase		*Observ_Metrics
+	metrics *Observ_Metrics
 
-	healthObserv	*Observ_Health
+	Health *Observ_Health
 
-    status          *Observ_Status
-	
-	teamName		*observT.Observ_string
-	
-	tickFnc			func (w *World)
+	Status *Observ_Status
+
+	TeamName *observT.Observ_string
+
+	tickFnc func(w *World)
 }
 
-func NewPlayerBase(world *World, name string, tick func (w *World)) *PlayerBase {
+func NewPlayerBase(world *World, name string, tick func(w *World)) *PlayerBase {
 	player := &PlayerBase{
-		history:		NewHistoryBuffer(),
-		inventory:		NewInventory(),
-		world:			world,
-		name:			name,
-		tickFnc:        tick,
+		history:   NewHistoryBuffer(),
+		inventory: NewInventory(),
+		world:     world,
+		name:      name,
+		tickFnc:   tick,
 	}
-	
-	player.MetricsBase = NewObserv_Metrics(player, Metrics {
-          	Pos:                    coords.World{},
-          	Look:                   coords.Direction{},
-          	Vy:                     0.0,
+
+	player.metrics = NewObserv_Metrics(player, Metrics{
+		Pos:  coords.World{},
+		Look: coords.Direction{},
+		Vy:   0.0,
 	})
-		
-	player.healthObserv = NewObserv_Health(player, Health{
-        Points: PLAYER_MAX_HP,
-        Setter: string("Self"),
-    })
-    player.status = NewObserv_Status(player, Status{
-        StatusFlag:     Status_Alive,
-        StatusSetter:   string("Self"),
-    })
-	player.teamName = observT.NewObserv_string(player, world.NextTeamName())
-	
+
+	player.Health = NewObserv_Health(player, Health{
+		Points: PLAYER_MAX_HP,
+		Setter: string("Self"),
+	})
+	player.Status = NewObserv_Status(player, Status{
+		StatusFlag:   Status_Alive,
+		StatusSetter: string("Self"),
+	})
+	player.TeamName = observT.NewObserv_string(player, world.NextTeamName())
+
 	return player
 }
 
 func (p *PlayerBase) Tick(w *World) {
-    p.tickFnc(w)
+	p.tickFnc(w)
 }
 
-func (p *PlayerBase) Metrics() *Observ_Metrics {
-	return p.MetricsBase
+func (p *PlayerBase) GetMetrics() *Observ_Metrics {
+	return p.metrics
 }
 
-func (p *PlayerBase) HealthObserv() *Observ_Health {
-	return p.healthObserv
+func (p *PlayerBase) GetHealth() *Observ_Health {
+	return p.Health
 }
 
-func (p *PlayerBase) Status() *Observ_Status {
-	return p.status
+func (p *PlayerBase) GetStatus() *Observ_Status {
+	return p.Status
 }
 
-func (p *PlayerBase) TeamName() *observT.Observ_string {
-	return p.teamName
+func (p *PlayerBase) GetTeamName() *observT.Observ_string {
+	return p.TeamName
 }
 
 func (p *PlayerBase) Pos() coords.World {
-	return p.Metrics().Get().Pos
+	return p.metrics.Get().Pos
 }
 
 func (p *PlayerBase) Look() coords.Direction {
-	return p.Metrics().Get().Look
+	return p.metrics.Get().Look
 }
 
 //TODO: Remove these
-func (p *PlayerBase) Health() int {
-	return p.HealthObserv().Get().Points
+func (p *PlayerBase) HealthInt() int {
+	return p.Health.Get().Points
 }
 
 func (p *PlayerBase) Dead() bool {
-	return p.Health() <= 0
+	return p.Health.Get().Points <= 0
 }
 
 func (p *PlayerBase) Respawn(pos coords.World) {
@@ -138,14 +140,14 @@ func (p *PlayerBase) Respawn(pos coords.World) {
 	//	or the time the shot that killed us was fired...
 	currentTime := float64(time.Now().UnixNano() / 1e6)
 
-	metrics := p.Metrics().Get()
+	metrics := p.metrics.Get()
 	metrics.Pos = pos
 	metrics.Timestamp = currentTime
-	p.Metrics().Set(metrics)
-	p.HealthObserv().Set(Health{
-        Points:     PLAYER_MAX_HP,
-        Setter:     "Self",
-    })
+	p.metrics.Set(metrics)
+	p.Health.Set(Health{
+		Points: PLAYER_MAX_HP,
+		Setter: "Self",
+	})
 	p.history.Clear()
 	p.history.Add(currentTime, pos)
 
@@ -153,7 +155,7 @@ func (p *PlayerBase) Respawn(pos coords.World) {
 }
 
 func (p *PlayerBase) Vy() float64 {
-	return p.Metrics().Get().Vy
+	return p.metrics.Get().Vy
 }
 
 // Returns the last time this entity's state was updated
@@ -202,7 +204,7 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) bool {
 	//	it. This means don't go calling function on yourself that expect
 	//	us to have changed stuff, as we don't set metrics until the end
 	//	of this function!
-	metrics := p.Metrics().Get()
+	metrics := p.metrics.Get()
 	metrics.Timestamp = controls.Timestamp
 
 	metrics.Vy += dt * -9.81
@@ -233,7 +235,7 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) bool {
 	box := p.Box()
 
 	newMove := box.AttemptMove(p.world, move)
-	
+
 	collided := newMove != move
 	move = newMove
 
@@ -249,7 +251,6 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) bool {
 	metrics.Pos.Y += move.Y
 	metrics.Pos.Z += move.Z
 
-
 	//TODO, maybe pull look out of metrics (which will change lag compensation
 	//	client side, so maybe it is not worth it?)
 	lat := controls.Lat
@@ -259,8 +260,8 @@ func (p *PlayerBase) simulateMovement(dt float64, controls ControlState) bool {
 	metrics.Look.Y = cos(lat)
 	metrics.Look.Z = sin(lat) * sin(lon)
 
-	p.Metrics().Set(metrics)
-	
+	p.metrics.Set(metrics)
+
 	return collided
 }
 
@@ -283,11 +284,11 @@ func (p *PlayerBase) simulateBlaster(controls ControlState) *coords.World {
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
 		fmt.Println("Hit", p.name)
-        prevHp := hitEntity.HealthObserv().Get().Points
-        hitEntity.HealthObserv().Set(Health{
-            Points:     prevHp - 40,
-            Setter:     string(p.name),
-        })
+		prevHp := hitEntity.GetHealth().Get().Points
+		hitEntity.GetHealth().Set(Health{
+			Points: prevHp - 40,
+			Setter: string(p.name),
+		})
 	} else {
 		fmt.Println("Missed")
 	}
@@ -306,4 +307,13 @@ func (p *PlayerBase) BoxAt(t float64) *physics.Box {
 		p.history.PositionAt(t),
 		PLAYER_HALF_EXTENTS,
 		PLAYER_CENTER_OFFSET)
+}
+
+type PlayerBaseSerialized struct {
+	Data *PlayerBase
+	Type string
+}
+
+func (p *PlayerBase) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&PlayerBaseSerialized{p, "Entity"})
 }

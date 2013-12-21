@@ -1,11 +1,11 @@
 package observT
 
 import (
-	_ "fmt"
 	"buildblast/lib/observ"
+	_ "fmt"
 )
 
-type ObservCallback_string func (data string)
+type ObservCallback_string func(data string)
 
 //Not thread safe
 type Observ_string struct {
@@ -33,7 +33,7 @@ func (o *Observ_string) OnChanged(owner observ.CallbackOwner, callback ObservCal
 }
 
 func (o *Observ_string) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *Observ_string) GetBase() *observ.Observ {

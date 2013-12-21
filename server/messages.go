@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-    "buildblast/lib/coords"
+	"buildblast/lib/coords"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 )
@@ -28,7 +28,7 @@ const (
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
 	//The message to end all messages
-	MSG_KO_INTEGRATE	= MessageKind("ko-integrate")
+	MSG_KO_INTEGRATE = MessageKind("ko-integrate")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -93,7 +93,7 @@ func typeToKind(m Message) MessageKind {
 		return MSG_INVENTORY_STATE
 	case *MsgInventoryMove:
 		return MSG_INVENTORY_MOVE
-    case *MsgKoIntegrate:
+	case *MsgKoIntegrate:
 		return MSG_KO_INTEGRATE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
@@ -185,8 +185,8 @@ type MsgInventoryMove struct {
 //	there is no need to make it handle messages specially, it can easily
 //	decipher the intent based on the structure.
 type MsgKoIntegrate struct {
-	Name		string
-	Value		interface{}
+	Name  string
+	Value interface{}
 }
 
 type ClientMessage struct {

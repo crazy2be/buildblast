@@ -74,6 +74,10 @@ define(function(require) {
 			mapObserv.valueHasMutated();
 		}
 		
+		mapObserv.Get = function(key) {
+			return mapObserv()[key];
+		}
+		
 		function added(key, value) {
 			mapObserv.addCallbacks.forEach(function(callback) {
 				callback(key, value);

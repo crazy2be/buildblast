@@ -2,7 +2,7 @@ package observT
 
 import "buildblast/lib/observ"
 
-type ObservMapCallback_int_string func (key int, value string)
+type ObservMapCallback_int_string func(key int, value string)
 
 //Not thread safe
 type ObservMap_int_string struct {
@@ -53,26 +53,26 @@ func (o *ObservMap_int_string) OffChange(callbackNum int) {
 }
 
 func (o *ObservMap_int_string) GetKeys() []int {
-    keys := []int{}
-    for _, key := range o.base.GetKeys() {
-        keys = append(keys, key.(int))
-    }
-    return keys
+	keys := []int{}
+	for _, key := range o.base.GetKeys() {
+		keys = append(keys, key.(int))
+	}
+	return keys
 }
 func (o *ObservMap_int_string) GetValues() []string {
-    values := []string{}
-    for _, value := range o.base.GetValues() {
-        values = append(values, value.(string))
-    }
-    return values
+	values := []string{}
+	for _, value := range o.base.GetValues() {
+		values = append(values, value.(string))
+	}
+	return values
 }
 
 func (o *ObservMap_int_string) Clear() {
-    o.base.Clear()
+	o.base.Clear()
 }
 
 func (o *ObservMap_int_string) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *ObservMap_int_string) GetMapBase() *observ.ObservMap {

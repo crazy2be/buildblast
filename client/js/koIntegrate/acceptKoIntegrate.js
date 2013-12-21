@@ -3,6 +3,8 @@ define(function(require) {
 	
 	var ctorObservableMap = require("./ctorObservableMap");
 	
+	var Entity = require("entities/entity");
+	
 	var SerialCtors = {
 		Observable: function() { return ko.observable({}).extend({notify: 'always'}); },
 		//Ugh... any normal changes to this observable won't be reflected... you must call the Add, Remove and Set functions

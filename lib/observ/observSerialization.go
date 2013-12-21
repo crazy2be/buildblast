@@ -1,13 +1,13 @@
 package observ
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 type ObservSerialized struct {
-    Data	Object
-	Type	string
+	Data Object
+	Type string
 }
 
 func (o *Observ) MarshalJSON() ([]byte, error) {
@@ -16,13 +16,13 @@ func (o *Observ) MarshalJSON() ([]byte, error) {
 
 //Not thread safe
 type ObservMapSerialized struct {
-    KVPs	map[string]Object
-	Type	string
+	KVPs map[string]Object
+	Type string
 }
 
 func (o *ObservMap) MarshalJSON() ([]byte, error) {
 	strMap := make(map[string]Object)
-	
+
 	for key, value := range o.data {
 		keyStr := fmt.Sprintf("%s", key)
 		val, ok := strMap[keyStr]
@@ -32,6 +32,6 @@ func (o *ObservMap) MarshalJSON() ([]byte, error) {
 		}
 		strMap[keyStr] = value
 	}
-	
+
 	return json.Marshal(&ObservMapSerialized{strMap, "ObservableMap"})
 }

@@ -2,7 +2,7 @@ package game
 
 import "buildblast/lib/observ"
 
-type ObservMapCallback_string_Entity func (key string, value Entity)
+type ObservMapCallback_string_Entity func(key string, value Entity)
 
 //Not thread safe
 type ObservMap_string_Entity struct {
@@ -53,26 +53,26 @@ func (o *ObservMap_string_Entity) OffChange(callbackNum int) {
 }
 
 func (o *ObservMap_string_Entity) GetKeys() []string {
-    keys := []string{}
-    for _, key := range o.base.GetKeys() {
-        keys = append(keys, key.(string))
-    }
-    return keys
+	keys := []string{}
+	for _, key := range o.base.GetKeys() {
+		keys = append(keys, key.(string))
+	}
+	return keys
 }
 func (o *ObservMap_string_Entity) GetValues() []Entity {
-    values := []Entity{}
-    for _, value := range o.base.GetValues() {
-        values = append(values, value.(Entity))
-    }
-    return values
+	values := []Entity{}
+	for _, value := range o.base.GetValues() {
+		values = append(values, value.(Entity))
+	}
+	return values
 }
 
 func (o *ObservMap_string_Entity) Clear() {
-    o.base.Clear()
+	o.base.Clear()
 }
 
 func (o *ObservMap_string_Entity) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *ObservMap_string_Entity) GetMapBase() *observ.ObservMap {

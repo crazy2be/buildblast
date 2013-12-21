@@ -1,11 +1,11 @@
 package game
 
 import (
-	_ "fmt"
 	"buildblast/lib/observ"
+	_ "fmt"
 )
 
-type ObservCallback_Metrics func (data Metrics)
+type ObservCallback_Metrics func(data Metrics)
 
 //Not thread safe
 type Observ_Metrics struct {
@@ -33,7 +33,7 @@ func (o *Observ_Metrics) OnChanged(owner observ.CallbackOwner, callback ObservCa
 }
 
 func (o *Observ_Metrics) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *Observ_Metrics) GetBase() *observ.Observ {

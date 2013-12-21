@@ -4,22 +4,21 @@ import (
 	_ "fmt"
 )
 
-
 //Not thread safe
 type ObservBase struct {
-    owner               DisposeExposed
-	
+	owner DisposeExposed
+
 	//We sometimes need to buffer setting our data, as data may
 	//	be set in a changed handler, and the other handlers will
 	//	still want the original data that was set. They also
 	//	want to be called in the order the data was set.
-	dataFutureCount		int
-	maxDataFuture		int
-	dataFuture			[]Object
-	
-	dataChanging		bool
-	
-	setCallback			func(data Object)
+	dataFutureCount int
+	maxDataFuture   int
+	dataFuture      []Object
+
+	dataChanging bool
+
+	setCallback func(data Object)
 }
 
 func NewObservBase(owner DisposeExposed) *ObservBase {
@@ -27,8 +26,8 @@ func NewObservBase(owner DisposeExposed) *ObservBase {
 	if owner == nil {
 		panic("Owner cannot be nil")
 	}
-    observ.owner = owner
-	
+	observ.owner = owner
+
 	observ.dataFutureCount = 0
 	observ.maxDataFuture = 100
 	observ.dataFuture = make([]Object, observ.maxDataFuture)
@@ -50,18 +49,18 @@ func (o *ObservBase) set(value Object) {
 		o.dataFutureCount++
 		return
 	}
-	
+
 	o.dataChanging = true
 	o.change(value)
-	
+
 	for o.dataFutureCount > 0 {
 		value = o.dataFuture[0]
-		
+
 		o.dataFutureCount--
 		for index := 0; index < o.dataFutureCount; index++ {
-			o.dataFuture[index] = o.dataFuture[index + 1]
+			o.dataFuture[index] = o.dataFuture[index+1]
 		}
-		
+
 		o.change(value)
 	}
 	o.dataChanging = false

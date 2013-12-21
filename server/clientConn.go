@@ -30,7 +30,7 @@ func NewClientConn(name string) *ClientConn {
 	c.name = name
 
 	//10K just wasn't enough, 100K should be good... okay maybe 1M
-	c.sendQueue = make(chan Message, 1000 * 1000)
+	c.sendQueue = make(chan Message, 1000*1000)
 	c.sendLossyQueue = make(chan Message, 5)
 
 	c.recvQueue = make(chan Message, 1000)

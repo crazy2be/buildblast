@@ -1,31 +1,31 @@
 package main
 
 import (
-    _ "buildblast/lib/geom"
 	"buildblast/lib/game"
+	_ "buildblast/lib/geom"
 	"buildblast/lib/observ"
 	"buildblast/lib/observT"
 	"fmt"
-	"time"
 	"math/rand"
+	"time"
 )
 
 type SmallSyncStruct struct {
-	MoreNums		int
-	ObservNum		*observT.Observ_int
+	MoreNums  int
+	ObservNum *observT.Observ_int
 }
 
 type BigSyncStruct struct {
-	Num		int
-	Observ	*Observ_SmallSyncStruct
+	Num    int
+	Observ *Observ_SmallSyncStruct
 }
 
 type EntitySync struct {
 	observ.DisposeExposedImpl
 
-	world *game.World
-	conn  *ClientConn
-	testObserv  *BigSyncStruct
+	world      *game.World
+	conn       *ClientConn
+	testObserv *BigSyncStruct
 }
 
 //Should just use conn to send data, never to receive
@@ -37,29 +37,28 @@ func NewEntitySync(world *game.World, conn *ClientConn) *EntitySync {
 	e := new(EntitySync)
 	e.world = world
 	e.conn = conn
-	
+
 	e.testObserv = &BigSyncStruct{
-		Num: 		5,
-		Observ: 	NewObserv_SmallSyncStruct(e, SmallSyncStruct{
-			MoreNums: 7,
+		Num: 5,
+		Observ: NewObserv_SmallSyncStruct(e, SmallSyncStruct{
+			MoreNums:  7,
 			ObservNum: observT.NewObserv_int(e, 2),
 		}),
 	}
-	
+
 	e.WatchLeaks("EntitySync")
 
 	e.world.EntitiesObserv.OnAdd(e, e.EntityCreated)
-	e.world.EntitiesObserv.OnRemove(e, e.EntityRemoved)
 
 	SyncObject(e.conn, e, "hillSphere", e.world.HillSphere)
-	
+
 	SyncObject(e.conn, e, "hillColor", e.world.HillColor)
-	
+
 	SyncObject(e.conn, e, "Teams", e.world.Teams)
-	
+
 	SyncObject(e.conn, e, "KOTH_CONSTS", e.world.KOTH_CONSTS)
 
-	SyncObjectDebug(e.conn, e, "EntitiesTest", e.world.EntitiesObserv, true)
+	SyncObjectDebug(e.conn, e, "Entities", e.world.EntitiesObserv, true)
 
 	SyncObject(e.conn, e, "testObserv", e.testObserv)
 
@@ -72,12 +71,12 @@ func (e *EntitySync) TestSync() {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			if(rand.Float64() > 0.75 && false) {
+			if rand.Float64() > 0.75 && false {
 				//TODO: Make setting an observable call dispose on the previous value if it has a Dispose
 				//	(and then set up the SmallSyncStruct to have the correct owner)
 				//This probably leaks... because we don't call Dispose on observNum...
 				e.testObserv.Observ.Set(SmallSyncStruct{
-					MoreNums: rand.Int(),
+					MoreNums:  rand.Int(),
 					ObservNum: observT.NewObserv_int(e, rand.Int()),
 				})
 			} else {
@@ -90,45 +89,17 @@ func (e *EntitySync) TestSync() {
 
 func (e *EntitySync) EntityCreated(id string, entity game.Entity) {
 	fmt.Println("Sending entity created", id, "to client")
-	
-	e.conn.Send(&MsgEntityCreate{
-		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
-	})
 
-	entity.HealthObserv().OnChanged(e, func(health game.Health) {
-		e.conn.Send(&MsgEntityHp{
-			ID:     entity.ID(),     //Or id
-			Health: health.Points,
-		})
-	})
-
-	entity.Metrics().OnChanged(e, func(metrics game.Metrics) {
+	//Hmm... I want to leave this here just to prove you don't have to use
+	//SyncObject... but when this is optimized I might as well just optimize
+	//SyncObject, meaning this won't be able to be independent...
+	entity.GetMetrics().OnChanged(e, func(metrics game.Metrics) {
 		e.conn.Send(&MsgEntityState{
-			ID:        entity.ID(), 
+			ID:        entity.ID(),
 			Pos:       metrics.Pos,
 			Look:      metrics.Look,
 			Vy:        metrics.Vy,
 			Timestamp: metrics.Timestamp,
 		})
-	})
-	
-	/*
-	entity.TeamName().OnChanged(e, func(teamName string) {
-		e.conn.Send(&MsgPropertySet{
-			ID: entity.ID(),
-			Name: "TeamName",
-			Value: teamName,
-		})
-	})
-	*/
-}
-
-func (e *EntitySync) EntityRemoved(id string, entity game.Entity) {
-	e.conn.Send(&MsgEntityRemove{
-		ID: id,
 	})
 }

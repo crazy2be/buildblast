@@ -1,8 +1,6 @@
 package game
 
-import (
-
-)
+import ()
 
 type Player struct {
 	*PlayerBase
@@ -15,5 +13,5 @@ func NewPlayer(world *World, name string) *Player {
 }
 
 func (p *Player) Tick(w *World) {
-    
+
 }

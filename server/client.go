@@ -135,7 +135,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	c.entitySync = NewEntitySync(w, c.conn)
 
-    w.EntitiesObserv.Set(p.ID(), p)
+	w.EntitiesObserv.Set(p.ID(), p)
 
 	w.AddBlockListener(c)
 
@@ -146,7 +146,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
-    w.EntitiesObserv.Delete(c.player.ID())
+	w.EntitiesObserv.Delete(c.player.ID())
 	w.RemoveBlockListener(c)
 
 	c.player.Dispose()

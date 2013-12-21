@@ -1,11 +1,11 @@
 package game
 
 import (
-	_ "fmt"
 	"buildblast/lib/observ"
+	_ "fmt"
 )
 
-type ObservCallback_Health func (data Health)
+type ObservCallback_Health func(data Health)
 
 //Not thread safe
 type Observ_Health struct {
@@ -33,7 +33,7 @@ func (o *Observ_Health) OnChanged(owner observ.CallbackOwner, callback ObservCal
 }
 
 func (o *Observ_Health) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *Observ_Health) GetBase() *observ.Observ {

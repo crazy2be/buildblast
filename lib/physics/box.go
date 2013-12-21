@@ -95,10 +95,10 @@ func (b *Box) inSolid(world mapgen.BlockSource) bool {
 		for y := ys; y <= ye; y++ {
 			for z := zs; z <= ze; z++ {
 				if blockCollide(x, y, z) {
-					return true;
+					return true
 				}
 			}
 		}
 	}
-	return false;
+	return false
 }

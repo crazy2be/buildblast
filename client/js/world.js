@@ -19,6 +19,8 @@ define(function(require) {
 		//Hmm... this really makes testing easier
 		window.world = self;
 
+		//self.Entities = ctorObservableMap();
+
 		var chunkManager = new ChunkManager(scene, clientID);
 		var entityManager = new EntityManager(scene, conn, self, clock);
 		

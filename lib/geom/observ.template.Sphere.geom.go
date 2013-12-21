@@ -1,11 +1,11 @@
 package geom
 
 import (
-	_ "fmt"
 	"buildblast/lib/observ"
+	_ "fmt"
 )
 
-type ObservCallback_Sphere func (data Sphere)
+type ObservCallback_Sphere func(data Sphere)
 
 //Not thread safe
 type Observ_Sphere struct {
@@ -33,7 +33,7 @@ func (o *Observ_Sphere) OnChanged(owner observ.CallbackOwner, callback ObservCal
 }
 
 func (o *Observ_Sphere) MarshalJSON() ([]byte, error) {
-	return o.base.MarshalJSON();
+	return o.base.MarshalJSON()
 }
 
 func (o *Observ_Sphere) GetBase() *observ.Observ {
