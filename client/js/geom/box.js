@@ -3,7 +3,13 @@ var THREE = require("THREE");
 
 return function Box(halfExtents, centerOffset) {
 	var self = this;
+	var p = new THREE.Vector3(0, 0, 0);
 	centerOffset = centerOffset || new THREE.Vector3(0.0, 0.0, 0.0);
+
+	self.setPosition = function (newPos) {
+		p = newPos;
+		return self;
+	};
 
 	// We might want to move this at some point...
 	// You can't have boxes checking collisions with
@@ -12,13 +18,13 @@ return function Box(halfExtents, centerOffset) {
 	// that's only O(n), but it might make sence to
 	// move this once we have a more comprehensive
 	// collision interface.
-	self.collides = function (world, pos) {
-		return volumeBlockCollides(pos, blockCollide.bind(null, world));
+	self.collides = function (world) {
+		return volumeBlockCollides(blockCollide.bind(null, world));
 	}
 
 	// We can do this (fairly) efficiently because
 	// of the assumed resolution of the voxel world.
-	function volumeBlockCollides(p, blockCollide) {
+	function volumeBlockCollides(blockCollide) {
 		var he = halfExtents;
 		var co = centerOffset;
 		var f = Math.floor;

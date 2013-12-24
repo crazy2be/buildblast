@@ -5,6 +5,8 @@ var Box = require("geom/box");
 
 // he: HALF_EXTENTS, co: CENTER_OFFSET
 return function Entity(id, he, co) {
+	ASSERTD(id, he, co);
+
 	var self = this;
 
 	var state = new EntityState();
@@ -21,7 +23,7 @@ return function Entity(id, he, co) {
 		return state.vy;
 	};
 	self.box = function () {
-		return new Box(state.pos, he, co);
+		return new Box(he, co).setPosition(self.pos());
 	};
 	self.contains = function (x, y, z) {
 		return self.box().contains(x, y, z);
@@ -80,5 +82,15 @@ function HitboxMesh(he) {
 	};
 
 	self.update = function () {};
+}
+
+function ASSERTD() {
+	var args = [].slice.apply(arguments);
+	for (var i = 0; i < args.length; i++) {
+		if (args[i] === undefined ||
+			args[i] === null) {
+				throw "Unexpected undefined!";
+		}
+	}
 }
 });

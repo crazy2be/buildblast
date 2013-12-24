@@ -69,9 +69,13 @@ function main () {
 		startGame();
 	});
 
-	function makePlayerController(playerEntity, world) {
+	function makePlayerController(world) {
 		var box = playerEntity.box();
-		var collides = box.collides.bind(null, world);
+		console.log(box);
+		function collides(pos) {
+			box.setPosition(pos);
+			return box.collides(world);
+		}
 		var predictor = movement.simulate.bind(null, collides);
 		var controller = new EntityInputPredictor(playerEntity, predictor);
 		return controller;
@@ -85,7 +89,7 @@ function main () {
 		var world = new World(scene, conn, clientID, clock);
 		var controls = new Controls(container);
 
-		var playerController = makePlayerController(playerEntity, world);
+		var playerController = makePlayerController(world);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity, playerController);
 		world.setPlayer(clientID, playerEntity, playerController);
 
