@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
-	"flag"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -73,7 +73,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	info := makePlayerEntityCreatedMessage(game.EntityID(name), game.EntityState{})
 
 	conn.Send(&MsgHandshakeReply{
-		ServerTime:      float64(time.Now().UnixNano()) / 1e6,
+		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
 		ClientID:         name,
 		PlayerEntityInfo: *info,
 	})

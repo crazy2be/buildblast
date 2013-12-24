@@ -24,9 +24,10 @@ type ControlState struct {
 }
 
 const (
-	playerHeight = 1.75
+	playerHeight    = 1.75
 	playerEyeHeight = 0.936 * playerHeight
 )
+
 var PlayerHalfExtents = coords.Vec3{
 	0.4,
 	playerHeight / 2,
@@ -90,14 +91,13 @@ func (p *Player) LastUpdated() float64 {
 
 func (p *Player) State() EntityState {
 	return EntityState{
-		Pos: p.Pos(),
-		Look: p.Look(),
-		Health: p.Health(),
-		Vy: p.Vy(),
+		Pos:       p.Pos(),
+		Look:      p.Look(),
+		Health:    p.Health(),
+		Vy:        p.Vy(),
 		Timestamp: p.LastUpdated(),
 	}
 }
-
 
 func (p *Player) Damage(amount int) {
 	p.health -= amount

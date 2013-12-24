@@ -111,8 +111,8 @@ type MsgEntityCreate struct {
 }
 
 type MsgEntityState struct {
-	ID        game.EntityID
-	State     game.EntityState
+	ID    game.EntityID
+	State game.EntityState
 }
 
 type MsgEntityRemove struct {
