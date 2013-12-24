@@ -93,8 +93,9 @@ type MsgHandshakeInit struct {
 }
 
 type MsgHandshakeReply struct {
-	ServerTime float64
-	ClientID   string
+	ServerTime       float64
+	ClientID         string
+	PlayerEntityInfo MsgEntityCreate
 }
 
 type MsgHandshakeError struct {

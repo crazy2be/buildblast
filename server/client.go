@@ -162,13 +162,7 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 }
 
 func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
-	c.Send(&MsgEntityCreate{
-		ID:           id,
-		Kind:         game.EntityKindPlayer,
-		HalfExtents:  game.PLAYER_HALF_EXTENTS,
-		CenterOffset: game.PLAYER_CENTER_OFFSET,
-		InitialState: entity.State(),
-	})
+	c.Send(makePlayerEntityCreatedMessage(id, entity.State()));
 }
 
 func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
@@ -235,5 +229,15 @@ func (c *Client) internalRunChunks(conn *Conn) {
 			}
 			<-time.After(time.Second / 100)
 		}
+	}
+}
+
+func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *MsgEntityCreate {
+	return &MsgEntityCreate{
+		ID:           id,
+		Kind:         game.EntityKindPlayer,
+		HalfExtents:  game.PLAYER_HALF_EXTENTS,
+		CenterOffset: game.PLAYER_CENTER_OFFSET,
+		InitialState: state,
 	}
 }

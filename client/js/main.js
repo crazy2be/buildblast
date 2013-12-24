@@ -13,6 +13,7 @@ var World = require("core/world");
 var Entity = require("entities/playerEntity");
 var PlayerUI = require("player/playerUI");
 var PlayerEntity = require("entities/playerEntity");
+var EntityManager = require("entities/entityManager");
 
 var PerfChart = require("perf/chart");
 var Box = require("geom/box");
@@ -41,6 +42,7 @@ function main () {
 	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
 	var clientID;
+	var playerEntity;
 
 	async.parallel([
 		function (callback) {
@@ -51,6 +53,7 @@ function main () {
 				console.log("Got handshake reply:", payload);
 				clock.init(payload.ServerTime);
 				clientID = payload.ClientID;
+				playerEntity = EntityManager.makeEntity(payload.PlayerEntityInfo)
 				conn.setImmediate(false);
 				callback();
 			});
@@ -66,14 +69,11 @@ function main () {
 		startGame();
 	});
 
-	// FIXME: the world should give us our initial state in the handshake
-	// message (including size and position!) so that we don't have end up
-	// in the wrong spot for a few frames.
-	function makePlayerController(player, world) {
-		var box = new Box(PLAYER.HALF_EXTENTS, PLAYER.CENTER_OFFSET);
+	function makePlayerController(playerEntity, world) {
+		var box = playerEntity.box();
 		var collides = box.collides.bind(null, world);
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredictor(player, predictor);
+		var controller = new EntityInputPredictor(playerEntity, predictor);
 		return controller;
 	}
 
@@ -85,10 +85,9 @@ function main () {
 		var world = new World(scene, conn, clientID, clock);
 		var controls = new Controls(container);
 
-		var player = new PlayerEntity(clientID);
-		var playerController = makePlayerController(player, world);
-		var playerUI = new PlayerUI(world, conn, clock, container, controls, player, playerController);
-		world.setPlayer(clientID, player, playerController);
+		var playerController = makePlayerController(playerEntity, world);
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity, playerController);
+		world.setPlayer(clientID, playerEntity, playerController);
 
 		window.testExposure.playerUI = playerUI;
 		window.testExposure.world = world;
@@ -108,7 +107,7 @@ function main () {
 			//Unfortunately this means our data relies partially on having a Player.
 			//Think of this as an optimization, if our data focuses on where our Player is located,
 			//it can more efficiently handle queries.
-			world.update(dt, player.pos());
+			world.update(dt, playerEntity.pos());
 
 			playerUI.render(scene);
 

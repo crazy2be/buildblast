@@ -7,7 +7,7 @@ var PlayerMesh = require("./UIViews/playerMesh");
 
 var EntityKindPlayer = "player";
 
-return function EntityManager(scene, conn, world, clock) {
+function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
 	//The network controls the entities, these
@@ -29,26 +29,13 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-
-	function vecFromNet(obj) {
-		return new THREE.Vector3(obj.X, obj.Y, obj.Z)
-	}
-
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var he = vecFromNet(payload.HalfExtents);
-		var co = vecFromNet(payload.CenterOffset);
-		var entity = new Entity(id, he, co);
-		if (payload.Kind === EntityKindPlayer) {
-			entity.add(new PlayerMesh());
-		} else {
-			console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
-			return;
-		}
+		var entity = EntityManager.makeEntity(payload);
 		entity.addTo(scene);
 
 		var initialState = protocolToLocal(payload.InitialState);
@@ -65,17 +52,6 @@ return function EntityManager(scene, conn, world, clock) {
 			entity.add(historyBar);
 		}
 	});
-
-	function protocolToLocal(payload) {
-		return {
-			time: payload.Timestamp,
-			data: new EntityState(
-				vecFromNet(payload.Pos),
-				vecFromNet(payload.Look),
-				payload.Health,
-				payload.Vy),
-		};
-	}
 
 	conn.on('entity-state', function (payload) {
 		var id = payload.ID;
@@ -118,4 +94,34 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 }
+
+EntityManager.makeEntity = function (payload) {
+	var id = payload.ID;
+	var halfExtents = vecFromNet(payload.HalfExtents);
+	var centerOffset = vecFromNet(payload.CenterOffset);
+	var entity = new Entity(id, halfExtents, centerOffset);
+	if (payload.Kind === EntityKindPlayer) {
+		entity.add(new PlayerMesh());
+	} else {
+		console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
+	}
+	return entity;
+};
+
+function protocolToLocal(payload) {
+	return {
+		time: payload.Timestamp,
+		data: new EntityState(
+			vecFromNet(payload.Pos),
+			vecFromNet(payload.Look),
+			payload.Health,
+			payload.Vy),
+	};
+}
+
+function vecFromNet(obj) {
+	return new THREE.Vector3(obj.X || 0, obj.Y || 0, obj.Z || 0);
+}
+
+return EntityManager;
 });

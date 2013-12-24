@@ -1,6 +1,7 @@
 define(function(require) {
 var EntityState = require("./entityState");
 var EntityBar = require("./UIViews/entityBar");
+var Box = require("geom/box");
 
 // he: HALF_EXTENTS, co: CENTER_OFFSET
 return function Entity(id, he, co) {
@@ -19,9 +20,11 @@ return function Entity(id, he, co) {
 	self.vy = function () {
 		return state.vy;
 	};
+	self.box = function () {
+		return new Box(state.pos, he, co);
+	};
 	self.contains = function (x, y, z) {
-		var box = new Box(state.pos, he, co);
-		return box.contains(x, y, z);
+		return self.box().contains(x, y, z);
 	};
 
 	var mesh = new THREE.Object3D();
