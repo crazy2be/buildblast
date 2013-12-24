@@ -25,8 +25,8 @@ type ControlState struct {
 
 const (
 	playerHeight = 1.75
-	playerEyeHeight = 1.6
-	playerBodyHeight = 1.3
+	playerEyeHeight = 0.936 * playerHeight
+	playerBodyHeight = 0.818 * playerHeight
 )
 var PlayerHalfExtents = coords.Vec3{
 	0.4,
@@ -35,7 +35,7 @@ var PlayerHalfExtents = coords.Vec3{
 }
 var PlayerCenterOffset = coords.Vec3{
 	0,
-	playerBodyHeight/2 - playerEyeHeight,
+	playerHeight/2 - playerEyeHeight,
 	0,
 }
 
