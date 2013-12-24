@@ -59,13 +59,11 @@ function main () {
 			});
 		}
 	], function (err, results) {
-		console.log(results);
 		startGame();
 	});
 
 	function makePlayerController(world) {
 		var box = playerEntity.box();
-		console.log(box);
 		function collides(pos) {
 			box.setPosition(pos);
 			return box.collides(world);
