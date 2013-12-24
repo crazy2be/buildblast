@@ -236,8 +236,8 @@ func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *M
 	return &MsgEntityCreate{
 		ID:           id,
 		Kind:         game.EntityKindPlayer,
-		HalfExtents:  game.PLAYER_HALF_EXTENTS,
-		CenterOffset: game.PLAYER_CENTER_OFFSET,
+		HalfExtents:  game.PlayerHalfExtents,
+		CenterOffset: game.PlayerCenterOffset,
 		InitialState: state,
 	}
 }

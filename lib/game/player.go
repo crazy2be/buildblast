@@ -23,17 +23,19 @@ type ControlState struct {
 	ViewTimestamp float64
 }
 
-var PLAYER_HEIGHT = 1.75
-var PLAYER_EYE_HEIGHT = 1.6
-var PLAYER_BODY_HEIGHT = 1.3
-var PLAYER_HALF_EXTENTS = coords.Vec3{
-	0.2,
-	PLAYER_HEIGHT / 2,
-	0.2,
+const (
+	playerHeight = 1.75
+	playerEyeHeight = 1.6
+	playerBodyHeight = 1.3
+)
+var PlayerHalfExtents = coords.Vec3{
+	0.4,
+	playerHeight / 2,
+	0.4,
 }
-var PLAYER_CENTER_OFFSET = coords.Vec3{
+var PlayerCenterOffset = coords.Vec3{
 	0,
-	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
+	playerBodyHeight/2 - playerEyeHeight,
 	0,
 }
 
@@ -242,13 +244,13 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
 		p.pos,
-		PLAYER_HALF_EXTENTS,
-		PLAYER_CENTER_OFFSET)
+		PlayerHalfExtents,
+		PlayerCenterOffset)
 }
 
 func (p *Player) BoxAt(t float64) *physics.Box {
 	return physics.NewBoxOffset(
 		p.history.PositionAt(t),
-		PLAYER_HALF_EXTENTS,
-		PLAYER_CENTER_OFFSET)
+		PlayerHalfExtents,
+		PlayerCenterOffset)
 }
