@@ -3,9 +3,8 @@ var EntityState = require("./entityState");
 var EntityBar = require("./UIViews/entityBar");
 var Box = require("geom/box");
 
-// he: HALF_EXTENTS, co: CENTER_OFFSET
-return function Entity(id, he, co) {
-	ASSERTD(id, he, co);
+return function Entity(id, halfExtents, centerOffset) {
+	ASSERTD(id, halfExtents, centerOffset);
 
 	var self = this;
 
@@ -23,7 +22,7 @@ return function Entity(id, he, co) {
 		return state.vy;
 	};
 	self.box = function () {
-		return new Box(he, co).setPosition(self.pos());
+		return new Box(halfExtents, centerOffset).setPosition(self.pos());
 	};
 	self.contains = function (x, y, z) {
 		return self.box().contains(x, y, z);
@@ -45,7 +44,7 @@ return function Entity(id, he, co) {
 
 	self.update = function (newState, clock, player) {
 		state = newState;
-		mesh.position.copy(state.pos.clone().add(co));
+		mesh.position.copy(state.pos.clone().add(centerOffset));
 		for (var i = 0; i < pieces.length; i++) {
 			pieces[i].update(self, clock, player);
 		}
@@ -59,14 +58,13 @@ return function Entity(id, he, co) {
 			ctx.font = '20px courier';
 			ctx.fillText(id, w/2, h/2);
 		}
-		self.add(new HitboxMesh(he));
+		self.add(new HitboxMesh(halfExtents));
 		self.add(new EntityBar(drawID));
 	}
 	init();
 };
 
-// he: HALF_EXTENTS
-function HitboxMesh(he) {
+function HitboxMesh(halfExtents) {
 	var self = this;
 
 	var material = new THREE.MeshBasicMaterial({
@@ -74,7 +72,10 @@ function HitboxMesh(he) {
 		wireframe: true
 	});
 
-	var geometry = new THREE.CubeGeometry(he.x * 2, he.y * 2, he.z * 2);
+	var geometry = new THREE.CubeGeometry(
+		halfExtents.x * 2,
+		halfExtents.y * 2,
+		halfExtents.z * 2);
 	var mesh = new THREE.Mesh(geometry, material);
 
 	self.mesh = function () {
