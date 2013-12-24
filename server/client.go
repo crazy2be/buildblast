@@ -113,8 +113,6 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 
 	c.cm.QueueChunksNearby(w, c.player.Pos())
 
-	w.FireEntityUpdated(c.player.ID(), c.player)
-
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
 			Pos: *hitPos,
@@ -176,12 +174,12 @@ func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
 
 func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
 	c.SendLossy(&MsgEntityState{
-		ID:        c.player.ID(),
-		Pos:       c.player.Pos(),
-		Look:      c.player.Look(),
-		Health:    c.player.Health(),
-		Vy:        c.player.Vy(),
-		Timestamp: c.player.LastUpdated(),
+		ID:        id,
+		Pos:       entity.Pos(),
+		Look:      entity.Look(),
+		Health:    entity.Health(),
+		Vy:        entity.Vy(),
+		Timestamp: entity.LastUpdated(),
 	})
 }
 

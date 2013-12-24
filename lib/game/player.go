@@ -138,6 +138,8 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.pos)
 
+	p.world.FireEntityUpdated(p.ID(), p)
+
 	return hitPos
 }
 
