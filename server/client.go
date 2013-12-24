@@ -163,23 +163,18 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 
 func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
 	c.Send(&MsgEntityCreate{
-		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
+		ID:           id,
+		Kind:         game.EntityKindPlayer,
+		HalfExtents:  game.PLAYER_HALF_EXTENTS,
+		CenterOffset: game.PLAYER_CENTER_OFFSET,
+		InitialState: entity.State(),
 	})
 }
 
 func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
 	c.SendLossy(&MsgEntityState{
 		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
+		State:     entity.State(),
 	})
 }
 

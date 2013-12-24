@@ -1,9 +1,11 @@
 define(function (require) {
-var PlayerEntity = require("./playerEntity");
+var Entity = require("./entity");
 var EntityState = require("./entityState");
 var EntityLagInducer = require("./entityLagInducer");
 var EntityBar = require("./UIViews/entityBar");
 var PlayerMesh = require("./UIViews/playerMesh");
+
+var EntityKindPlayer = "player";
 
 return function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -27,16 +29,29 @@ return function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
+
+	function vecFromNet(obj) {
+		return new THREE.Vector3(obj.X, obj.Y, obj.Z)
+	}
+
 	conn.on('entity-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
 			console.warn("Got entity-create message for entity which already exists!", id);
 			return;
 		}
-		var entity = new PlayerEntity(id);
+		var he = vecFromNet(payload.HalfExtents);
+		var co = vecFromNet(payload.CenterOffset);
+		var entity = new Entity(id, he, co);
+		if (payload.Kind === EntityKindPlayer) {
+			entity.add(new PlayerMesh());
+		} else {
+			console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
+			return;
+		}
 		entity.addTo(scene);
 
-		var initialState = protocolToLocal(payload);
+		var initialState = protocolToLocal(payload.InitialState);
 		var controller = new EntityLagInducer(entity, initialState);
 
 		controllers[id] = controller;
@@ -52,14 +67,11 @@ return function EntityManager(scene, conn, world, clock) {
 	});
 
 	function protocolToLocal(payload) {
-		function vec(obj) {
-			return new THREE.Vector3(obj.X, obj.Y, obj.Z)
-		}
 		return {
 			time: payload.Timestamp,
 			data: new EntityState(
-				vec(payload.Pos),
-				vec(payload.Look),
+				vecFromNet(payload.Pos),
+				vecFromNet(payload.Look),
 				payload.Health,
 				payload.Vy),
 		};
@@ -73,7 +85,7 @@ return function EntityManager(scene, conn, world, clock) {
 			return;
 		}
 
-		controller.message(protocolToLocal(payload));
+		controller.message(protocolToLocal(payload.State));
 	});
 
 	conn.on('entity-remove', function (payload) {

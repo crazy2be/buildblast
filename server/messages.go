@@ -101,17 +101,17 @@ type MsgHandshakeError struct {
 	Message string
 }
 
-// We want the entity to have a valid
-// state when we first create it.
-type MsgEntityCreate MsgEntityState
+type MsgEntityCreate struct {
+	ID           game.EntityID
+	Kind         game.EntityKind
+	HalfExtents  coords.Vec3
+	CenterOffset coords.Vec3
+	InitialState game.EntityState
+}
 
 type MsgEntityState struct {
 	ID        game.EntityID
-	Pos       coords.World
-	Look      coords.Direction
-	Health    int
-	Vy        float64
-	Timestamp float64
+	State     game.EntityState
 }
 
 type MsgEntityRemove struct {
@@ -121,7 +121,7 @@ type MsgEntityRemove struct {
 type MsgChunk struct {
 	CCPos coords.Chunk
 	Size  coords.Vec3
-	// Go is really slow at encoding arrays. This
+	// Go is really slow at encoding JSON arrays. This
 	// is much faster (and more space efficient)
 	Data string
 }

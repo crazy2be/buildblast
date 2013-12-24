@@ -77,6 +77,27 @@ func (p *Player) Health() int {
 	return p.health
 }
 
+func (p *Player) Vy() float64 {
+	return p.vy
+}
+
+// Returns the last time this entity's state was updated
+// (i.e. by a client sending a control-state packet).
+func (p *Player) LastUpdated() float64 {
+	return p.controls.Timestamp
+}
+
+func (p *Player) State() EntityState {
+	return EntityState{
+		Pos: p.Pos(),
+		Look: p.Look(),
+		Health: p.Health(),
+		Vy: p.Vy(),
+		Timestamp: p.LastUpdated(),
+	}
+}
+
+
 func (p *Player) Damage(amount int) {
 	p.health -= amount
 }
@@ -90,16 +111,6 @@ func (p *Player) Respawn(pos coords.World) {
 	p.health = PLAYER_MAX_HP
 	p.history.Clear()
 	p.history.Add(p.LastUpdated(), p.pos)
-}
-
-func (p *Player) Vy() float64 {
-	return p.vy
-}
-
-// Returns the last time this entity's state was updated
-// (i.e. by a client sending a control-state packet).
-func (p *Player) LastUpdated() float64 {
-	return p.controls.Timestamp
 }
 
 func (p *Player) ID() EntityID {
