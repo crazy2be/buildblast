@@ -1,7 +1,11 @@
 define(function (require) {
 
 var THREE = require("THREE");
-var PLAYER = require("player/playerSize");
+
+var PLAYER = {};
+PLAYER.HEIGHT = 1.75;
+PLAYER.EYE_HEIGHT = 1.6;
+PLAYER.BODY_HEIGHT = 1.3;
 
 function vec(x, y, z) {
 	return new THREE.Vector3(x || 0, y || 0, z || 0);

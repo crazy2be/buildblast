@@ -10,18 +10,12 @@ var async = require("/lib/async.js");
 
 var World = require("core/world");
 
-var Entity = require("entities/playerEntity");
 var PlayerUI = require("player/playerUI");
-var PlayerEntity = require("entities/playerEntity");
 var EntityManager = require("entities/entityManager");
 
 var PerfChart = require("perf/chart");
-var Box = require("geom/box");
-var PLAYER = require("player/playerSize");
 var movement = require("player/movement");
 var EntityInputPredictor = require("entities/entityInputPredictor");
-
-var PlayerMesh = require("entities/UIViews/playerMesh");
 
 var fatalError = require("fatalError");
 
