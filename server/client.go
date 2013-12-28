@@ -162,24 +162,13 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 }
 
 func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
-	c.Send(&MsgEntityCreate{
-		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
-	})
+	c.Send(makePlayerEntityCreatedMessage(id, entity.State()))
 }
 
 func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
 	c.SendLossy(&MsgEntityState{
-		ID:        id,
-		Pos:       entity.Pos(),
-		Look:      entity.Look(),
-		Health:    entity.Health(),
-		Vy:        entity.Vy(),
-		Timestamp: entity.LastUpdated(),
+		ID:    id,
+		State: entity.State(),
 	})
 }
 
@@ -240,5 +229,15 @@ func (c *Client) internalRunChunks(conn *Conn) {
 			}
 			<-time.After(time.Second / 100)
 		}
+	}
+}
+
+func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *MsgEntityCreate {
+	return &MsgEntityCreate{
+		ID:           id,
+		Kind:         game.EntityKindPlayer,
+		HalfExtents:  game.PlayerHalfExtents,
+		CenterOffset: game.PlayerCenterOffset,
+		InitialState: state,
 	}
 }

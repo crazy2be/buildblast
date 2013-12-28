@@ -23,17 +23,19 @@ type ControlState struct {
 	ViewTimestamp float64
 }
 
-var PLAYER_HEIGHT = 1.75
-var PLAYER_EYE_HEIGHT = 1.6
-var PLAYER_BODY_HEIGHT = 1.3
-var PLAYER_HALF_EXTENTS = coords.Vec3{
-	0.2,
-	PLAYER_HEIGHT / 2,
-	0.2,
+const (
+	playerHeight    = 1.75
+	playerEyeHeight = 0.936 * playerHeight
+)
+
+var PlayerHalfExtents = coords.Vec3{
+	0.4,
+	playerHeight / 2,
+	0.4,
 }
-var PLAYER_CENTER_OFFSET = coords.Vec3{
+var PlayerCenterOffset = coords.Vec3{
 	0,
-	PLAYER_BODY_HEIGHT/2 - PLAYER_EYE_HEIGHT,
+	playerHeight/2 - playerEyeHeight,
 	0,
 }
 
@@ -77,6 +79,26 @@ func (p *Player) Health() int {
 	return p.health
 }
 
+func (p *Player) Vy() float64 {
+	return p.vy
+}
+
+// Returns the last time this entity's state was updated
+// (i.e. by a client sending a control-state packet).
+func (p *Player) LastUpdated() float64 {
+	return p.controls.Timestamp
+}
+
+func (p *Player) State() EntityState {
+	return EntityState{
+		Pos:       p.Pos(),
+		Look:      p.Look(),
+		Health:    p.Health(),
+		Vy:        p.Vy(),
+		Timestamp: p.LastUpdated(),
+	}
+}
+
 func (p *Player) Damage(amount int) {
 	p.health -= amount
 }
@@ -90,16 +112,6 @@ func (p *Player) Respawn(pos coords.World) {
 	p.health = PLAYER_MAX_HP
 	p.history.Clear()
 	p.history.Add(p.LastUpdated(), p.pos)
-}
-
-func (p *Player) Vy() float64 {
-	return p.vy
-}
-
-// Returns the last time this entity's state was updated
-// (i.e. by a client sending a control-state packet).
-func (p *Player) LastUpdated() float64 {
-	return p.controls.Timestamp
 }
 
 func (p *Player) ID() EntityID {
@@ -231,13 +243,13 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
 		p.pos,
-		PLAYER_HALF_EXTENTS,
-		PLAYER_CENTER_OFFSET)
+		PlayerHalfExtents,
+		PlayerCenterOffset)
 }
 
 func (p *Player) BoxAt(t float64) *physics.Box {
 	return physics.NewBoxOffset(
 		p.history.PositionAt(t),
-		PLAYER_HALF_EXTENTS,
-		PLAYER_CENTER_OFFSET)
+		PlayerHalfExtents,
+		PlayerCenterOffset)
 }

@@ -4,7 +4,7 @@ import (
 	"buildblast/lib/coords"
 )
 
-type FlatWorld struct {}
+type FlatWorld struct{}
 
 // Take seed to be consistent with all the other world types
 func NewFlatWorld(seed float64) *FlatWorld {
@@ -19,7 +19,7 @@ func (fw *FlatWorld) Block(bc coords.Block) (Block, bool) {
 	if bc.Y < 16 {
 		return BLOCK_DIRT, false
 	}
-	if bc.X % 4 == 0 && bc.Z % 4 == 0 && bc.Y < 17 {
+	if bc.X%4 == 0 && bc.Z%4 == 0 && bc.Y < 17 {
 		return BLOCK_STONE, false
 	}
 	return BLOCK_AIR, false

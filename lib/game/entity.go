@@ -13,6 +13,7 @@ type Entity interface {
 	Health() int
 	Vy() float64
 	LastUpdated() float64
+	State() EntityState
 
 	Tick(w *World)
 	Damage(amount int)
@@ -22,8 +23,22 @@ type Entity interface {
 	ID() EntityID
 }
 
+type EntityState struct {
+	Pos       coords.World
+	Look      coords.Direction
+	Health    int
+	Vy        float64
+	Timestamp float64
+}
+
 // Should be an int someday...
 type EntityID string
+
+type EntityKind string
+
+const (
+	EntityKindPlayer = "player"
+)
 
 type EntityListener interface {
 	EntityCreated(id EntityID, entity Entity)
