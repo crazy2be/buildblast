@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 )
 
@@ -92,7 +93,7 @@ func (c *ClientConn) Send(m Message) {
 	select {
 	case c.sendQueue <- m:
 	default:
-		c.Error(fmt.Errorf("unable to send message %v to player %s", m, c.name))
+		c.Error(fmt.Errorf("unable to send message %v (%s) to player %s", m, reflect.TypeOf(m).String(), c.name))
 	}
 }
 
@@ -100,9 +101,6 @@ func (c *ClientConn) Send(m Message) {
 // but if it cannot, it will simply do nothing. The message's failure
 // to send will not result in an error.
 func (c *ClientConn) SendLossy(m Message) {
-	if mep, ok := m.(*MsgEntityPosition); ok && mep.ID == c.name {
-		return
-	}
 	select {
 	case c.sendLossyQueue <- m:
 	default:

@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"buildblast/lib/coords"
 	"buildblast/lib/game"
 )
 
@@ -142,10 +141,13 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityDied(id string, killer string) {
-	g.Announce(killer + " killed " + id)
+func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
+func (g *Game) EntityUpdated(id game.EntityID, entity game.Entity) {}
+func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {}
+
+func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
+	g.Announce(killer + " killed " + string(id))
+	g.EntityDamaged(id, entity)
 }
 
-func (g *Game) EntityCreated(id string)                                                    {}
-func (g *Game) EntityMoved(id string, pos coords.World, look coords.Direction, vy float64) {}
-func (g *Game) EntityRemoved(id string)                                                    {}
+func (g *Game) EntityRemoved(id game.EntityID) {}

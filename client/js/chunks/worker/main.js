@@ -1,33 +1,18 @@
+define(function(require) {
+var common = require("../chunkCommon");
+var CHUNK = common.CHUNK;
+
+var greedyMesher = require("meshers/greedyMesher");
+
+var ChunkGeometry = require("chunkGeometry");
+
+var WorkerChunkManager = require("workerChunkManager");
+
+var Conn = require("conn");
+
 // I use self for other things. Parent makes
 // a lot more sense anyway.
 var parent = self;
-
-importScripts(
-	'../block.js',
-	'../common.js',
-	'meshCommon.js',
-	'meshers/simpleMesher.js',
-	'meshers/simpleNewMesher.js',
-	'meshers/greedyMesher.js',
-	'chunkGeometry.js',
-	'noise.js',
-	'../../conn.js',
-	'workerChunkManager.js'
-);
-
-console = {};
-['log', 'warn', 'error'].forEach(function (type) {
-	console[type] = function () {
-		var args = [].slice.call(arguments);
-		parent.postMessage({
-			kind: 'log',
-			payload: {
-				type: type,
-				message: args,
-			},
-		});
-	};
-});
 
 function sendChunk() {
 	var chunk = manager.top();
@@ -71,9 +56,9 @@ var manager = new WorkerChunkManager();
 
 function processChunk(payload) {
 	var size = payload.Size;
-	if (size.X != CHUNK_WIDTH ||
-		size.Y != CHUNK_HEIGHT ||
-		size.Z != CHUNK_DEPTH
+	if (size.X != CHUNK.WIDTH ||
+		size.Y != CHUNK.HEIGHT ||
+		size.Z != CHUNK.DEPTH
 	) {
 		throw "Got chunk of size which does not match our expected chunk size!";
 	}
@@ -107,7 +92,7 @@ function processBlockChange(payload) {
 	var pos = payload.Pos;
 	var type = payload.Type;
 	var x = pos.X, y = pos.Y, z = pos.Z;
-	var coords = worldToChunk(x, y, z);
+	var coords = common.worldToChunk(x, y, z);
 	var cc = coords.c;
 	var oc = coords.o;
 
@@ -129,7 +114,7 @@ function processBlockChange(payload) {
 	changedChunks.push(cc);
 
 	function invalidate(bcX, bcY, bcZ) {
-		coords = worldToChunk(bcX, bcY, bcZ);
+		coords = common.worldToChunk(bcX, bcY, bcZ);
 		changedChunks.push(coords.c);
 	}
 
@@ -161,8 +146,8 @@ function unique(arr) {
 
 function processPlayerPosition(payload) {
 	var p = payload.pos;
-	var coords = worldToChunk(p.x, p.y, p.z);
-	var cv = CHUNK_VOXELIZATIONS;
+	var coords = common.worldToChunk(p.x, p.y, p.z);
+	var cv = CHUNK.VOXELIZATIONS;
 
 	manager.each(function (chunk) {
 		var d = dist(coords.c, chunk.cc);
@@ -181,11 +166,4 @@ function processPlayerPosition(payload) {
 		});
 	});
 }
-
-function dist(p1, p2) {
-	return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
-}
-
-function clamp(n, a, b) {
-	return Math.min(Math.max(n, a), b);
-}
+});

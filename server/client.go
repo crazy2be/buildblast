@@ -59,6 +59,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 	case *MsgControlsState:
 		m := m.(*MsgControlsState)
 		m.Controls.Timestamp = m.Timestamp
+		m.Controls.ViewTimestamp = m.ViewTimestamp
 		c.handleControlState(g, w, m)
 
 	case *MsgChat:
@@ -108,16 +109,9 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 }
 
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
-	pos, vy, hp, hitPos := c.player.ClientTick(m.Controls)
+	hitPos := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(w, pos)
-
-	c.Send(&MsgPlayerState{
-		Pos:       pos,
-		VelocityY: vy,
-		Timestamp: m.Timestamp,
-		Hp:        hp,
-	})
+	c.cm.QueueChunksNearby(w, c.player.Pos())
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -129,13 +123,12 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for _, id := range w.GetEntityIDs() {
-		c.Send(&MsgEntityCreate{
-			ID: id,
-		})
+	for id, e := range w.Entities() {
+		c.EntityCreated(id, e)
 	}
 
 	w.AddEntity(p)
+
 	w.AddBlockListener(c)
 	w.AddEntityListener(c)
 
@@ -168,33 +161,26 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) EntityCreated(id string) {
-	if id == c.name {
-		return
-	}
-	c.Send(&MsgEntityCreate{
-		ID: id,
+func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
+	c.Send(makePlayerEntityCreatedMessage(id, entity.State()))
+}
+
+func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
+	c.SendLossy(&MsgEntityState{
+		ID:    id,
+		State: entity.State(),
 	})
 }
 
-func (c *Client) EntityMoved(id string, pos coords.World, look coords.Direction, vy float64) {
-	if id == c.name {
-		return
-	}
-	c.SendLossy(&MsgEntityPosition{
-		ID:   id,
-		Pos:  pos,
-		Look: look,
-		Vy:   vy,
-	})
+func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity) {
+	c.EntityUpdated(id, entity)
 }
 
-func (c *Client) EntityDied(id string, killer string) {}
+func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {
+	c.EntityUpdated(id, entity)
+}
 
-func (c *Client) EntityRemoved(id string) {
-	if id == c.name {
-		return
-	}
+func (c *Client) EntityRemoved(id game.EntityID) {
 	c.Send(&MsgEntityRemove{
 		ID: id,
 	})
@@ -243,5 +229,15 @@ func (c *Client) internalRunChunks(conn *Conn) {
 			}
 			<-time.After(time.Second / 100)
 		}
+	}
+}
+
+func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *MsgEntityCreate {
+	return &MsgEntityCreate{
+		ID:           id,
+		Kind:         game.EntityKindPlayer,
+		HalfExtents:  game.PlayerHalfExtents,
+		CenterOffset: game.PlayerCenterOffset,
+		InitialState: state,
 	}
 }

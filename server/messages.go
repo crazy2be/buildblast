@@ -16,13 +16,12 @@ const (
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
-	MSG_ENTITY_POSITION = MessageKind("entity-position")
+	MSG_ENTITY_STATE    = MessageKind("entity-state")
 	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
 	MSG_CHUNK           = MessageKind("chunk")
 	MSG_BLOCK           = MessageKind("block")
 	MSG_CONTROLS_STATE  = MessageKind("controls-state")
 	MSG_CHAT            = MessageKind("chat")
-	MSG_PLAYER_STATE    = MessageKind("player-state")
 	MSG_DEBUG_RAY       = MessageKind("debug-ray")
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
@@ -35,8 +34,8 @@ func kindToType(kind MessageKind) Message {
 		return &MsgHandshakeInit{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
-	case MSG_ENTITY_POSITION:
-		return &MsgEntityPosition{}
+	case MSG_ENTITY_STATE:
+		return &MsgEntityState{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
 	case MSG_BLOCK:
@@ -45,8 +44,6 @@ func kindToType(kind MessageKind) Message {
 		return &MsgControlsState{}
 	case MSG_CHAT:
 		return &MsgChat{}
-	case MSG_PLAYER_STATE:
-		return &MsgPlayerState{}
 	case MSG_DEBUG_RAY:
 		return &MsgDebugRay{}
 	case MSG_NTP_SYNC:
@@ -67,8 +64,8 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_ERROR
 	case *MsgEntityCreate:
 		return MSG_ENTITY_CREATE
-	case *MsgEntityPosition:
-		return MSG_ENTITY_POSITION
+	case *MsgEntityState:
+		return MSG_ENTITY_STATE
 	case *MsgEntityRemove:
 		return MSG_ENTITY_REMOVE
 	case *MsgChunk:
@@ -79,8 +76,6 @@ func typeToKind(m Message) MessageKind {
 		return MSG_CONTROLS_STATE
 	case *MsgChat:
 		return MSG_CHAT
-	case *MsgPlayerState:
-		return MSG_PLAYER_STATE
 	case *MsgDebugRay:
 		return MSG_DEBUG_RAY
 	case *MsgNtpSync:
@@ -98,8 +93,9 @@ type MsgHandshakeInit struct {
 }
 
 type MsgHandshakeReply struct {
-	ServerTime float64
-	ClientID   string
+	ServerTime       float64
+	ClientID         string
+	PlayerEntityInfo MsgEntityCreate
 }
 
 type MsgHandshakeError struct {
@@ -107,24 +103,26 @@ type MsgHandshakeError struct {
 }
 
 type MsgEntityCreate struct {
-	ID string
+	ID           game.EntityID
+	Kind         game.EntityKind
+	HalfExtents  coords.Vec3
+	CenterOffset coords.Vec3
+	InitialState game.EntityState
 }
 
-type MsgEntityPosition struct {
-	Pos  coords.World
-	Look coords.Direction
-	Vy   float64
-	ID   string
+type MsgEntityState struct {
+	ID    game.EntityID
+	State game.EntityState
 }
 
 type MsgEntityRemove struct {
-	ID string
+	ID game.EntityID
 }
 
 type MsgChunk struct {
 	CCPos coords.Chunk
 	Size  coords.Vec3
-	// Go is really slow at encoding arrays. This
+	// Go is really slow at encoding JSON arrays. This
 	// is much faster (and more space efficient)
 	Data string
 }
@@ -137,20 +135,16 @@ type MsgBlock struct {
 type MsgControlsState struct {
 	Controls game.ControlState
 	// JavaScript performance.now() timestamp.
-	Timestamp float64
+	// TimeStamp is when it was sent, ViewTimestamp is
+	// what time the client was displaying when it was sent
+	// (with lag induction they may differ).
+	Timestamp     float64
+	ViewTimestamp float64
 }
 
 type MsgChat struct {
 	DisplayName string
 	Message     string
-}
-
-type MsgPlayerState struct {
-	Pos       coords.World
-	VelocityY float64
-	// JavaScript performance.now() timestamp.
-	Timestamp float64
-	Hp        int
 }
 
 type MsgDebugRay struct {
@@ -162,7 +156,8 @@ type MsgNtpSync struct {
 }
 
 type MsgInventoryState struct {
-	Items     string // This is a byte array encoded to a string, see ItemsToString() in items.go
+	// This is a byte array encoded to a string, see ItemsToString() in items.go
+	Items     string
 	ItemLeft  int
 	ItemRight int
 }
@@ -173,7 +168,9 @@ type MsgInventoryMove struct {
 }
 
 type ClientMessage struct {
-	Kind    MessageKind
+	Kind MessageKind
+	// json.RawMessage implements Marshaler and Unmarshaler,
+	// so it will NOT be serialized twice.
 	Payload json.RawMessage
 }
 

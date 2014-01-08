@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,11 +14,19 @@ import (
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
+
+	"buildblast/lib/game"
 )
 
 var globalGame = NewGame()
 
 func handler(w http.ResponseWriter, r *http.Request) {
+	// Workaround for Quentin's system configuration.
+	// For some reason, css files are getting served
+	// without a content-type...
+	if strings.HasSuffix(r.URL.Path, ".css") {
+		w.Header().Set("Content-Type", "text/css")
+	}
 	http.ServeFile(w, r, "."+r.URL.Path)
 }
 
@@ -57,9 +66,16 @@ func mainSocketHandler(ws *websocket.Conn) {
 		nameNumber++
 	}
 
+	// FIXME: We could give the client their entity's
+	// actual initial state as part of the handshake,
+	// but it's currently impossible since the entity
+	// isn't yet created at the handshake stage.
+	info := makePlayerEntityCreatedMessage(game.EntityID(name), game.EntityState{})
+
 	conn.Send(&MsgHandshakeReply{
-		ServerTime: float64(time.Now().UnixNano()) / 1e6,
-		ClientID:   name,
+		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
+		ClientID:         name,
+		PlayerEntityInfo: *info,
 	})
 
 	client.Run(conn)
@@ -137,6 +153,8 @@ func promptLoop(quit chan bool, state *liner.State) {
 
 func main() {
 	// 	setupPrompt()
+	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
@@ -146,7 +164,7 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(*host, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}

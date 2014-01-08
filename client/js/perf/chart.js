@@ -1,4 +1,5 @@
-function PerfChart(opts) {
+define(function(require) {
+return function PerfChart(opts) {
 	var self = this;
 
 	var defaultOpts = {
@@ -104,8 +105,5 @@ function PerfChart(opts) {
 		while (str.length < 6) str = ' ' + str;
 		return str + suffix;
 	}
-
-	function clamp(n, a, b) {
-		return max(a, min(b, n));
-	}
 }
+});

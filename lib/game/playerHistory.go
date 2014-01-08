@@ -4,47 +4,51 @@ import (
 	"buildblast/lib/coords"
 )
 
-type PlayerHistoryEntry struct {
+type HistoryEntry struct {
 	pos coords.World
 	// JavaScript performance.now() timestamp.
 	t float64
 }
 
-type PlayerHistory struct {
-	buf    []PlayerHistoryEntry
+type HistoryBuffer struct {
+	buf    []HistoryEntry
 	offset int
 }
 
-func NewPlayerHistory() *PlayerHistory {
-	ph := new(PlayerHistory)
-	ph.buf = make([]PlayerHistoryEntry, 100)
+func NewHistoryBuffer() *HistoryBuffer {
+	ph := new(HistoryBuffer)
+	ph.buf = make([]HistoryEntry, 101)
 	return ph
 }
 
-func (ph *PlayerHistory) Add(t float64, pos coords.World) {
-	ph.offset--
-	if ph.offset < 0 {
-		ph.offset = len(ph.buf) - 1
+func (ph *HistoryBuffer) Add(t float64, pos coords.World) {
+	ph.offset++
+	if ph.offset >= len(ph.buf) {
+		ph.offset = 0
 	}
-	ph.buf[ph.offset] = PlayerHistoryEntry{pos, t}
+	ph.buf[ph.offset] = HistoryEntry{pos, t}
 }
 
-func (ph *PlayerHistory) at(i int) PlayerHistoryEntry {
-	l := len(ph.buf)
+func mod(a, b int) int {
 	// Go has the same problem as JavaScript...
 	// http://stackoverflow.com/questions/4467539/javascript-modulo-not-behaving
-	return ph.buf[(((ph.offset+i)%l)+l)%l]
+	return ((a % b) + b) % b
 }
 
-func (ph *PlayerHistory) set(i int, val PlayerHistoryEntry) {
+func (ph *HistoryBuffer) at(i int) HistoryEntry {
 	l := len(ph.buf)
-	ph.buf[(((ph.offset+i)%l)+l)%l] = val
+	return ph.buf[mod(ph.offset+i, l)]
 }
 
-func (ph *PlayerHistory) Clear() {
+func (ph *HistoryBuffer) set(i int, val HistoryEntry) {
+	l := len(ph.buf)
+	ph.buf[mod(ph.offset+i, l)] = val
+}
+
+func (ph *HistoryBuffer) Clear() {
 	l := len(ph.buf)
 	for i := 0; i < l; i++ {
-		ph.set(i, PlayerHistoryEntry{})
+		ph.set(i, HistoryEntry{})
 	}
 }
 
@@ -54,23 +58,29 @@ func (ph *PlayerHistory) Clear() {
 // ring buffer, return that entry. If t is between
 // two entries in the ring buffer, interpolate
 // between them.
-func (ph *PlayerHistory) PositionAt(t float64) coords.World {
+func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	l := len(ph.buf)
+	if l < 0 {
+		panic("Attempt to access item in empty history buffer!")
+	}
 
-	newest := ph.at(0)
+	newest := ph.at(l - 1)
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
 		return newest.pos
 	}
 
-	oldest := ph.at(-1)
+	oldest := ph.at(0)
 	if oldest.t >= t {
+		// We don't go back that far :(
 		return oldest.pos
 	}
 
 	older := newest
 	newer := newest
-	for i := 1; i <= l; i++ {
+	// Go backwards, (in time and indicies), looking
+	// for a pair to interpolate between.
+	for i := l - 2; i >= 0; i-- {
 		older = ph.at(i)
 		if older.t <= t {
 			break
@@ -78,29 +88,6 @@ func (ph *PlayerHistory) PositionAt(t float64) coords.World {
 		newer = older
 	}
 
-	if older.t == t {
-		return older.pos
-	}
-
-	p1 := older.pos
-	p3 := newer.pos
-
-	// t1        t2     t3
-	// |          |     |
-	// older.t    t   newer.t
-	t13 := newer.t - older.t
-	t12 := t - older.t
-
-	r := t12 / t13
-	p13 := coords.Vec3{
-		X: p3.X - p1.X,
-		Y: p3.Y - p1.Y,
-		Z: p3.Z - p1.Z,
-	}
-
-	return coords.World{
-		X: p1.X + p13.X*r,
-		Y: p1.Y + p13.Y*r,
-		Z: p1.Z + p13.Z*r,
-	}
+	alpha := (t - older.t) / (newer.t - older.t)
+	return older.pos.Lerp(newer.pos, alpha)
 }

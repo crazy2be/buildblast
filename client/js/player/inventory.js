@@ -1,10 +1,21 @@
+define(function(require) {
+
+var Stack = require("player/stack");
+var Item = require("player/item");
+
+var $ = require("jquery");
+var jqueryUi = require("jqueryui");
+var jqueryWaitImgs = require("jqueryWaitImgs");
+
+// TODO: Move a lot of this logic to entity. We want
+// Entities to be able to have items too!
 function Inventory(world, camera, conn, controls) {
 	var self = this;
 	var BAG_SIZE = 25;
-	
+
 	// Including left/right quick inventories.
-	var NUM_SLOTS = BAG_SIZE + 4; 
-	
+	var NUM_SLOTS = BAG_SIZE + 4;
+
 	var slots = [];
 
 	var leftIsPrimary = true;
@@ -220,7 +231,7 @@ function Inventory(world, camera, conn, controls) {
 				});
 				updateHtmlEquipChanged(isLeft);
 			}
-			
+
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
 			invModel.update(playerPosition, c.lat, c.lon);
 
@@ -233,9 +244,9 @@ function Inventory(world, camera, conn, controls) {
 	};
 }
 
-// Represents a 3d model (corresponding to some inventory item).
-// leftward: 1 for left; -1 for right.
-function InventoryModel(world, model, leftward) {
+	// Represents a 3d model (corresponding to some inventory item).
+	// leftward: 1 for left; -1 for right.
+	function InventoryModel(world, model, leftward) {
 	var self = this;
 	self.update = function (playerPos, lat, lon) {
 		pointItem(lat, lon);
@@ -243,7 +254,7 @@ function InventoryModel(world, model, leftward) {
 		postitionPerspective();
 		addJitter();
 	}
-	
+
 	self.setModel = function (newModel) {
 		if (model !== null) {
 			world.removeFromScene(model);
@@ -253,7 +264,7 @@ function InventoryModel(world, model, leftward) {
 		world.addToScene(newModel);
 		model = newModel;
 	}
-	
+
 	function pointItem(lat, lon) {
 		var p = model.position;
 		var target = new THREE.Vector3();
@@ -269,9 +280,9 @@ function InventoryModel(world, model, leftward) {
 		var theta = lat - 0.5;
 		var phi = lon;
 		var offset = sphericalToCartesian(r, theta, phi);
-		
+
 		model.position.copy(playerPos).add(offset);
-		
+
 		function sphericalToCartesian(r, theta, phi) {
 			return new THREE.Vector3(
 				r*sin(theta)*cos(phi),
@@ -288,13 +299,13 @@ function InventoryModel(world, model, leftward) {
 	function postitionPerspective() {
 		var p = model.position;
 		var r = new THREE.Matrix4();
-		r.setRotationFromEuler(model.rotation, model.eulerOrder);
+		r.makeRotationFromEuler(model.rotation, model.rotation.order);
 
 		var amount = leftward * aspectRatio * 0.05;
 
 		// Move left / right
 		var mov = new THREE.Vector3(amount, 0, 0);
-		mov.applyMatrix3(r);
+		mov.applyMatrix4(r);
 
 		p.add(mov);
 	}
@@ -309,9 +320,9 @@ function InventoryModel(world, model, leftward) {
 
 }
 
-// jQuery UI hack
-// http://stackoverflow.com/questions/1853230/jquery-ui-draggable-event-status-on-revert
-$.ui.draggable.prototype._mouseStop = function(event) {
+	// jQuery UI hack
+	// http://stackoverflow.com/questions/1853230/jquery-ui-draggable-event-status-on-revert
+	$.ui.draggable.prototype._mouseStop = function(event) {
 	//If we are using droppables, inform the manager about the drop
 	var dropped = false;
 	if ($.ui.ddmanager && !this.options.dropBehaviour)
@@ -338,3 +349,6 @@ $.ui.draggable.prototype._mouseStop = function(event) {
 
 	return false;
 };
+
+return Inventory;
+});
