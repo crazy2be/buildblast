@@ -45,7 +45,11 @@ function Inventory(world, camera, conn, controls) {
 	conn.on('inventory-state', function (payload) {
 		var items = new Uint8Array(payload.Items.length);
 		for (var i = 0; i < items.length; i++) {
-			items[i] = payload.Items.charCodeAt(i) - 32;
+			// 35: # charater. Control charaters
+			// are not allowed in JSON strings, and
+			// we want to avoid '"', which requires
+			// escaping.
+			items[i] = payload.Items.charCodeAt(i) - 35;
 		}
 
 		var oldLeft = leftStack();

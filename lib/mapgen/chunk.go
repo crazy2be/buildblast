@@ -64,10 +64,12 @@ func (c Chunk) Flatten() string {
 	for ocX := 0; ocX < cw; ocX++ {
 		for ocY := 0; ocY < ch; ocY++ {
 			for ocZ := 0; ocZ < cd; ocZ++ {
-				// 32: Space charater. Control charaters
-				// are not allowed in JSON strings.
-				value := byte(c[ocX][ocY][ocZ] + 32)
-				if value >= 127 || value < 32 {
+				// 35: # charater. Control charaters
+				// are not allowed in JSON strings, and
+				// we want to avoid '"', which requires
+				// escaping.
+				value := byte(c[ocX][ocY][ocZ] + 35)
+				if value >= 127 || value < 35 {
 					panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
 				}
 				data[ocX*cw*ch+ocY*cw+ocZ] = value
