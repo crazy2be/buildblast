@@ -118,10 +118,12 @@ func (inv *Inventory) ItemsToString() string {
 }
 
 func toStringByte(val byte) byte {
-	// 32: Space charater. Control charaters
-	// are not allowed in JSON strings.
-	value := val + 32
-	if value >= 127 || value < 32 {
+	// 35: # charater. Control charaters
+	// are not allowed in JSON strings, and
+	// we want to avoid '"', which requires
+	// escaping.
+	value := val + 35
+	if value >= 127 || value < 35 {
 		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
 	}
 	return value
