@@ -27,6 +27,8 @@ module Www
     #Don't write passwords to the log files
     config.filter_parameters += [:password, :password_confirmation]
 
+    config.force_ssl = true
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.

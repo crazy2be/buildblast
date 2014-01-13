@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource_or_scope)
     if current_user
       @token = Digest::MD5.hexdigest("#{session[:session_id]}:#{current_user.id}")
-      cookies["session_token"] = @token
+      cookies["session_token"] = { :value => @token, :domain => ".buildblast.com" }
       @session = Session.new
       @session.user_id = current_user.id
       @session.session_token = @token

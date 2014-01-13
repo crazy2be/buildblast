@@ -40,6 +40,7 @@ func getClientName(config *websocket.Config) string {
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
+	log.Println(ws.Request().Cookie("session_token"))
 	conn := NewConn(ws)
 
 	msg, err := conn.Recv()
