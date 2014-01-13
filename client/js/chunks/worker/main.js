@@ -75,9 +75,11 @@ function processChunk(payload) {
 	//into indices in this array.
 	var blocks = new Uint8Array(data.length);
 	for (var i = 0; i < blocks.length; i++) {
-		// 32 - Space character. Control characters
-		// are not allowed in JSON strings.
-		blocks[i] = data.charCodeAt(i) - 32;
+		// 35: # charater. Control charaters
+		// are not allowed in JSON strings, and
+		// we want to avoid '"', which requires
+		// escaping.
+		blocks[i] = data.charCodeAt(i) - 35;
 	}
 
 	var chunk = manager.get(cc);
