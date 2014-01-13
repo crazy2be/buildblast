@@ -25,13 +25,21 @@ requirejs.config({
 	},
 });
 
-require(["main", "math"], function (main, mathFnc) {
-	mathFnc(self);
+require(["main", "math"], function (main, math) {
+	// Make all the math convenience functions global, so you can
+	// do abs(a) rather than Math.abs(a).
+	merge(self, math);
 
-	//No need to call anything, just including main should do it...
+	// No need to call anything, just including main should do it...
 	console.log("Booted successfully");
 	parent.postMessage({
 		kind: "booted",
 		payload: "success",
 	});
+	
+	function merge(obj, newProperties) {
+		for (var k in newProperties) {
+			obj[k] = newProperties[k];
+		}
+	}
 });

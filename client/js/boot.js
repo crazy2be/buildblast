@@ -1,4 +1,4 @@
-﻿requirejs.config({
+requirejs.config({
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '/lib/three',
@@ -30,7 +30,7 @@
 	}],
 });
 
-define(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, mathFnc, fatalError, debug, THREE) {
+require(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, math, fatalError, debug, THREE) {
 	THREE.DVector3 = debug.DVector3;
 
 	window.onerror = function (msg, url, lineno) {
@@ -41,7 +41,16 @@ define(["main", "settings", "math", "fatalError", "debug", "THREE"], function(ma
 		});
 	};
 
-	mathFnc(self);
-	self.__loadSettingsScheme = __loadSettingsScheme;
+	// Make all the math convenience functions global, so you can
+	// do abs(a) rather than Math.abs(a).
+	merge(window, math);
+	window.__loadSettingsScheme = __loadSettingsScheme;
 	main();
+	
+	function merge(obj, newProperties) {
+		for (var k in newProperties) {
+			obj[k] = newProperties[k];
+		}
+	}
 });
+

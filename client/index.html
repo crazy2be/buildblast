@@ -9,7 +9,6 @@
 		<link rel="stylesheet" href="css/chat.css" />
 		<link rel="stylesheet" href="css/health.css" />
 		<link rel="stylesheet" href="css/splash.css" />
-		<script data-main="js/boot.js" src="lib/require.js"></script>
 	</head>
 	<body class="no-select">
 		<div id="container">
@@ -57,5 +56,13 @@
 				</div>
 			</div>
 		</div>
+		<script>
+			window.onerror = function (msg, url, lineno) {
+				alert("FATAL PRE-BOOT ERROR:\n" + 
+					msg + "\n" +
+					"(" + url + ":" + lineno + ")");
+			};
+		</script>
+		<script data-main="js/boot.js" src="lib/require.js"></script>
 	</body>
 </html>
