@@ -46,8 +46,8 @@ type ApiUserResponse struct {
 	Id int
 	Email string
 	Name string
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
