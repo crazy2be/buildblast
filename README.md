@@ -1,7 +1,8 @@
 BuildBlast
 ==========
 
-![screenshot from 2013-11-11 21 30 30](https://f.cloud.github.com/assets/667720/1649707/9facbdc8-5a20-11e3-846e-02a3234c9d58.png)
+![screenshot from 2014-01-13 08 58 44](https://f.cloud.github.com/assets/667720/1900919/42a15956-7c5b-11e3-81e0-cf430e9b4e37.png)
+
 
 Try it: **[Stable server](http://bb.jmcgirr.com)** or [dev server](http://quentinbrooks.com)
 
