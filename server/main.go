@@ -11,6 +11,9 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
+	"crypto/tls"
+	"io/ioutil"
+	"encoding/json"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -40,7 +43,23 @@ func getClientName(config *websocket.Config) string {
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
-	log.Println(ws.Request().Cookie("session_token"))
+        // Debug
+	cookie, _ := ws.Request().Cookie("session_token")
+	token := cookie.Value
+	log.Println(token)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	cli := &http.Client{Transport: tr}
+	req, _ := http.NewRequest("GET", "https://www.buildblast.com/api/users/" + token, nil)
+	req.SetBasicAuth("name", "password")
+	res, _ := cli.Do(req)
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+	data := map[string]interface{}{}
+	json.Unmarshal(body, &data)
+	log.Println(data)
+
 	conn := NewConn(ws)
 
 	msg, err := conn.Recv()
