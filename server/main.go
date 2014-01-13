@@ -42,6 +42,14 @@ func getClientName(config *websocket.Config) string {
 	return bits[3]
 }
 
+type ApiUserResponse struct {
+	Id int
+	Email string
+	Name string
+	CreatedAt string
+	UpdatedAt string
+}
+
 func mainSocketHandler(ws *websocket.Conn) {
         // Debug
 	cookie, _ := ws.Request().Cookie("session_token")
@@ -56,9 +64,13 @@ func mainSocketHandler(ws *websocket.Conn) {
 	res, _ := cli.Do(req)
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
-	data := map[string]interface{}{}
-	json.Unmarshal(body, &data)
-	log.Println(data)
+	var data ApiUserResponse
+	nameErr := json.Unmarshal(body, &data)
+	if nameErr != nil {
+		log.Println("Error, user not logged in or transport error")
+	} else {
+		log.Println(data)
+	}
 
 	conn := NewConn(ws)
 
@@ -68,7 +80,12 @@ func mainSocketHandler(ws *websocket.Conn) {
 		return
 	}
 
-	baseName := msg.(*MsgHandshakeInit).DesiredName
+	baseName := ""
+	if nameErr != nil {
+		baseName = msg.(*MsgHandshakeInit).DesiredName
+	} else {
+		baseName = data.Name
+	}
 	if baseName == "" {
 		baseName = "guest"
 	}
