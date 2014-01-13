@@ -11,7 +11,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130923114833) do
+ActiveRecord::Schema.define(version: 20140113002818) do
+
+  create_table "sessions", force: true do |t|
+    t.integer  "user_id"
+    t.string   "session_token"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "sessions", ["session_token"], name: "index_sessions_on_session_token"
 
   create_table "users", force: true do |t|
     t.string   "email",                  default: "", null: false
