@@ -1,7 +1,6 @@
 define(function (require) {
 var THREE = require("THREE");
-
-var async = require("/lib/async.js");
+var async = require("async");
 
 function Models() { };
 

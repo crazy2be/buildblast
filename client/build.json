@@ -1,0 +1,14 @@
+{
+  "baseUrl": "js/",
+  "name": "boot",
+  "include": [
+    "../lib/require"
+  ],
+  "exclude": [],
+  "optimize": "uglify2",
+  "out": "main-built.js",
+  "insertRequire": [
+    "boot"
+  ],
+  "mainConfigFile": "js/boot.js"
+}

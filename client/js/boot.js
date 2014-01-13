@@ -1,10 +1,11 @@
 requirejs.config({
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
-		THREE: '/lib/three',
-		jquery: '/lib/jquery.min',
-		jqueryui: '/lib/jquery-ui.min',
-		jqueryWaitImgs: '/lib/jquery.waitforimages.min'
+		THREE: '../lib/three',
+		jquery: '../lib/jquery.min',
+		jqueryui: '../lib/jquery-ui.min',
+		jqueryWaitImgs: '../lib/jquery.waitforimages.min',
+		async: '../lib/async',
 	},
 	shim: {
 		THREE: {
