@@ -10,10 +10,6 @@ var WorkerChunkManager = require("workerChunkManager");
 
 var Conn = require("conn");
 
-// I use self for other things. Parent makes
-// a lot more sense anyway.
-var parent = self;
-
 function sendChunk() {
 	var chunk = manager.top();
 	if (!chunk) return;
