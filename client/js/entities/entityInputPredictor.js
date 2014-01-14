@@ -56,7 +56,8 @@ function PredictionBuffer(predictor) {
 	self.confirmed = function (t, state) {
 		var i = findIndex(t);
 		if (i < 0) {
-			throw "No matching prediction data for prediction given by server.";
+			console.warn("No matching prediction data for prediction given by server. Ignoring. See #147");
+			return;
 		}
 
 		confirmed.time = t;
