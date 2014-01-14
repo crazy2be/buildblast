@@ -1,11 +1,11 @@
 define(function (require) {
 
-var Block = require("../block");
+var Block = require("chunks/block");
 
-var common = require("../chunkCommon");
+var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-var meshCommon = require("meshCommon");
+var meshCommon = require("../meshCommon");
 
 return function simpleMesh2(blocks, voxelization, cc, manager) {
 	var cw = CHUNK.WIDTH;

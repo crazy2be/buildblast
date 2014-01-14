@@ -1,9 +1,9 @@
 define(function(require) {
-var perlinNoise = require("noise");
+var perlinNoise = require("../noise");
 
-var Block = require("../../block");
+var Block = require("chunks/block");
 
-var common = require("../../chunkCommon");
+var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
 return function simpleMesh(blocks, voxelization, cc, manager) {

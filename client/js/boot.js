@@ -1,4 +1,5 @@
 requirejs.config({
+	baseUrl: '/js/',
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '../lib/three',
@@ -23,13 +24,9 @@ requirejs.config({
 		jqueryWaitImgs: {
 			deps: ['jqueryui']
 		}
-	},
-	packages: [{
-		name: 'chunkManager',
-		location: '/js/chunks',
-		main: 'chunkManager',
-	}],
+	}
 });
+console.log(requirejs);
 
 require(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, math, fatalError, debug, THREE) {
 	THREE.DVector3 = debug.DVector3;

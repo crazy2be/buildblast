@@ -1,14 +1,14 @@
 define(function(require) {
-var common = require("../chunkCommon");
+var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-var greedyMesher = require("meshers/greedyMesher");
+var greedyMesher = require("./meshers/greedyMesher");
 
-var ChunkGeometry = require("chunkGeometry");
+var ChunkGeometry = require("./chunkGeometry");
 
-var WorkerChunkManager = require("workerChunkManager");
+var WorkerChunkManager = require("./workerChunkManager");
 
-var Conn = require("conn");
+var Conn = require("core/conn");
 
 function sendChunk() {
 	var chunk = manager.top();

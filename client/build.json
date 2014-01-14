@@ -1,14 +1,19 @@
 {
+  "appDir": ".",
   "baseUrl": "js/",
-  "name": "boot",
-  "include": [
-    "../lib/require"
+  "dir": "../client-build",
+  "modules": [
+    {
+      "name": "boot",
+      "include": ["boot"],
+    },{
+      "name": "chunks/worker/boot",
+      "include": [
+        "chunks/worker/mini-require",
+        "chunks/worker/boot",
+      ],
+    }
   ],
-  "exclude": [],
+  "mainConfigFile": "js/boot.js",
   "optimize": "uglify2",
-  "out": "main-built.js",
-  "insertRequire": [
-    "boot"
-  ],
-  "mainConfigFile": "js/boot.js"
 }
