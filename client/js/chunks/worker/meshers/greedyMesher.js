@@ -13,9 +13,9 @@
 //      then the width, so its not the largest rectangle at that position
 //3)Remove all the squares inside that rectangle from the plane (so you don't consider them again).
 define(function (require) {
-var Block = require("../../block");
+var Block = require("chunks/block");
 
-var common = require("../../chunkCommon");
+var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
 var meshCommon = require("../meshCommon");

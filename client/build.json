@@ -1,0 +1,19 @@
+{
+  "appDir": ".",
+  "baseUrl": "js/",
+  "dir": "../client-build",
+  "modules": [
+    {
+      "name": "boot",
+      "include": ["boot"],
+    },{
+      "name": "chunks/worker/boot",
+      "include": [
+        "../lib/require",
+        "chunks/worker/boot",
+      ],
+    }
+  ],
+  "mainConfigFile": "js/boot.js",
+  "optimize": "uglify2",
+}

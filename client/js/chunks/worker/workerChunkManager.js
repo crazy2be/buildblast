@@ -7,11 +7,11 @@ return function WorkerChunkManager() {
 
 	self.get = function (cc) {
 		return chunkList[common.ccStr(cc)];
-	}
+	};
 
 	self.set = function (cc, item) {
 		chunkList[common.ccStr(cc)] = item;
-	}
+	};
 
 	self.top = function () {
 		var highest = -1000;
@@ -26,17 +26,17 @@ return function WorkerChunkManager() {
 			}
 		}
 		return chunkList[key];
-	}
+	};
 
 	self.each = function (cb) {
 		for (var k in chunkList) {
 			cb(chunkList[k])
 		}
-	}
+	};
 
 	self.chunkAt = function (ccX, ccY, ccZ) {
 		return self.get({ x: ccX, y: ccY, z: ccZ });
-	}
+	};
 
 	self.refreshNeighbouring = function (cc) {
 		var ccX = cc.x;
@@ -52,6 +52,6 @@ return function WorkerChunkManager() {
 		r(ccX, ccY - 1, ccZ);
 		r(ccX, ccY, ccZ + 1);
 		r(ccX, ccY, ccZ - 1);
-	}
-}
+	};
+};
 });

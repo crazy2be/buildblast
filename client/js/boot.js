@@ -1,10 +1,12 @@
 requirejs.config({
+	baseUrl: '/js/',
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
-		THREE: '/lib/three',
-		jquery: '/lib/jquery.min',
-		jqueryui: '/lib/jquery-ui.min',
-		jqueryWaitImgs: '/lib/jquery.waitforimages.min'
+		THREE: '../lib/three',
+		jquery: '../lib/jquery.min',
+		jqueryui: '../lib/jquery-ui.min',
+		jqueryWaitImgs: '../lib/jquery.waitforimages.min',
+		async: '../lib/async',
 	},
 	shim: {
 		THREE: {
@@ -22,12 +24,7 @@ requirejs.config({
 		jqueryWaitImgs: {
 			deps: ['jqueryui']
 		}
-	},
-	packages: [{
-		name: 'chunkManager',
-		location: '/js/chunks',
-		main: 'chunkManager',
-	}],
+	}
 });
 
 require(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, math, fatalError, debug, THREE) {
