@@ -9,7 +9,7 @@
     },{
       "name": "chunks/worker/boot",
       "include": [
-        "chunks/worker/mini-require",
+        "../lib/require",
         "chunks/worker/boot",
       ],
     }
