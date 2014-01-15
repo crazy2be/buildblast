@@ -17,6 +17,11 @@ if go version; then
 	go get buildblast/server
 
 	cd client
+	if [ -n "$BUILDBLAST_PROD" ]; then
+		echo "Compiling client..."
+		r.js -o build.json
+		cd ../client-build
+	fi
 	echo "Starting server..."
 	../bin/server "$@"
 

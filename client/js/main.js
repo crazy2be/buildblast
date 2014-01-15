@@ -1,12 +1,12 @@
 define(function(require) {
 
+var async = require("async");
+
 var Conn = require("core/conn");
 var Clock = require("core/clock");
 var Controls = require("player/controls");
 var FeatureTester = require("featureTester");
 var Models = require("models");
-
-var async = require("/lib/async.js");
 
 var World = require("core/world");
 
