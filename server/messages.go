@@ -96,6 +96,8 @@ type MsgHandshakeReply struct {
 	ServerTime       float64
 	ClientID         string
 	PlayerEntityInfo MsgEntityCreate
+	Authenticated    bool
+	AuthMessage      string
 }
 
 type MsgHandshakeError struct {

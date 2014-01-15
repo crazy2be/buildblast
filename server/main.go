@@ -48,45 +48,81 @@ type ApiUserResponse struct {
 	Name string
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
+	Error string
+}
+
+func authenticate(ws *websocket.Conn) (*ApiUserResponse, string, error) {
+	errMessage := "An internal error occured while authenticating: "
+
+	// Read the seesion cookie
+        cookie, err := ws.Request().Cookie("session_token")
+	if err != nil {
+		return nil, "Not signed in.", err
+	}
+
+	// Submit the cookie to the auth server, for verification
+        token := cookie.Value
+        tr := &http.Transport{
+                TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+        }
+        cli := &http.Client{ Transport: tr }
+        req, err := http.NewRequest("GET", "https://www.buildblast.com/api/users/" + token, nil)
+	if err != nil {
+                log.Println(errMessage, err)
+                return nil, errMessage + "Can't connect to auth server.", err
+	}
+        req.SetBasicAuth("name", "password")
+        res, err := cli.Do(req)
+	if err != nil {
+                log.Println(errMessage, err)
+                return nil, errMessage + "Auth server connection issue.", err
+	}
+
+	// Parse the response
+        defer res.Body.Close()
+        body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+                log.Println(errMessage, err)
+                return nil, errMessage + "Could not read auth response.", err
+	}
+        var data ApiUserResponse
+        err = json.Unmarshal(body, &data)
+	if err != nil {
+                log.Println(errMessage, err)
+                return nil, errMessage + "Could not parse auth response.", err
+	}
+
+	return &data, "", nil
 }
 
 func mainSocketHandler(ws *websocket.Conn) {
-        // Debug
-	cookie, _ := ws.Request().Cookie("session_token")
-	token := cookie.Value
-	log.Println(token)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	cli := &http.Client{Transport: tr}
-	req, _ := http.NewRequest("GET", "https://www.buildblast.com/api/users/" + token, nil)
-	req.SetBasicAuth("name", "password")
-	res, _ := cli.Do(req)
-	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
-	var data ApiUserResponse
-	nameErr := json.Unmarshal(body, &data)
-	if nameErr != nil {
-		log.Println("Error, user not logged in or transport error")
-	} else {
-		log.Println(data)
-	}
-
 	conn := NewConn(ws)
 
-	msg, err := conn.Recv()
+	_, err := conn.Recv()
 	if err != nil {
 		log.Println("Error connecting client, unable to read handshake message: ", err)
 		return
 	}
 
-	baseName := ""
-	if nameErr != nil {
-		baseName = msg.(*MsgHandshakeInit).DesiredName
+	user, message, err := authenticate(ws)
+	var authed bool
+	var authMessage string
+
+	if err != nil {
+		authed = false
+		authMessage = message
+	} else if user.Error != "" {
+		authed = false
+		authMessage = "Not signed in"
 	} else {
-		baseName = data.Name
+		authed = true
+		authMessage = "Welcome " + user.Name + "!"
 	}
-	if baseName == "" {
+
+	var baseName string
+	if authed {
+		baseName = user.Name
+	} else {
 		baseName = "guest"
 	}
 
@@ -113,6 +149,8 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
 		ClientID:         name,
 		PlayerEntityInfo: *info,
+		Authenticated:    authed,
+		AuthMessage:      authMessage,
 	})
 
 	client.Run(conn)
