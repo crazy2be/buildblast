@@ -1,11 +1,8 @@
 package main
 
 import (
-	"crypto/tls"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -42,59 +39,6 @@ func getClientName(config *websocket.Config) string {
 	return bits[3]
 }
 
-type ApiUserResponse struct {
-	Id        int
-	Email     string
-	Name      string
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-	Error     string
-}
-
-func authenticate(ws *websocket.Conn) (*ApiUserResponse, string, error) {
-	errMessage := "An internal error occured while authenticating: "
-
-	// Read the seesion cookie
-	cookie, err := ws.Request().Cookie("session_token")
-	if err != nil {
-		return nil, "Not signed in.", err
-	}
-
-	// Submit the cookie to the auth server, for verification
-	token := cookie.Value
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	cli := &http.Client{Transport: tr}
-	req, err := http.NewRequest("GET", "https://www.buildblast.com/api/users/"+token, nil)
-	if err != nil {
-		log.Println(errMessage, err)
-		return nil, errMessage + "Can't connect to auth server.", err
-	}
-	req.SetBasicAuth("name", "password")
-	res, err := cli.Do(req)
-	if err != nil {
-		log.Println(errMessage, err)
-		return nil, errMessage + "Auth server connection issue.", err
-	}
-
-	// Parse the response
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Println(errMessage, err)
-		return nil, errMessage + "Could not read auth response.", err
-	}
-	var data ApiUserResponse
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		log.Println(errMessage, err)
-		return nil, errMessage + "Could not parse auth response.", err
-	}
-
-	return &data, "", nil
-}
-
 func mainSocketHandler(ws *websocket.Conn) {
 	conn := NewConn(ws)
 
@@ -104,24 +48,25 @@ func mainSocketHandler(ws *websocket.Conn) {
 		return
 	}
 
-	user, message, err := authenticate(ws)
+	authResponse, authErr := Authenticate(ws)
 	var authed bool
 	var authMessage string
 
-	if err != nil {
+	if authErr != nil {
+		log.Println(authErr)
 		authed = false
-		authMessage = message
-	} else if user.Error != "" {
+		authMessage = authErr.Message
+	} else if authResponse.Error != "" {
 		authed = false
 		authMessage = "Not signed in"
 	} else {
 		authed = true
-		authMessage = "Welcome " + user.Name + "!"
+		authMessage = "Welcome " + authResponse.Name + "!"
 	}
 
 	var baseName string
 	if authed {
-		baseName = user.Name
+		baseName = authResponse.Name
 	} else {
 		baseName = "guest"
 	}
