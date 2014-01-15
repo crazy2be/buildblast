@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -11,9 +14,6 @@ import (
 	"runtime/pprof"
 	"strings"
 	"time"
-	"crypto/tls"
-	"io/ioutil"
-	"encoding/json"
 
 	"code.google.com/p/go.net/websocket"
 	"github.com/sbinet/liner"
@@ -43,53 +43,53 @@ func getClientName(config *websocket.Config) string {
 }
 
 type ApiUserResponse struct {
-	Id int
-	Email string
-	Name string
+	Id        int
+	Email     string
+	Name      string
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
-	Error string
+	Error     string
 }
 
 func authenticate(ws *websocket.Conn) (*ApiUserResponse, string, error) {
 	errMessage := "An internal error occured while authenticating: "
 
 	// Read the seesion cookie
-        cookie, err := ws.Request().Cookie("session_token")
+	cookie, err := ws.Request().Cookie("session_token")
 	if err != nil {
 		return nil, "Not signed in.", err
 	}
 
 	// Submit the cookie to the auth server, for verification
-        token := cookie.Value
-        tr := &http.Transport{
-                TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-        }
-        cli := &http.Client{ Transport: tr }
-        req, err := http.NewRequest("GET", "https://www.buildblast.com/api/users/" + token, nil)
-	if err != nil {
-                log.Println(errMessage, err)
-                return nil, errMessage + "Can't connect to auth server.", err
+	token := cookie.Value
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-        req.SetBasicAuth("name", "password")
-        res, err := cli.Do(req)
+	cli := &http.Client{Transport: tr}
+	req, err := http.NewRequest("GET", "https://www.buildblast.com/api/users/"+token, nil)
 	if err != nil {
-                log.Println(errMessage, err)
-                return nil, errMessage + "Auth server connection issue.", err
+		log.Println(errMessage, err)
+		return nil, errMessage + "Can't connect to auth server.", err
+	}
+	req.SetBasicAuth("name", "password")
+	res, err := cli.Do(req)
+	if err != nil {
+		log.Println(errMessage, err)
+		return nil, errMessage + "Auth server connection issue.", err
 	}
 
 	// Parse the response
-        defer res.Body.Close()
-        body, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-                log.Println(errMessage, err)
-                return nil, errMessage + "Could not read auth response.", err
+		log.Println(errMessage, err)
+		return nil, errMessage + "Could not read auth response.", err
 	}
-        var data ApiUserResponse
-        err = json.Unmarshal(body, &data)
+	var data ApiUserResponse
+	err = json.Unmarshal(body, &data)
 	if err != nil {
-                log.Println(errMessage, err)
-                return nil, errMessage + "Could not parse auth response.", err
+		log.Println(errMessage, err)
+		return nil, errMessage + "Could not parse auth response.", err
 	}
 
 	return &data, "", nil
