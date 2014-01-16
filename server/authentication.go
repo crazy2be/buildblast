@@ -3,9 +3,9 @@ package main
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
-	"errors"
 
 	"code.google.com/p/go.net/websocket"
 )
