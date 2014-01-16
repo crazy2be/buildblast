@@ -42,14 +42,21 @@ func getClientName(config *websocket.Config) string {
 func mainSocketHandler(ws *websocket.Conn) {
 	conn := NewConn(ws)
 
-	msg, err := conn.Recv()
-	if err != nil {
-		log.Println("Error connecting client, unable to read handshake message: ", err)
-		return
+	authResponse, authErr := Authenticate(ws)
+	var authMessage string
+	authed := authErr == nil
+
+	if authed {
+		authMessage = "Welcome " + authResponse.Name + "!"
+	} else {
+		log.Println(authErr)
+		authMessage = authErr.Message
 	}
 
-	baseName := msg.(*MsgHandshakeInit).DesiredName
-	if baseName == "" {
+	var baseName string
+	if authed {
+		baseName = authResponse.Name
+	} else {
 		baseName = "guest"
 	}
 
@@ -76,6 +83,8 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
 		ClientID:         name,
 		PlayerEntityInfo: *info,
+		Authenticated:    authed,
+		AuthMessage:      authMessage,
 	})
 
 	client.Run(conn)

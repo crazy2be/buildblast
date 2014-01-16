@@ -12,7 +12,6 @@ import (
 type MessageKind string
 
 const (
-	MSG_HANDSHAKE_INIT  = MessageKind("handshake-init")
 	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
 	MSG_ENTITY_CREATE   = MessageKind("entity-create")
@@ -30,8 +29,6 @@ const (
 
 func kindToType(kind MessageKind) Message {
 	switch kind {
-	case MSG_HANDSHAKE_INIT:
-		return &MsgHandshakeInit{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
 	case MSG_ENTITY_STATE:
@@ -88,14 +85,12 @@ func typeToKind(m Message) MessageKind {
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
 
-type MsgHandshakeInit struct {
-	DesiredName string
-}
-
 type MsgHandshakeReply struct {
 	ServerTime       float64
 	ClientID         string
 	PlayerEntityInfo MsgEntityCreate
+	Authenticated    bool
+	AuthMessage      string
 }
 
 type MsgHandshakeError struct {
