@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"errors"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -24,7 +25,7 @@ type AuthError struct {
 }
 
 func (ae AuthError) Error() string {
-	return "Authentication error: " + ae.Message + ae.Err.Error()
+	return "Authentication error: " + ae.Message + " " + ae.Err.Error()
 }
 
 func Authenticate(ws *websocket.Conn) (*ApiUserResponse, *AuthError) {
@@ -60,6 +61,11 @@ func Authenticate(ws *websocket.Conn) (*ApiUserResponse, *AuthError) {
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		return nil, &AuthError{Message: "Could not parse auth response.", Err: err}
+	}
+
+	// Determine if we successfully logged in
+	if data.Error != "" {
+		return nil, &AuthError{Message: "Not signed in.", Err: errors.New("Server did not verify token")}
 	}
 
 	return &data, nil

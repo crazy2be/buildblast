@@ -54,9 +54,6 @@ function main () {
 			conn.on('handshake-error', function (payload) {
 				throw payload.Message;
 			});
-			conn.queue('handshake-init', {
-				DesiredName: localStorage.playerName,
-			});
 		}
 	], function (err, results) {
 		startGame();

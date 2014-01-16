@@ -42,26 +42,15 @@ func getClientName(config *websocket.Config) string {
 func mainSocketHandler(ws *websocket.Conn) {
 	conn := NewConn(ws)
 
-	_, err := conn.Recv()
-	if err != nil {
-		log.Println("Error connecting client, unable to read handshake message: ", err)
-		return
-	}
-
 	authResponse, authErr := Authenticate(ws)
-	var authed bool
 	var authMessage string
+	authed := authErr == nil
 
-	if authErr != nil {
-		log.Println(authErr)
-		authed = false
-		authMessage = authErr.Message
-	} else if authResponse.Error != "" {
-		authed = false
-		authMessage = "Not signed in"
-	} else {
-		authed = true
+	if authed {
 		authMessage = "Welcome " + authResponse.Name + "!"
+	} else {
+		log.Println(authErr)
+		authMessage = authErr.Message
 	}
 
 	var baseName string
