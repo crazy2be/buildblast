@@ -13,17 +13,6 @@ Bundler.require(:default, Rails.env)
 
 module Www
   class Application < Rails::Application
-    # don't generate RSpec tests for views and helpers
-    config.generators do |g|
-      g.test_framework :rspec, fixture: true
-      g.fixture_replacement :factory_girl, dir: 'spec/factories'
-      g.view_specs false
-      g.helper_specs false
-      g.stylesheets = false
-      g.javascripts = false
-      g.helper = false
-    end
-
     #Don't write passwords to the log files
     config.filter_parameters += [:password, :password_confirmation]
 
