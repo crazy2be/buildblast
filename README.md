@@ -4,7 +4,9 @@ BuildBlast
 ![screenshot from 2014-01-13 08 58 44](https://f.cloud.github.com/assets/667720/1900919/42a15956-7c5b-11e3-81e0-cf430e9b4e37.png)
 
 
-Try it: **[Stable server](http://bb.jmcgirr.com)** or [dev server](http://quentinbrooks.com)
+Try it at **[BuildBlast.com](https://www.buildblast.com)**
+
+Dev servers: [crazy2be](http://bb.jmcgirr.com), [yeerkkiller1](http://quentinbrooks.com)
 
 Installation
 ------------
@@ -21,7 +23,7 @@ To play,
 	google-chrome http://localhost:8080
 	
 
-<!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. -->
+<!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. (Kevin feels it's okay to be agressive though.) -->
 Development
 -----------
 Make a branch, develop your feature/bugfix, and send a pull request. A couple tips:
