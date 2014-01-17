@@ -163,13 +163,15 @@ func promptLoop(quit chan bool, state *liner.State) {
 func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	clientAssets := flag.String("client", "/", "Sets the location of the client assets that will be served")
+	//worldLocation := flag.String("world", "/world/", "Sets the location of the world, where chunks will be loaded and stored.")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	go globalGame.Run()
 	// 	go doProfile()
 
-	http.HandleFunc("/", handler)
+	http.HandleFunc(*clientAssets, handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
