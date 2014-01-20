@@ -20,14 +20,20 @@ import (
 
 var globalGame = NewGame()
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request, clientLoc *string) {
 	// Workaround for Quentin's system configuration.
 	// For some reason, css files are getting served
 	// without a content-type...
 	if strings.HasSuffix(r.URL.Path, ".css") {
 		w.Header().Set("Content-Type", "text/css")
 	}
-	http.ServeFile(w, r, "."+r.URL.Path)
+	var baseDir string
+	if clientLoc != nil {
+		baseDir = "."
+	} else {
+		baseDir = *clientLoc
+	}
+	http.ServeFile(w, r, baseDir + r.URL.Path)
 }
 
 func getClientName(config *websocket.Config) string {
@@ -171,7 +177,9 @@ func main() {
 	go globalGame.Run()
 	// 	go doProfile()
 
-	http.HandleFunc(*clientAssets, handler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, clientAssets)
+	})
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
