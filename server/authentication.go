@@ -4,14 +4,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net/http"
 
 	"code.google.com/p/go.net/websocket"
 )
 
 type ApiUserResponse struct {
-	Id        int
+	Id        int `json:",string"`
 	Email     string
 	Name      string
 	CreatedAt string `json:"created_at"`
@@ -51,14 +50,8 @@ func Authenticate(ws *websocket.Conn) (*ApiUserResponse, *AuthError) {
 		return nil, &AuthError{Message: "Auth server connection issue.", Err: err}
 	}
 
-	// Parse the response
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, &AuthError{Message: "Could not read auth response.", Err: err}
-	}
 	var data ApiUserResponse
-	err = json.Unmarshal(body, &data)
+	err = json.NewDecoder(res.Body).Decode(&data)
 	if err != nil {
 		return nil, &AuthError{Message: "Could not parse auth response.", Err: err}
 	}
