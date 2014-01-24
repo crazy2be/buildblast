@@ -9,8 +9,9 @@ Www::Application.routes.draw do
   resources :users
 
   #REST API for internal use
-  namespace :api do
-    resources :users, :defaults => { :format => 'json' }
+  namespace :api, defaults: { format: 'json' } do
+    resources :users
+    resources :servers
   end
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

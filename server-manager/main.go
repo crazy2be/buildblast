@@ -32,7 +32,7 @@ func NewServerMap() *ServerMap {
 }
 
 type ApiCreateServer struct {
-	Id int `json:",string"`
+	Id int
 }
 
 func runServer(id int) {

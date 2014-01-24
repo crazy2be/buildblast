@@ -10,7 +10,7 @@ import (
 )
 
 type ApiUserResponse struct {
-	Id        int `json:",string"`
+	Id        int
 	Email     string
 	Name      string
 	CreatedAt string `json:"created_at"`
