@@ -19,7 +19,7 @@ class Api::ServersController < ApplicationController
 
   def show
     respond_to do |format|
-      format.json { render json: @user }
+      format.json { render json: @server }
     end
   end
 
