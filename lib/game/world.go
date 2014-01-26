@@ -1,17 +1,12 @@
 package game
 
 import (
-	"log"
 	"math/rand"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
 	"buildblast/lib/physics"
 )
-
-type BlockListener interface {
-	BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Block)
-}
 
 type World struct {
 	seed           float64
@@ -20,17 +15,16 @@ type World struct {
 	chunkGenerator *ChunkGenerator
 
 	entities        []Entity
-	entityListeners []EntityListener
 	blockListeners  []BlockListener
+	chunkListeners  []ChunkListener
+	entityListeners []EntityListener
 }
 
-func NewWorld(seed float64) *World {
+func NewWorld(generator mapgen.Generator) *World {
 	w := new(World)
-	w.seed = seed
 	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
 	w.spawns = make([]coords.World, 0)
 
-	generator := mapgen.NewFlatWorld(seed)
 	w.chunkGenerator = NewChunkGenerator(generator)
 	go w.chunkGenerator.Run()
 
@@ -56,6 +50,10 @@ func (w *World) generationTick() {
 
 		w.spawns = append(w.spawns, spawns...)
 		w.chunks[cc] = chunk
+
+		for _, listener := range w.chunkListeners {
+			listener.ChunkGenerated(cc, chunk, spawns)
+		}
 	default:
 	}
 }
@@ -94,21 +92,6 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 	for _, listener := range w.blockListeners {
 		listener.BlockChanged(bc, block, newBlock)
 	}
-}
-
-func (w *World) AddBlockListener(listener BlockListener) {
-	w.blockListeners = append(w.blockListeners, listener)
-}
-
-func (w *World) RemoveBlockListener(listener BlockListener) {
-	for i, other := range w.blockListeners {
-		if other == listener {
-			w.blockListeners[i] = w.blockListeners[len(w.blockListeners)-1]
-			w.blockListeners = w.blockListeners[:len(w.blockListeners)-1]
-			return
-		}
-	}
-	log.Println("WARN: Attempt to remove block listener which does not exist.")
 }
 
 func (w *World) AddEntity(e Entity) {
@@ -155,27 +138,6 @@ func (w *World) Entities() map[EntityID]Entity {
 		result[entity.ID()] = entity
 	}
 	return result
-}
-
-func (w *World) AddEntityListener(listener EntityListener) {
-	w.entityListeners = append(w.entityListeners, listener)
-}
-
-func (w *World) RemoveEntityListener(listener EntityListener) {
-	for i, other := range w.entityListeners {
-		if other == listener {
-			w.entityListeners[i] = w.entityListeners[len(w.entityListeners)-1]
-			w.entityListeners = w.entityListeners[:len(w.entityListeners)-1]
-			return
-		}
-	}
-	log.Println("WARN: Attempt to remove entity listener which does not exist.")
-}
-
-func (w *World) FireEntityUpdated(id EntityID, entity Entity) {
-	for _, listener := range w.entityListeners {
-		listener.EntityUpdated(id, entity)
-	}
 }
 
 func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {

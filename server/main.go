@@ -16,9 +16,10 @@ import (
 	"github.com/sbinet/liner"
 
 	"buildblast/lib/game"
+	"buildblast/lib/mapgen"
 )
 
-var globalGame = NewGame()
+var globalGame *Game
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	// Workaround for Quentin's system configuration.
@@ -160,13 +161,29 @@ func promptLoop(quit chan bool, state *liner.State) {
 	}
 }
 
+func logPersistErrors(persister *WorldPersister) {
+	for {
+		err := persister.NextError()
+		log.Println("Persist: ", err)
+	}
+}
+
 func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
+	persister := NewWorldPersister("world/", generator)
+	world := game.NewWorld(persister.MapGenerator())
+	persister.ListenForChanges(world)
+	globalGame = NewGame(world)
+
 	go globalGame.Run()
+	go logPersistErrors(persister)
+
 	// 	go doProfile()
 
 	http.HandleFunc("/", handler)
