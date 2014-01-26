@@ -1,4 +1,4 @@
-package main
+package persist
 
 import (
 	"buildblast/lib/game"
@@ -16,7 +16,7 @@ type generationWrapper struct {
 	fallbackGenerator mapgen.Generator
 }
 
-func NewWorldPersister(basePath string, generator mapgen.Generator) *WorldPersister {
+func New(basePath string, generator mapgen.Generator) *WorldPersister {
 	wp := new(WorldPersister)
 	wp.basePath = basePath
 	wp.errorChan = make(chan error, 10)
