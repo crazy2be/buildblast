@@ -7,10 +7,10 @@ import (
 )
 
 type Chunk []Block
-const blocksPerChunk = coords.ChunkWidth * coords.ChunkHeight * coords.ChunkDepth
+const BlocksPerChunk = coords.ChunkWidth * coords.ChunkHeight * coords.ChunkDepth
 
 func allocChunk() (Chunk) {
-	return make([]Block, blocksPerChunk)
+	return make([]Block, BlocksPerChunk)
 }
 
 func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
@@ -64,8 +64,8 @@ func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 //     isn't particulilly fast at serializing large
 //     arrays of numbers.
 func (c Chunk) Flatten() string {
-	data := make([]byte, blocksPerChunk)
-	for i := 0; i < blocksPerChunk; i++ {
+	data := make([]byte, BlocksPerChunk)
+	for i := 0; i < BlocksPerChunk; i++ {
 		// 35: # charater. Control charaters are not allowed in JSON
 		// strings, and we want to avoid '"', which requires escaping.
 		value := byte(c[i] + 35)
@@ -79,7 +79,7 @@ func (c Chunk) Flatten() string {
 
 func (c Chunk) Clone() Chunk {
 	newChunk := allocChunk()
-	for i := 0; i < blocksPerChunk; i++ {
+	for i := 0; i < BlocksPerChunk; i++ {
 		newChunk[i] = c[i];
 	}
 	return newChunk
