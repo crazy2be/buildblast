@@ -1,6 +1,7 @@
 package persist
 
 import (
+	"os"
 	"log"
 	"math"
 	"strconv"
@@ -29,6 +30,10 @@ func New(basePath string, generator mapgen.Generator) *persister {
 	p.basePath = basePath
 	p.errorChan = make(chan error, 10)
 	p.fallbackGenerator = generator
+	err := os.MkdirAll(basePath, 0755)
+	if err != nil {
+		log.Println("Persist: ", err)
+	}
 	return p
 }
 
@@ -53,11 +58,13 @@ func (p *persister) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.B
 	chunk, err := p.loadChunk(cc)
 	if err != nil {
 		log.Println("Applying block change: ", err)
+		return
 	}
 	chunk.data.SetBlock(bc.Offset(), new)
 	err = p.saveChunk(cc, chunk)
 	if err != nil {
 		log.Println("Applying block change: ", err)
+		return
 	}
 }
 
