@@ -39,16 +39,22 @@ func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
 	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
+	persistEnabled := flag.Bool("persist", true, "Turn on experimental persist support? May cause lag or poor server performance.")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 
 	// Set up the world
+	var world *game.World
 	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
-	persister := persist.New(*worldBaseDir, generator)
-	world := game.NewWorld(persister.MapGenerator())
-	persister.ListenForChanges(world)
+	if *persistEnabled {
+		persister := persist.New(*worldBaseDir, generator)
+		world = game.NewWorld(persister.MapGenerator())
+		persister.ListenForChanges(world)
+	} else {
+		world = game.NewWorld(generator)
+	}
 	globalGame = NewGame(world)
 
 	go globalGame.Run()
