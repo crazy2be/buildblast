@@ -3,7 +3,8 @@ package persist
 import (
 	"os"
 	"log"
-	"strconv"
+	"fmt"
+	"path"
 	"io/ioutil"
 
 	"buildblast/lib/game"
@@ -111,5 +112,6 @@ func (p *persister) saveChunk(cc coords.Chunk, chunk *chunk) error {
 }
 
 func (p *persister) filePath(cc coords.Chunk) string {
-	return p.basePath + strconv.Itoa(cc.X) + "," + strconv.Itoa(cc.Y) + "," + strconv.Itoa(cc.Z) + ".chunk"
+	fileName := fmt.Sprintf("%d,%d,%d.chunk", cc.X, cc.Y, cc.Z)
+	return path.Join(p.basePath, fileName)
 }
