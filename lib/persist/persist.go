@@ -79,9 +79,11 @@ func (p *persister) Chunk(cc coords.Chunk) (mapgen.Chunk, []coords.World) {
 }
 
 func (p *persister) loadChunk(cc coords.Chunk) (*chunk, error) {
-	raw, err := ioutil.ReadFile(p.basePath + hash(cc) + ".chunk")
+	raw, err := ioutil.ReadFile(p.filePath(cc))
 	if err != nil {
-		log.Println("Persist: Error loading chunk: ", err)
+		// File read errors happen all the time (i.e. when the
+		// chunk has not been generated yet), so we don't bother
+		// printing them.
 		return nil, err
 	}
 
@@ -100,7 +102,7 @@ func (p *persister) saveChunk(cc coords.Chunk, chunk *chunk) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(p.basePath + hash(cc) + ".chunk", raw, 0644)
+	err = ioutil.WriteFile(p.filePath(cc), raw, 0644)
 	if err != nil {
 		log.Println("Persist: Error saving chunk: ", err)
 		return err
@@ -108,6 +110,6 @@ func (p *persister) saveChunk(cc coords.Chunk, chunk *chunk) error {
 	return nil
 }
 
-func hash(cc coords.Chunk) string {
-	return strconv.Itoa(cc.X) + "," + strconv.Itoa(cc.Y) + "," + strconv.Itoa(cc.Z)
+func (p *persister) filePath(cc coords.Chunk) string {
+	return p.basePath + strconv.Itoa(cc.X) + "," + strconv.Itoa(cc.Y) + "," + strconv.Itoa(cc.Z) + ".chunk"
 }

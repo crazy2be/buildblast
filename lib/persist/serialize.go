@@ -64,13 +64,13 @@ func serializeChunkData(chunk *chunk) ([]byte, error) {
 
 func readFloat64(d []byte, offset int) float64 {
 	return math.Float64frombits(
-		uint64(d[offset + 0]) << (8*7) +
-		uint64(d[offset + 1]) << (8*6) +
-		uint64(d[offset + 2]) << (8*5) +
-		uint64(d[offset + 3]) << (8*4) +
-		uint64(d[offset + 4]) << (8*3) +
-		uint64(d[offset + 5]) << (8*2) +
-		uint64(d[offset + 6]) << (8*1) +
+		uint64(d[offset + 0]) << (8*7) |
+		uint64(d[offset + 1]) << (8*6) |
+		uint64(d[offset + 2]) << (8*5) |
+		uint64(d[offset + 3]) << (8*4) |
+		uint64(d[offset + 4]) << (8*3) |
+		uint64(d[offset + 5]) << (8*2) |
+		uint64(d[offset + 6]) << (8*1) |
 		uint64(d[offset + 7]) << (8*0))
 }
 
