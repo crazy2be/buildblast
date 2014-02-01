@@ -13,6 +13,16 @@ func allocChunk() (Chunk) {
 	return make([]Block, BlocksPerChunk)
 }
 
+// offsetIndex returns the index into a flattened chunk array
+// that corresponds to the given offset coordinates. We have a
+// similar function on the client (since all chunks are sent
+// "packed").
+func offsetIndex(oc coords.Offset) int {
+	cw := coords.ChunkWidth
+	ch := coords.ChunkHeight
+	return oc.X*cw*ch + oc.Y*cw + oc.Z
+}
+
 func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
 	cw := coords.ChunkWidth
 	ch := coords.ChunkHeight
@@ -40,15 +50,11 @@ func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
 }
 
 func (c Chunk) Block(oc coords.Offset) Block {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	return c[oc.X*cw*ch + oc.Y*cw + oc.Z]
+	return c[offsetIndex(oc)]
 }
 
 func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	c[oc.X*cw*ch + oc.Y*cw + oc.Z] = newBlock
+	c[offsetIndex(oc)] = newBlock
 }
 
 // Flatten returns the chunk data as a string. It
