@@ -38,18 +38,21 @@ func doProfile() {
 func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+
 	// Set up the world
 	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
-	persister := persist.New("world/", generator)
+	persister := persist.New(*worldBaseDir, generator)
 	world := game.NewWorld(persister.MapGenerator())
 	persister.ListenForChanges(world)
 	globalGame = NewGame(world)
 
 	go globalGame.Run()
+
 
 	// Uncomment this to run a quick profile.
 	// 	go doProfile()
