@@ -10,16 +10,6 @@ type Chunk struct {
 	blocks [coords.BlocksPerChunk]Block
 }
 
-// offsetIndex returns the index into a flattened chunk array
-// that corresponds to the given offset coordinates. We have a
-// similar function on the client (since all chunks are sent
-// "packed").
-func offsetIndex(oc coords.Offset) int {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	return oc.X*cw*ch + oc.Y*cw + oc.Z
-}
-
 func generateChunk(bg blockGenerator, cc coords.Chunk) *Chunk {
 	cw := coords.ChunkWidth
 	ch := coords.ChunkHeight
