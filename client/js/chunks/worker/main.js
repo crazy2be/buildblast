@@ -2,7 +2,6 @@ define(function(require) {
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-// var greedyMesher = require("./meshers/greedyMesher");
 var simpleMesher = require("./meshers/simpleMesher");
 
 var ChunkGeometry = require("./chunkGeometry");
