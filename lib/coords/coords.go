@@ -183,15 +183,15 @@ func (oc Offset) Block(cc Chunk) Block {
 // it returns the offset into the standard packed chunk representation.
 // This logic is duplicated on the client.
 func (oc Offset) Index() int {
-	return oc.X * ChunkWidth * ChunkHeight +
-		oc.Y * ChunkWidth +
+	return oc.X*ChunkWidth*ChunkHeight +
+		oc.Y*ChunkWidth +
 		oc.Z
 }
 
 const (
-	ChunkWidth  = 32
-	ChunkHeight = 32
-	ChunkDepth  = 32
+	ChunkWidth     = 32
+	ChunkHeight    = 32
+	ChunkDepth     = 32
 	BlocksPerChunk = ChunkWidth * ChunkHeight * ChunkDepth
 )
 

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"buildblast/lib/mapgen"
 	"buildblast/lib/coords"
+	"buildblast/lib/mapgen"
 )
 
 func TestReadWriteFloat64(t *testing.T) {

@@ -44,7 +44,7 @@ func ItemFromBlock(block mapgen.Block) Item {
 
 func init() {
 	itemToBlockMapping = make(map[mapgen.Block]Item, 2)
-	itemToBlockMapping[mapgen.BLOCK_DIRT]  = ITEM_DIRT
+	itemToBlockMapping[mapgen.BLOCK_DIRT] = ITEM_DIRT
 	itemToBlockMapping[mapgen.BLOCK_STONE] = ITEM_STONE
 	// All others are ITEM_NIL
 }

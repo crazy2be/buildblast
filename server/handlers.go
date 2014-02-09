@@ -1,11 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
-	"fmt"
-	"log"
 
 	"code.google.com/p/go.net/websocket"
 

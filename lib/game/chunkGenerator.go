@@ -18,8 +18,8 @@ type ChunkGenerator struct {
 }
 
 type ChunkGenerationResult struct {
-	cc     coords.Chunk
-	chunk  *mapgen.Chunk
+	cc    coords.Chunk
+	chunk *mapgen.Chunk
 }
 
 type ChunkStatus struct {
@@ -86,8 +86,8 @@ func (cm *ChunkGenerator) Run() {
 		chunk := cm.generator.Chunk(cc)
 
 		cm.Generated <- ChunkGenerationResult{
-			cc:     cc,
-			chunk:  chunk,
+			cc:    cc,
+			chunk: chunk,
 		}
 
 		cm.mutex.Lock()

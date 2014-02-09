@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"runtime/pprof"
 	"time"
@@ -44,7 +44,6 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-
 	// Set up the world
 	var world *game.World
 	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
@@ -60,7 +59,6 @@ func main() {
 	globalGame = NewGame(world)
 
 	go globalGame.Run()
-
 
 	// Uncomment this to run a quick profile.
 	// 	go doProfile()

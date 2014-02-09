@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
-	"log"
 	"fmt"
+	"log"
+	"os"
 	"os/signal"
 
 	"github.com/sbinet/liner"

@@ -1,22 +1,22 @@
 package persist
 
 import (
-	"os"
-	"log"
 	"fmt"
-	"path"
 	"io/ioutil"
+	"log"
+	"os"
+	"path"
 
+	"buildblast/lib/coords"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
-	"buildblast/lib/coords"
 )
 
 type persister struct {
-	basePath string
-	errorChan chan error
+	basePath          string
+	errorChan         chan error
 	fallbackGenerator mapgen.Generator
-	world *game.World
+	world             *game.World
 }
 
 func New(basePath string, generator mapgen.Generator) *persister {

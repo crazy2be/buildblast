@@ -25,7 +25,7 @@ func generateChunk(bg blockGenerator, cc coords.Chunk) *Chunk {
 	ch := coords.ChunkHeight
 	cd := coords.ChunkDepth
 
-	chunk := &Chunk{};
+	chunk := &Chunk{}
 	for ocX := 0; ocX < cw; ocX++ {
 		for ocY := 0; ocY < ch; ocY++ {
 			for ocZ := 0; ocZ < cd; ocZ++ {
@@ -80,7 +80,7 @@ func (c *Chunk) Flatten() string {
 func (c *Chunk) Clone() *Chunk {
 	newChunk := &Chunk{}
 	for i := 0; i < coords.BlocksPerChunk; i++ {
-		newChunk.blocks[i] = c.blocks[i];
+		newChunk.blocks[i] = c.blocks[i]
 	}
 	return newChunk
 }
