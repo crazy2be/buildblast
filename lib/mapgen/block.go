@@ -24,9 +24,13 @@ var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** AIR    */ BLOCK_INVISIBLE,
 	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
 	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** SPAWN  */ BLOCK_INVISIBLE,
+	/** SPAWN  */ BLOCK_SOLID,
 }
 
 func (b Block) Solid() bool {
 	return BLOCK_PROPERTIES[b]&BLOCK_SOLID == BLOCK_SOLID
+}
+
+func (b Block) Mineable() bool {
+	return BLOCK_PROPERTIES[b]&BLOCK_MINEABLE == BLOCK_MINEABLE
 }

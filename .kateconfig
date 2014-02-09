@@ -1,2 +1,2 @@
-kate: space-indent off; tab-width 4; indent-width 4; eol unix;
+kate: space-indent off; tab-width 4; indent-width 4; replace-tabs: off; eol unix;
 

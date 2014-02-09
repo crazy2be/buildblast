@@ -94,6 +94,10 @@ Item.realInit = function () {
 	function shovelAction(world, camera) {
 		var bc = world.findLookedAtBlock(camera);
 		if (!bc) return;
+		var block = world.blockAt(bc.x, bc.y, bc.z);
+		if (!block || !block.mineable()) {
+			return;
+		}
 		world.changeBlock(bc.x, bc.y, bc.z, Block.AIR);
 	}
 
