@@ -12,7 +12,7 @@ type BlockListener interface {
 }
 
 type ChunkListener interface {
-	ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk, spawns []coords.World)
+	ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk)
 }
 
 type EntityListener interface {

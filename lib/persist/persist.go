@@ -12,11 +12,6 @@ import (
 	"buildblast/lib/coords"
 )
 
-type chunk struct {
-	data   *mapgen.Chunk
-	spawns []coords.World
-}
-
 type persister struct {
 	basePath string
 	errorChan chan error
@@ -45,8 +40,8 @@ func (p *persister) ListenForChanges(w *game.World) {
 	w.AddBlockListener(p)
 }
 
-func (p *persister) ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk, spawns []coords.World) {
-	err := p.saveChunk(cc, &chunk{data, spawns})
+func (p *persister) ChunkGenerated(cc coords.Chunk, chunk *mapgen.Chunk) {
+	err := p.saveChunk(cc, chunk)
 	if err != nil {
 		log.Println("Saving chunk: ", err)
 	}
@@ -59,7 +54,7 @@ func (p *persister) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.B
 		log.Println("Applying block change: ", err)
 		return
 	}
-	chunk.data.SetBlock(bc.Offset(), new)
+	chunk.SetBlock(bc.Offset(), new)
 	err = p.saveChunk(cc, chunk)
 	if err != nil {
 		log.Println("Applying block change: ", err)
@@ -75,13 +70,13 @@ func (p *persister) MapGenerator() mapgen.Generator {
 // this object! Be careful!
 func (p *persister) Chunk(cc coords.Chunk) *mapgen.Chunk {
 	if chunk, err := p.loadChunk(cc); err == nil {
-		return chunk.data
+		return chunk
 	} else {
 		return p.fallbackGenerator.Chunk(cc)
 	}
 }
 
-func (p *persister) loadChunk(cc coords.Chunk) (*chunk, error) {
+func (p *persister) loadChunk(cc coords.Chunk) (*mapgen.Chunk, error) {
 	raw, err := ioutil.ReadFile(p.filePath(cc))
 	if err != nil {
 		// File read errors happen all the time (i.e. when the
@@ -98,7 +93,7 @@ func (p *persister) loadChunk(cc coords.Chunk) (*chunk, error) {
 	return chunk, nil
 }
 
-func (p *persister) saveChunk(cc coords.Chunk, chunk *chunk) error {
+func (p *persister) saveChunk(cc coords.Chunk, chunk *mapgen.Chunk) error {
 	raw, err := serializeChunkData(chunk)
 	if err != nil {
 		log.Println("Persist: Error saving chunk: ", err)

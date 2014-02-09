@@ -8,7 +8,7 @@ import (
 	"buildblast/lib/coords"
 )
 
-func deserializeChunkData(raw []byte) (*chunk, error) {
+func deserializeChunkData(raw []byte) (*mapgen.Chunk, error) {
 	offset := 0
 
 	version := raw[offset]
@@ -17,51 +17,32 @@ func deserializeChunkData(raw []byte) (*chunk, error) {
 		return nil, errors.New("Persist: Unrecognized chunk version.")
 	}
 
-	numSpawns := int(raw[offset])
-	offset++
-	spawns := make([]coords.World, numSpawns)
-	for i := 0; i < numSpawns; i++ {
-		spawns[i].X = readFloat64(raw, offset)
-		offset += 8
-		spawns[i].Y = readFloat64(raw, offset)
-		offset += 8
-		spawns[i].Z = readFloat64(raw, offset)
-		offset += 8
-	}
-
-	data := &mapgen.Chunk{}
+	chunk := &mapgen.Chunk{}
 	for i := 0; i < coords.BlocksPerChunk; i++ {
-		data.SetBlock(coords.IndexOffset(i), mapgen.Block(raw[offset]))
+		chunk.SetBlock(coords.IndexOffset(i), mapgen.Block(raw[offset]))
 		offset++
 	}
 
-	return &chunk{data, spawns}, nil
+	return chunk, nil
 }
 
-func serializeChunkData(chunk *chunk) ([]byte, error) {
-	numSpawns := len(chunk.spawns)
-	if numSpawns > 255 {
-		return nil, errors.New("Too many spawns (someone should fix the shitty persist code!")
-	}
-
-	raw := make([]byte, 1 + 1 + numSpawns*3*8 + coords.BlocksPerChunk)
+func serializeChunkData(chunk *mapgen.Chunk) ([]byte, error) {
+	raw := make([]byte, 1 + coords.BlocksPerChunk)
 	offset := 0
-	raw[offset] = 1
+
+	raw[offset] = 1 // version
 	offset++
-	raw[offset] = byte(numSpawns)
-	offset++
-	for i := 0; i < numSpawns; i++ {
-		offset = writeFloat64(raw, offset, chunk.spawns[i].X)
-		offset = writeFloat64(raw, offset, chunk.spawns[i].Y)
-		offset = writeFloat64(raw, offset, chunk.spawns[i].Z)
-	}
+
 	for i := 0; i < coords.BlocksPerChunk; i++ {
-		raw[offset] = byte(chunk.data.Block(coords.IndexOffset(i)))
+		raw[offset] = byte(chunk.Block(coords.IndexOffset(i)))
 		offset++
 	}
 	return raw, nil
 }
 
+// Leaving these here, because we are likely to want them in the
+// future (for entity position persist and such, if someone wants
+// to write it).
 func readFloat64(d []byte, offset int) float64 {
 	return math.Float64frombits(
 		uint64(d[offset + 0]) << (8*7) |

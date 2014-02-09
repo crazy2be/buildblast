@@ -48,13 +48,17 @@ func (w *World) generationTick() {
 		log.Println("Generated chunk! ", generationResult);
 		cc := generationResult.cc
 		chunk := generationResult.chunk
-		spawns := generationResult.spawns
 
-		w.spawns = append(w.spawns, spawns...)
+		for oc := range coords.EveryOffset() {
+			if chunk.Block(oc) == mapgen.BLOCK_SPAWN {
+				w.spawns = append(w.spawns, oc.Block(cc).Center())
+			}
+		}
+
 		w.chunks[cc] = chunk
 
 		for _, listener := range w.chunkListeners {
-			listener.ChunkGenerated(cc, chunk, spawns)
+			listener.ChunkGenerated(cc, chunk)
 		}
 	default:
 	}

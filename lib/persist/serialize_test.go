@@ -36,8 +36,8 @@ func TestReadWriteFloat64(t *testing.T) {
 
 func TestSerializeDeserializeChunkData(t *testing.T) {
 	generator := mapgen.NewFlatWorld(0.0)
-	data, spawns := generator.Chunk(coords.Chunk{0, 0, 0})
-	in := &chunk{data, spawns}
+	chunk := generator.Chunk(coords.Chunk{0, 0, 0})
+	in := chunk
 	raw, err := serializeChunkData(in)
 	if err != nil {
 		t.Error(err)
