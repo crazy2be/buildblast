@@ -83,7 +83,7 @@ Block.isSolid = function (block) {
 };
 
 Block.inSubtype = function (block, subtype) {
-	return Block.PROPERTIES[block]&subtype === subtype;
+	return (Block.PROPERTIES[block]&subtype) === subtype;
 };
 
 return Block;

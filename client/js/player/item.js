@@ -73,8 +73,8 @@ Item.realInit = function () {
 	},{
 		name: 'pistol',
 		model: Models.pistol(),
-			//This action does nothing, we send the server our controls every
-			//tick and that's how we shoot.
+		//This action does nothing, we send the server our controls every
+		//tick and that's how we shoot.
 		action: function(){},
 		icon: 4,
 	}
@@ -91,8 +91,6 @@ Item.realInit = function () {
 		};
 	}
 
-		if(localStorage.pistolDebug) {
-			}
 	function shovelAction(world, camera) {
 		var bc = world.findLookedAtBlock(camera);
 		if (!bc) return;
