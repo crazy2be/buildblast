@@ -11,7 +11,7 @@ func TestIndexOffset(t *testing.T) {
 		t.Error("Got ", oc1, " expected ", expected1)
 	}
 
-	oc2 := IndexOffset(32768 - 1)
+	oc2 := IndexOffset(BlocksPerChunk - 1)
 	expected2 := Offset{
 		X: ChunkWidth - 1,
 		Y: ChunkHeight - 1,
