@@ -29,9 +29,9 @@ func deserializeChunkData(raw []byte) (*chunk, error) {
 		offset += 8
 	}
 
-	data := make([]mapgen.Block, mapgen.BlocksPerChunk)
-	for i := 0; i < mapgen.BlocksPerChunk; i++ {
-		data[i] = mapgen.Block(raw[offset])
+	data := &mapgen.Chunk{}
+	for i := 0; i < coords.BlocksPerChunk; i++ {
+		data.SetBlock(coords.IndexOffset(i), mapgen.Block(raw[offset]))
 		offset++
 	}
 
@@ -44,7 +44,7 @@ func serializeChunkData(chunk *chunk) ([]byte, error) {
 		return nil, errors.New("Too many spawns (someone should fix the shitty persist code!")
 	}
 
-	raw := make([]byte, 1 + 1 + numSpawns*3*8 + mapgen.BlocksPerChunk)
+	raw := make([]byte, 1 + 1 + numSpawns*3*8 + coords.BlocksPerChunk)
 	offset := 0
 	raw[offset] = 1
 	offset++
@@ -55,8 +55,8 @@ func serializeChunkData(chunk *chunk) ([]byte, error) {
 		offset = writeFloat64(raw, offset, chunk.spawns[i].Y)
 		offset = writeFloat64(raw, offset, chunk.spawns[i].Z)
 	}
-	for i := 0; i < mapgen.BlocksPerChunk; i++ {
-		raw[offset] = byte(chunk.data[i])
+	for i := 0; i < coords.BlocksPerChunk; i++ {
+		raw[offset] = byte(chunk.data.Block(coords.IndexOffset(i)))
 		offset++
 	}
 	return raw, nil

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"log"
 	"math/rand"
 
 	"buildblast/lib/coords"
@@ -10,7 +11,7 @@ import (
 
 type World struct {
 	seed           float64
-	chunks         map[coords.Chunk]mapgen.Chunk
+	chunks         map[coords.Chunk]*mapgen.Chunk
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
@@ -22,7 +23,7 @@ type World struct {
 
 func NewWorld(generator mapgen.Generator) *World {
 	w := new(World)
-	w.chunks = make(map[coords.Chunk]mapgen.Chunk)
+	w.chunks = make(map[coords.Chunk]*mapgen.Chunk)
 	w.spawns = make([]coords.World, 0)
 
 	w.chunkGenerator = NewChunkGenerator(generator)
@@ -44,6 +45,7 @@ func (w *World) Tick() {
 func (w *World) generationTick() {
 	select {
 	case generationResult := <-w.chunkGenerator.Generated:
+		log.Println("Generated chunk! ", generationResult);
 		cc := generationResult.cc
 		chunk := generationResult.chunk
 		spawns := generationResult.spawns
@@ -70,7 +72,7 @@ func (w *World) findSpawn() coords.World {
 	return w.spawns[rand.Intn(l)]
 }
 
-func (w *World) Chunk(cc coords.Chunk) mapgen.Chunk {
+func (w *World) Chunk(cc coords.Chunk) *mapgen.Chunk {
 	return w.chunks[cc]
 }
 

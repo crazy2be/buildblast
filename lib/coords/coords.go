@@ -80,6 +80,9 @@ func (wc World) Block() Block {
 	}
 }
 
+// Block represents the coordinates of any block in the world. It represents
+// the same units as World, but without any precision (because blocks can only
+// exist at integer boundries).
 type Block struct {
 	X int
 	Y int
@@ -139,10 +142,57 @@ type Offset struct {
 	Z int
 }
 
+// A sequential generator for every valid offset coordinate. Useful
+// for going through all the blocks in a chunk. Might be really slow,
+// I'm not sure how fast it is to use a channel as a generator like this.
+func EveryOffset() chan Offset {
+	results := make(chan Offset)
+	go func() {
+		for ocX := 0; ocX < ChunkWidth; ocX++ {
+			for ocY := 0; ocY < ChunkHeight; ocY++ {
+				for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+					results <- Offset{X: ocX, Y: ocY, Z: ocZ}
+				}
+			}
+		}
+		close(results)
+	}()
+	return results
+}
+
+// Given an integer 0 <= index < BlocksPerChunk, returns the offset
+// coordinate for that index in "standard" packed format. This
+// logic is duplicated on the client.
+func IndexOffset(index int) Offset {
+	return Offset{
+		X: index / (ChunkWidth * ChunkHeight),
+		Y: index / ChunkWidth % ChunkHeight,
+		Z: index % ChunkDepth,
+	}
+}
+
+func (oc Offset) Block(cc Chunk) Block {
+	return Block{
+		X: oc.X + cc.X*ChunkWidth,
+		Y: oc.Y + cc.Y*ChunkHeight,
+		Z: oc.Z + cc.Z*ChunkDepth,
+	}
+}
+
+// Index is the inverse of IndexOffset. Given a chunk offset coordinate,
+// it returns the offset into the standard packed chunk representation.
+// This logic is duplicated on the client.
+func (oc Offset) Index() int {
+	return oc.X * ChunkWidth * ChunkHeight +
+		oc.Y * ChunkWidth +
+		oc.Z
+}
+
 const (
 	ChunkWidth  = 32
-	ChunkDepth  = 32
 	ChunkHeight = 32
+	ChunkDepth  = 32
+	BlocksPerChunk = ChunkWidth * ChunkHeight * ChunkDepth
 )
 
 var ChunkSize Vec3 = Vec3{

@@ -49,10 +49,12 @@ func main() {
 	var world *game.World
 	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
 	if *persistEnabled {
+		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
 		persister := persist.New(*worldBaseDir, generator)
 		world = game.NewWorld(persister.MapGenerator())
 		persister.ListenForChanges(world)
 	} else {
+		log.Println("Running with persist DISABLED. Changes to the world will not be saved.")
 		world = game.NewWorld(generator)
 	}
 	globalGame = NewGame(world)

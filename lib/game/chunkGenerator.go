@@ -19,7 +19,7 @@ type ChunkGenerator struct {
 
 type ChunkGenerationResult struct {
 	cc     coords.Chunk
-	chunk  mapgen.Chunk
+	chunk  *mapgen.Chunk
 	spawns []coords.World
 }
 
@@ -84,7 +84,13 @@ func (cm *ChunkGenerator) Run() {
 			continue
 		}
 
-		chunk, spawns := cm.generator.Chunk(cc)
+		chunk := cm.generator.Chunk(cc)
+		spawns := make([]coords.World, 0)
+		for oc := range coords.EveryOffset() {
+			if chunk.Block(oc) == mapgen.BLOCK_SPAWN {
+				spawns = append(spawns, oc.Block(cc).Center())
+			}
+		}
 		cm.Generated <- ChunkGenerationResult{
 			cc:     cc,
 			chunk:  chunk,

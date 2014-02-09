@@ -7,6 +7,7 @@ const (
 	BLOCK_AIR   = Block(1)
 	BLOCK_DIRT  = Block(2)
 	BLOCK_STONE = Block(3)
+	BLOCK_SPAWN = Block(4)
 
 	// See "Block encoding.txt"
 
@@ -23,8 +24,9 @@ var BLOCK_PROPERTIES []uint32 = []uint32{
 	/** AIR    */ BLOCK_INVISIBLE,
 	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
 	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** SPAWN  */ BLOCK_INVISIBLE,
 }
 
 func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b]&BLOCK_SOLID > 0
+	return BLOCK_PROPERTIES[b]&BLOCK_SOLID == BLOCK_SOLID
 }

@@ -13,7 +13,7 @@ import (
 )
 
 type chunk struct {
-	data mapgen.Chunk
+	data   *mapgen.Chunk
 	spawns []coords.World
 }
 
@@ -45,7 +45,7 @@ func (p *persister) ListenForChanges(w *game.World) {
 	w.AddBlockListener(p)
 }
 
-func (p *persister) ChunkGenerated(cc coords.Chunk, data mapgen.Chunk, spawns []coords.World) {
+func (p *persister) ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk, spawns []coords.World) {
 	err := p.saveChunk(cc, &chunk{data, spawns})
 	if err != nil {
 		log.Println("Saving chunk: ", err)
@@ -71,9 +71,11 @@ func (p *persister) MapGenerator() mapgen.Generator {
 	return p
 }
 
-func (p *persister) Chunk(cc coords.Chunk) (mapgen.Chunk, []coords.World) {
+// WARNING: Runs on a different thread than everything else in
+// this object! Be careful!
+func (p *persister) Chunk(cc coords.Chunk) *mapgen.Chunk {
 	if chunk, err := p.loadChunk(cc); err == nil {
-		return chunk.data, chunk.spawns
+		return chunk.data
 	} else {
 		return p.fallbackGenerator.Chunk(cc)
 	}

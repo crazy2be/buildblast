@@ -12,19 +12,19 @@ func NewFlatWorld(seed float64) *FlatWorld {
 	return new(FlatWorld)
 }
 
-func (fw *FlatWorld) Block(bc coords.Block) (Block, bool) {
+func (fw *FlatWorld) Block(bc coords.Block) Block {
 	if bc.X == 0 && bc.Y == 16 && bc.Z == 0 {
-		return BLOCK_AIR, true
+		return BLOCK_SPAWN
 	}
 	if bc.Y < 16 {
-		return BLOCK_DIRT, false
+		return BLOCK_DIRT
 	}
 	if bc.X%4 == 0 && bc.Z%4 == 0 && bc.Y < 17 {
-		return BLOCK_STONE, false
+		return BLOCK_STONE
 	}
-	return BLOCK_AIR, false
+	return BLOCK_AIR
 }
 
-func (fw *FlatWorld) Chunk(cc coords.Chunk) (Chunk, []coords.World) {
+func (fw *FlatWorld) Chunk(cc coords.Chunk) *Chunk {
 	return generateChunk(fw, cc)
 }
