@@ -143,10 +143,11 @@ type Offset struct {
 }
 
 // A sequential generator for every valid offset coordinate. Useful
-// for going through all the blocks in a chunk. Might be really slow,
-// I'm not sure how fast it is to use a channel as a generator like this.
+// for going through all the blocks in a chunk. This allows using
+// nice for loop like at
+// https://sites.google.com/site/gopatterns/concurrency/generators
 func EveryOffset() chan Offset {
-	results := make(chan Offset)
+	results := make(chan Offset, 100)
 	go func() {
 		for ocX := 0; ocX < ChunkWidth; ocX++ {
 			for ocY := 0; ocY < ChunkHeight; ocY++ {
@@ -158,6 +159,19 @@ func EveryOffset() chan Offset {
 		close(results)
 	}()
 	return results
+}
+
+// Same as EveryOffset, but takes a callback rather than returning
+// an iterator. This allows it to run much faster (~20x at the time
+// of writing), at the cost of having slightly clunkier syntax.
+func EachOffset(cb func (oc Offset)) {
+	for ocX := 0; ocX < ChunkWidth; ocX++ {
+		for ocY := 0; ocY < ChunkHeight; ocY++ {
+			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+				cb(Offset{X: ocX, Y: ocY, Z: ocZ})
+			}
+		}
+	}
 }
 
 // Given an integer 0 <= index < BlocksPerChunk, returns the offset
