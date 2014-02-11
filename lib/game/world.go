@@ -16,9 +16,10 @@ type World struct {
 	chunkGenerator *ChunkGenerator
 
 	entities        []Entity
-	blockListeners  []BlockListener
-	chunkListeners  []ChunkListener
-	entityListeners []EntityListener
+
+	blockListeners  genericListenerContainer
+	chunkListeners  genericListenerContainer
+	entityListeners genericListenerContainer
 }
 
 func NewWorld(generator mapgen.Generator) *World {
@@ -30,7 +31,10 @@ func NewWorld(generator mapgen.Generator) *World {
 	go w.chunkGenerator.Run()
 
 	w.entities = make([]Entity, 0)
-	w.entityListeners = make([]EntityListener, 0)
+
+	w.blockListeners = makeGenericListenerContainer()
+	w.chunkListeners = makeGenericListenerContainer()
+	w.entityListeners = makeGenericListenerContainer()
 	return w
 }
 
@@ -57,9 +61,7 @@ func (w *World) generationTick() {
 
 		w.chunks[cc] = chunk
 
-		for _, listener := range w.chunkListeners {
-			listener.ChunkGenerated(cc, chunk)
-		}
+		w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
 	default:
 	}
 }
@@ -95,18 +97,14 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 	block := chunk.Block(oc)
 	chunk.SetBlock(oc, newBlock)
 
-	for _, listener := range w.blockListeners {
-		listener.BlockChanged(bc, block, newBlock)
-	}
+	w.blockListeners.FireEvent("BlockChanged", bc, block, newBlock)
 }
 
 func (w *World) AddEntity(e Entity) {
 	w.entities = append(w.entities, e)
 	e.Respawn(w.findSpawn())
 
-	for _, listener := range w.entityListeners {
-		listener.EntityCreated(e.ID(), e)
-	}
+	w.entityListeners.FireEvent("EntityCreated", e.ID(), e)
 }
 
 func (w *World) RemoveEntity(e Entity) {
@@ -115,9 +113,7 @@ func (w *World) RemoveEntity(e Entity) {
 			w.entities[i] = w.entities[len(w.entities)-1]
 			w.entities = w.entities[:len(w.entities)-1]
 
-			for _, listener := range w.entityListeners {
-				listener.EntityRemoved(e.ID())
-			}
+			w.entityListeners.FireEvent("EntityRemoved", e.ID())
 		}
 	}
 }
@@ -126,15 +122,11 @@ func (w *World) DamageEntity(damager string, amount int, e Entity) {
 	e.Damage(amount)
 	if e.Dead() {
 		e.Respawn(w.findSpawn())
-		for _, listener := range w.entityListeners {
-			listener.EntityDied(e.ID(), e, damager)
-		}
+		w.entityListeners.FireEvent("EntityDied", e.ID(), e, damager)
 	} else {
 		// Should we fire Damaged events if they
 		// end up dying? I dunno. Currently we don't.
-		for _, listener := range w.entityListeners {
-			listener.EntityDamaged(e.ID(), e)
-		}
+		w.entityListeners.FireEvent("EntityDamaged", e.ID(), e)
 	}
 }
 
