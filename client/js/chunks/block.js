@@ -25,9 +25,11 @@ Block.SPAWN = 0x4;
 Block.MINEABLE	= 0x80000000;
 
 //Subtypes
-//Essentially means it has no colors, so Block.getColours will fail (and it so it cannot be drawn).
+// Invisible blocks are ignored by the renderer, and have no physical
+// manifestation in the world.
 Block.INVISIBLE = 0x1;
-//Means it can be collided with, and cannot so entities cannot occupy the same square as it.
+// Solid blocks are treated as solid by physics simulations, and will
+// prevent entities from occupying the same space as them.
 Block.SOLID = 0x2;
 
 Block.PROPERTIES = [
