@@ -28,7 +28,7 @@ var ITEM_PROPERTIES []uint32 = []uint32{
 	/** GUN    */ SHOOTABLE,
 }
 
-var itemToBlockMapping map[mapgen.Block]Item
+var blockToItem map[mapgen.Block]Item
 
 func (item Item) Stackable() bool {
 	return ITEM_PROPERTIES[item]&STACKABLE != 0
@@ -39,12 +39,12 @@ func (item Item) Shootable() bool {
 }
 
 func ItemFromBlock(block mapgen.Block) Item {
-	return itemToBlockMapping[block]
+	return blockToItem[block]
 }
 
 func init() {
-	itemToBlockMapping = make(map[mapgen.Block]Item, 2)
-	itemToBlockMapping[mapgen.BLOCK_DIRT] = ITEM_DIRT
-	itemToBlockMapping[mapgen.BLOCK_STONE] = ITEM_STONE
-	// All others are ITEM_NIL
+	blockToItem = make(map[mapgen.Block]Item, 2)
+	blockToItem[mapgen.BLOCK_DIRT] = ITEM_DIRT
+	blockToItem[mapgen.BLOCK_STONE] = ITEM_STONE
+	// All others are ITEM_NIL by default
 }
