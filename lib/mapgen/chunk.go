@@ -6,42 +6,26 @@ import (
 	"buildblast/lib/coords"
 )
 
-type Chunk [][][]Block
+type Chunk struct {
+	blocks [coords.BlocksPerChunk]Block
+}
 
-func generateChunk(bg blockGenerator, cc coords.Chunk) (Chunk, []coords.World) {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	cd := coords.ChunkDepth
-
-	spawns := make([]coords.World, 0)
-	blocks := make([][][]Block, cw)
-	for ocX := 0; ocX < cw; ocX++ {
-		blocks[ocX] = make([][]Block, ch)
-		for ocY := 0; ocY < ch; ocY++ {
-			blocks[ocX][ocY] = make([]Block, cd)
-			for ocZ := 0; ocZ < cd; ocZ++ {
-				bc := coords.Block{
-					X: ocX + cc.X*cw,
-					Y: ocY + cc.Y*ch,
-					Z: ocZ + cc.Z*cd,
-				}
-				block, isSpawn := bg.Block(bc)
-				blocks[ocX][ocY][ocZ] = block
-				if isSpawn {
-					spawns = append(spawns, bc.Center())
-				}
-			}
-		}
+func generateChunk(generator blockGenerator, cc coords.Chunk) *Chunk {
+	chunk := &Chunk{}
+	for oc := range coords.EveryOffset() {
+		bc := oc.Block(cc)
+		block := generator.Block(bc)
+		chunk.SetBlock(oc, block)
 	}
-	return blocks, spawns
+	return chunk
 }
 
-func (c Chunk) Block(oc coords.Offset) Block {
-	return c[oc.X][oc.Y][oc.Z]
+func (c *Chunk) Block(oc coords.Offset) Block {
+	return c.blocks[oc.Index()]
 }
 
-func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
-	c[oc.X][oc.Y][oc.Z] = newBlock
+func (c *Chunk) SetBlock(oc coords.Offset, newBlock Block) {
+	c.blocks[oc.Index()] = newBlock
 }
 
 // Flatten returns the chunk data as a string. It
@@ -56,43 +40,25 @@ func (c Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 //  b) It's much faster - the go JSON implementation
 //     isn't particulilly fast at serializing large
 //     arrays of numbers.
-func (c Chunk) Flatten() string {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	cd := coords.ChunkDepth
-	data := make([]byte, cw*ch*cd)
-	for ocX := 0; ocX < cw; ocX++ {
-		for ocY := 0; ocY < ch; ocY++ {
-			for ocZ := 0; ocZ < cd; ocZ++ {
-				// 35: # charater. Control charaters
-				// are not allowed in JSON strings, and
-				// we want to avoid '"', which requires
-				// escaping.
-				value := byte(c[ocX][ocY][ocZ] + 35)
-				if value >= 127 || value < 35 {
-					panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
-				}
-				data[ocX*cw*ch+ocY*cw+ocZ] = value
-			}
+func (c *Chunk) Flatten() string {
+	data := make([]byte, coords.BlocksPerChunk)
+	for i := 0; i < coords.BlocksPerChunk; i++ {
+		// 35: # charater. Control charaters are not allowed in JSON
+		// strings, and we want to avoid '"', which requires escaping.
+		value := byte(c.blocks[i] + 35)
+		if value >= 127 || value < 35 {
+			panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
 		}
+		data[i] = value
 	}
 	return string(data)
 }
 
-func (c Chunk) Clone() Chunk {
-	cw := coords.ChunkWidth
-	ch := coords.ChunkHeight
-	cd := coords.ChunkDepth
-
-	blocks := make([][][]Block, cw)
-	for ocX := 0; ocX < cw; ocX++ {
-		blocks[ocX] = make([][]Block, ch)
-		for ocY := 0; ocY < ch; ocY++ {
-			blocks[ocX][ocY] = make([]Block, cd)
-			for ocZ := 0; ocZ < cd; ocZ++ {
-				blocks[ocX][ocY][ocZ] = c[ocX][ocY][ocZ]
-			}
-		}
+// TODO: Is this function needed?
+func (c *Chunk) Clone() *Chunk {
+	newChunk := &Chunk{}
+	for i := 0; i < coords.BlocksPerChunk; i++ {
+		newChunk.blocks[i] = c.blocks[i]
 	}
-	return blocks
+	return newChunk
 }

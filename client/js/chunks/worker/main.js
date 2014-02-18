@@ -2,7 +2,7 @@ define(function(require) {
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-var greedyMesher = require("./meshers/greedyMesher");
+var simpleMesher = require("./meshers/simpleMesher");
 
 var ChunkGeometry = require("./chunkGeometry");
 
@@ -81,7 +81,7 @@ function processChunk(payload) {
 	var chunk = manager.get(cc);
 	if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
-	chunk = new ChunkGeometry(cc, blocks, manager, greedyMesher);
+	chunk = new ChunkGeometry(cc, blocks, manager, simpleMesher);
 	manager.set(cc, chunk);
 	manager.refreshNeighbouring(cc);
 }

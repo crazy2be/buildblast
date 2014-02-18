@@ -27,7 +27,7 @@ type Game struct {
 	world *game.World
 }
 
-func NewGame() *Game {
+func NewGame(world *game.World) *Game {
 	g := new(Game)
 
 	g.clients = make(map[string]*Client, 0)
@@ -36,7 +36,8 @@ func NewGame() *Game {
 	g.clientResponses = make(chan clientResponse)
 	g.disconnectingClients = make(chan disconnectingClient)
 
-	g.world = game.NewWorld(float64(time.Now().Unix()))
+	g.world = world
+	g.world.AddEntityListener(g)
 
 	return g
 }

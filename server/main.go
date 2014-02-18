@@ -2,105 +2,19 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"runtime"
 	"runtime/pprof"
-	"strings"
 	"time"
 
 	"code.google.com/p/go.net/websocket"
-	"github.com/sbinet/liner"
 
 	"buildblast/lib/game"
+	"buildblast/lib/mapgen"
+	"buildblast/lib/persist"
 )
-
-var globalGame = NewGame()
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	// Workaround for Quentin's system configuration.
-	// For some reason, css files are getting served
-	// without a content-type...
-	if strings.HasSuffix(r.URL.Path, ".css") {
-		w.Header().Set("Content-Type", "text/css")
-	}
-	http.ServeFile(w, r, "."+r.URL.Path)
-}
-
-func getClientName(config *websocket.Config) string {
-	path := config.Location.Path
-	bits := strings.Split(path, "/")
-	if len(bits) < 4 {
-		return ""
-	}
-	return bits[3]
-}
-
-func mainSocketHandler(ws *websocket.Conn) {
-	conn := NewConn(ws)
-
-	authResponse, authErr := Authenticate(ws)
-	var authMessage string
-	authed := authErr == nil
-
-	if authed {
-		authMessage = "Welcome " + authResponse.Name + "!"
-	} else {
-		log.Println(authErr)
-		authMessage = authErr.Message
-	}
-
-	var baseName string
-	if authed {
-		baseName = authResponse.Name
-	} else {
-		baseName = "guest"
-	}
-
-	name := baseName
-	nameNumber := 1
-	var client *Client
-	for {
-		var isNew bool
-		client, isNew = globalGame.clientWithID(name)
-		if isNew {
-			break
-		}
-		name = fmt.Sprintf("%s-%d", baseName, nameNumber)
-		nameNumber++
-	}
-
-	// FIXME: We could give the client their entity's
-	// actual initial state as part of the handshake,
-	// but it's currently impossible since the entity
-	// isn't yet created at the handshake stage.
-	info := makePlayerEntityCreatedMessage(game.EntityID(name), game.EntityState{})
-
-	conn.Send(&MsgHandshakeReply{
-		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
-		ClientID:         name,
-		PlayerEntityInfo: *info,
-		Authenticated:    authed,
-		AuthMessage:      authMessage,
-	})
-
-	client.Run(conn)
-}
-
-func chunkSocketHandler(ws *websocket.Conn) {
-	name := getClientName(ws.Config())
-
-	client, isNew := globalGame.clientWithID(name)
-	if isNew {
-		log.Println("Warning: Attempt to connect to chunk socket for client '" + name + "' who is not connected on main socket!")
-		globalGame.Disconnect(name, "invalid connection")
-		return
-	}
-	client.RunChunks(NewConn(ws))
-}
 
 func doProfile() {
 	f, err := os.Create("cpuprofile")
@@ -121,54 +35,35 @@ func doProfile() {
 	}()
 }
 
-func setupPrompt() {
-	quit := make(chan bool)
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-
-	state := liner.NewLiner()
-	go promptLoop(quit, state)
-
-	go func() {
-		<-c
-		fmt.Println()
-		quit <- true
-	}()
-
-	go func() {
-		<-quit
-		state.Close()
-		os.Exit(0)
-	}()
-}
-
-func promptLoop(quit chan bool, state *liner.State) {
-	for {
-		cmd, err := state.Prompt(" >>> ")
-		state.AppendHistory(cmd)
-		if err != nil {
-			fmt.Println()
-			log.Println("ERROR:", err)
-			quit <- true
-			return
-		}
-		if cmd == "exit" {
-			quit <- true
-			return
-		}
-	}
-}
-
 func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
+	persistEnabled := flag.Bool("persist", true, "Turn on experimental persist support? May cause lag or poor server performance.")
 	flag.Parse()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Set up the world
+	var world *game.World
+	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
+	if *persistEnabled {
+		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
+		persister := persist.New(*worldBaseDir, generator)
+		world = game.NewWorld(persister.MapGenerator())
+		persister.ListenForChanges(world)
+	} else {
+		log.Println("Running with persist DISABLED. Changes to the world will not be saved.")
+		world = game.NewWorld(generator)
+	}
+	globalGame = NewGame(world)
+
 	go globalGame.Run()
+
+	// Uncomment this to run a quick profile.
 	// 	go doProfile()
 
+	// Handlers in handlers.go
 	http.HandleFunc("/", handler)
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
