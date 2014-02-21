@@ -5,12 +5,11 @@ import (
 )
 
 type Generator interface {
-	// Returns chunk data and a list of potential spawns within this chunk.
-	Chunk(cc coords.Chunk) (Chunk, []coords.World)
+	Chunk(cc coords.Chunk) *Chunk
 }
 
 type blockGenerator interface {
-	Block(bc coords.Block) (block Block, isSpawn bool)
+	Block(bc coords.Block) Block
 }
 
 type BlockSource interface {

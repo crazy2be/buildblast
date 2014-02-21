@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"sync"
 	"time"
@@ -94,9 +95,15 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		if inv.RemoveItem(item) {
 			w.ChangeBlock(m.Pos, m.Type)
 		} else {
+			log.Println("Rejecting attempt to place block that is not in inventory!")
 			c.sendBlockChanged(m.Pos, curBlock)
 		}
 	} else {
+		if !curBlock.Mineable() {
+			log.Println("Attempt to mine unmineable block rejected!")
+			c.sendBlockChanged(m.Pos, curBlock)
+			return
+		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
 		inv.AddItem(item)

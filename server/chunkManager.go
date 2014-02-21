@@ -19,7 +19,7 @@ type ChunkManager struct {
 type ChunkStatus struct {
 	sent     bool
 	priority int
-	data     mapgen.Chunk
+	data     *mapgen.Chunk
 }
 
 func NewChunkManager() *ChunkManager {
@@ -37,7 +37,7 @@ func (cm *ChunkManager) queue(w *game.World, cc coords.Chunk, priority int) {
 	cm.chunks[cc] = status
 }
 
-func (cm *ChunkManager) Top() (cc coords.Chunk, data mapgen.Chunk) {
+func (cm *ChunkManager) Top() (cc coords.Chunk, data *mapgen.Chunk) {
 	cm.mutex.Lock()
 	defer cm.mutex.Unlock()
 

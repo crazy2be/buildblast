@@ -17,6 +17,7 @@ Block.NIL   = 0x0; //Putting this here so its clear it's reserved
 Block.AIR   = 0x1;
 Block.DIRT  = 0x2;
 Block.STONE = 0x3;
+Block.SPAWN = 0x4;
 
 //See "Block encoding.txt"
 
@@ -24,14 +25,19 @@ Block.STONE = 0x3;
 Block.MINEABLE	= 0x80000000;
 
 //Subtypes
-Block.INVISIBLE = 0x1; //Essentially means it has no colors, so Block.getColours will fail (and it so it cannot be drawn).
-Block.SOLID = 0x2;  //Means it can be collided with, and cannot so entities cannot occupy the same square as it.
+// Invisible blocks are ignored by the renderer, and have no physical
+// manifestation in the world.
+Block.INVISIBLE = 0x1;
+// Solid blocks are treated as solid by physics simulations, and will
+// prevent entities from occupying the same space as them.
+Block.SOLID = 0x2;
 
 Block.PROPERTIES = [
 	/** NIL    */ 0,
 	/** AIR    */ Block.INVISIBLE,
 	/** DIRT   */ Block.SOLID | Block.MINEABLE,
 	/** STONE  */ Block.SOLID | Block.MINEABLE,
+	/** SPAWN  */ Block.SOLID,
 ];
 
 Block.getColours = function (blockType, face) {
@@ -50,6 +56,9 @@ Block.getColours = function (blockType, face) {
 	} else if (blockType === Block.STONE) {
 		result.light = hex(0x5E5E5E);
 		result.dark  = hex(0x000000);
+	} else if (blockType === Block.SPAWN) {
+		result.light = hex(0x0000FF);
+		result.dark = hex(0x000000);
 	} else {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}
@@ -76,7 +85,7 @@ Block.isSolid = function (block) {
 };
 
 Block.inSubtype = function (block, subtype) {
-	return (Block.PROPERTIES[block] & 0xF) === subtype;
+	return (Block.PROPERTIES[block]&subtype) === subtype;
 };
 
 return Block;

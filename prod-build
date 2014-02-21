@@ -44,7 +44,7 @@ else
 	export BUILDBLAST_LOCATION=$1
 fi
 
-echo "Removing old production folder, keep in clean boys.
+echo "Removing old production folder, keep in clean boys."
 rm -rf $BUILDBLAST_LOCATION
 mkdir -p "$BUILDBLAST_LOCATION"
 
