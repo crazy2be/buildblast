@@ -16,3 +16,4 @@ code.google.com
 *.idea
 *.DS_Store
 client-build
+client/world/

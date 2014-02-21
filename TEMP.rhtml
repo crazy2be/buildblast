@@ -1,0 +1,16 @@
+<h1>Servers!</h1>
+<% if user_signed_in? %>
+  <%= form_tag("api/servers", method: "create") do %>
+    <%= label_tag("server_name", "Server name:") %>
+    <%= text_field(:server, :name) %>
+    <%= submit_tag("Create Server") %>
+  <% end %>
+<% end %>
+<br>
+<% @servers.each do |server| %>
+  <div>
+    <a href='<%="https://server" + (server.id + 10000).to_s + ".buildblast.com/"%>'>
+        <%=server.name%>
+    </a>
+  </div>
+<% end %>
