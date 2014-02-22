@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os/exec"
 	"runtime"
-	"strconv"
+	"fmt"
 	"sync"
+	"path"
 )
 
 var BASE_PORT = 10000
@@ -16,35 +17,48 @@ var globalWorldBaseDir string
 var globalServerMap = NewServerMap()
 
 type Server struct {
-	id int
-	creatorId int
-	name string
-	portOffset int
-	handle *exec.Cmd
+	Id int
+	CreatorId int
+	Name string
+	PortOffset int
+	Handle *exec.Cmd `json:"-"`
 }
 
 func NewServer(creatorId int, name string) *Server {
 	// TODO Generate an id and port offset
 	return &Server{
-		creatorId: creatorId,
-		name: name,
+		CreatorId: creatorId,
+		Name: name,
 	}
 }
 
 type ServerMap struct {
-	servers map[int]Server
+	servers map[string]*Server
 	mutex   sync.Mutex
 }
 
-func (sm *ServerMap) Put(server Server) {
+func (sm *ServerMap) Put(server *Server) {
 	sm.mutex.Lock()
-	sm.servers[server.id] = server
-	sm.mutex.Unlock()
+	defer sm.mutex.Unlock()
+	sm.servers[str(server.Id)] = server
+}
+
+func (sm *ServerMap) Get(id int) *Server {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+	return sm.servers[str(id)]
+}
+
+func (sm *ServerMap) Encode(w http.ResponseWriter) error {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+	err := json.NewEncoder(w).Encode(sm.servers)
+	return err
 }
 
 func NewServerMap() *ServerMap {
 	return &ServerMap{
-		servers: make(map[int]Server),
+		servers: make(map[string]*Server),
 	}
 }
 
@@ -54,13 +68,13 @@ func runServer(server *Server) {
 	arg0 := "-client"
 	arg1 := "client"
 	arg2 := "-world"
-	arg3 := globalWorldBaseDir+"world"+strconv.Itoa(server.id)
+	arg3 := path.Join(globalWorldBaseDir, "world" + str(server.Id))
 	arg4 := "-host"
-	arg5 := ":" + strconv.Itoa(BASE_PORT+server.id)
+	arg5 := ":" + str(BASE_PORT+server.Id)
 
 	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, arg5)
-	server.handle = cmd
-	globalServerMap.Put(*server)
+	server.Handle = cmd
+	globalServerMap.Put(server)
 	err := cmd.Run()
 
 	if err != nil {
@@ -77,24 +91,8 @@ type ApiCreate struct {
 	ServerName string
 }
 
-type ServerResponse struct {
-	Id int
-	CreatorId int
-	Name string
-	PortOffset int
-}
-
-func NewServerResponse(server Server) *ServerResponse {
-	return &ServerResponse{
-		Id: server.id,
-		CreatorId: server.creatorId,
-		Name: server.name,
-		PortOffset: server.portOffset,
-	}
-}
-
 type ServerListResponse struct {
-	List map[string]ServerResponse
+	List map[string]Server
 }
 
 func parseGenericRequest(r *http.Request) (ApiGeneric, error) {
@@ -113,24 +111,23 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server, found := globalServerMap.servers[request.ServerId]
-	if !found {
+	server := globalServerMap.Get(request.ServerId)
+	if server == nil {
 		http.NotFound(w, r)
+		return
 	}
 
-	serverResponse := NewServerResponse(server)
-	serverJson, err := json.Marshal(serverResponse)
+	err = json.NewEncoder(w).Encode(server)
 	if err != nil {
 		log.Println("Error marshalling server")
-	}
-
-	_, err = w.Write(serverJson)
-	if err != nil {
-		log.Println("Error sending response")
 	}
 }
 
 func listHandler(w http.ResponseWriter, r *http.Request) {
+	err := globalServerMap.Encode(w)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +135,7 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error parsing create request", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), 500)
 	}
 
 	server := NewServer(request.CreatorId, request.ServerName)
@@ -163,4 +160,9 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
+}
+
+// Utility function
+func str(i int) string {
+	return fmt.Sprintf("%d", i)
 }
