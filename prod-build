@@ -1,9 +1,9 @@
 #!/bin/bash -e
 
 if ! go version; then
-        echo "ERROR: Go must be installed to compile the server."
-        echo "Get it from http://www.golang.org"
-        exit 1
+	echo "ERROR: Go must be installed to compile the server."
+	echo "Get it from http://www.golang.org"
+	exit 1
 fi
 
 export GOPATH="`pwd`/../../"
@@ -45,7 +45,7 @@ else
 fi
 
 echo "Removing old production folder, keep in clean boys."
-rm -rf $BUILDBLAST_LOCATION
+rm -rf $BUILDBLAST_LOCATION/*
 mkdir -p "$BUILDBLAST_LOCATION"
 
 echo "Copying executables to production folder"
