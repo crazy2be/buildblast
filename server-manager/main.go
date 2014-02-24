@@ -38,8 +38,8 @@ func (pm *PortMapper) getPort() int {
 		pm.portSequence++
 		return result
 	}
-	result := pm.freePorts[0]
-	pm.freePorts = pm.freePorts[1:]
+	result := pm.freePorts[len(pm.freePorts)-1]
+	pm.freePorts = pm.freePorts[:len(pm.freePorts)-1]
 	return result
 }
 
@@ -230,9 +230,16 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveServer(server *Server) {
+	err := os.MkdirAll(worldDir(server.Id), 0755)
+	if err != nil {
+		log.Println("Error creating required directories:", err)
+		return
+	}
+
 	file, err := os.Create(path.Join(worldDir(server.Id), "meta.server"))
 	if err != nil {
-		log.Println("Error creating file to save server", err)
+		log.Println("Error creating file to save server:", err)
+		return
 	}
 	defer file.Close()
 
@@ -246,6 +253,7 @@ func saveServer(server *Server) {
 	if err != nil {
 		log.Println("Error writing meta data.", err)
 	}
+	writer.Flush()
 }
 
 func loadServers() {
@@ -267,7 +275,7 @@ func loadServer(fileInfo os.FileInfo) {
 
 	file, err := os.Open(path.Join(globalWorldBaseDir, fileInfo.Name(), "meta.server"))
 	if err != nil {
-		log.Println("Error opening server meta data", err)
+		log.Println("Error opening server meta data:", err)
 		return
 	}
 	defer file.Close()
@@ -282,16 +290,16 @@ func loadServer(fileInfo os.FileInfo) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		option := strings.SplitN(line, ":", 1)
-		if len(option) != 2 {
-			log.Println("Malformed server meta data", line)
+		components := strings.SplitN(line, ":", 2)
+		if len(components) != 2 {
+			log.Println("Malformed server meta data(", len(components), "):", line)
 			continue
 		}
 
-		name := strings.TrimSpace(option[0])
-		val := strings.TrimSpace(option[1])
+		option := strings.TrimSpace(components[0])
+		val := strings.TrimSpace(components[1])
 
-		switch name {
+		switch option {
 		case "version":
 			version, err = strconv.Atoi(val)
 			if err != nil {
@@ -330,7 +338,7 @@ func loadServer(fileInfo os.FileInfo) {
 	}
 
 	if id < 0 || creatorId < 0 || len(name) == 0 {
-		log.Println("Invalid server meta data:", fileInfo.Name())
+		log.Println("Invalid server meta data:", "id(", id, ") creatorId(", creatorId, ") name(", name, ")", fileInfo.Name())
 	}
 
 	server := NewServer(id, creatorId, name)
