@@ -7,12 +7,17 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"io/ioutil"
+	"bufio"
 	"runtime"
 	"fmt"
 	"sync"
 	"path"
+	"strconv"
+	"strings"
 )
 
+var META_VERSION = 1
 var BASE_PORT = 10000
 var globalWorldBaseDir string
 var globalServerMap = NewServerMap()
@@ -77,11 +82,14 @@ type Server struct {
 	Handle *exec.Cmd `json:"-"`
 }
 
-func NewServer(creatorId int, name string) *Server {
+func NewServer(id int, creatorId int, name string) *Server {
+	if id < 0 {
+		id = globalIdSequence.getId()
+	}
 	return &Server{
-		Id: globalIdSequence.getId(),
+		Id: id,
 		CreatorId: creatorId,
-		Name: name,
+		Name: strings.TrimSpace(name),
 		PortOffset: globalPortMapper.getPort(),
 	}
 }
@@ -134,7 +142,7 @@ func runServer(server *Server) {
 	arg0 := "-client"
 	arg1 := "client"
 	arg2 := "-world"
-	arg3 := path.Join(globalWorldBaseDir, "world" + str(server.Id))
+	arg3 := worldDir(server.Id)
 	arg4 := "-host"
 	arg5 := ":" + str(BASE_PORT+server.PortOffset)
 
@@ -206,7 +214,8 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 	}
 
-	server := NewServer(request.CreatorId, request.ServerName)
+	server := NewServer(-1, request.CreatorId, request.ServerName)
+	saveServer(server)
 	go runServer(server)
 }
 
@@ -220,10 +229,120 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	globalServerMap.Remove(request.ServerId)
 }
 
+func saveServer(server *Server) {
+	file, err := os.Create(path.Join(worldDir(server.Id), "meta.server"))
+	if err != nil {
+		log.Println("Error creating file to save server", err)
+	}
+	defer file.Close()
+
+	meta := "version:" + str(META_VERSION) + "\n" +
+			"id:" + str(server.Id) + "\n" +
+			"creatorId:" + str(server.CreatorId) + "\n" +
+			"name:" + server.Name + "\n"
+
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(meta)
+	if err != nil {
+		log.Println("Error writing meta data.", err)
+	}
+}
+
+func loadServers() {
+	files, err := ioutil.ReadDir(globalWorldBaseDir)
+	if err != nil {
+		log.Println("Error reading base world directory")
+		return
+	}
+
+	for _, fileInfo := range files {
+		loadServer(fileInfo)
+	}
+}
+
+func loadServer(fileInfo os.FileInfo) {
+	if !fileInfo.IsDir() {
+		return
+	}
+
+	file, err := os.Open(path.Join(globalWorldBaseDir, fileInfo.Name(), "meta.server"))
+	if err != nil {
+		log.Println("Error opening server meta data", err)
+		return
+	}
+	defer file.Close()
+
+	var version int
+	id := -1
+	creatorId := -1
+	var name string
+
+	versionOkay := false
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		option := strings.SplitN(line, ":", 1)
+		if len(option) != 2 {
+			log.Println("Malformed server meta data", line)
+			continue
+		}
+
+		name := strings.TrimSpace(option[0])
+		val := strings.TrimSpace(option[1])
+
+		switch name {
+		case "version":
+			version, err = strconv.Atoi(val)
+			if err != nil {
+				log.Println("Error, invalid version format:", line)
+				return
+			}
+			versionOkay = version == META_VERSION
+			if !versionOkay {
+				log.Println("Error, wrong meta version. Expected", META_VERSION, "got", version)
+				return
+			}
+		case "id":
+			if !versionOkay {
+				log.Println("Version must be the first line in the meta data")
+			}
+			id, err = strconv.Atoi(val)
+			if err != nil {
+				log.Println("Error, invalid id format:", line)
+			}
+		case "creatorId":
+            if !versionOkay {
+                log.Println("Version must be the first line in the meta data")
+            }
+            creatorId, err = strconv.Atoi(val)
+            if err != nil {
+                log.Println("Error, invalid creatorId format:", line)
+            }
+		case "name":
+            if !versionOkay {
+                log.Println("Version must be the first line in the meta data")
+            }
+			name = val
+		default:
+			log.Println("Unknown option. You sure your version info is correct?", line)
+		}
+	}
+
+	if id < 0 || creatorId < 0 || len(name) == 0 {
+		log.Println("Invalid server meta data:", fileInfo.Name())
+	}
+
+	server := NewServer(id, creatorId, name)
+	go runServer(server)
+}
+
 func main() {
 	worldFolder := flag.String("worlds", "worlds/", "Sets the base folder used to store the worlds.")
 	flag.Parse()
 	globalWorldBaseDir = *worldFolder
+
+	loadServers()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
@@ -240,4 +359,8 @@ func main() {
 // Utility function
 func str(i int) string {
 	return fmt.Sprintf("%d", i)
+}
+
+func worldDir(serverId int) string {
+	return path.Join(globalWorldBaseDir, "world" + str(serverId))
 }
