@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
 	"fmt"
@@ -33,7 +34,7 @@ func (pm *PortMapper) getPort() int {
 		return result
 	}
 	result := pm.freePorts[0]
-	pm.freePorts = pm.freePorts[:1]
+	pm.freePorts = pm.freePorts[1:]
 	return result
 }
 
@@ -102,6 +103,18 @@ func (sm *ServerMap) Get(id int) *Server {
 	return sm.servers[str(id)]
 }
 
+func (sm *ServerMap) Remove(id int) {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+	server := sm.servers[str(id)]
+	delete(sm.servers, str(id))
+	err := server.Handle.Process.Signal(os.Interrupt)
+	if err != nil {
+		log.Println("Error while sending SIGINT to running server", err)
+	}
+	globalPortMapper.freePort(server.PortOffset)
+}
+
 func (sm *ServerMap) Encode(w http.ResponseWriter) error {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
@@ -123,7 +136,7 @@ func runServer(server *Server) {
 	arg2 := "-world"
 	arg3 := path.Join(globalWorldBaseDir, "world" + str(server.Id))
 	arg4 := "-host"
-	arg5 := ":" + str(BASE_PORT+server.Id)
+	arg5 := ":" + str(BASE_PORT+server.PortOffset)
 
 	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, arg5)
 	server.Handle = cmd
@@ -161,6 +174,7 @@ func parseGenericRequest(r *http.Request) (ApiGeneric, error) {
 func getHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := parseGenericRequest(r)
 	if err != nil {
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
@@ -173,6 +187,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(server)
 	if err != nil {
 		log.Println("Error marshalling server")
+		http.Error(w, err.Error(), 500)
 	}
 }
 
@@ -196,6 +211,13 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := parseGenericRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	globalServerMap.Remove(request.ServerId)
 }
 
 func main() {
