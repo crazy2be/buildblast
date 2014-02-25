@@ -1,19 +1,19 @@
 package main
 
 import (
-	"flag"
 	"encoding/json"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
-	"io"
-	"io/ioutil"
-	"runtime"
-	"fmt"
-	"sync"
 	"path"
+	"runtime"
 	"strings"
+	"sync"
 )
 
 var META_VERSION = 1
@@ -25,8 +25,8 @@ var globalPortMapper = NewPortMapper()
 
 type PortMapper struct {
 	portSequence int
-	freePorts []int
-	mutex sync.Mutex
+	freePorts    []int
+	mutex        sync.Mutex
 }
 
 func (pm *PortMapper) getPort() int {
@@ -56,7 +56,7 @@ func NewPortMapper() *PortMapper {
 
 type IdSequence struct {
 	nextValue int
-	mutex sync.Mutex
+	mutex     sync.Mutex
 }
 
 func (is *IdSequence) getId() int {
@@ -69,7 +69,7 @@ func (is *IdSequence) getId() int {
 
 func (is *IdSequence) updateSequence(usedValue int) {
 	if usedValue >= is.nextValue {
-		is.nextValue = usedValue + 1;
+		is.nextValue = usedValue + 1
 	}
 }
 
@@ -80,11 +80,11 @@ func NewIdSequence(start int) *IdSequence {
 }
 
 type Server struct {
-	Id int
-	CreatorId int
-	Name string
+	Id         int
+	CreatorId  int
+	Name       string
 	PortOffset int
-	Handle *exec.Cmd `json:"-"`
+	Handle     *exec.Cmd `json:"-"`
 }
 
 func NewServer(id int, creatorId int, name string) *Server {
@@ -92,9 +92,9 @@ func NewServer(id int, creatorId int, name string) *Server {
 		id = globalIdSequence.getId()
 	}
 	return &Server{
-		Id: id,
-		CreatorId: creatorId,
-		Name: strings.TrimSpace(name),
+		Id:         id,
+		CreatorId:  creatorId,
+		Name:       strings.TrimSpace(name),
 		PortOffset: globalPortMapper.getPort(),
 	}
 }
@@ -140,9 +140,9 @@ func NewServerMap() *ServerMap {
 func runServer(server *Server) {
 	app := "./server"
 	args := []string{
-			"-client", "client",
-			"-world", worldDir(server.Id),
-			"-host", ":" + str(BASE_PORT+server.PortOffset),
+		"-client", "client",
+		"-world", worldDir(server.Id),
+		"-host", ":" + str(BASE_PORT+server.PortOffset),
 	}
 
 	cmd := exec.Command(app, args...)
@@ -160,7 +160,7 @@ type ApiGeneric struct {
 }
 
 type ApiCreate struct {
-	CreatorId int
+	CreatorId  int
 	ServerName string
 }
 
@@ -318,5 +318,5 @@ func str(i int) string {
 }
 
 func worldDir(serverId int) string {
-	return path.Join(globalWorldBaseDir, "world" + str(serverId))
+	return path.Join(globalWorldBaseDir, "world"+str(serverId))
 }
