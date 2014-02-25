@@ -211,6 +211,7 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error parsing create request:", err, "Body:", r.Body)
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	server := NewServer(-1, request.CreatorId, request.ServerName)
