@@ -2,19 +2,19 @@ module ServerManagerConnector
   require "net/http"
   require "uri"
 
-  def get(id)
+  def getServer(id)
     return sendRequest('get', '{"serverId":' + id.to_s + '}')
   end
 
-  def list
+  def listServers
     return sendRequest('list', '')
   end
 
-  def create(creatorId, name)
+  def createServer(creatorId, name)
     sendRequest('create', '{"creatorId":' + creatorId.to_s + ',"serverName":"' + name + '"}')
   end
 
-  def delete(id)
+  def deleteServer(id)
     sendRequest('delete', '{"serverId":' + id.to_s + '}')
   end
 
@@ -23,6 +23,7 @@ module ServerManagerConnector
     request = Net::HTTP::Post.new(url.path)
     request.content_type = 'application/json'
     request.body = body
-    return Net::HTTP.start(url.host, url.port) { |http| http.request(request) }
+    response = Net::HTTP.start(url.host, url.port) { |http| http.request(request) }
+    return JSON.parse(response.body)
   end
 end

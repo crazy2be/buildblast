@@ -11,10 +11,10 @@
   <% end %>
 <% end %>
 <br>
-<% @servers.each do |server| %>
+<% @servers.each do |key, server| %>
   <div>
-    <a href='<%="https://server" + (server[:portOffset] + 10000).to_s + ".buildblast.com/"%>'>
-        <%=server[:name]%>
+    <a href='<%="https://server" + (server["PortOffset"] + 10000).to_s + ".buildblast.com/"%>'>
+        <%=server["Name"]%>
     </a>
   </div>
 <% end %>

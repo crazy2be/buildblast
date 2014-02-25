@@ -209,7 +209,7 @@ func createHandler(w http.ResponseWriter, r *http.Request) {
 	var request ApiCreate
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Println("Error parsing create request", err)
+		log.Println("Error parsing create request:", err, "Body:", r.Body)
 		http.Error(w, err.Error(), 500)
 	}
 

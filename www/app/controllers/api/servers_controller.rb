@@ -6,11 +6,11 @@ class Api::ServersController < ApplicationController
   before_filter :fetch_server, :except => [:index, :create]
 
   def fetch_server
-    @server = get(params[:id])
+    @server = getServer(params[:id])
   end
 
   def index
-    @servers = list()
+    @servers = listServers()
     respond_to do |format|
       format.json { render json: @servers }
     end
@@ -23,7 +23,7 @@ class Api::ServersController < ApplicationController
   end
 
   def create
-    create(current_user, server_params[:name])
+    createServer(current_user, server_params[:name])
   end
 
   def server_params
