@@ -34,7 +34,7 @@
 }
 @-webkit-keyframes flash-health-low {
 	from {opacity: 0.5 }
-	to   {opactiy: 0.25}
+	to   {opacity: 0.25}
 }
 @-webkit-keyframes flash-health-critical {
 	from {opacity: 1  }
