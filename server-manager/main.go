@@ -151,7 +151,7 @@ func runServer(server *Server) {
 	err := cmd.Run()
 
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Error running the server:", err)
 	}
 }
 
@@ -172,7 +172,7 @@ func parseGenericRequest(r *http.Request) (ApiGeneric, error) {
 	var result ApiGeneric
 	err := json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
-		log.Println("Error while parsing generic request")
+		log.Println("Error while parsing generic request", err)
 		return result, err
 	}
 	return result, nil
