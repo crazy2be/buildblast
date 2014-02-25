@@ -23,7 +23,8 @@ class Api::ServersController < ApplicationController
   end
 
   def create
-    createServer(current_user, server_params[:name])
+    createServer(current_user.id, server_params[:name])
+    redirect_to "/"
   end
 
   def server_params

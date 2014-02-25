@@ -3,11 +3,11 @@ module ServerManagerConnector
   require "uri"
 
   def getServer(id)
-    return sendRequest('get', '{"serverId":' + id.to_s + '}')
+    return JSON.parse(sendRequest('get', '{"serverId":' + id.to_s + '}'))
   end
 
   def listServers
-    return sendRequest('list', '')
+    return JSON.parse(sendRequest('list', ''))
   end
 
   def createServer(creatorId, name)
@@ -24,6 +24,6 @@ module ServerManagerConnector
     request.content_type = 'application/json'
     request.body = body
     response = Net::HTTP.start(url.host, url.port) { |http| http.request(request) }
-    return JSON.parse(response.body)
+    return response.body
   end
 end
