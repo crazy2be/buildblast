@@ -15,14 +15,14 @@ import (
 var globalGame *Game
 
 func handler(w http.ResponseWriter, r *http.Request, clientLoc string) {
-        // Workaround for Quentin's system configuration.
-        // For some reason, css files are getting served
-        // without a content-type...
-        if strings.HasSuffix(r.URL.Path, ".css") {
-                w.Header().Set("Content-Type", "text/css")
-        }
+		// Workaround for Quentin's system configuration.
+		// For some reason, css files are getting served
+		// without a content-type...
+		if strings.HasSuffix(r.URL.Path, ".css") {
+				w.Header().Set("Content-Type", "text/css")
+		}
 
-        http.ServeFile(w, r, clientLoc+r.URL.Path)
+		http.ServeFile(w, r, clientLoc+r.URL.Path)
 }
 
 func getClientName(config *websocket.Config) string {

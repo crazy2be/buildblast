@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"io"
 	"io/ioutil"
-	"bufio"
 	"runtime"
 	"fmt"
 	"sync"
 	"path"
-	"strconv"
 	"strings"
 )
 
@@ -68,6 +67,12 @@ func (is *IdSequence) getId() int {
 	return result
 }
 
+func (is *IdSequence) updateSequence(usedValue int) {
+	if usedValue >= is.nextValue {
+		is.nextValue = usedValue + 1;
+	}
+}
+
 func NewIdSequence(start int) *IdSequence {
 	return &IdSequence{
 		nextValue: start,
@@ -111,19 +116,15 @@ func (sm *ServerMap) Get(id int) *Server {
 	return sm.servers[str(id)]
 }
 
-func (sm *ServerMap) Remove(id int) {
+func (sm *ServerMap) Remove(id int) *Server {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 	server := sm.servers[str(id)]
 	delete(sm.servers, str(id))
-	err := server.Handle.Process.Signal(os.Interrupt)
-	if err != nil {
-		log.Println("Error while sending SIGINT to running server", err)
-	}
-	globalPortMapper.freePort(server.PortOffset)
+	return server
 }
 
-func (sm *ServerMap) Encode(w http.ResponseWriter) error {
+func (sm *ServerMap) Encode(w io.Writer) error {
 	sm.mutex.Lock()
 	defer sm.mutex.Unlock()
 	err := json.NewEncoder(w).Encode(sm.servers)
@@ -138,15 +139,13 @@ func NewServerMap() *ServerMap {
 
 func runServer(server *Server) {
 	app := "./server"
+	args := []string{
+			"-client", "client",
+			"-world", worldDir(server.Id),
+			"-host", ":" + str(BASE_PORT+server.PortOffset),
+	}
 
-	arg0 := "-client"
-	arg1 := "client"
-	arg2 := "-world"
-	arg3 := worldDir(server.Id)
-	arg4 := "-host"
-	arg5 := ":" + str(BASE_PORT+server.PortOffset)
-
-	cmd := exec.Command(app, arg0, arg1, arg2, arg3, arg4, arg5)
+	cmd := exec.Command(app, args...)
 	server.Handle = cmd
 	globalServerMap.Put(server)
 	err := cmd.Run()
@@ -226,7 +225,16 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	globalServerMap.Remove(request.ServerId)
+	server := globalServerMap.Remove(request.ServerId)
+	err = server.Handle.Process.Kill()
+	if err != nil {
+		log.Println("Error while sending SIG_DEATH to running server", err)
+	}
+	_, err = server.Handle.Process.Wait()
+	if err != nil {
+		log.Println("Error while waiting on process.", err)
+	}
+	globalPortMapper.freePort(server.PortOffset)
 }
 
 func saveServer(server *Server) {
@@ -243,17 +251,10 @@ func saveServer(server *Server) {
 	}
 	defer file.Close()
 
-	meta := "version:" + str(META_VERSION) + "\n" +
-			"id:" + str(server.Id) + "\n" +
-			"creatorId:" + str(server.CreatorId) + "\n" +
-			"name:" + server.Name + "\n"
-
-	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(meta)
+	err = json.NewEncoder(file).Encode(server)
 	if err != nil {
-		log.Println("Error writing meta data.", err)
+		log.Println("Error encoding meta data.", err)
 	}
-	writer.Flush()
 }
 
 func loadServers() {
@@ -280,69 +281,16 @@ func loadServer(fileInfo os.FileInfo) {
 	}
 	defer file.Close()
 
-	var version int
-	id := -1
-	creatorId := -1
-	var name string
-
-	versionOkay := false
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		components := strings.SplitN(line, ":", 2)
-		if len(components) != 2 {
-			log.Println("Malformed server meta data(", len(components), "):", line)
-			continue
-		}
-
-		option := strings.TrimSpace(components[0])
-		val := strings.TrimSpace(components[1])
-
-		switch option {
-		case "version":
-			version, err = strconv.Atoi(val)
-			if err != nil {
-				log.Println("Error, invalid version format:", line)
-				return
-			}
-			versionOkay = version == META_VERSION
-			if !versionOkay {
-				log.Println("Error, wrong meta version. Expected", META_VERSION, "got", version)
-				return
-			}
-		case "id":
-			if !versionOkay {
-				log.Println("Version must be the first line in the meta data")
-			}
-			id, err = strconv.Atoi(val)
-			if err != nil {
-				log.Println("Error, invalid id format:", line)
-			}
-		case "creatorId":
-            if !versionOkay {
-                log.Println("Version must be the first line in the meta data")
-            }
-            creatorId, err = strconv.Atoi(val)
-            if err != nil {
-                log.Println("Error, invalid creatorId format:", line)
-            }
-		case "name":
-            if !versionOkay {
-                log.Println("Version must be the first line in the meta data")
-            }
-			name = val
-		default:
-			log.Println("Unknown option. You sure your version info is correct?", line)
-		}
+	var server Server
+	err = json.NewDecoder(file).Decode(&server)
+	if err != nil {
+		log.Println("Error while parsing meta json for", fileInfo.Name(), err)
+		return
 	}
 
-	if id < 0 || creatorId < 0 || len(name) == 0 {
-		log.Println("Invalid server meta data:", "id(", id, ") creatorId(", creatorId, ") name(", name, ")", fileInfo.Name())
-	}
-
-	server := NewServer(id, creatorId, name)
-	go runServer(server)
+	server.PortOffset = globalPortMapper.getPort()
+	globalIdSequence.updateSequence(server.Id)
+	go runServer(&server)
 }
 
 func main() {
