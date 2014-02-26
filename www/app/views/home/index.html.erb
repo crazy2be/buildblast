@@ -16,7 +16,7 @@
     <a href='<%="https://server" + (server["PortOffset"] + 10000).to_s + ".buildblast.com/"%>'>
         <%=server["Name"]%>
     </a>
-    <% if server["CreatorId"] == current_user.id %>
+    <% if current_user != nil && server["CreatorId"] == current_user.id %>
       <%= form_tag("api/servers/" + id.to_s, method: "delete") do %>
         <%= submit_tag("Delete server") %>
       <% end %>
