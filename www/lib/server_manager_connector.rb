@@ -3,7 +3,7 @@ module ServerManagerConnector
   require "uri"
 
   def getServer(id)
-    return JSON.parse(sendRequest('get', '{"serverId":' + id.to_s + '}'))
+    return JSON.parse(sendRequest('get', {serverId: id}.to_json))
   end
 
   def listServers
@@ -11,11 +11,11 @@ module ServerManagerConnector
   end
 
   def createServer(creatorId, name)
-    sendRequest('create', '{"creatorId":' + creatorId.to_s + ',"serverName":"' + name + '"}')
+    sendRequest('create', {creatorId: creatorId, serverName: name}.to_json)
   end
 
   def deleteServer(id)
-    sendRequest('delete', '{"serverId":' + id.to_s + '}')
+    sendRequest('delete', {serverId: id}.to_json)
   end
 
   def sendRequest(method, body)
