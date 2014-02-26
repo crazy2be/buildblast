@@ -11,10 +11,15 @@
   <% end %>
 <% end %>
 <br>
-<% @servers.each do |key, server| %>
+<% @servers.each do |id, server| %>
   <div>
     <a href='<%="https://server" + (server["PortOffset"] + 10000).to_s + ".buildblast.com/"%>'>
         <%=server["Name"]%>
     </a>
+    <% if server["CreatorId"] == current_user.id %>
+      <%= form_tag("api/servers/" + id.to_s, method: "delete") do %>
+        <%= submit_tag("Delete server") %>
+      <% end %>
+    <% end %>
   </div>
 <% end %>

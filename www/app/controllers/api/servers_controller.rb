@@ -23,12 +23,19 @@ class Api::ServersController < ApplicationController
   end
 
   def create
-    createServer(current_user.id, server_params[:name])
+    createServer(current_user.id, create_params[:name])
     redirect_to "/"
   end
 
-  def server_params
+  def destroy
+    if @server["CreatorId"] == current_user.id
+      deleteServer(params[:id])
+    end
+    redirect_to "/"
+  end
+
+  def create_params
     params.require(:server).permit(:name)
-  end 
+  end
 end
 
