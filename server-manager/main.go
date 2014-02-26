@@ -91,10 +91,16 @@ func NewServer(id int, creatorId int, name string) *Server {
 	if id < 0 {
 		id = globalIdSequence.getId()
 	}
+
+	serverName := strings.TrimSpace(name)
+	if len(serverName) == 0 {
+		serverName = "NoName-" + str(id)
+	}
+
 	return &Server{
 		Id:         id,
 		CreatorId:  creatorId,
-		Name:       strings.TrimSpace(name),
+		Name:       serverName,
 		PortOffset: globalPortMapper.getPort(),
 	}
 }
@@ -236,6 +242,7 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error while waiting on process.", err)
 	}
 	globalPortMapper.freePort(server.PortOffset)
+	os.RemoveAll(worldDir(server.Id))
 }
 
 func saveServer(server *Server) {
