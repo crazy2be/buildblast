@@ -52,7 +52,7 @@ func (glc *genericListenerContainer) Add(listener interface{}) {
 	glc.listeners = append(glc.listeners, listener)
 }
 
-func (glc *genericListenerContainer) Remove(listener interface {}) {
+func (glc *genericListenerContainer) Remove(listener interface{}) {
 	for i, other := range glc.listeners {
 		if other == listener {
 			glc.listeners[i] = glc.listeners[len(glc.listeners)-1]
@@ -63,7 +63,7 @@ func (glc *genericListenerContainer) Remove(listener interface {}) {
 	log.Println("WARN: Attempt to remove listener which is not listening.")
 }
 
-func (glc *genericListenerContainer) FireEvent(name string, args... interface{}) {
+func (glc *genericListenerContainer) FireEvent(name string, args ...interface{}) {
 	defer func() {
 		r := recover()
 		if r == nil {

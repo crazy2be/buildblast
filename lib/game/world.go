@@ -15,7 +15,7 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	entities        []Entity
+	entities []Entity
 
 	blockListeners  genericListenerContainer
 	chunkListeners  genericListenerContainer

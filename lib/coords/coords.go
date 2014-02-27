@@ -164,7 +164,7 @@ func EveryOffset() chan Offset {
 // Same as EveryOffset, but takes a callback rather than returning
 // an iterator. This allows it to run much faster (~20x at the time
 // of writing), at the cost of having slightly clunkier syntax.
-func EachOffset(cb func (oc Offset)) {
+func EachOffset(cb func(oc Offset)) {
 	for ocX := 0; ocX < ChunkWidth; ocX++ {
 		for ocY := 0; ocY < ChunkHeight; ocY++ {
 			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {

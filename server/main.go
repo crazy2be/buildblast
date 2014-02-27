@@ -38,6 +38,7 @@ func doProfile() {
 func main() {
 	// 	setupPrompt()
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
+	clientAssets := flag.String("client", ".", "Sets the location of the client assets that will be served")
 	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
 	persistEnabled := flag.Bool("persist", true, "Turn on experimental persist support? May cause lag or poor server performance.")
 	flag.Parse()
@@ -63,8 +64,9 @@ func main() {
 	// Uncomment this to run a quick profile.
 	// 	go doProfile()
 
-	// Handlers in handlers.go
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, *clientAssets)
+	})
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 

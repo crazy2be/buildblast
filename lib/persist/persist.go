@@ -71,9 +71,8 @@ func (p *persister) MapGenerator() mapgen.Generator {
 func (p *persister) Chunk(cc coords.Chunk) *mapgen.Chunk {
 	if chunk, err := p.loadChunk(cc); err == nil {
 		return chunk
-	} else {
-		return p.fallbackGenerator.Chunk(cc)
 	}
+	return p.fallbackGenerator.Chunk(cc)
 }
 
 func (p *persister) loadChunk(cc coords.Chunk) (*mapgen.Chunk, error) {

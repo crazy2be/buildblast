@@ -20,7 +20,7 @@ const (
 	BLOCK_INVISIBLE = 0x1 << 0
 	// Solid blocks are treated as solid by physics simulations, and will
 	// prevent entities from occupying the same space as them.
-	BLOCK_SOLID     = 0x1 << 1
+	BLOCK_SOLID = 0x1 << 1
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{

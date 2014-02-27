@@ -61,7 +61,7 @@ func BenchmarkEveryOffset(b *testing.B) {
 func BenchmarkEachOffset(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		j := 0
-		EachOffset(func (oc Offset) {
+		EachOffset(func(oc Offset) {
 			j2 := oc.Index()
 			if j != j2 {
 				println("Error")
