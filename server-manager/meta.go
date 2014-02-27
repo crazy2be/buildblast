@@ -11,13 +11,12 @@ import (
 var META_VERSION = 1
 
 func saveServer(server *Server) {
-	err := os.MkdirAll(worldDir(server.Id), 0755)
+	err := createWorldDir(server.Id)
 	if err != nil {
-		log.Println("Error creating required directories:", err)
 		return
 	}
 
-	file, err := os.Create(path.Join(worldDir(server.Id), "meta.server"))
+	file, err := os.Create(worldFilePath(server.Id, "meta.server"))
 	if err != nil {
 		log.Println("Error creating file to save server:", err)
 		return

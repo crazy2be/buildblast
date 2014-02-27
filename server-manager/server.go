@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 	"io"
+	"os"
 	"os/exec"
 	"encoding/json"
 	"log"
@@ -29,9 +30,19 @@ func (s *Server) run() {
 		"-host", ":" + str(BASE_PORT+s.PortOffset),
 	}
 
+	createWorldDir(s.Id)
+	logFile, err := os.OpenFile(worldFilePath(s.Id, "log.txt"), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		log.Println("Error creating log file:", err)
+		return
+	}
+	defer logFile.Close()
+
 	cmd := exec.Command(app, args...)
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
 	s.Handle = cmd
-	err := cmd.Run()
+	err = cmd.Run()
 
 	if err != nil {
 		log.Println("Error running the server:", err)
