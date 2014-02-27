@@ -3,8 +3,8 @@
 package main
 
 import (
-	"os"
 	"log"
+	"os"
 )
 
 func stop(process *os.Process) error {

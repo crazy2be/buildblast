@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"path"
-	"os"
 	"log"
+	"os"
+	"path"
 )
 
 func str(i int) string {
@@ -23,6 +23,6 @@ func createWorldDir(serverId int) error {
 	err := os.MkdirAll(worldDir(serverId), 0755)
 	if err != nil {
 		log.Println("Error creating required directories:", err)
-    }
-	return err;
+	}
+	return err
 }

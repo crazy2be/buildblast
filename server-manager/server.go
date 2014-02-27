@@ -1,13 +1,13 @@
 package main
 
 import (
-	"strings"
-	"sync"
+	"encoding/json"
 	"io"
+	"log"
 	"os"
 	"os/exec"
-	"encoding/json"
-	"log"
+	"strings"
+	"sync"
 )
 
 type Server struct {

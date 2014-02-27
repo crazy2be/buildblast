@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 )
 
