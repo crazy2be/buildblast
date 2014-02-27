@@ -80,13 +80,9 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server := globalServerMap.Remove(request.ServerId)
-	err = server.Handle.Process.Kill()
+	err = stop(server.Handle.Process)
 	if err != nil {
-		log.Println("Error while sending SIG_DEATH to running server", err)
-	}
-	_, err = server.Handle.Process.Wait()
-	if err != nil {
-		log.Println("Error while waiting on process.", err)
+		return
 	}
 	globalPortMapper.freePort(server.PortOffset)
 	os.RemoveAll(worldDir(server.Id))
