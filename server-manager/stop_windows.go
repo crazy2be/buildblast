@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+// Go doesn't support signals in windows (pre Go 1.3) because windows doesn't have signals.
+// Windows implementation will use kill
 func stop(process *os.Process) error {
 	err := process.Kill()
 	if err != nil {
