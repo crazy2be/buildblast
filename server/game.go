@@ -24,6 +24,8 @@ type Game struct {
 	clientResponses      chan clientResponse
 	disconnectingClients chan disconnectingClient
 
+	scores				 map[string]int
+
 	world *game.World
 }
 
@@ -35,6 +37,8 @@ func NewGame(world *game.World) *Game {
 	g.clientRequests = make(chan string)
 	g.clientResponses = make(chan clientResponse)
 	g.disconnectingClients = make(chan disconnectingClient)
+
+	g.scores = make(map[string]int, 0)
 
 	g.world = world
 	g.world.AddEntityListener(g)
@@ -142,13 +146,33 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {}
+func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
+	g.Broadcast(&MsgScoreboardAdd{
+		Name: string(id),
+		Score: g.scores[string(id)],
+	})
+}
+
 func (g *Game) EntityUpdated(id game.EntityID, entity game.Entity) {}
 func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {}
 
 func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
 	g.Announce(killer + " killed " + string(id))
 	g.EntityDamaged(id, entity)
+	g.scores[killer]++
+	g.scores[string(id)]--
+	g.Broadcast(&MsgScoreboardSet{
+		Name: string(id),
+		Score: g.scores[string(id)],
+	})
+	g.Broadcast(&MsgScoreboardSet{
+		Name: killer,
+		Score: g.scores[killer],
+	})
 }
 
-func (g *Game) EntityRemoved(id game.EntityID) {}
+func (g *Game) EntityRemoved(id game.EntityID) {
+	g.Broadcast(&MsgScoreboardRemove{
+		Name: string(id),
+	})
+}

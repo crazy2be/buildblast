@@ -1,0 +1,19 @@
+#scoreboard {
+	display: none;
+	z-index: 2;
+}
+#scores {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+}
+#scores table {
+	display: inline-block;
+	border: 2px solid #FFF;
+	background: rgba(255, 255, 255, 0.5);
+	padding: 8px;
+	text-align: left;
+}
+#scores table td {
+	padding: 4px;
+}

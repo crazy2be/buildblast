@@ -1,6 +1,7 @@
 define(function(require) {
 var Controls = require("player/controls");
 var Chat = require("player/chat");
+var ScoreBoard = require("player/scoreboard");
 
 var THREE = require("THREE");
 
@@ -12,6 +13,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 	var self = this;
 
 	var chat = new Chat(controls, conn, container);
+	var scoreBoard = new ScoreBoard(controls, conn, container);
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
@@ -72,6 +74,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 	self.update = function () {
 		chat.update(clock.dt());
+		scoreBoard.update(clock.dt());
 
 		var c = controls.sample();
 
