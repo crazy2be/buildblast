@@ -20,6 +20,7 @@ a {
 	overflow: hidden;
 }
 #container,
+#container #scoreboard,
 #container #hud,
 #container #splash,
 #container #opengl {

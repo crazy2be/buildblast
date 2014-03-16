@@ -25,6 +25,9 @@ const (
 	MSG_NTP_SYNC        = MessageKind("ntp-sync")
 	MSG_INVENTORY_STATE = MessageKind("inventory-state")
 	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
+	MSG_SCOREBOARD_ADD  = MessageKind("scoreboard-add")
+	MSG_SCOREBOARD_SET  = MessageKind("scoreboard-set")
+	MSG_SCOREBOARD_REMOVE = MessageKind("scoreboard-remove")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -81,6 +84,12 @@ func typeToKind(m Message) MessageKind {
 		return MSG_INVENTORY_STATE
 	case *MsgInventoryMove:
 		return MSG_INVENTORY_MOVE
+    case *MsgScoreboardAdd:
+        return MSG_SCOREBOARD_ADD
+    case *MsgScoreboardSet:
+        return MSG_SCOREBOARD_SET
+    case *MsgScoreboardRemove:
+        return MSG_SCOREBOARD_REMOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -160,6 +169,20 @@ type MsgInventoryState struct {
 type MsgInventoryMove struct {
 	From int
 	To   int
+}
+
+type MsgScoreboardAdd struct {
+	Name string
+	Score int
+}
+
+type MsgScoreboardSet struct {
+	Name string
+	Score int
+}
+
+type MsgScoreboardRemove struct {
+	Name string
 }
 
 type ClientMessage struct {

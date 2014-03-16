@@ -54,7 +54,7 @@ return function Controls(elm) {
 		jump: [Keys.Space],
 
 		chat: [Keys.Enter],
-		openScore: [Keys.Tab],
+		scoreBoard: [Keys.Tab],
 
 		activateLeft: [MouseButtons.Left],
 		activateRight: [MouseButtons.Right],
