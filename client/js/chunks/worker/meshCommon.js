@@ -30,84 +30,21 @@ meshCommon.LOOP_CUBEFACES_DATA = [
 	{faceDirection: -1, compX: 0, compY: 1, compZ: 2}
 ];
 
-function noiseFunc(bcX, bcY, bcZ, voxelization) {
+function noiseFunc(bcX, bcY, bcZ) {
 	function n(q) {
 		return perlinNoise(Math.abs(bcX) / q, Math.abs(bcY) / q, Math.abs(bcZ) / q);
 	}
-	var val = n(8) + n(32);
-	if (abs(voxelization - 4) > 0.001) val += n(4);
-	if (abs(voxelization - 2) > 0.001) val += n(2);
+	var val = n(4) + n(8) + n(32);
 	return clamp(val / 2 + 0.5, 0.0, 1.0);
 }
 
-meshCommon.getVoxelatedBlockType = function(ocXStart, ocYStart, ocZStart, blocks, voxelization) {
-	if(voxelization == 1) {
-		return blocks[
-					ocXStart * CHUNK.WIDTH * CHUNK.HEIGHT +
-					ocYStart * CHUNK.WIDTH +
-					ocZStart
-				];
-	}
-
-	//Ugh... have to sample to find the block
-	var blockCounts = [];
-
-	//If we wanted to allow for say, voxelization of 3 (meaning the edges
-	//are different size) this would be where we would do part of it... it would
-	//make the chunk boundaries look bad though.
-
-	var ocXEnd = ocXStart + voxelization;
-	var ocYEnd = ocYStart + voxelization;
-	var ocZEnd = ocZStart + voxelization;
-
-	for (var ocX = ocXStart; ocX < ocXEnd; ocX++) {
-		for (var ocY = ocYStart; ocY < ocYEnd; ocY++) {
-			for (var ocZ = ocZStart; ocZ < ocZEnd; ocZ++) {
-				var sampleBlockType = blocks[
-						ocX * CHUNK.WIDTH * CHUNK.HEIGHT +
-						ocY * CHUNK.WIDTH +
-						ocZ
-					];
-				if (!blockCounts[sampleBlockType]) {
-					blockCounts[sampleBlockType] = 0;
-				}
-				blockCounts[sampleBlockType]++;
-			}
-		}
-	}
-
-	//We make our block the most common block, excluding non-solid blocks.
-	//However if we are all air, then we do become air (really we just don't
-	//render).
-	var maxCount = 0;
-	var planeBlock = Block.AIR; //Eh... slightly different than simpleMesher, but will result in the same thing.
-
-	for(var blockType = 0; blockType < blockCounts.length; blockType++) {
-		var blockCount = blockCounts[blockType];
-		if (blockCount > maxCount && blockType != Block.AIR) {
-			maxCount = blockCount;
-			planeBlock = blockType;
-		}
-	}
-
-	return planeBlock;
-}
-
-meshCommon.getNeighbourBlockType = function(ocXStart, ocYStart, ocZStart, blocks, neighbourComp, voxelization) {
-	var sampleSizeArr = [voxelization, voxelization, voxelization];
-	sampleSizeArr[neighbourComp] = 1;
-	for (var ocX = ocXStart; ocX < sampleSizeArr[0] + ocXStart; ocX++) {
-		for (var ocY = ocYStart; ocY < sampleSizeArr[1] + ocYStart; ocY++) {
-			for (var ocZ = ocZStart; ocZ < sampleSizeArr[2] + ocZStart; ocZ++) {
-				var adjBlock = blocks[
-						ocX * CHUNK.WIDTH * CHUNK.HEIGHT +
-						ocY * CHUNK.WIDTH +
-						ocZ];
-				if (adjBlock == Block.AIR) {
-					return Block.AIR;
-				}
-			}
-		}
+meshCommon.getNeighbourBlockType = function(ocXStart, ocYStart, ocZStart, blocks, neighbourComp) {
+	var adjBlock = blocks[
+			ocX * CHUNK.WIDTH * CHUNK.HEIGHT +
+			ocY * CHUNK.WIDTH +
+			ocZ];
+	if (adjBlock == Block.AIR) {
+		return Block.AIR;
 	}
 	return Block.DIRT; //Any solid would do
 }
@@ -141,7 +78,7 @@ meshCommon.getBlockData = function(manager, blocks, ccArr, ocArr, compZ) {
 }
 
 var VERTS_PER_FACE = 4;
-meshCommon.addQuad = function(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, voxelization, verts) {
+meshCommon.addQuad = function(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceDirection, verts) {
 	//The face direction is always right-hand rule, so we place the vertices accordingly
 	var counterClockwise = [
 			[0, 0],
@@ -163,7 +100,7 @@ meshCommon.addQuad = function(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceD
 	var bcVerts = [bcX, bcY, bcZ];
 
 	if (faceDirection == 1) {
-		bcVerts[compZ] += voxelization;
+		bcVerts[compZ] += 1;
 	}
 
 	//The amount we make vertices overlap to prevent rounding problems.
@@ -203,7 +140,7 @@ meshCommon.addQuad = function(bcX, bcY, bcZ, quadWidth, quadHeight, compZ, faceD
 //var blockTypes = []; //1 per face, which is has VERTS_PER_FACE points, so 3 * VERTS_PER_FACE verts
 //var faceNumbers = []; //same a blockTypes in size
 //var indexes = []; //indexes for triangles of points in verts
-meshCommon.generateGeometry = function(verts, blockTypes, faceNumbers, indexes, voxelization) {
+meshCommon.generateGeometry = function(verts, blockTypes, faceNumbers, indexes) {
 	function copy(src, dst) {
 		for (var i = 0; i < src.length; i++) {
 			dst[i] = src[i];
@@ -239,7 +176,7 @@ meshCommon.generateGeometry = function(verts, blockTypes, faceNumbers, indexes, 
 
 		for(var iVertex = 0; iVertex < VERTS_PER_FACE; iVertex++) {
 			var iVS = iVertexStart + iVertex * 3;
-			var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2], voxelization);
+			var noise = noiseFunc(verts[iVS], verts[iVS + 1], verts[iVS + 2]);
 
 			var r = c.r*noise + c2.r*(1 - noise);
 			var g = c.g*noise + c2.g*(1 - noise);

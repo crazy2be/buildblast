@@ -6,7 +6,7 @@ var Block = require("chunks/block");
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-return function simpleMesh(blocks, voxelization, cc, manager) {
+return function simpleMesh(blocks, cc, manager) {
 	var cw = CHUNK.WIDTH;
 	var cd = CHUNK.DEPTH;
 	var ch = CHUNK.HEIGHT;
@@ -22,17 +22,14 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 	var index = [];
 	var color = [];
 
-	var voxelization = voxelization;
 	var blocks = blocks;
 
 	updateNeighbours();
 
-	//Pick blocks in increments based on the voxelization (like sampling), later code will look through the
-	//area and decide what type the block should really be.
-	for (var ocX = 0; ocX < cw; ocX += voxelization) {
-		for (var ocY = 0; ocY < ch; ocY += voxelization) {
-			for (var ocZ = 0; ocZ < cd; ocZ += voxelization) {
-				addBlockGeometry(verts, index, color, ocX, ocY, ocZ, voxelization);
+	for (var ocX = 0; ocX < cw; ocX++) {
+		for (var ocY = 0; ocY < ch; ocY++) {
+			for (var ocZ = 0; ocZ < cd; ocZ++) {
+				addBlockGeometry(verts, index, color, ocX, ocY, ocZ);
 			}
 		}
 	}
@@ -103,55 +100,24 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 		}
 	}
 
-	function mostCommonBlock(ocX, ocY, ocZ, r) {
-		var count = {};
-		for (var x = ocX; x < ocX + r; x++) {
-			for (var y = ocY; y < ocY + r; y++) {
-				for (var z = ocZ; z < ocZ + r; z++) {
-					var tempBlock = blockTypeAt(x, y, z);
-					if (!(tempBlock in count)) {
-						count[tempBlock] = 1;
-					} else {
-						count[tempBlock]++;
-					}
-				}
-			}
-		}
-		var maxBlock = -1;
-		var maxValue = -1;
-		for (var key in count) {
-			if (count[key] > maxValue && !Block.isInvisible(parseInt(key))) {
-				maxBlock = key;
-				maxValue = count[key];
-			}
-		}
-		return parseInt(maxBlock);
-	}
-
-	function addBlockGeometry(verts, index, color, ocX, ocY, ocZ, voxelization) {
-		var r = voxelization;
+	function addBlockGeometry(verts, index, color, ocX, ocY, ocZ) {
 		var noise = [];
 		if (empty(ocX, ocY, ocZ)) return;
 
 		//py = positive y, as in above the cube.
 		//We only draw faces when there is no cube blocking it.
-		var px = empty(ocX + r, ocY, ocZ);
-		var nx = empty(ocX - r, ocY, ocZ);
-		var py = empty(ocX, ocY + r, ocZ);
-		var ny = empty(ocX, ocY - r, ocZ);
-		var pz = empty(ocX, ocY, ocZ + r);
-		var nz = empty(ocX, ocY, ocZ - r);
+		var px = empty(ocX + 1, ocY, ocZ);
+		var nx = empty(ocX - 1, ocY, ocZ);
+		var py = empty(ocX, ocY + 1, ocZ);
+		var ny = empty(ocX, ocY - 1, ocZ);
+		var pz = empty(ocX, ocY, ocZ + 1);
+		var nz = empty(ocX, ocY, ocZ - 1);
 
 		var wcX = ocX + ccX*cw;
 		var wcY = ocY + ccY*ch;
 		var wcZ = ocZ + ccZ*cd;
 
-		var blockType = Block.DIRT;
-		if (r === 1) {
-			blockType = blockTypeAt(ocX, ocY, ocZ);
-		} else {
-			blockType = mostCommonBlock(ocX, ocY, ocZ, r);
-		}
+		var blockType = blockTypeAt(ocX, ocY, ocZ);
 		if (blockType < 0) return;
 
 		function inCenter(x, y, z) {
@@ -164,8 +130,8 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 				return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
 			}
 			var val = n(8) + n(32);
-			if (abs(r - 4) > 0.001) val += n(4);
-			if (abs(r - 2) > 0.001) val += n(2);
+			if (abs(1 - 4) > 0.001) val += n(4);
+			if (abs(1 - 2) > 0.001) val += n(2);
 			return clamp(val/2 + 0.5, 0.0, 1.0);
 		}
 
@@ -196,94 +162,56 @@ return function simpleMesh(blocks, voxelization, cc, manager) {
 			}
 		}
 
-		function anyEmpty(ocX, ocY, ocZ, w, h, d) {
-			for (var x = 0; x < w; x++) {
-				for (var y = 0; y < h; y++) {
-					for (var z = 0; z < d; z++) {
-						if (Block.isInvisible(blockTypeAt(ocX + x, ocY + y, ocZ + z))) {
-							return true;
-						}
-					}
-				}
-			}
-			return false;
-		}
-
-		function allEmpty(ocX, ocY, ocZ, w, h, d) {
-			for (var x = 0; x < r; x++) {
-				for (var y = 0; y < r; y++) {
-					for (var z = 0; z < r; z++) {
-						if (!Block.isInvisible(blockTypeAt(ocX + x, ocY + y, ocZ + z))) {
-							return false;
-						}
-					}
-				}
-			}
-			return true;
-		}
-
 		function empty(ocX, ocY, ocZ) {
-			if (r === 1) {
-				return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
-			}
-
-			if (ocX < 0 || ocX >= cw) {
-				return anyEmpty(ocX, ocY, ocZ, 1, r, r);
-			} else if (ocY < 0 || ocY >= ch) {
-				return anyEmpty(ocX, ocY, ocZ, r, 1, r);
-			} else if (ocZ < 0 || ocZ >= cd) {
-				return anyEmpty(ocX, ocY, ocZ, r, r, 1);
-			} else {
-				return allEmpty(ocX, ocY, ocZ, r, r, r);
-			}
+			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 		}
 
 		if (px) {
-			v(wcX + r, wcY    , wcZ    );
-			v(wcX + r, wcY + r, wcZ    );
-			v(wcX + r, wcY + r, wcZ + r);
-			v(wcX + r, wcY    , wcZ + r);
-			v(wcX + r, wcY + r/2, wcZ + r/2);
+			v(wcX + 1, wcY    , wcZ    );
+			v(wcX + 1, wcY + 1, wcZ    );
+			v(wcX + 1, wcY + 1, wcZ + 1);
+			v(wcX + 1, wcY    , wcZ + 1);
+			v(wcX + 1, wcY + 1/2, wcZ + 1/2);
 			f(0, blockType);
 		}
 		if (py) {
-			v(wcX    , wcY + r, wcZ + r);
-			v(wcX + r, wcY + r, wcZ + r);
-			v(wcX + r, wcY + r, wcZ    );
-			v(wcX    , wcY + r, wcZ    );
-			v(wcX + r/2, wcY + r, wcZ + r/2);
+			v(wcX    , wcY + 1, wcZ + 1);
+			v(wcX + 1, wcY + 1, wcZ + 1);
+			v(wcX + 1, wcY + 1, wcZ    );
+			v(wcX    , wcY + 1, wcZ    );
+			v(wcX + 1/2, wcY + 1, wcZ + 1/2);
 			f(2, blockType);
 		}
 		if (pz) {
-			v(wcX    , wcY    , wcZ + r);
-			v(wcX + r, wcY    , wcZ + r);
-			v(wcX + r, wcY + r, wcZ + r);
-			v(wcX    , wcY + r, wcZ + r);
-			v(wcX + r/2, wcY + r/2, wcZ + r);
+			v(wcX    , wcY    , wcZ + 1);
+			v(wcX + 1, wcY    , wcZ + 1);
+			v(wcX + 1, wcY + 1, wcZ + 1);
+			v(wcX    , wcY + 1, wcZ + 1);
+			v(wcX + 1/2, wcY + 1/2, wcZ + 1);
 			f(4, blockType);
 		}
 		if (nx) {
-			v(wcX, wcY    , wcZ + r);
-			v(wcX, wcY + r, wcZ + r);
-			v(wcX, wcY + r, wcZ    );
+			v(wcX, wcY    , wcZ + 1);
+			v(wcX, wcY + 1, wcZ + 1);
+			v(wcX, wcY + 1, wcZ    );
 			v(wcX, wcY    , wcZ    );
-			v(wcX, wcY + r/2, wcZ + r/2);
+			v(wcX, wcY + 1/2, wcZ + 1/2);
 			f(1, blockType);
 		}
 		if (ny) {
 			v(wcX    , wcY, wcZ    );
-			v(wcX + r, wcY, wcZ    );
-			v(wcX + r, wcY, wcZ + r);
-			v(wcX    , wcY, wcZ + r);
-			v(wcX + r/2, wcY, wcZ + r/2);
+			v(wcX + 1, wcY, wcZ    );
+			v(wcX + 1, wcY, wcZ + 1);
+			v(wcX    , wcY, wcZ + 1);
+			v(wcX + 1/2, wcY, wcZ + 1/2);
 			f(3, blockType);
 		}
 		if (nz) {
-			v(wcX    , wcY + r, wcZ);
-			v(wcX + r, wcY + r, wcZ);
-			v(wcX + r, wcY    , wcZ);
+			v(wcX    , wcY + 1, wcZ);
+			v(wcX + 1, wcY + 1, wcZ);
+			v(wcX + 1, wcY    , wcZ);
 			v(wcX    , wcY    , wcZ);
-			v(wcX + r/2, wcY + r/2, wcZ);
+			v(wcX + 1/2, wcY + 1/2, wcZ);
 			f(5, blockType);
 		}
 

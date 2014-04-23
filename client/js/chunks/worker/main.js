@@ -13,14 +13,13 @@ var Conn = require("core/conn");
 function sendChunk() {
 	var chunk = manager.top();
 	if (!chunk) return;
-	var res = chunk.calculateGeometries();
+	var res = chunk.calculateGeometry();
 	parent.postMessage({
 		kind: 'chunk',
 		payload: {
 			blocks: chunk.blocks,
 			ccpos: chunk.cc,
-			geometries: res.geometries,
-			voxelization: chunk.voxelization,
+			geometry: res.geometry,
 		}
 	}, res.transferables);
 	chunk.loaded = true;
@@ -35,8 +34,6 @@ parent.onmessage = function (e) {
 		initConn(e.data.payload);
 	} else if (e.data.kind === 'block-change') {
 		processBlockChange(e.data.payload);
-	} else if (e.data.kind === 'player-position') {
-		processPlayerPosition(e.data.payload);
 	} else {
 		throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
 	}
@@ -139,29 +136,6 @@ function processBlockChange(payload) {
 function unique(arr) {
 	return arr.filter(function (val, i) {
 		return arr.indexOf(val) === i;
-	});
-}
-
-function processPlayerPosition(payload) {
-	var p = payload.pos;
-	var coords = common.worldToChunk(p.x, p.y, p.z);
-	var cv = CHUNK.VOXELIZATIONS;
-
-	manager.each(function (chunk) {
-		var d = dist(coords.c, chunk.cc);
-
-		var voxelization = cv[clamp(Math.floor(d/2), 0, cv.length - 1)];
-
-		if (chunk.voxelization === voxelization || !chunk.loaded) return;
-
-		chunk.voxelization = voxelization;
-		parent.postMessage({
-			'kind': 'chunk-voxelization-change',
-			'payload': {
-				'ccpos': chunk.cc,
-				'voxelization': voxelization,
-			},
-		});
 	});
 }
 });

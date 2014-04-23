@@ -25,7 +25,6 @@ return function World(scene, conn, clientID, clock) {
 	}
 
 	self.update = function (dt, playerPos) {
-		chunkManager.update(dt, playerPos);
 		entityManager.update(dt, playerPos);
 	};
 

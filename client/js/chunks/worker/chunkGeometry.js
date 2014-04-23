@@ -21,28 +21,20 @@ return function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 	self.shown = true;
 	self.changed = true;
 	self.loaded = false;
-	self.voxelization = 1;
 	self.chunkMesher = chunkMesher;
 
-	self.calculateGeometries = function () {
-		var geometries = [];
+	self.calculateGeometry = function () {
+		var geometry = { };
 		var transferables = [];
 
-		CHUNK.VOXELIZATIONS.forEach(function (voxelization) {
-			var geometry = { };
+		var res = self.chunkMesher(self.blocks, self.cc, manager);
 
-			var res = self.chunkMesher(self.blocks, voxelization, self.cc, manager);
-
-			geometry.attributes = res.attributes;
-			geometry.offsets = res.offsets;
-
-			geometries.push(geometry);
-			transferables.concat(res.transferables);
-		});
+		geometry.attributes = res.attributes;
+		geometry.offsets = res.offsets;
 
 		return {
-			geometries: geometries,
-			transferables: transferables,
+			geometry: geometry,
+			transferables: res.transferables,
 		};
 	}
 
