@@ -40,11 +40,19 @@ Block.PROPERTIES = [
 	/** SPAWN  */ Block.SOLID,
 ];
 
+/**
+ * Faces:
+ * 0 - Left
+ * 1 - Right
+ * 2 - Top
+ * 3 - Bottom
+ * 4 - Front
+ * 5 - Back
+ */
 Block.getColours = function (blockType, face) {
 	var result = {};
 	if (blockType === Block.DIRT) {
 		if (face === 2) {
-			// Top face
 			// http://colorschemedesigner.com/#2Q41R--iOv5vy
 			result.light = hex(0x007608);
 			result.dark  = hex(0x004E05);
