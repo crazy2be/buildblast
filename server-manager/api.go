@@ -82,7 +82,8 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	server := globalServerMap.Remove(request.ServerId)
 	err = stop(server.Handle.Process)
 	if err != nil {
-		return
+		log.Println("Error stopping server.", err)
+		// We just log the error. Otherwise, we don't care. The port will be freed and folder deleted.
 	}
 	globalPortMapper.freePort(server.PortOffset)
 	err = os.RemoveAll(worldDir(server.Id))
