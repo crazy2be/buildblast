@@ -42,12 +42,12 @@ Block.PROPERTIES = [
 
 /**
  * Faces:
- * 0 - Left
- * 1 - Right
- * 2 - Top
- * 3 - Bottom
- * 4 - Front
- * 5 - Back
+ * 0 - (+x) Left
+ * 1 - (-x) Right
+ * 2 - (+y) Top
+ * 3 - (-y) Bottom
+ * 4 - (+z) Front
+ * 5 - (-z) Back
  */
 Block.getColours = function (blockType, face) {
 	var result = {};
