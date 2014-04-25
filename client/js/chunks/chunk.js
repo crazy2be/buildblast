@@ -14,7 +14,9 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 
 var ATLAS_TEXTURE = THREE.ImageUtils.loadTexture("img/block_textures/atlas.png");
 ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
-ATLAS_TEXTURE.minFilter = THREE.NearestMipMapNearestFilter;
+ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
+ATLAS_TEXTURE.wrapS = THREE.RepeatWrapping;
+ATLAS_TEXTURE.wrapT = THREE.RepeatWrapping;
 
 var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
 	map: ATLAS_TEXTURE
