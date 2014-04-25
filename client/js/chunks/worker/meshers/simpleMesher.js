@@ -40,6 +40,7 @@ return function simpleMesh(blocks, cc, manager) {
 	}
 
 	// Here we're just copying the native JavaScript numbers into a typed Float32 array.
+	// This is required by WebGL for attribute buffers.
 	var vertsa = new Float32Array(verts.length);
 	copy(verts, vertsa);
 
