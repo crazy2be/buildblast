@@ -172,6 +172,9 @@ return function simpleMesh(blocks, cc, manager) {
 			var v = 1 - Block.UV_UNIT - (tileOffset[1] * Block.UV_UNIT);
 			u += uvWind[0] * Block.UV_UNIT;
 			v += uvWind[1] * Block.UV_UNIT;
+			// Padding to stop bleed
+			u += (uvWind[0] === 0 ? 1 : -1) / Block.ATLAS_SIZE;
+			v += (uvWind[1] === 0 ? 1 : -1) / Block.ATLAS_SIZE;
 			uvs.push(u, v);
 		}
 	}
