@@ -12,32 +12,26 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 	vertexColors: true,
 });
 
-return function Chunk(blocks, geometries, scene, voxelization) {
+var ATLAS_TEXTURE = THREE.ImageUtils.loadTexture("img/block_textures/atlas.png");
+ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
+ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
+
+var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
+	map: ATLAS_TEXTURE
+});
+
+return function Chunk(blocks, geometries, scene) {
 	var self = this;
 
-	var meshes = {};
-	for (var i = 0; i < CHUNK.VOXELIZATIONS.length; i++) {
-		var mesh = new THREE.Mesh(geometries[i], CHUNK_MATERIAL);
-		meshes[CHUNK.VOXELIZATIONS[i]] = mesh;
-	}
+	var mesh = new THREE.Mesh(geometries, ATLAS_MATERIAL);
 
 	self.remove = function () {
-		scene.remove(meshes[voxelization]);
+		scene.remove(mesh);
 	};
 
 	self.add = function () {
-		scene.add(meshes[voxelization]);
+		scene.add(mesh);
 	};
-
-	self.setVoxelization = function (newVoxelization) {
-		self.remove();
-		voxelization = newVoxelization;
-		self.add();
-	};
-
-	self.voxelization = function() {
-		return voxelization;
-	}
 
 	self.block = function (oc) {
 		if (common.validChunkOffset(oc.x, oc.y, oc.z)) {

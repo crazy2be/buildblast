@@ -1,4 +1,5 @@
 define(function(require) {
+
 function Block(type) {
 	this.type = type;
 }
@@ -40,35 +41,42 @@ Block.PROPERTIES = [
 	/** SPAWN  */ Block.SOLID,
 ];
 
-Block.getColours = function (blockType, face) {
-	var result = {};
+Block.ATLAS_SIZE = 128;
+Block.TILE_SIZE = 16;
+Block.UV_UNIT = Block.TILE_SIZE / Block.ATLAS_SIZE;
+
+Block.ATLAS = [
+	[0, 7], // Dirt / Grass bottom
+	[1, 7], // Grass side
+	[2, 7], // Grass top
+	[3, 7], // Stone
+	[4, 7], // Spawn
+];
+
+/**
+ * Faces:
+ * 0 - (+x) Left
+ * 1 - (-x) Right
+ * 2 - (+y) Top
+ * 3 - (-y) Bottom
+ * 4 - (+z) Front
+ * 5 - (-z) Back
+ */
+Block.getTileOffset = function (blockType, face) {
 	if (blockType === Block.DIRT) {
 		if (face === 2) {
-			// Top face
-			// http://colorschemedesigner.com/#2Q41R--iOv5vy
-			result.light = hex(0x007608);
-			result.dark  = hex(0x004E05);
+			return Block.ATLAS[2];
+		} else if (face === 3) {
+			return Block.ATLAS[0];
 		} else {
-			// Dirt color from http://www.colourlovers.com/color/784800/dirt
-			result.light = hex(0x784800);
-			result.dark  = hex(0x000000);
+			return Block.ATLAS[1];
 		}
 	} else if (blockType === Block.STONE) {
-		result.light = hex(0x5E5E5E);
-		result.dark  = hex(0x000000);
+		return Block.ATLAS[3];
 	} else if (blockType === Block.SPAWN) {
-		result.light = hex(0x0000FF);
-		result.dark = hex(0x000000);
+		return Block.ATLAS[4];
 	} else {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
-	}
-	return result;
-	function hex(num) {
-		return {
-			r: (num >> 16) & 0xFF,
-			g: (num >> 8)  & 0xFF,
-			b:  num        & 0xFF,
-		};
 	}
 };
 
