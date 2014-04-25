@@ -105,33 +105,56 @@ return function simpleMesh(blocks, cc, manager) {
 	function addBlockGeometry(verts, index, uvs, ocX, ocY, ocZ) {
 		if (empty(ocX, ocY, ocZ)) return;
 
-		//py = positive y, as in above the cube.
-		//We only draw faces when there is no cube blocking it.
-		var px = empty(ocX + 1, ocY, ocZ);
-		var nx = empty(ocX - 1, ocY, ocZ);
-		var py = empty(ocX, ocY + 1, ocZ);
-		var ny = empty(ocX, ocY - 1, ocZ);
-		var pz = empty(ocX, ocY, ocZ + 1);
-		var nz = empty(ocX, ocY, ocZ - 1);
-
-		var wcX = ocX + ccX*cw;
-		var wcY = ocY + ccY*ch;
-		var wcZ = ocZ + ccZ*cd;
-
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
 		if (blockType < 0) return;
 
-		function inCenter(x, y, z) {
-			return Math.abs(mod(x, 1) - 0.5) < 0.001 ||
-				Math.abs(mod(y, 1) - 0.5) < 0.001 ||
-				Math.abs(mod(z, 1) - 0.5) < 0.001;
+		//We only draw faces when there is no cube blocking it.
+		var shown = [
+			empty(ocX + 1, ocY,     ocZ    ),
+			empty(ocX - 1, ocY,     ocZ    ),
+			empty(ocX,     ocY + 1, ocZ    ),
+			empty(ocX,     ocY - 1, ocZ    ),
+			empty(ocX,     ocY,     ocZ + 1),
+			empty(ocX,     ocY,     ocZ - 1)
+		];
+
+		function empty(ocX, ocY, ocZ) {
+			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 		}
 
-		function v(x, y, z) {
-			verts.push(x, y, z);
+		/**
+		 * Vertex is from the bottom left corner:
+		 * 0: Bottom Left
+		 * 1: Bottom Right
+		 * 2: Top Right
+		 * 3: Top Left
+		 * 4: Middle
+		 */
+		var positions = [
+			[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
+			[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
+			[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ], [ 0.5,   1, 0.5 ] ],
+			[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
+			[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
+			[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
+		];
+
+		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd]
+
+		var faceOrder = [0, 2, 4, 1, 3, 5];
+		for (var i = 0; i < 6; i++) {
+			var face = faceOrder[i];
+			if (!shown[face]) continue;
+			for (var vert = 0; vert < 5; vert++) {
+				// Each of x, y and z
+				for (var comp = 0; comp < 3; comp++) {
+					verts.push(worldCords[comp] + positions[face][vert][comp]);
+				}
+			}
+			buildFace(face, blockType)
 		}
 
-		function f(face, blockType) {
+		function buildFace(face, blockType) {
 			var l = verts.length / 3;
 			// Each face is made up of four triangles
 			index.push(l-5, l-4, l-1);
@@ -146,73 +169,6 @@ return function simpleMesh(blocks, cc, manager) {
 			uvs.push(0, 1);
 			uvs.push(0.5, 0.5);
 		}
-
-		/**
-		 * Vertex is from the bottom left corner:
-		 * 0: Bottom Left
-		 * 1: Bottom Right
-		 * 2: Top Right
-		 * 3: Top Left
-		 * 4: Middle
-		 */
-		function winding(face, vertex) {
-			
-		}
-
-		function empty(ocX, ocY, ocZ) {
-			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
-		}
-
-		if (px) {
-			v(wcX + 1, wcY    , wcZ    );
-			v(wcX + 1, wcY + 1, wcZ    );
-			v(wcX + 1, wcY + 1, wcZ + 1);
-			v(wcX + 1, wcY    , wcZ + 1);
-			v(wcX + 1, wcY + 1/2, wcZ + 1/2);
-			f(0, blockType);
-		}
-		if (py) {
-			v(wcX    , wcY + 1, wcZ + 1);
-			v(wcX + 1, wcY + 1, wcZ + 1);
-			v(wcX + 1, wcY + 1, wcZ    );
-			v(wcX    , wcY + 1, wcZ    );
-			v(wcX + 1/2, wcY + 1, wcZ + 1/2);
-			f(2, blockType);
-		}
-		if (pz) {
-			v(wcX    , wcY    , wcZ + 1);
-			v(wcX + 1, wcY    , wcZ + 1);
-			v(wcX + 1, wcY + 1, wcZ + 1);
-			v(wcX    , wcY + 1, wcZ + 1);
-			v(wcX + 1/2, wcY + 1/2, wcZ + 1);
-			f(4, blockType);
-		}
-		if (nx) {
-			v(wcX, wcY    , wcZ + 1);
-			v(wcX, wcY + 1, wcZ + 1);
-			v(wcX, wcY + 1, wcZ    );
-			v(wcX, wcY    , wcZ    );
-			v(wcX, wcY + 1/2, wcZ + 1/2);
-			f(1, blockType);
-		}
-		if (ny) {
-			v(wcX    , wcY, wcZ    );
-			v(wcX + 1, wcY, wcZ    );
-			v(wcX + 1, wcY, wcZ + 1);
-			v(wcX    , wcY, wcZ + 1);
-			v(wcX + 1/2, wcY, wcZ + 1/2);
-			f(3, blockType);
-		}
-		if (nz) {
-			v(wcX    , wcY + 1, wcZ);
-			v(wcX + 1, wcY + 1, wcZ);
-			v(wcX + 1, wcY    , wcZ);
-			v(wcX    , wcY    , wcZ);
-			v(wcX + 1/2, wcY + 1/2, wcZ);
-			f(5, blockType);
-		}
-
-		return;
 	}
 
 	function updateNeighbours() {
