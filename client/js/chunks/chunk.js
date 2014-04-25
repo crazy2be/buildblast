@@ -12,8 +12,12 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 	vertexColors: true,
 });
 
+var ATLAS_TEXTURE = THREE.ImageUtils.loadTexture("img/block_textures/atlas.png");
+ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
+ATLAS_TEXTURE.minFilter = THREE.NearestMipMapNearestFilter;
+
 var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
-	map: THREE.ImageUtils.loadTexture("img/block_textures/atlas.png")
+	map: ATLAS_TEXTURE
 });
 
 return function Chunk(blocks, geometries, scene) {
