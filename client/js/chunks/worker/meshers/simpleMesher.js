@@ -139,34 +139,40 @@ return function simpleMesh(blocks, cc, manager) {
 			[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
 		];
 
-		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd]
+		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
 		var faceOrder = [0, 2, 4, 1, 3, 5];
 		for (var i = 0; i < 6; i++) {
 			var face = faceOrder[i];
 			if (!shown[face]) continue;
+
+			var tileOffset = Block.getTileOffset(blockType, face);
+
 			for (var vert = 0; vert < 5; vert++) {
 				// Each of x, y and z
 				for (var comp = 0; comp < 3; comp++) {
 					verts.push(worldCords[comp] + positions[face][vert][comp]);
 				}
-				// Each of u and v
-				for (var comp = 0; comp < 2; comp++) {
-					uvs.push(uvWind[face][vert][comp]);
-				}
+				buildUv(tileOffset, uvWind[face][vert]);
 			}
-			buildFace(face, blockType)
+			buildFace(face)
 		}
 
-		function buildFace(face, blockType) {
+		function buildFace(face) {
 			var l = verts.length / 3;
 			// Each face is made up of four triangles
 			index.push(l-5, l-4, l-1);
 			index.push(l-4, l-3, l-1);
 			index.push(l-3, l-2, l-1);
 			index.push(l-2, l-5, l-1);
+		}
 
-			// TODO: GET UVS var colours = Block.getColours(blockType, face);
+		function buildUv(tileOffset, uvWind) {
+			var u = tileOffset[0] * Block.UV_UNIT;
+			var v = 1 - Block.UV_UNIT - (tileOffset[1] * Block.UV_UNIT);
+			u += uvWind[0] * Block.UV_UNIT;
+			v += uvWind[1] * Block.UV_UNIT;
+			uvs.push(u, v);
 		}
 	}
 
