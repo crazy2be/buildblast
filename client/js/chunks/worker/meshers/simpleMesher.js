@@ -121,15 +121,6 @@ return function simpleMesh(blocks, cc, manager) {
 		function empty(ocX, ocY, ocZ) {
 			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 		}
-
-		/**
-		 * Vertex is from the bottom left corner:
-		 * 0: Bottom Left
-		 * 1: Bottom Right
-		 * 2: Top Right
-		 * 3: Top Left
-		 * 4: Middle
-		 */
 		var positions = [
 			[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
 			[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
@@ -137,6 +128,15 @@ return function simpleMesh(blocks, cc, manager) {
 			[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
 			[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
 			[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
+		];
+
+		var uvWind = [
+			[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
+			[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
+			[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
+			[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
+			[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
+			[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
 		];
 
 		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd]
@@ -149,6 +149,10 @@ return function simpleMesh(blocks, cc, manager) {
 				// Each of x, y and z
 				for (var comp = 0; comp < 3; comp++) {
 					verts.push(worldCords[comp] + positions[face][vert][comp]);
+				}
+				// Each of u and v
+				for (var comp = 0; comp < 2; comp++) {
+					uvs.push(uvWind[face][vert][comp]);
 				}
 			}
 			buildFace(face, blockType)
@@ -163,11 +167,6 @@ return function simpleMesh(blocks, cc, manager) {
 			index.push(l-2, l-5, l-1);
 
 			// TODO: GET UVS var colours = Block.getColours(blockType, face);
-			uvs.push(0, 0);
-			uvs.push(1, 0);
-			uvs.push(1, 1);
-			uvs.push(0, 1);
-			uvs.push(0.5, 0.5);
 		}
 	}
 
