@@ -46,11 +46,11 @@ Block.TILE_SIZE = 16;
 Block.UV_UNIT = Block.TILE_SIZE / Block.ATLAS_SIZE;
 
 Block.ATLAS = [
-	[0, 0], // Dirt / Grass bottom
-	[1, 0], // Grass side
-	[2, 0], // Grass top
-	[3, 0], // Stone
-	[4, 0], // Spawn
+	[0, 7], // Dirt / Grass bottom
+	[1, 7], // Grass side
+	[2, 7], // Grass top
+	[3, 7], // Stone
+	[4, 7], // Spawn
 ];
 
 /**

@@ -164,10 +164,8 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 
 		function buildUv(tileOffset, uvWind) {
-			var u = tileOffset[0] * Block.UV_UNIT;
-			var v = 1 - Block.UV_UNIT - (tileOffset[1] * Block.UV_UNIT);
-			u += uvWind[0] * Block.UV_UNIT;
-			v += uvWind[1] * Block.UV_UNIT;
+			var u = (tileOffset[0] + uvWind[0]) * Block.UV_UNIT;
+			var v = (tileOffset[1] + uvWind[1]) * Block.UV_UNIT;
 			// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
 			u += (uvWind[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
 			v += (uvWind[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
