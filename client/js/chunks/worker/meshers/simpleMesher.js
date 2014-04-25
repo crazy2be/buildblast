@@ -141,9 +141,7 @@ return function simpleMesh(blocks, cc, manager) {
 
 		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
-		var faceOrder = [0, 2, 4, 1, 3, 5];
-		for (var i = 0; i < 6; i++) {
-			var face = faceOrder[i];
+		for (var face = 0; face < 6; face++) {
 			if (!shown[face]) continue;
 
 			var tileOffset = Block.getTileOffset(blockType, face);
