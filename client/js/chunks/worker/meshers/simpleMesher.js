@@ -1,5 +1,4 @@
 define(function(require) {
-var perlinNoise = require("../noise");
 
 var Block = require("chunks/block");
 
@@ -20,7 +19,7 @@ return function simpleMesh(blocks, cc, manager) {
 
 	var verts = [];
 	var index = [];
-	var color = [];
+	var uvs = [];
 
 	var blocks = blocks;
 
@@ -29,11 +28,14 @@ return function simpleMesh(blocks, cc, manager) {
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
-				addBlockGeometry(verts, index, color, ocX, ocY, ocZ);
+				addBlockGeometry(verts, index, uvs, ocX, ocY, ocZ);
 			}
 		}
 	}
 
+	/**
+	 * This function copies JavaScript floats into a typed array.
+	 */
 	function copy(src, dst) {
 		for (var i = 0; i < src.length; i++) {
 			dst[i] = src[i];
@@ -46,8 +48,8 @@ return function simpleMesh(blocks, cc, manager) {
 	var indexa = new Uint16Array(index.length);
 	copy(index, indexa);
 
-	var colora = new Float32Array(color.length);
-	copy(color, colora);
+	var uvsa = new Float32Array(uvs.length);
+	copy(uvs, uvsa);
 
 	//See the readme for documentation.
 	var attributes = {
@@ -61,10 +63,10 @@ return function simpleMesh(blocks, cc, manager) {
 			array: indexa,
 			numItems: index.length,
 		},
-		color: {
-			itemSize: 3,
-			array: colora,
-			numItems: color.length,
+		uv: {
+			itemSize: 2,
+			array: uvsa,
+			numItems: uvsa.length,
 		},
 	};
 	var offsets = [{
@@ -76,7 +78,7 @@ return function simpleMesh(blocks, cc, manager) {
 	return {
 		attributes: attributes,
 		offsets: offsets,
-		transferables: [vertsa.buffer, indexa.buffer, colora.buffer],
+		transferables: [vertsa.buffer, indexa.buffer, uvsa.buffer],
 	};
 
 	//Everything after here is just helper functions.
@@ -100,8 +102,7 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
-	function addBlockGeometry(verts, index, color, ocX, ocY, ocZ) {
-		var noise = [];
+	function addBlockGeometry(verts, index, uvs, ocX, ocY, ocZ) {
 		if (empty(ocX, ocY, ocZ)) return;
 
 		//py = positive y, as in above the cube.
@@ -125,41 +126,37 @@ return function simpleMesh(blocks, cc, manager) {
 				Math.abs(mod(y, 1) - 0.5) < 0.001 ||
 				Math.abs(mod(z, 1) - 0.5) < 0.001;
 		}
-		function noiseFunc(x, y, z) {
-			function n(q) {
-				return perlinNoise(Math.abs(x)/q, Math.abs(y)/q, Math.abs(z)/q);
-			}
-			var val = n(8) + n(32);
-			if (abs(1 - 4) > 0.001) val += n(4);
-			if (abs(1 - 2) > 0.001) val += n(2);
-			return clamp(val/2 + 0.5, 0.0, 1.0);
-		}
 
 		function v(x, y, z) {
 			verts.push(x, y, z);
-			noise.push(noiseFunc(x, y, z));
 		}
 
 		function f(face, blockType) {
 			var l = verts.length / 3;
-			// Each face is made up of two triangles
+			// Each face is made up of four triangles
 			index.push(l-5, l-4, l-1);
 			index.push(l-4, l-3, l-1);
 			index.push(l-3, l-2, l-1);
 			index.push(l-2, l-5, l-1);
 
-			var c, c2;
-			var colours = Block.getColours(blockType, face);
-			c = colours.light;
-			c2 = colours.dark;
+			// TODO: GET UVS var colours = Block.getColours(blockType, face);
+			uvs.push(0, 0);
+			uvs.push(1, 0);
+			uvs.push(1, 1);
+			uvs.push(0, 1);
+			uvs.push(0.5, 0.5);
+		}
 
-			for (var i = 0; i < 5; i++) {
-				var n = noise.shift();
-				var r = c.r*n + c2.r*(1 - n);
-				var g = c.g*n + c2.g*(1 - n);
-				var b = c.b*n + c2.b*(1 - n);
-				color.push(r/255, g/255, b/255);
-			}
+		/**
+		 * Vertex is from the bottom left corner:
+		 * 0: Bottom Left
+		 * 1: Bottom Right
+		 * 2: Top Right
+		 * 3: Top Left
+		 * 4: Middle
+		 */
+		function winding(face, vertex) {
+			
 		}
 
 		function empty(ocX, ocY, ocZ) {

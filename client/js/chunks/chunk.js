@@ -12,10 +12,14 @@ var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 	vertexColors: true,
 });
 
+var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
+	map: THREE.ImageUtils.loadTexture("img/block_textures/atlas.png")
+});
+
 return function Chunk(blocks, geometries, scene) {
 	var self = this;
 
-	var mesh = new THREE.Mesh(geometries, CHUNK_MATERIAL);
+	var mesh = new THREE.Mesh(geometries, ATLAS_MATERIAL);
 
 	self.remove = function () {
 		scene.remove(mesh);
