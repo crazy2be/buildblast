@@ -33,15 +33,13 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
-	/**
-	 * This function copies JavaScript floats into a typed array.
-	 */
 	function copy(src, dst) {
 		for (var i = 0; i < src.length; i++) {
 			dst[i] = src[i];
 		}
 	}
 
+	// Here we're just copying the native JavaScript numbers into a typed Float32 array.
 	var vertsa = new Float32Array(verts.length);
 	copy(verts, vertsa);
 
