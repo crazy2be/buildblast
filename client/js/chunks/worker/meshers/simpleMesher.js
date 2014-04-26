@@ -18,7 +18,7 @@ return function simpleMesh(blocks, cc, manager) {
 	var nxc, pxc, nyc, pyc, nzc, pzc;
 
 	var verts = [];
-	var index = [];
+	var indices = [];
 	var uvs = [];
 
 	var blocks = blocks;
@@ -28,7 +28,7 @@ return function simpleMesh(blocks, cc, manager) {
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
-				addBlockGeometry(verts, index, uvs, ocX, ocY, ocZ);
+				addBlockGeometry(verts, indices, uvs, ocX, ocY, ocZ);
 			}
 		}
 	}
@@ -44,8 +44,8 @@ return function simpleMesh(blocks, cc, manager) {
 	var vertsa = new Float32Array(verts.length);
 	copy(verts, vertsa);
 
-	var indexa = new Uint16Array(index.length);
-	copy(index, indexa);
+	var indicesa = new Uint16Array(indices.length);
+	copy(indices, indicesa);
 
 	var uvsa = new Float32Array(uvs.length);
 	copy(uvs, uvsa);
@@ -59,8 +59,8 @@ return function simpleMesh(blocks, cc, manager) {
 		},
 		index: {
 			itemSize: 1,
-			array: indexa,
-			numItems: index.length,
+			array: indicesa,
+			numItems: indices.length,
 		},
 		uv: {
 			itemSize: 2,
@@ -70,14 +70,14 @@ return function simpleMesh(blocks, cc, manager) {
 	};
 	var offsets = [{
 		start: 0,
-		count: index.length,
-		index: 0,
+		count: indices.length,
+		indices: 0,
 	}];
 
 	return {
 		attributes: attributes,
 		offsets: offsets,
-		transferables: [vertsa.buffer, indexa.buffer, uvsa.buffer],
+		transferables: [vertsa.buffer, indicesa.buffer, uvsa.buffer],
 	};
 
 	//Everything after here is just helper functions.
@@ -101,7 +101,7 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
-	function addBlockGeometry(verts, index, uvs, ocX, ocY, ocZ) {
+	function addBlockGeometry(verts, indices, uvs, ocX, ocY, ocZ) {
 		if (empty(ocX, ocY, ocZ)) return;
 
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
@@ -122,7 +122,7 @@ return function simpleMesh(blocks, cc, manager) {
 
 		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
-		Block.addGeometry(verts, index, uvs, shown, blockType, position);
+		Block.addGeometry(verts, indices, uvs, shown, blockType, position);
 	}
 
 	function updateNeighbours() {

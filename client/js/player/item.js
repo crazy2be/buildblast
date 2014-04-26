@@ -1,6 +1,9 @@
 define(function(require) {
+var THREE = require("THREE");
+
 var Models = require("models");
 var Block = require("chunks/block");
+var Chunk = require("chunks/chunk");
 
 function Item(type) {
 	this.type = type;
@@ -55,13 +58,13 @@ Item.realInit = function () {
 		icon: 0,
 	},{
 		name: 'dirt',
-		model: Models.block(),
+		model: blockModel(Block.DIRT),
 		action: throttle(blockAction(Block.DIRT)),
 		stackable: true,
 		icon: 1,
 	},{
 		name: 'stone',
-		model: Models.stone(),
+		model: blockModel(Block.STONE),
 		action: throttle(blockAction(Block.STONE)),
 		stackable: true,
 		icon: 2,
@@ -118,6 +121,64 @@ Item.realInit = function () {
 			if (!bc) return;
 			world.changeBlock(bc.x, bc.y, bc.z, block);
 		};
+	}
+
+	function blockModel(block) {
+		var verts = [];
+		var indices = [];
+		var uvs = [];
+		var shownFaces = [1, 1, 1, 1, 1];
+		var position = [0.0, 0.0, 0.0];
+		Block.addGeometry(verts, indices, uvs, shownFaces, block, position);
+
+		// TODO: Don't just copy all this shit from simpleMesher...
+		function copy(src, dst) {
+			for (var i = 0; i < src.length; i++) {
+				dst[i] = src[i];
+			}
+		}
+
+		// Here we're just copying the native JavaScript numbers into a typed Float32 array.
+		// This is required by WebGL for attribute buffers.
+		var vertsa = new Float32Array(verts.length);
+		copy(verts, vertsa);
+
+		var indicesa = new Uint16Array(indices.length);
+		copy(indices, indicesa);
+
+		var uvsa = new Float32Array(uvs.length);
+		copy(uvs, uvsa);
+
+		//See the readme for documentation.
+		var attributes = {
+			position: {
+				itemSize: 3,
+				array: vertsa,
+				numItems: verts.length,
+			},
+			index: {
+				itemSize: 1,
+				array: indicesa,
+				numItems: indices.length,
+			},
+			uv: {
+				itemSize: 2,
+				array: uvsa,
+				numItems: uvsa.length,
+			},
+		};
+
+		var offsets = [{
+			start: 0,
+			count: indices.length,
+			indices: 0,
+		}];
+		// END TODO
+
+		var geometry = new THREE.BufferGeometry();
+		geometry.attributes = attributes;
+		geometry.offsets = offsets;
+		return Chunk.makeBlockMesh(block, geometry);
 	}
 }
 

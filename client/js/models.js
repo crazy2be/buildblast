@@ -9,8 +9,6 @@ Models.init = function (loadedCallback) {
 	var models = [
 		'pistol',
 		'shovel',
-		'block',
-		'stone',
 	];
 
 	async.map(models, loadModel, loadedCallback);
