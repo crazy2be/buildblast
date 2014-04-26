@@ -7,7 +7,7 @@ var fs = require('fs');
 
 // Hacks to mock require. Yay dependency injection!
 function requireJS(relativePath) {
-	var path = '../../../' + relativePath + '.js';
+	var path = '../../' + relativePath + '.js';
 	var code = fs.readFileSync(path);
 	var lastDefine = null;
 	function define(ctor) {
