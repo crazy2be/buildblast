@@ -15,7 +15,8 @@ type FlatWorld struct {
 func NewFlatWorld(seed float64) *FlatWorld {
 	fw := new(FlatWorld)
 	fw.seed = seed
-	fw.randGen = rand.New(rand.NewSource(int64(seed)))
+	// This is seeded on a per-block basis
+	fw.randGen = rand.New(rand.NewSource(0))
 	return fw
 }
 
