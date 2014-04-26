@@ -45,6 +45,7 @@ Block.ATLAS_SIZE = 128;
 Block.TILE_SIZE = 16;
 Block.UV_UNIT = Block.TILE_SIZE / Block.ATLAS_SIZE;
 
+// UV indexed from bottom left (cartesian coordinates).
 Block.ATLAS = [
 	[0, 7], // Dirt / Grass bottom
 	[1, 7], // Grass side
