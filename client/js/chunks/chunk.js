@@ -3,10 +3,7 @@ define(function(require) {
 var THREE = require("THREE");
 
 var Block = require("./block");
-
 var common = require("./chunkCommon");
-
-var CHUNK = common.CHUNK;
 
 var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
 	vertexColors: true,
@@ -34,15 +31,7 @@ return function Chunk(blocks, geometries, scene) {
 	};
 
 	self.block = function (oc) {
-		if (common.validChunkOffset(oc.x, oc.y, oc.z)) {
-			// A flattened array is mesurably faster to
-			// index (approximently twice as fast) as
-			// an array of arrays, and is a lot less
-			// garbage to clean up.
-			return new Block(blocks[common.offsetIndex(oc.x, oc.y, oc.z)]);
-		} else {
-			throw "block coords out of bounds: " + oc;
-		}
+		return new Block(blocks[common.offsetIndex(oc.x, oc.y, oc.z)]);
 	};
 
 	self.testExposure = {

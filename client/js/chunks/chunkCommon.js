@@ -32,6 +32,9 @@ function validChunkOffset(ocX, ocY, ocZ) {
 
 // Same as server coords.Offset.Index()
 function offsetIndex(ocX, ocY, ocZ) {
+	if (!validChunkOffset(ocX, ocY, ocZ)) {
+		throw "Invalid offset coords (" + ocX + ", " + ocY + ", " + ocZ + ")!";
+	}
 	return ocX*CHUNK.WIDTH*CHUNK.HEIGHT +
 		ocY*CHUNK.WIDTH +
 		ocZ;
