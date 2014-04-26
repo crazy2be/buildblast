@@ -21,38 +21,39 @@ const (
 	// See "Block encoding.txt"
 
 	// Properties
-	BLOCK_MINEABLE = 0x80000000
+	BLOCK_UNMINEABLE = 0x80000000
 
 	// Subtypes
 	// Invisible blocks are ignored by the renderer, and have no physical
 	// manifestation in the world.
-	BLOCK_INVISIBLE = 0x1 << 0
-	// Solid blocks are treated as solid by physics simulations, and will
-	// prevent entities from occupying the same space as them.
-	BLOCK_SOLID = 0x1 << 1
+	BLOCK_INVISIBLE = 1 << 0
+	// Intangible blocks are ignored by physics simulations, and will
+	// allow entities to occupy the same space as them.
+	BLOCK_INTANGIBLE = 1 << 1
 )
 
+// By default, blocks are visible, tangible, and mineable.
 var BLOCK_PROPERTIES []uint32 = []uint32{
-	/** NIL          */ 0,
-	/** AIR          */ BLOCK_INVISIBLE,
-	/** DIRT         */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** STONE        */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** SPAWN        */ BLOCK_SOLID,
-	/** Grass        */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** COAL         */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** IRON         */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** GOLD         */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** SAPPHIRE     */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** EMERALD      */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** RUBY         */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** DIAMOND      */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** POUDRETTEITE */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** NIL          */ BLOCK_INVISIBLE | BLOCK_INTANGIBLE | BLOCK_UNMINEABLE,
+	/** AIR          */ BLOCK_INVISIBLE | BLOCK_INTANGIBLE | BLOCK_UNMINEABLE,
+	/** DIRT         */ 0,
+	/** STONE        */ 0,
+	/** SPAWN        */ BLOCK_UNMINEABLE,
+	/** Grass        */ 0,
+	/** COAL         */ 0,
+	/** IRON         */ 0,
+	/** GOLD         */ 0,
+	/** SAPPHIRE     */ 0,
+	/** EMERALD      */ 0,
+	/** RUBY         */ 0,
+	/** DIAMOND      */ 0,
+	/** POUDRETTEITE */ 0,
 }
 
 func (b Block) Solid() bool {
-	return BLOCK_PROPERTIES[b]&BLOCK_SOLID == BLOCK_SOLID
+	return BLOCK_PROPERTIES[b]&BLOCK_INTANGIBLE == 0
 }
 
 func (b Block) Mineable() bool {
-	return BLOCK_PROPERTIES[b]&BLOCK_MINEABLE == BLOCK_MINEABLE
+	return BLOCK_PROPERTIES[b]&BLOCK_UNMINEABLE == 0
 }

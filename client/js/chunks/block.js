@@ -32,31 +32,32 @@ Block.POUDRETTEITE = 13;
 //See "Block encoding.txt"
 
 //Block properties
-Block.MINEABLE	= 0x80000000;
+Block.UNMINEABLE = 0x80000000;
 
 //Subtypes
 // Invisible blocks are ignored by the renderer, and have no physical
 // manifestation in the world.
-Block.INVISIBLE = 0x1;
-// Solid blocks are treated as solid by physics simulations, and will
-// prevent entities from occupying the same space as them.
-Block.SOLID = 0x2;
+Block.INVISIBLE = 1 << 0;
+// Intangible blocks are ignored by physics simulations, and will
+// allow entities to occupy the same space as them.
+Block.INTANGIBLE = 1 << 1;
 
+// By default, blocks are visible, tangible, and mineable.
 Block.PROPERTIES = [
-	/** NIL          */ 0,
-	/** AIR          */ Block.INVISIBLE,
-	/** DIRT         */ Block.SOLID | Block.MINEABLE,
-	/** STONE        */ Block.SOLID | Block.MINEABLE,
-	/** SPAWN        */ Block.SOLID,
-	/** Grass        */ Block.SOLID | Block.MINEABLE,
-	/** COAL         */ Block.SOLID | Block.MINEABLE,
-	/** IRON         */ Block.SOLID | Block.MINEABLE,
-	/** GOLD         */ Block.SOLID | Block.MINEABLE,
-	/** SAPPHIRE     */ Block.SOLID | Block.MINEABLE,
-	/** EMERALD      */ Block.SOLID | Block.MINEABLE,
-	/** RUBY         */ Block.SOLID | Block.MINEABLE,
-	/** DIAMOND      */ Block.SOLID | Block.MINEABLE,
-	/** POUDRETTEITE */ Block.SOLID | Block.MINEABLE,
+	/** NIL          */ Block.INVISIBLE | Block.INTANGIBLE | Block.UNMINEABLE,
+	/** AIR          */ Block.INVISIBLE | Block.INTANGIBLE | Block.UNMINEABLE,
+	/** DIRT         */ 0,
+	/** STONE        */ 0,
+	/** SPAWN        */ Block.UNMINEABLE,
+	/** Grass        */ 0,
+	/** COAL         */ 0,
+	/** IRON         */ 0,
+	/** GOLD         */ 0,
+	/** SAPPHIRE     */ 0,
+	/** EMERALD      */ 0,
+	/** RUBY         */ 0,
+	/** DIAMOND      */ 0,
+	/** POUDRETTEITE */ 0,
 ];
 
 Block.ATLAS_SIZE = 128;
@@ -230,19 +231,15 @@ Block.makeOffsets = function (indices) {
 }
 
 Block.isMineable = function (block) {
-	return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;
+	return (Block.PROPERTIES[block] & Block.UNMINEABLE) === 0;
 };
 
 Block.isInvisible = function (block) {
-	return Block.inSubtype(block, Block.INVISIBLE);
+	return (Block.PROPERTIES[block] & Block.INVISIBLE) === Block.INVISIBLE;
 };
 
 Block.isSolid = function (block) {
-	return Block.inSubtype(block, Block.SOLID);
-};
-
-Block.inSubtype = function (block, subtype) {
-	return (Block.PROPERTIES[block]&subtype) === subtype;
+	return (Block.PROPERTIES[block] & Block.INTANGIBLE) === 0;
 };
 
 return Block;
