@@ -29,12 +29,10 @@ Item.prototype.icon = function () {
 	return Item.DATA[this.type].icon;
 };
 
-// NOTE: This model is shared with all other items
-// of this type. You should .clone() it before you add
-// it to the world.
 Item.prototype.model = function () {
 	Item.init();
-	return Item.DATA[this.type].model;
+	var model = Item.DATA[this.type].model;
+	return model ? model.clone() : null;
 };
 
 Item.NIL    = 0x0;
@@ -78,7 +76,7 @@ Item.realInit = function () {
 		model: Models.pistol(),
 		//This action does nothing, we send the server our controls every
 		//tick and that's how we shoot.
-		action: function(){},
+		action: function () {},
 		icon: 4,
 	}
 	];
@@ -127,7 +125,7 @@ Item.realInit = function () {
 		var verts = [];
 		var indices = [];
 		var uvs = [];
-		var shownFaces = [1, 1, 1, 1, 1];
+		var shownFaces = [1, 1, 1, 1, 1, 1];
 		var position = [0.0, 0.0, 0.0];
 		Block.addGeometry(verts, indices, uvs, shownFaces, block, position);
 
