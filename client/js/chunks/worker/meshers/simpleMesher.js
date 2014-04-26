@@ -105,7 +105,7 @@ return function simpleMesh(blocks, cc, manager) {
 		if (empty(ocX, ocY, ocZ)) return;
 
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
-		if (blockType < 0) return;
+		if (blockType < 0) return; // ?????
 
 		//We only draw faces when there is no cube blocking it.
 		var shown = [
@@ -120,58 +120,10 @@ return function simpleMesh(blocks, cc, manager) {
 		function empty(ocX, ocY, ocZ) {
 			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 		}
-		var positions = [
-			[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
-			[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
-			[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ], [ 0.5,   1, 0.5 ] ],
-			[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
-			[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
-			[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
-		];
 
-		var uvWind = [
-			[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
-			[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
-			[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
-			[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
-			[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
-			[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
-		];
+		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];\
 
-		var worldCords = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
-
-		for (var face = 0; face < 6; face++) {
-			if (!shown[face]) continue;
-
-			var tileOffset = Block.getTileOffset(blockType, face);
-
-			for (var vert = 0; vert < 5; vert++) {
-				// Each of x, y and z
-				for (var comp = 0; comp < 3; comp++) {
-					verts.push(worldCords[comp] + positions[face][vert][comp]);
-				}
-				buildUv(tileOffset, uvWind[face][vert]);
-			}
-			buildFace(face)
-		}
-
-		function buildFace(face) {
-			var l = verts.length / 3;
-			// Each face is made up of four triangles
-			index.push(l-5, l-4, l-1);
-			index.push(l-4, l-3, l-1);
-			index.push(l-3, l-2, l-1);
-			index.push(l-2, l-5, l-1);
-		}
-
-		function buildUv(tileOffset, uvWind) {
-			var u = (tileOffset[0] + uvWind[0]) * Block.UV_UNIT;
-			var v = (tileOffset[1] + uvWind[1]) * Block.UV_UNIT;
-			// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
-			u += (uvWind[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
-			v += (uvWind[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
-			uvs.push(u, v);
-		}
+		Block.addGeometry(verts, index, uvs, shown, blockType, position);
 	}
 
 	function updateNeighbours() {
