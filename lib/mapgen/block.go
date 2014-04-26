@@ -3,11 +3,20 @@ package mapgen
 type Block byte
 
 const (
-	BLOCK_NIL   = Block(0)
-	BLOCK_AIR   = Block(1)
-	BLOCK_DIRT  = Block(2)
-	BLOCK_STONE = Block(3)
-	BLOCK_SPAWN = Block(4)
+	BLOCK_NIL          = Block(0)
+	BLOCK_AIR          = Block(1)
+	BLOCK_DIRT         = Block(2)
+	BLOCK_STONE        = Block(3)
+	BLOCK_SPAWN        = Block(4)
+	BLOCK_GRASS        = Block(5)
+	BLOCK_COAL         = Block(6)
+	BLOCK_IRON         = Block(7)
+	BLOCK_GOLD         = Block(8)
+	BLOCK_SAPPHIRE     = Block(9)
+	BLOCK_EMERALD      = Block(10)
+	BLOCK_RUBY         = Block(11)
+	BLOCK_DIAMOND      = Block(12)
+	BLOCK_POUDRETTEITE = Block(13)
 
 	// See "Block encoding.txt"
 
@@ -24,11 +33,20 @@ const (
 )
 
 var BLOCK_PROPERTIES []uint32 = []uint32{
-	/** NIL    */ 0,
-	/** AIR    */ BLOCK_INVISIBLE,
-	/** DIRT   */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** STONE  */ BLOCK_SOLID | BLOCK_MINEABLE,
-	/** SPAWN  */ BLOCK_SOLID,
+	/** NIL          */ 0,
+	/** AIR          */ BLOCK_INVISIBLE,
+	/** DIRT         */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** STONE        */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** SPAWN        */ BLOCK_SOLID,
+	/** Grass        */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** COAL         */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** IRON         */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** GOLD         */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** SAPPHIRE     */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** EMERALD      */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** RUBY         */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** DIAMOND      */ BLOCK_SOLID | BLOCK_MINEABLE,
+	/** POUDRETTEITE */ BLOCK_SOLID | BLOCK_MINEABLE,
 }
 
 func (b Block) Solid() bool {

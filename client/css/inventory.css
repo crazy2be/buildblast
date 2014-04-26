@@ -36,7 +36,7 @@ span.stack-size {
 div.helper {
 	position: relative;
 	display: inline-block;
-	background-image: url('/img/items.png');
+	background-image: url('/img/item_icons/item_atlas.png');
 	background-position: 0px 0;
 	width: 64px;
 	height: 64px;

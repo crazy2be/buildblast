@@ -34,11 +34,21 @@ Item.prototype.model = function () {
 	return Item.DATA[this.type].model;
 };
 
-Item.NIL    = 0x0;
-Item.DIRT   = 0x1;
-Item.STONE  = 0x2;
-Item.SHOVEL = 0x3;
-Item.GUN    = 0x4;
+Item.NIL          = 0;
+Item.DIRT         = 1;
+Item.STONE        = 2;
+Item.SHOVEL       = 3;
+Item.GUN          = 4;
+Item.SPAWN        = 5;
+Item.GRASS        = 6;
+Item.COAL         = 7;
+Item.IRON         = 8;
+Item.GOLD         = 9;
+Item.SAPPHIRE     = 10;
+Item.EMERALD      = 11;
+Item.RUBY         = 12;
+Item.DIAMOND      = 13;
+Item.POUDRETTEITE = 14;
 
 Item.init = function () {
 	if (Item.initialized) return;

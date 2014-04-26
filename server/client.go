@@ -133,7 +133,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 	for id, e := range w.Entities() {
 		c.EntityCreated(id, e)
 		c.Send(&MsgScoreboardAdd{
-			Name: string(id),
+			Name:  string(id),
 			Score: g.scores[string(id)],
 		})
 	}

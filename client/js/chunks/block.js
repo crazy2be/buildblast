@@ -14,20 +14,20 @@ Block.prototype.solid = function () {
 };
 
 //Block Types
-Block.NIL          = 0x0; //Putting this here so its clear it's reserved
-Block.AIR          = 0x1;
-Block.DIRT         = 0x2;
-Block.STONE        = 0x3;
-Block.SPAWN        = 0x4;
-Block.COAL         = 0x5;
-Block.IRON         = 0x6;
-Block.GOLD         = 0x7;
-Block.SAPPHIRE     = 0x8;
-Block.EMERALD      = 0x9;
-Block.RUBY         = 0xA;
-Block.DIAMOND      = 0xB;
-Block.POUDRETTEITE = 0xC;
-Block.TOTAL        = 13;
+Block.NIL          = 0; //Putting this here so its clear it's reserved
+Block.AIR          = 1;
+Block.DIRT         = 2;
+Block.STONE        = 3;
+Block.SPAWN        = 4;
+Block.GRASS        = 5;
+Block.COAL         = 6;
+Block.IRON         = 7;
+Block.GOLD         = 8;
+Block.SAPPHIRE     = 9;
+Block.EMERALD      = 10;
+Block.RUBY         = 11;
+Block.DIAMOND      = 12;
+Block.POUDRETTEITE = 13;
 
 //See "Block encoding.txt"
 
@@ -96,8 +96,6 @@ Block.getTileOffset = function (blockType, face) {
 	} else if (blockType === Block.SPAWN) {
 		return Block.ATLAS[4];
 	} else if (blockType === Block.GRASS) {
-		return Block.ATLAS[5];
-	} else if (blockType === Block.COAL) {
 		if (face === 2) {
 			return Block.ATLAS[2];
 		} else if (face === 3) {
@@ -105,6 +103,8 @@ Block.getTileOffset = function (blockType, face) {
 		} else {
 			return Block.ATLAS[1];
 		}
+	} else if (blockType === Block.COAL) {
+		return Block.ATLAS[5];
 	} else if (blockType === Block.IRON) {
 		return Block.ATLAS[6];
 	} else if (blockType === Block.GOLD) {
