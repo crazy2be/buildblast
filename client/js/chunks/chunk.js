@@ -39,11 +39,7 @@ return function Chunk(blocks, geometries, scene) {
 			// index (approximently twice as fast) as
 			// an array of arrays, and is a lot less
 			// garbage to clean up.
-			return new Block(blocks[
-				oc.x * CHUNK.WIDTH * CHUNK.HEIGHT +
-				oc.y * CHUNK.WIDTH +
-				oc.z
-			]);
+			return new Block(blocks[common.offsetIndex(oc.x, oc.y, oc.z)]);
 		} else {
 			throw "block coords out of bounds: " + oc;
 		}

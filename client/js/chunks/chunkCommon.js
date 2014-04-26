@@ -30,6 +30,13 @@ function validChunkOffset(ocX, ocY, ocZ) {
 		ocZ >= 0 && ocZ < CHUNK.DEPTH;
 }
 
+// Same as server coords.Offset.Index()
+function offsetIndex(ocX, ocY, ocZ) {
+	return ocX*CHUNK.WIDTH*CHUNK.HEIGHT +
+		ocY*CHUNK.WIDTH +
+		ocZ;
+}
+
 function ccStr(cc) {
 	return cc.x + "," + cc.y + "," + cc.z;
 }
@@ -40,6 +47,7 @@ return {
 	CHUNK: CHUNK,
 	worldToChunk: worldToChunk,
 	validChunkOffset: validChunkOffset,
+	offsetIndex: offsetIndex,
 	ccStr: ccStr,
 }
 });
