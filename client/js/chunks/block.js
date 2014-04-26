@@ -45,6 +45,7 @@ Block.ATLAS_SIZE = 128;
 Block.TILE_SIZE = 16;
 Block.UV_UNIT = Block.TILE_SIZE / Block.ATLAS_SIZE;
 
+// UV indicesed from bottom left (cartesian coordinates).
 Block.ATLAS = [
 	[0, 7], // Dirt / Grass bottom
 	[1, 7], // Grass side
@@ -79,6 +80,110 @@ Block.getTileOffset = function (blockType, face) {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}
 };
+
+// TODO: We probably want to move this meshing logic into a seperate file, it's
+// starting to grow pretty big now.
+Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, position) {
+	var positions = [
+		[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
+		[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
+		[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ], [ 0.5,   1, 0.5 ] ],
+		[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
+		[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
+		[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
+	];
+
+	var uvWind = [
+		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
+		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
+		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
+		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
+		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
+		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
+	];
+
+	for (var face = 0; face < 6; face++) {
+		if (!shownFaces[face]) continue;
+
+		var tileOffset = Block.getTileOffset(blockType, face);
+
+		for (var vert = 0; vert < 5; vert++) {
+			// Each of x, y and z
+			for (var comp = 0; comp < 3; comp++) {
+				verts.push(position[comp] + positions[face][vert][comp]);
+			}
+			buildUv(tileOffset, uvWind[face][vert]);
+		}
+		buildFace(face);
+	}
+
+	function buildFace(face) {
+		var l = verts.length / 3;
+		// Each face is made up of four triangles
+		indices.push(l-5, l-4, l-1);
+		indices.push(l-4, l-3, l-1);
+		indices.push(l-3, l-2, l-1);
+		indices.push(l-2, l-5, l-1);
+	}
+
+	function buildUv(tileOffset, uvWind) {
+		var u = (tileOffset[0] + uvWind[0]) * Block.UV_UNIT;
+		var v = (tileOffset[1] + uvWind[1]) * Block.UV_UNIT;
+		// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
+		u += (uvWind[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
+		v += (uvWind[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
+		uvs.push(u, v);
+	}
+};
+
+Block.makeAttributes = function (verts, indices, uvs) {
+	function copy(src, dst) {
+		for (var i = 0; i < src.length; i++) {
+			dst[i] = src[i];
+		}
+	}
+
+	// Here we're just copying the native JavaScript numbers into a typed Float32 array.
+	// This is required by WebGL for attribute buffers.
+	var vertsa = new Float32Array(verts.length);
+	copy(verts, vertsa);
+
+	var indicesa = new Uint16Array(indices.length);
+	copy(indices, indicesa);
+
+	var uvsa = new Float32Array(uvs.length);
+	copy(uvs, uvsa);
+
+	//See the readme for documentation.
+	var attributes = {
+		position: {
+			itemSize: 3,
+			array: vertsa,
+			numItems: verts.length,
+		},
+		index: {
+			itemSize: 1,
+			array: indicesa,
+			numItems: indices.length,
+		},
+		uv: {
+			itemSize: 2,
+			array: uvsa,
+			numItems: uvsa.length,
+		},
+	};
+
+	return attributes;
+};
+
+Block.makeOffsets = function (indices) {
+	var offsets = [{
+		start: 0,
+		count: indices.length,
+		indices: 0,
+	}];
+	return offsets;
+}
 
 Block.isMineable = function (block) {
 	return (Block.PROPERTIES[block] & Block.MINEABLE) !== 0;

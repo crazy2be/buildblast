@@ -3,14 +3,7 @@ define(function(require) {
 var THREE = require("THREE");
 
 var Block = require("./block");
-
 var common = require("./chunkCommon");
-
-var CHUNK = common.CHUNK;
-
-var CHUNK_MATERIAL = new THREE.MeshBasicMaterial({
-	vertexColors: true,
-});
 
 var ATLAS_TEXTURE = THREE.ImageUtils.loadTexture("img/block_textures/atlas.png");
 ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
@@ -20,10 +13,10 @@ var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
 	map: ATLAS_TEXTURE
 });
 
-return function Chunk(blocks, geometries, scene) {
+function Chunk(blocks, geometry, scene) {
 	var self = this;
 
-	var mesh = new THREE.Mesh(geometries, ATLAS_MATERIAL);
+	var mesh = new THREE.Mesh(geometry, ATLAS_MATERIAL);
 
 	self.remove = function () {
 		scene.remove(mesh);
@@ -34,23 +27,17 @@ return function Chunk(blocks, geometries, scene) {
 	};
 
 	self.block = function (oc) {
-		if (common.validChunkOffset(oc.x, oc.y, oc.z)) {
-			// A flattened array is mesurably faster to
-			// index (approximently twice as fast) as
-			// an array of arrays, and is a lot less
-			// garbage to clean up.
-			return new Block(blocks[
-				oc.x * CHUNK.WIDTH * CHUNK.HEIGHT +
-				oc.y * CHUNK.WIDTH +
-				oc.z
-			]);
-		} else {
-			throw "block coords out of bounds: " + oc;
-		}
+		return new Block(blocks[common.offsetIndex(oc.x, oc.y, oc.z)]);
 	};
 
 	self.testExposure = {
 		blocks: blocks
 	};
 }
+
+Chunk.makeBlockMesh = function (block, geometry) {
+	return new THREE.Mesh(geometry, ATLAS_MATERIAL);
+};
+
+return Chunk;
 });
