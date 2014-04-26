@@ -35,11 +35,21 @@ Item.prototype.model = function () {
 	return model ? model.clone() : null;
 };
 
-Item.NIL    = 0x0;
-Item.DIRT   = 0x1;
-Item.STONE  = 0x2;
-Item.SHOVEL = 0x3;
-Item.GUN    = 0x4;
+Item.NIL          = 0;
+Item.DIRT         = 1;
+Item.STONE        = 2;
+Item.SHOVEL       = 3;
+Item.GUN          = 4;
+Item.SPAWN        = 5;
+Item.GRASS        = 6;
+Item.COAL         = 7;
+Item.IRON         = 8;
+Item.GOLD         = 9;
+Item.SAPPHIRE     = 10;
+Item.EMERALD      = 11;
+Item.RUBY         = 12;
+Item.DIAMOND      = 13;
+Item.POUDRETTEITE = 14;
 
 Item.init = function () {
 	if (Item.initialized) return;
@@ -78,6 +88,66 @@ Item.realInit = function () {
 		//tick and that's how we shoot.
 		action: function () {},
 		icon: 4,
+	},{
+		name: 'spawn',
+		model: blockModel(Block.SPAWN),
+		action: throttle(blockAction(Block.SPAWN)),
+		stackable: false,
+		icon: 5,
+	},{
+		name: 'grass',
+		model: blockModel(Block.GRASS),
+		action: throttle(blockAction(Block.GRASS)),
+		stackable: true,
+		icon: 6,
+	},{
+		name: 'coal',
+		model: blockModel(Block.COAL),
+		action: throttle(blockAction(Block.COAL)),
+		stackable: true,
+		icon: 7,
+	},{
+		name: 'iron',
+		model: blockModel(Block.IRON),
+		action: throttle(blockAction(Block.IRON)),
+		stackable: true,
+		icon: 8,
+	},{
+		name: 'gold',
+		model: blockModel(Block.GOLD),
+		action: throttle(blockAction(Block.GOLD)),
+		stackable: true,
+		icon: 9,
+	},{
+		name: 'sapphire',
+		model: blockModel(Block.SAPPHIRE),
+		action: throttle(blockAction(Block.SAPPHIRE)),
+		stackable: true,
+		icon: 10,
+	},{
+		name: 'emerald',
+		model: blockModel(Block.EMERALD),
+		action: throttle(blockAction(Block.EMERALD)),
+		stackable: true,
+		icon: 11,
+	},{
+		name: 'ruby',
+		model: blockModel(Block.RUBY),
+		action: throttle(blockAction(Block.RUBY)),
+		stackable: true,
+		icon: 12,
+	},{
+		name: 'diamond',
+		model: blockModel(Block.DIAMOND),
+		action: throttle(blockAction(Block.DIAMOND)),
+		stackable: true,
+		icon: 13,
+	},{
+		name: 'poudretteite',
+		model: blockModel(Block.POUDRETTEITE),
+		action: throttle(blockAction(Block.POUDRETTEITE)),
+		stackable: true,
+		icon: 14,
 	}
 	];
 

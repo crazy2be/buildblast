@@ -12,21 +12,21 @@ import (
 type MessageKind string
 
 const (
-	MSG_HANDSHAKE_REPLY = MessageKind("handshake-reply")
-	MSG_HANDSHAKE_ERROR = MessageKind("handshake-error")
-	MSG_ENTITY_CREATE   = MessageKind("entity-create")
-	MSG_ENTITY_STATE    = MessageKind("entity-state")
-	MSG_ENTITY_REMOVE   = MessageKind("entity-remove")
-	MSG_CHUNK           = MessageKind("chunk")
-	MSG_BLOCK           = MessageKind("block")
-	MSG_CONTROLS_STATE  = MessageKind("controls-state")
-	MSG_CHAT            = MessageKind("chat")
-	MSG_DEBUG_RAY       = MessageKind("debug-ray")
-	MSG_NTP_SYNC        = MessageKind("ntp-sync")
-	MSG_INVENTORY_STATE = MessageKind("inventory-state")
-	MSG_INVENTORY_MOVE  = MessageKind("inventory-move")
-	MSG_SCOREBOARD_ADD  = MessageKind("scoreboard-add")
-	MSG_SCOREBOARD_SET  = MessageKind("scoreboard-set")
+	MSG_HANDSHAKE_REPLY   = MessageKind("handshake-reply")
+	MSG_HANDSHAKE_ERROR   = MessageKind("handshake-error")
+	MSG_ENTITY_CREATE     = MessageKind("entity-create")
+	MSG_ENTITY_STATE      = MessageKind("entity-state")
+	MSG_ENTITY_REMOVE     = MessageKind("entity-remove")
+	MSG_CHUNK             = MessageKind("chunk")
+	MSG_BLOCK             = MessageKind("block")
+	MSG_CONTROLS_STATE    = MessageKind("controls-state")
+	MSG_CHAT              = MessageKind("chat")
+	MSG_DEBUG_RAY         = MessageKind("debug-ray")
+	MSG_NTP_SYNC          = MessageKind("ntp-sync")
+	MSG_INVENTORY_STATE   = MessageKind("inventory-state")
+	MSG_INVENTORY_MOVE    = MessageKind("inventory-move")
+	MSG_SCOREBOARD_ADD    = MessageKind("scoreboard-add")
+	MSG_SCOREBOARD_SET    = MessageKind("scoreboard-set")
 	MSG_SCOREBOARD_REMOVE = MessageKind("scoreboard-remove")
 )
 
@@ -84,12 +84,12 @@ func typeToKind(m Message) MessageKind {
 		return MSG_INVENTORY_STATE
 	case *MsgInventoryMove:
 		return MSG_INVENTORY_MOVE
-    case *MsgScoreboardAdd:
-        return MSG_SCOREBOARD_ADD
-    case *MsgScoreboardSet:
-        return MSG_SCOREBOARD_SET
-    case *MsgScoreboardRemove:
-        return MSG_SCOREBOARD_REMOVE
+	case *MsgScoreboardAdd:
+		return MSG_SCOREBOARD_ADD
+	case *MsgScoreboardSet:
+		return MSG_SCOREBOARD_SET
+	case *MsgScoreboardRemove:
+		return MSG_SCOREBOARD_REMOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -172,12 +172,12 @@ type MsgInventoryMove struct {
 }
 
 type MsgScoreboardAdd struct {
-	Name string
+	Name  string
 	Score int
 }
 
 type MsgScoreboardSet struct {
-	Name string
+	Name  string
 	Score int
 }
 

@@ -88,6 +88,6 @@ func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	globalPortMapper.freePort(server.PortOffset)
 	err = os.RemoveAll(worldDir(server.Id))
 	if err != nil {
-		log.Println("Error deleting folder (", worldDir(server.Id),"):", err)
+		log.Println("Error deleting folder (", worldDir(server.Id), "):", err)
 	}
 }

@@ -12,6 +12,16 @@ const (
 	ITEM_STONE
 	ITEM_SHOVEL
 	ITEM_GUN
+	ITEM_SPAWN
+	ITEM_GRASS
+	ITEM_COAL
+	ITEM_IRON
+	ITEM_GOLD
+	ITEM_SAPPHIRE
+	ITEM_EMERALD
+	ITEM_RUBY
+	ITEM_DIAMOND
+	ITEM_POUDRETTEITE
 )
 
 const (
@@ -21,11 +31,21 @@ const (
 )
 
 var ITEM_PROPERTIES []uint32 = []uint32{
-	/** NIL    */ 0,
-	/** DIRT   */ STACKABLE,
-	/** STONE  */ STACKABLE,
-	/** SHOVEL */ 0,
-	/** GUN    */ SHOOTABLE,
+	/** NIL          */ 0,
+	/** DIRT         */ STACKABLE,
+	/** STONE        */ STACKABLE,
+	/** SHOVEL       */ 0,
+	/** GUN          */ SHOOTABLE,
+	/** SPAWN        */ 0,
+	/** Grass        */ STACKABLE,
+	/** COAL         */ STACKABLE,
+	/** IRON         */ STACKABLE,
+	/** GOLD         */ STACKABLE,
+	/** SAPPHIRE     */ STACKABLE,
+	/** EMERALD      */ STACKABLE,
+	/** RUBY         */ STACKABLE,
+	/** DIAMOND      */ STACKABLE,
+	/** POUDRETTEITE */ STACKABLE,
 }
 
 var blockToItem map[mapgen.Block]Item
@@ -46,5 +66,15 @@ func init() {
 	blockToItem = make(map[mapgen.Block]Item, 2)
 	blockToItem[mapgen.BLOCK_DIRT] = ITEM_DIRT
 	blockToItem[mapgen.BLOCK_STONE] = ITEM_STONE
+	blockToItem[mapgen.BLOCK_SPAWN] = ITEM_SPAWN
+	blockToItem[mapgen.BLOCK_GRASS] = ITEM_GRASS
+	blockToItem[mapgen.BLOCK_COAL] = ITEM_COAL
+	blockToItem[mapgen.BLOCK_IRON] = ITEM_IRON
+	blockToItem[mapgen.BLOCK_GOLD] = ITEM_GOLD
+	blockToItem[mapgen.BLOCK_SAPPHIRE] = ITEM_SAPPHIRE
+	blockToItem[mapgen.BLOCK_EMERALD] = ITEM_EMERALD
+	blockToItem[mapgen.BLOCK_RUBY] = ITEM_RUBY
+	blockToItem[mapgen.BLOCK_DIAMOND] = ITEM_DIAMOND
+	blockToItem[mapgen.BLOCK_POUDRETTEITE] = ITEM_POUDRETTEITE
 	// All others are ITEM_NIL by default
 }

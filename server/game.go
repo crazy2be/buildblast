@@ -24,7 +24,7 @@ type Game struct {
 	clientResponses      chan clientResponse
 	disconnectingClients chan disconnectingClient
 
-	scores				 map[string]int
+	scores map[string]int
 
 	world *game.World
 }
@@ -148,7 +148,7 @@ func (g *Game) Tick() {
 
 func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
 	g.Broadcast(&MsgScoreboardAdd{
-		Name: string(id),
+		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 }
@@ -162,11 +162,11 @@ func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
 	g.scores[killer]++
 	g.scores[string(id)]--
 	g.Broadcast(&MsgScoreboardSet{
-		Name: string(id),
+		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 	g.Broadcast(&MsgScoreboardSet{
-		Name: killer,
+		Name:  killer,
 		Score: g.scores[killer],
 	})
 }
