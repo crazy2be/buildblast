@@ -1,3 +1,8 @@
+// This file benchmarks the mesh generation code.
+// run it with
+//	node bench.js
+// and speed up all the meshing!
+
 var fs = require('fs');
 
 // Hacks to mock require. Yay dependency injection!
@@ -53,7 +58,7 @@ function flatWorld(ocX, ocY, ocZ) {
 // TODO: Add more things to test with, maybe a sideways hill?
 
 // Benchmark the meshers!
-var mesher = requireJS('chunks/worker/meshers/simpleMesher');
+var mesher = requireJS('chunks/worker/mesher');
 var ChunkGeometry = requireJS('chunks/worker/chunkGeometry');
 
 var manager = new ChunkManagerMock();
