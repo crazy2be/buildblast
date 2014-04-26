@@ -129,49 +129,8 @@ Item.realInit = function () {
 		var position = [0.0, 0.0, 0.0];
 		Block.addGeometry(verts, indices, uvs, shownFaces, block, position);
 
-		// TODO: Don't just copy all this shit from simpleMesher...
-		function copy(src, dst) {
-			for (var i = 0; i < src.length; i++) {
-				dst[i] = src[i];
-			}
-		}
-
-		// Here we're just copying the native JavaScript numbers into a typed Float32 array.
-		// This is required by WebGL for attribute buffers.
-		var vertsa = new Float32Array(verts.length);
-		copy(verts, vertsa);
-
-		var indicesa = new Uint16Array(indices.length);
-		copy(indices, indicesa);
-
-		var uvsa = new Float32Array(uvs.length);
-		copy(uvs, uvsa);
-
-		//See the readme for documentation.
-		var attributes = {
-			position: {
-				itemSize: 3,
-				array: vertsa,
-				numItems: verts.length,
-			},
-			index: {
-				itemSize: 1,
-				array: indicesa,
-				numItems: indices.length,
-			},
-			uv: {
-				itemSize: 2,
-				array: uvsa,
-				numItems: uvsa.length,
-			},
-		};
-
-		var offsets = [{
-			start: 0,
-			count: indices.length,
-			indices: 0,
-		}];
-		// END TODO
+		var attributes = Block.makeAttributes(verts, indices, uvs);
+		var offsets = Block.makeOffsets(indices);
 
 		var geometry = new THREE.BufferGeometry();
 		geometry.attributes = attributes;

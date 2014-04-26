@@ -33,51 +33,18 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
-	function copy(src, dst) {
-		for (var i = 0; i < src.length; i++) {
-			dst[i] = src[i];
-		}
-	}
+	var attributes = Block.makeAttributes(verts, indices, uvs);
+	var offsets = Block.makeOffsets(indices);
 
-	// Here we're just copying the native JavaScript numbers into a typed Float32 array.
-	// This is required by WebGL for attribute buffers.
-	var vertsa = new Float32Array(verts.length);
-	copy(verts, vertsa);
-
-	var indicesa = new Uint16Array(indices.length);
-	copy(indices, indicesa);
-
-	var uvsa = new Float32Array(uvs.length);
-	copy(uvs, uvsa);
-
-	//See the readme for documentation.
-	var attributes = {
-		position: {
-			itemSize: 3,
-			array: vertsa,
-			numItems: verts.length,
-		},
-		index: {
-			itemSize: 1,
-			array: indicesa,
-			numItems: indices.length,
-		},
-		uv: {
-			itemSize: 2,
-			array: uvsa,
-			numItems: uvsa.length,
-		},
-	};
-	var offsets = [{
-		start: 0,
-		count: indices.length,
-		indices: 0,
-	}];
 
 	return {
 		attributes: attributes,
 		offsets: offsets,
-		transferables: [vertsa.buffer, indicesa.buffer, uvsa.buffer],
+		transferables: [
+			attributes.position.array.buffer,
+			attributes.index.array.buffer,
+			attributes.uv.array.buffer,
+		],
 	};
 
 	//Everything after here is just helper functions.
