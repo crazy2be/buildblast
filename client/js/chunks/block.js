@@ -81,6 +81,8 @@ Block.getTileOffset = function (blockType, face) {
 	}
 };
 
+// TODO: We probably want to move this meshing logic into a seperate file, it's
+// starting to grow pretty big now.
 Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, position) {
 	var positions = [
 		[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
