@@ -90,6 +90,10 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 	curBlock := w.Block(m.Pos)
 
 	if curBlock == mapgen.BLOCK_AIR {
+		// If we are changing AIR to AIR (caused by a race condition) ignore it.
+		if m.Type == mapgen.BLOCK_AIR {
+			return
+		}
 		// Placing a block
 		item := game.ItemFromBlock(m.Type)
 		if inv.RemoveItem(item) {
