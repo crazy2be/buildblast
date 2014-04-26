@@ -9,6 +9,8 @@ var jqueryWaitImgs = require("jqueryWaitImgs");
 
 // TODO: Move a lot of this logic to entity. We want
 // Entities to be able to have items too!
+// TODO: This code is a bit messy. Would be nice to clean it up
+// if someone wants to take a crack at it.
 function Inventory(world, camera, conn, controls) {
 	var self = this;
 	var BAG_SIZE = 25;
@@ -248,9 +250,9 @@ function Inventory(world, camera, conn, controls) {
 	};
 }
 
-	// Represents a 3d model (corresponding to some inventory item).
-	// leftward: 1 for left; -1 for right.
-	function InventoryModel(world, model, leftward) {
+// Represents a 3d model (corresponding to some inventory item).
+// leftward: 1 for left; -1 for right.
+function InventoryModel(world, model, leftward) {
 	var self = this;
 	self.update = function (playerPos, lat, lon) {
 		pointItem(lat, lon);
@@ -324,9 +326,9 @@ function Inventory(world, camera, conn, controls) {
 
 }
 
-	// jQuery UI hack
-	// http://stackoverflow.com/questions/1853230/jquery-ui-draggable-event-status-on-revert
-	$.ui.draggable.prototype._mouseStop = function(event) {
+// jQuery UI hack
+// http://stackoverflow.com/questions/1853230/jquery-ui-draggable-event-status-on-revert
+$.ui.draggable.prototype._mouseStop = function(event) {
 	//If we are using droppables, inform the manager about the drop
 	var dropped = false;
 	if ($.ui.ddmanager && !this.options.dropBehaviour)

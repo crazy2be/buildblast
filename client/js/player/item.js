@@ -1,6 +1,9 @@
 define(function(require) {
+var THREE = require("THREE");
+
 var Models = require("models");
 var Block = require("chunks/block");
+var Chunk = require("chunks/chunk");
 
 function Item(type) {
 	this.type = type;
@@ -26,12 +29,10 @@ Item.prototype.icon = function () {
 	return Item.DATA[this.type].icon;
 };
 
-// NOTE: This model is shared with all other items
-// of this type. You should .clone() it before you add
-// it to the world.
 Item.prototype.model = function () {
 	Item.init();
-	return Item.DATA[this.type].model;
+	var model = Item.DATA[this.type].model;
+	return model ? model.clone() : null;
 };
 
 Item.NIL          = 0;
@@ -65,13 +66,13 @@ Item.realInit = function () {
 		icon: 0,
 	},{
 		name: 'dirt',
-		model: Models.block(),
+		model: blockModel(Block.DIRT),
 		action: throttle(blockAction(Block.DIRT)),
 		stackable: true,
 		icon: 1,
 	},{
 		name: 'stone',
-		model: Models.stone(),
+		model: blockModel(Block.STONE),
 		action: throttle(blockAction(Block.STONE)),
 		stackable: true,
 		icon: 2,
@@ -85,7 +86,7 @@ Item.realInit = function () {
 		model: Models.pistol(),
 		//This action does nothing, we send the server our controls every
 		//tick and that's how we shoot.
-		action: function(){},
+		action: function () {},
 		icon: 4,
 	}
 	];
@@ -128,6 +129,23 @@ Item.realInit = function () {
 			if (!bc) return;
 			world.changeBlock(bc.x, bc.y, bc.z, block);
 		};
+	}
+
+	function blockModel(block) {
+		var verts = [];
+		var indices = [];
+		var uvs = [];
+		var shownFaces = [1, 1, 1, 1, 1, 1];
+		var position = [-0.5, -0.5, -0.5];
+		Block.addGeometry(verts, indices, uvs, shownFaces, block, position);
+
+		var attributes = Block.makeAttributes(verts, indices, uvs);
+		var offsets = Block.makeOffsets(indices);
+
+		var geometry = new THREE.BufferGeometry();
+		geometry.attributes = attributes;
+		geometry.offsets = offsets;
+		return Chunk.makeBlockMesh(block, geometry);
 	}
 }
 
