@@ -126,7 +126,7 @@ Item.realInit = function () {
 		var indices = [];
 		var uvs = [];
 		var shownFaces = [1, 1, 1, 1, 1, 1];
-		var position = [0.0, 0.0, 0.0];
+		var position = [-0.5, -0.5, -0.5];
 		Block.addGeometry(verts, indices, uvs, shownFaces, block, position);
 
 		var attributes = Block.makeAttributes(verts, indices, uvs);
