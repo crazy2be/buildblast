@@ -105,7 +105,6 @@ return function simpleMesh(blocks, cc, manager) {
 		if (empty(ocX, ocY, ocZ)) return;
 
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
-		if (blockType < 0) return; // ?????
 
 		//We only draw faces when there is no cube blocking it.
 		var shown = [
@@ -121,7 +120,7 @@ return function simpleMesh(blocks, cc, manager) {
 			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
 		}
 
-		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];\
+		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
 		Block.addGeometry(verts, index, uvs, shown, blockType, position);
 	}
