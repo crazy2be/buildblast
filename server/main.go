@@ -47,7 +47,7 @@ func main() {
 
 	// Set up the world
 	var world *game.World
-	generator := mapgen.NewMazeArena(float64(time.Now().Unix()))
+	generator := mapgen.NewSimplexHills(time.Now().Unix())
 	if *persistEnabled {
 		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
 		persister := persist.New(*worldBaseDir, generator)

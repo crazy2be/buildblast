@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"buildblast/lib/coords"
+	"buildblast/lib/mapgen/noise"
 )
 
 type PerlinArena struct {
@@ -21,7 +22,7 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	height := 0.0
 
 	for i := 0; i < 4; i++ {
-		height += perlinNoise(x/quality, z/quality, pa.seed) * quality
+		height += noise.PerlinNoise(x/quality, z/quality, pa.seed) * quality
 		quality *= 4
 	}
 
@@ -39,7 +40,7 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 func (pa *PerlinArena) Block(bc coords.Block) Block {
 	height := int(pa.heightAt(float64(bc.X), float64(bc.Z)))
 	if height > bc.Y {
-		return BLOCK_DIRT
+		return BLOCK_GRASS
 	}
 	if height == bc.Y {
 		return BLOCK_SPAWN
