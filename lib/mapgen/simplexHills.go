@@ -26,8 +26,14 @@ func (sh *SimplexHills) Block(bc coords.Block) Block {
 		return BLOCK_SPAWN
 	}
 	height := int(sh.heightAt(float64(bc.X), float64(bc.Z)))
-	if height > bc.Y {
+	if bc.Y == height {
 		return BLOCK_GRASS
+	}
+	if bc.Y < height - 3 {
+		return BLOCK_STONE
+	}
+	if height > bc.Y {
+		return BLOCK_DIRT
 	}
 	return BLOCK_AIR
 }
