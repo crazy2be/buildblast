@@ -1,4 +1,4 @@
-package mapgen
+package noise
 
 import (
 	"math"
