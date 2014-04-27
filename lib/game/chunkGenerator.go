@@ -76,10 +76,9 @@ func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
 
 func (cm *ChunkGenerator) Run() {
 	for {
-		<-time.After(time.Second / 10)
-
 		cc, valid := cm.Top()
 		if !valid {
+			<-time.After(time.Second / 10)
 			continue
 		}
 
