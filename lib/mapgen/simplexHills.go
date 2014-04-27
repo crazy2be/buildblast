@@ -1,6 +1,7 @@
 package mapgen
 
 import (
+	"log"
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen/noise"
 )
@@ -27,7 +28,37 @@ func (sh *SimplexHills) holeAt(x, y, z float64) bool {
 	return val < -0.2
 }
 
+func (sh *SimplexHills) Chunk(cc coords.Chunk) *Chunk {
+	chunk := &Chunk{}
+	// Build the height map
+	hMap := make([][]int, coords.ChunkWidth)
+	for x := range hMap {
+		hMap[x] = make([]int, coords.ChunkDepth)
+		for z := range hMap[x] {
+			oc := coords.Offset{X: x, Y: 0, Z: z}
+			bc := oc.Block(cc)
+			hMap[x][z] = int(sh.heightAt(float64(bc.X), float64(bc.Z)))
+		}
+	}
+	for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
+		for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
+			for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
+				oc := coords.Offset{X: ocX, Y: ocY, Z: ocZ}
+				bc := oc.Block(cc)
+				block := sh.block(bc, hMap[oc.X][oc.Z])
+				chunk.SetBlock(oc, block)
+			}
+		}
+	}
+	return chunk
+}
+
 func (sh *SimplexHills) Block(bc coords.Block) Block {
+	log.Println("I shouldn't be called")
+	return sh.block(bc, int(sh.heightAt(float64(bc.X), float64(bc.Z))))
+}
+
+func (sh *SimplexHills) block(bc coords.Block, height int) Block {
 	if bc.X == 0 && bc.Y == 16 && bc.Z == 0 {
 		return BLOCK_SPAWN
 	}
@@ -35,7 +66,6 @@ func (sh *SimplexHills) Block(bc coords.Block) Block {
 		return BLOCK_AIR
 	}
 
-	height := int(sh.heightAt(float64(bc.X), float64(bc.Z)))
 	if bc.Y == height {
 		return BLOCK_GRASS
 	}
@@ -46,8 +76,4 @@ func (sh *SimplexHills) Block(bc coords.Block) Block {
 		return BLOCK_DIRT
 	}
 	return BLOCK_AIR
-}
-
-func (sh *SimplexHills) Chunk(cc coords.Chunk) *Chunk {
-	return generateChunk(sh, cc)
 }
