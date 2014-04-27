@@ -1,20 +1,22 @@
 package mapgen
 
 import (
-	"log"
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen/noise"
+	"log"
 )
 
 type SimplexHills struct {
 	simplexNoise *noise.SimplexNoise
 	simplexHoles *noise.SimplexNoise
+	heightMap    map[coords.Chunk][][]int
 }
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
 	sh.simplexNoise = noise.NewSimplexNoise(1024, 0.4, seed)
 	sh.simplexHoles = noise.NewSimplexNoise(1024, 0.8, seed)
+	sh.heightMap = make(map[coords.Chunk][][]int)
 	return sh
 }
 
@@ -31,15 +33,20 @@ func (sh *SimplexHills) holeAt(x, y, z float64) bool {
 func (sh *SimplexHills) Chunk(cc coords.Chunk) *Chunk {
 	chunk := &Chunk{}
 	// Build the height map
-	hMap := make([][]int, coords.ChunkWidth)
-	for x := range hMap {
-		hMap[x] = make([]int, coords.ChunkDepth)
-		for z := range hMap[x] {
-			oc := coords.Offset{X: x, Y: 0, Z: z}
-			bc := oc.Block(cc)
-			hMap[x][z] = int(sh.heightAt(float64(bc.X), float64(bc.Z)))
+	hMap := sh.heightMap[cc]
+	if hMap == nil {
+		hMap = make([][]int, coords.ChunkWidth)
+		for x := range hMap {
+			hMap[x] = make([]int, coords.ChunkDepth)
+			for z := range hMap[x] {
+				oc := coords.Offset{X: x, Y: 0, Z: z}
+				bc := oc.Block(cc)
+				hMap[x][z] = int(sh.heightAt(float64(bc.X), float64(bc.Z)))
+			}
 		}
+		sh.heightMap[cc] = hMap
 	}
+
 	for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
 		for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
 			for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
