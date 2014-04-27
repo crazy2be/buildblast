@@ -29,7 +29,7 @@ func (sh *SimplexHills) Block(bc coords.Block) Block {
 	if bc.Y == height {
 		return BLOCK_GRASS
 	}
-	if bc.Y < height - 3 {
+	if bc.Y < height-3 {
 		return BLOCK_STONE
 	}
 	if height > bc.Y {

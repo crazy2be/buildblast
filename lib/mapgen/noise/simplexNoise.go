@@ -22,7 +22,7 @@ func NewSimplexNoise(largestFeature int, persistence float64, seed int64) *Simpl
 	sn.persistence = persistence
 
 	// Calculate which power of 2 largestFeature is
-	numOctaves := int(math.Ceil(math.Log10(float64(largestFeature))/math.Log10(2)))
+	numOctaves := int(math.Ceil(math.Log10(float64(largestFeature)) / math.Log10(2)))
 	sn.octaves = make([]*SimplexOctave, numOctaves)
 	sn.frequencies = make([]float64, numOctaves)
 	sn.amplitudes = make([]float64, numOctaves)
@@ -31,7 +31,7 @@ func NewSimplexNoise(largestFeature int, persistence float64, seed int64) *Simpl
 	for i := 0; i < numOctaves; i++ {
 		sn.octaves[i] = NewSimplexOctave(randGen.Int63())
 		sn.frequencies[i] = math.Pow(2, float64(i))
-		sn.amplitudes[i] = math.Pow(persistence, float64(numOctaves - i))
+		sn.amplitudes[i] = math.Pow(persistence, float64(numOctaves-i))
 	}
 
 	return sn
@@ -40,7 +40,7 @@ func NewSimplexNoise(largestFeature int, persistence float64, seed int64) *Simpl
 func (sn *SimplexNoise) Noise2(x, y float64) float64 {
 	var result float64
 	for i := 0; i < len(sn.octaves); i++ {
-		result += sn.octaves[i].noise2(x/sn.frequencies[i], y/sn.frequencies[i])*sn.amplitudes[i];
+		result += sn.octaves[i].noise2(x/sn.frequencies[i], y/sn.frequencies[i]) * sn.amplitudes[i]
 	}
-	return result;
+	return result
 }
