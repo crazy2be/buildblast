@@ -128,7 +128,7 @@ func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
 	}
 
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func(newCC coords.Chunk, dist int) {
+	eachWithin(cc, 2, 1, 2, func(newCC coords.Chunk, dist int) {
 		// We want to prioritize further away chunks lower, but the
 		// priority must be a positive integer.
 		cb(newCC, 10-dist)
