@@ -8,14 +8,12 @@ import (
 
 type SimplexHills struct {
 	simplexNoise *noise.SimplexNoise
-	simplexHoles *noise.SimplexNoise
 	heightMap    map[coords.Chunk][][]int
 }
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
 	sh.simplexNoise = noise.NewSimplexNoise(1024, 0.4, seed)
-	sh.simplexHoles = noise.NewSimplexNoise(1024, 0.8, seed)
 	sh.heightMap = make(map[coords.Chunk][][]int)
 	return sh
 }
@@ -23,11 +21,6 @@ func NewSimplexHills(seed int64) *SimplexHills {
 func (sh *SimplexHills) heightAt(x, z float64) float64 {
 	height := sh.simplexNoise.Noise2(x, z)
 	return height*50 + float64(coords.ChunkHeight)/2
-}
-
-func (sh *SimplexHills) holeAt(x, y, z float64) bool {
-	val := sh.simplexNoise.Noise3(x, y, z)
-	return val < -0.2
 }
 
 func (sh *SimplexHills) Chunk(cc coords.Chunk) *Chunk {
@@ -68,9 +61,6 @@ func (sh *SimplexHills) Block(bc coords.Block) Block {
 func (sh *SimplexHills) block(bc coords.Block, height int) Block {
 	if bc.X == 0 && bc.Y == 16 && bc.Z == 0 {
 		return BLOCK_SPAWN
-	}
-	if sh.holeAt(float64(bc.X), float64(bc.Y), float64(bc.Z)) {
-		return BLOCK_AIR
 	}
 
 	if bc.Y == height {
