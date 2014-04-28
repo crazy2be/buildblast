@@ -13,7 +13,7 @@ type SimplexHills struct {
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
-	sh.simplexNoise = noise.NewSimplexNoise(1024, 0.4, seed)
+	sh.simplexNoise = noise.NewSimplexNoise(10, 0.4, seed)
 	sh.heightMap = make(map[coords.Chunk][][]int)
 	return sh
 }

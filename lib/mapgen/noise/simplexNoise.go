@@ -7,7 +7,6 @@ import (
 
 type SimplexNoise struct {
 	seed           int64
-	largestFeature int
 	persistence    float64
 
 	oct  []*SimplexOctave
@@ -15,14 +14,12 @@ type SimplexNoise struct {
 	amp  []float64
 }
 
-func NewSimplexNoise(largestFeature int, persistence float64, seed int64) *SimplexNoise {
+// Persistence is a value [0, 1], where 0 is flat and 1 is vertical cliffs
+func NewSimplexNoise(numOctaves int, persistence float64, seed int64) *SimplexNoise {
 	sn := new(SimplexNoise)
 	sn.seed = seed
-	sn.largestFeature = largestFeature
 	sn.persistence = persistence
 
-	// Calculate which power of 2 largestFeature is
-	numOctaves := int(math.Ceil(math.Log10(float64(largestFeature)) / math.Log10(2)))
 	sn.oct = make([]*SimplexOctave, numOctaves)
 	sn.freq = make([]float64, numOctaves)
 	sn.amp = make([]float64, numOctaves)
