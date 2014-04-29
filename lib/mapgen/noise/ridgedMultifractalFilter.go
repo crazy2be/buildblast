@@ -34,9 +34,10 @@ func NewRidgedMultifractalFilter(numOctaves int, offset, lacunarity, gain, H flo
 		rm.exponentArray[i] = math.Pow(frequency, -H)
 		frequency *= lacunarity
 	}
+	return rm
 }
 
-func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source *Noise3Source) float64 {
+func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source Noise3Source) float64 {
 	signal := source.Noise3(x, y, z)
 
 	// Get absolute value of signal (this creates the ridges).
@@ -51,11 +52,11 @@ func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source *Noise3Source
 	// Assign initial values
 	result := signal
 	weight := 1.0
-	for i = 1; i < rm.numOctaves; i++ {
+	for i := 1; i < rm.numOctaves; i++ {
 		// increase the frequency
-		x *= lacunarity
-		y *= lacunarity
-		z *= lacunarity
+		x *= rm.lacunarity
+		y *= rm.lacunarity
+		z *= rm.lacunarity
 
 		// weight successive contributions by previous signal 
 		weight = signal * rm.gain
