@@ -58,7 +58,7 @@ func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source Noise3Source)
 		y *= rm.lacunarity
 		z *= rm.lacunarity
 
-		// weight successive contributions by previous signal 
+		// weight successive contributions by previous signal
 		weight = signal * rm.gain
 		if weight > 1 {
 			weight = 1.0
@@ -72,11 +72,10 @@ func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source Noise3Source)
 		}
 		signal = rm.offset - signal
 		signal *= signal
-		// weight the contribution 
+		// weight the contribution
 		signal *= weight
 		result += signal * rm.exponentArray[i]
 	}
 
 	return result
 }
-

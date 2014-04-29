@@ -6,8 +6,8 @@ import (
 )
 
 type SimplexNoise struct {
-	seed           int64
-	persistence    float64
+	seed        int64
+	persistence float64
 
 	oct  []*SimplexOctave
 	freq []float64
