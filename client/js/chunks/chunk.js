@@ -10,7 +10,11 @@ ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
 ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
 
 var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
-	map: ATLAS_TEXTURE
+	map: ATLAS_TEXTURE,
+	transparent: true,
+// 	depthWrite: false,
+// 	depthTest: false,
+	alphaTest: 0.5,
 });
 
 function Chunk(blocks, geometry, scene) {

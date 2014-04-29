@@ -9,6 +9,9 @@ Block.prototype.mineable = function () {
 Block.prototype.invisible = function () {
 	return Block.isInvisible(this.type);
 };
+Block.prototype.transparent = function () {
+	return Block.isTransparent(this.type);
+}
 Block.prototype.solid = function () {
 	return Block.isSolid(this.type);
 };
@@ -28,6 +31,7 @@ Block.EMERALD      = 10;
 Block.RUBY         = 11;
 Block.DIAMOND      = 12;
 Block.POUDRETTEITE = 13;
+Block.GLASS        = 14;
 
 //See "Block encoding.txt"
 
@@ -35,12 +39,15 @@ Block.POUDRETTEITE = 13;
 Block.UNMINEABLE = 0x80000000;
 
 //Subtypes
+// Transparent blocks can be seen through, like glass, spawn blocks, etc.
+// We will render faces behind them.
+Block.TRANSPARENT = 1 << 0;
 // Invisible blocks are ignored by the renderer, and have no physical
 // manifestation in the world.
-Block.INVISIBLE = 1 << 0;
+Block.INVISIBLE = (1 << 1) | Block.TRANSPARENT;
 // Intangible blocks are ignored by physics simulations, and will
 // allow entities to occupy the same space as them.
-Block.INTANGIBLE = 1 << 1;
+Block.INTANGIBLE = 1 << 2;
 
 // By default, blocks are visible, tangible, and mineable.
 Block.PROPERTIES = [
@@ -48,8 +55,8 @@ Block.PROPERTIES = [
 	/** AIR          */ Block.INVISIBLE | Block.INTANGIBLE | Block.UNMINEABLE,
 	/** DIRT         */ 0,
 	/** STONE        */ 0,
-	/** SPAWN        */ Block.UNMINEABLE,
-	/** Grass        */ 0,
+	/** SPAWN        */ Block.UNMINEABLE | Block.TRANSPARENT,
+	/** GRASS        */ 0,
 	/** COAL         */ 0,
 	/** IRON         */ 0,
 	/** GOLD         */ 0,
@@ -58,6 +65,7 @@ Block.PROPERTIES = [
 	/** RUBY         */ 0,
 	/** DIAMOND      */ 0,
 	/** POUDRETTEITE */ 0,
+	/** GLASS        */ Block.TRANSPARENT,
 ];
 
 Block.ATLAS_SIZE = 128;
@@ -79,6 +87,7 @@ Block.ATLAS = [
 	[2, 6], // Ruby
 	[3, 6], // Diamond
 	[4, 6], // Poudretteite
+	[5, 6], // Glass
 ];
 
 /**
@@ -121,6 +130,8 @@ Block.getTileOffset = function (blockType, face) {
 		return Block.ATLAS[11];
 	} else if (blockType === Block.POUDRETTEITE) {
 		return Block.ATLAS[12];
+	} else if (blockType === Block.GLASS) {
+		return Block.ATLAS[13];
 	} else {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}
@@ -237,6 +248,10 @@ Block.isMineable = function (block) {
 Block.isInvisible = function (block) {
 	return (Block.PROPERTIES[block] & Block.INVISIBLE) === Block.INVISIBLE;
 };
+
+Block.isTransparent = function (block) {
+	return (Block.PROPERTIES[block] & Block.TRANSPARENT) == Block.TRANSPARENT;
+}
 
 Block.isSolid = function (block) {
 	return (Block.PROPERTIES[block] & Block.INTANGIBLE) === 0;

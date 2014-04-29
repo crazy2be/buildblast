@@ -28,6 +28,7 @@ func NewInventory() *Inventory {
 	inv[1] = NewStack(ITEM_SHOVEL)
 	inv[2] = NewStackOf(ITEM_DIRT, MAX_STACK)
 	inv[3] = NewStackOf(ITEM_STONE, MAX_STACK)
+	inv[4] = NewStackOf(ITEM_GLASS, MAX_STACK)
 	inv[INV_WIDTH*INV_HEIGHT] = NewStack(ITEM_GUN)
 	inv[INV_WIDTH*INV_HEIGHT+2] = NewStack(ITEM_SHOVEL)
 	inv[INV_WIDTH*INV_HEIGHT+3] = NewStackOf(ITEM_DIRT, MAX_STACK)
