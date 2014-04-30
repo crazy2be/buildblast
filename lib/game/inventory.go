@@ -28,7 +28,7 @@ func NewInventory() *Inventory {
 	// Bag
 	i := 0
 	for item := range EveryItem() {
-		if (item.Stackable()) {
+		if item.Stackable() {
 			inv[i] = NewStackOf(item, MAX_STACK)
 		} else {
 			inv[i] = NewStack(item)
