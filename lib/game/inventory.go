@@ -24,10 +24,19 @@ func NewInventory() *Inventory {
 	// [w*h + 2]    = right equip
 	// [w*h + 3]    = right reserve
 	inv := make([]Stack, INV_WIDTH*INV_HEIGHT+4)
-	inv[0] = NewStack(ITEM_GUN)
-	inv[1] = NewStack(ITEM_SHOVEL)
-	inv[2] = NewStackOf(ITEM_DIRT, MAX_STACK)
-	inv[3] = NewStackOf(ITEM_STONE, MAX_STACK)
+
+	// Bag
+	i := 0
+	for item := range EveryItem() {
+		if item.Stackable() {
+			inv[i] = NewStackOf(item, MAX_STACK)
+		} else {
+			inv[i] = NewStack(item)
+		}
+		i++
+	}
+
+	// Hands
 	inv[INV_WIDTH*INV_HEIGHT] = NewStack(ITEM_GUN)
 	inv[INV_WIDTH*INV_HEIGHT+2] = NewStack(ITEM_SHOVEL)
 	inv[INV_WIDTH*INV_HEIGHT+3] = NewStackOf(ITEM_DIRT, MAX_STACK)
@@ -67,24 +76,26 @@ func (inv *Inventory) findItemOfKind(item Item) int {
 	return -1
 }
 
-func (inv *Inventory) AddItem(item Item) {
+// Adds an item to the inventory. Returns true if the addition was sucessful,
+// false if there is no room remaining in the inventory.
+func (inv *Inventory) AddItem(item Item) bool {
 	for i := len(inv.slots) - 1; i >= 0; i-- {
 		slot := inv.slots[i]
 		if slot.item == item && slot.num < MAX_STACK {
 			inv.slots[i].num++
-			return
+			return true
 		}
 	}
 	emptySlot := inv.findItemOfKind(ITEM_NIL)
-	// TODO: Handle no space left
-	if emptySlot >= 0 {
-		inv.slots[emptySlot] = NewStack(item)
+	if emptySlot < 0 {
+		return false
 	}
+	inv.slots[emptySlot] = NewStack(item)
+	return true
 }
 
-// Removes an item from the inventory. Returns
-// true if the removal was sucessful, false if the
-// item does not exist in the inventory.
+// Removes an item from the inventory. Returns true if the removal was
+// sucessful, false if the given item does not exist in the inventory.
 func (inv *Inventory) RemoveItem(item Item) bool {
 	if item == ITEM_NIL {
 		return false

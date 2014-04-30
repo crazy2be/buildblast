@@ -68,24 +68,23 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
+	function transparent(ocX, ocY, ocZ) {
+		return Block.isTransparent(blockTypeAt(ocX, ocY, ocZ));
+	}
+
 	function addBlockGeometry(verts, indices, uvs, ocX, ocY, ocZ) {
-		if (empty(ocX, ocY, ocZ)) return;
-
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
+		if (Block.isInvisible(blockType)) return;
 
-		//We only draw faces when there is no cube blocking it.
+		// We only draw faces when there is no cube blocking it.
 		var shown = [
-			empty(ocX + 1, ocY,     ocZ    ),
-			empty(ocX - 1, ocY,     ocZ    ),
-			empty(ocX,     ocY + 1, ocZ    ),
-			empty(ocX,     ocY - 1, ocZ    ),
-			empty(ocX,     ocY,     ocZ + 1),
-			empty(ocX,     ocY,     ocZ - 1)
+			transparent(ocX + 1, ocY,     ocZ    ),
+			transparent(ocX - 1, ocY,     ocZ    ),
+			transparent(ocX,     ocY + 1, ocZ    ),
+			transparent(ocX,     ocY - 1, ocZ    ),
+			transparent(ocX,     ocY,     ocZ + 1),
+			transparent(ocX,     ocY,     ocZ - 1)
 		];
-
-		function empty(ocX, ocY, ocZ) {
-			return Block.isInvisible(blockTypeAt(ocX, ocY, ocZ));
-		}
 
 		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 

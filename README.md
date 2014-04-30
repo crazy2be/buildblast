@@ -1,7 +1,7 @@
 BuildBlast
 ==========
 
-![screenshot from 2014-01-13 08 58 44](https://f.cloud.github.com/assets/667720/1900919/42a15956-7c5b-11e3-81e0-cf430e9b4e37.png)
+![BuildBlast Screenshot](screenshot.png)
 
 
 Try it at **[BuildBlast.com](https://www.buildblast.com)**

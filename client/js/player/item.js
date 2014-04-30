@@ -50,6 +50,7 @@ Item.EMERALD      = 11;
 Item.RUBY         = 12;
 Item.DIAMOND      = 13;
 Item.POUDRETTEITE = 14;
+Item.GLASS        = 15;
 
 Item.init = function () {
 	if (Item.initialized) return;
@@ -148,6 +149,12 @@ Item.realInit = function () {
 		action: throttle(blockAction(Block.POUDRETTEITE)),
 		stackable: true,
 		icon: 14,
+	},{
+		name: 'glass',
+		model: blockModel(Block.GLASS),
+		action: throttle(blockAction(Block.GLASS)),
+		stackable: true,
+		icon: 15,
 	}
 	];
 
