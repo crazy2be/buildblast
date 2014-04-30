@@ -64,6 +64,17 @@ func ItemFromBlock(block mapgen.Block) Item {
 	return blockToItem[block]
 }
 
+func EveryItem() chan Item {
+	results := make(chan Item, 100)
+	go func() {
+		for i := int(ITEM_DIRT); i < len(ITEM_PROPERTIES); i++ {
+			results <- Item(i)
+		}
+		close(results)
+	}()
+	return results
+}
+
 func init() {
 	blockToItem = make(map[mapgen.Block]Item, 2)
 	blockToItem[mapgen.BLOCK_DIRT] = ITEM_DIRT
