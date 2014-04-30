@@ -12,8 +12,6 @@ ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
 var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
 	map: ATLAS_TEXTURE,
 	transparent: true,
-// 	depthWrite: false,
-// 	depthTest: false,
 	alphaTest: 0.5,
 });
 
