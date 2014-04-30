@@ -2,8 +2,8 @@ package maps
 
 import (
 	"buildblast/lib/coords"
-	"buildblast/lib/mapgen/noise"
 	. "buildblast/lib/mapgen"
+	"buildblast/lib/mapgen/noise"
 	"log"
 )
 
@@ -65,7 +65,7 @@ func (ct *CaveTest) block(bc coords.Block, height int) Block {
 	}
 
 	if bc.Y == height {
-		return BLOCK_GLASS;
+		return BLOCK_GLASS
 	}
 	return BLOCK_AIR
 }

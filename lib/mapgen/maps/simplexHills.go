@@ -2,8 +2,8 @@ package maps
 
 import (
 	"buildblast/lib/coords"
-	"buildblast/lib/mapgen/noise"
 	. "buildblast/lib/mapgen"
+	"buildblast/lib/mapgen/noise"
 	"log"
 )
 
