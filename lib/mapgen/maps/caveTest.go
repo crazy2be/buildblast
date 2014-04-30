@@ -5,16 +5,27 @@ import (
 	. "buildblast/lib/mapgen"
 	"buildblast/lib/mapgen/noise"
 	"log"
+	"time"
 )
 
 type CaveTest struct {
-	simplexNoise *noise.SimplexNoise
-	heightMap    map[coords.Chunk][][]int
+	inspector     *noise.Inspector
+	simplexNoise  *noise.SimplexNoise
+	simplexNoise2 *noise.SimplexNoise
+	ridgedFilter  *noise.RidgedMultifractalFilter
+	heightMap     map[coords.Chunk][][]int
 }
 
 func NewCaveTest(seed int64) *CaveTest {
 	ct := new(CaveTest)
+	ct.inspector = noise.NewInspector()
 	ct.simplexNoise = noise.NewSimplexNoise(10, 0.4, seed)
+	ct.simplexNoise2 = noise.NewSimplexNoise(10, 0.4, seed+time.Now().Unix())
+	ct.ridgedFilter = noise.NewRidgedMultifractalFilter(1, // Num octaves
+		1.0, // Offset
+		0.5, // Lacunarity (spacing)
+		1.0, // Gain
+		1.0) // H?
 	ct.heightMap = make(map[coords.Chunk][][]int)
 	return ct
 }
@@ -51,12 +62,14 @@ func (ct *CaveTest) Chunk(cc coords.Chunk) *Chunk {
 			}
 		}
 	}
+	ct.inspector.Log()
 	return chunk
 }
 
 func (ct *CaveTest) Block(bc coords.Block) Block {
 	log.Println("I shouldn't be called")
-	return ct.block(bc, int(ct.heightAt(float64(bc.X), float64(bc.Z))))
+	xf, yf, _ := bc.Float64()
+	return ct.block(bc, int(ct.heightAt(xf, yf)))
 }
 
 func (ct *CaveTest) block(bc coords.Block, height int) Block {
@@ -67,5 +80,29 @@ func (ct *CaveTest) block(bc coords.Block, height int) Block {
 	if bc.Y == height {
 		return BLOCK_GLASS
 	}
+	if bc.Y > height {
+		return BLOCK_AIR
+	}
+
+	// Calculate a cave
+	xf, yf, zf := bc.Float64()
+	ridge1 := ct.ridgedFilter.Filter(xf, yf, zf, ct.simplexNoise)
+	ridge2 := ct.ridgedFilter.Filter(xf, yf, zf, ct.simplexNoise2)
+	ct.inspector.Record(ridge1)
+	min := 0.9
+	if ridge1 >= min {
+		ridge1 = 1
+	} else {
+		ridge1 = 0
+	}
+	if ridge2 <= min {
+		ridge2 = 1
+	} else {
+		ridge2 = 0
+	}
+	if ridge1*ridge2 == 1 {
+		return BLOCK_STONE
+	}
+
 	return BLOCK_AIR
 }
