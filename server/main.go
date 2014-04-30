@@ -12,7 +12,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
-	"buildblast/lib/mapgen"
+	"buildblast/lib/mapgen/maps"
 	"buildblast/lib/persist"
 )
 
@@ -47,7 +47,7 @@ func main() {
 
 	// Set up the world
 	var world *game.World
-	generator := mapgen.NewSimplexHills(time.Now().Unix())
+	generator := maps.NewCaveTest(time.Now().Unix())
 	if *persistEnabled {
 		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
 		persister := persist.New(*worldBaseDir, generator)

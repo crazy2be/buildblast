@@ -1,9 +1,10 @@
-package mapgen
+package maps
 
 import (
 	"math/rand"
 
 	"buildblast/lib/coords"
+	. "buildblast/lib/mapgen"
 )
 
 type FlatWorld struct {
@@ -40,7 +41,7 @@ func (fw *FlatWorld) Block(bc coords.Block) Block {
 }
 
 func (fw *FlatWorld) Chunk(cc coords.Chunk) *Chunk {
-	return generateChunk(fw, cc)
+	return GenerateChunk(fw, cc)
 }
 
 func (fw *FlatWorld) seedRand(bc coords.Block) {

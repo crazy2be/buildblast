@@ -1,10 +1,11 @@
-package mapgen
+package maps
 
 import (
 	"math"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen/noise"
+	. "buildblast/lib/mapgen"
 )
 
 type MazeArena struct {
@@ -38,5 +39,5 @@ func (fa *MazeArena) Block(bc coords.Block) Block {
 }
 
 func (fa *MazeArena) Chunk(cc coords.Chunk) *Chunk {
-	return generateChunk(fa, cc)
+	return GenerateChunk(fa, cc)
 }

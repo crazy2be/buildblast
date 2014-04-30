@@ -1,10 +1,11 @@
-package mapgen
+package maps
 
 import (
 	"math"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen/noise"
+	. "buildblast/lib/mapgen"
 )
 
 type PerlinArena struct {
@@ -49,5 +50,5 @@ func (pa *PerlinArena) Block(bc coords.Block) Block {
 }
 
 func (pa *PerlinArena) Chunk(cc coords.Chunk) *Chunk {
-	return generateChunk(pa, cc)
+	return GenerateChunk(pa, cc)
 }

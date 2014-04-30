@@ -1,8 +1,9 @@
-package mapgen
+package maps
 
 import (
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen/noise"
+	. "buildblast/lib/mapgen"
 	"log"
 )
 
