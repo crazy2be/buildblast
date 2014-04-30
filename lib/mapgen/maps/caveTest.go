@@ -8,8 +8,9 @@ import (
 	"time"
 )
 
+var DEBUG = false
+
 type CaveTest struct {
-	inspector     *noise.Inspector
 	simplexNoise  *noise.SimplexNoise
 	simplexNoise2 *noise.SimplexNoise
 	ridgedFilter  *noise.RidgedMultifractalFilter
@@ -18,7 +19,6 @@ type CaveTest struct {
 
 func NewCaveTest(seed int64) *CaveTest {
 	ct := new(CaveTest)
-	ct.inspector = noise.NewInspector()
 	ct.simplexNoise = noise.NewSimplexNoise(10, 0.4, seed)
 	ct.simplexNoise2 = noise.NewSimplexNoise(10, 0.4, seed+time.Now().Unix())
 	ct.ridgedFilter = noise.NewRidgedMultifractalFilter(
@@ -63,7 +63,6 @@ func (ct *CaveTest) Chunk(cc coords.Chunk) *Chunk {
 			}
 		}
 	}
-	ct.inspector.Log()
 	return chunk
 }
 
@@ -86,7 +85,6 @@ func (ct *CaveTest) block(bc coords.Block, height int) Block {
 	xf, yf, zf := bc.Float64()
 	ridge1 := ct.ridgedFilter.Filter(xf, yf, zf, ct.simplexNoise)
 	ridge2 := ct.ridgedFilter.Filter(xf, yf, zf, ct.simplexNoise2)
-	ct.inspector.Record(ridge2)
 	if ridge1 >= 0.95 {
 		ridge1 = 1
 	} else {
@@ -98,11 +96,21 @@ func (ct *CaveTest) block(bc coords.Block, height int) Block {
 		ridge2 = 0
 	}
 	if ridge1*ridge2 == 1 {
+		if DEBUG {
+			return BLOCK_STONE
+		}
 		return BLOCK_AIR
 	}
 
 	if bc.Y == height {
+		if DEBUG {
+			return BLOCK_GLASS
+		}
 		return BLOCK_GRASS
+	}
+
+	if DEBUG {
+		return BLOCK_AIR
 	}
 	if bc.Y < height-3 {
 		return BLOCK_STONE
