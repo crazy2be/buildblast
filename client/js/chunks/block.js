@@ -90,6 +90,27 @@ Block.ATLAS = [
 	[5, 6], // Glass
 ];
 
+function same(n) {
+	return [n, n, n, n, n, n];
+}
+Block.TEXTURE_MAP = [
+	/** NIL          */ same(-1),
+	/** AIR          */ same(-1),
+	/** DIRT         */ same(0),
+	/** STONE        */ same(3),
+	/** SPAWN        */ same(4),
+	/** GRASS        */ [1, 1, 2, 0, 1, 1],
+	/** COAL         */ same(5),
+	/** IRON         */ same(6),
+	/** GOLD         */ same(7),
+	/** SAPPHIRE     */ same(8),
+	/** EMERALD      */ same(9),
+	/** RUBY         */ same(10),
+	/** DIAMOND      */ same(11),
+	/** POUDRETTEITE */ same(12),
+	/** GLASS        */ same(13),
+];
+
 /**
  * Faces:
  * 0 - (+x) Left
@@ -100,64 +121,34 @@ Block.ATLAS = [
  * 5 - (-z) Back
  */
 Block.getTileOffset = function (blockType, face) {
-	if (blockType === Block.DIRT) {
-		return Block.ATLAS[0];
-	} else if (blockType === Block.STONE) {
-		return Block.ATLAS[3];
-	} else if (blockType === Block.SPAWN) {
-		return Block.ATLAS[4];
-	} else if (blockType === Block.GRASS) {
-		if (face === 2) {
-			return Block.ATLAS[2];
-		} else if (face === 3) {
-			return Block.ATLAS[0];
-		} else {
-			return Block.ATLAS[1];
-		}
-	} else if (blockType === Block.COAL) {
-		return Block.ATLAS[5];
-	} else if (blockType === Block.IRON) {
-		return Block.ATLAS[6];
-	} else if (blockType === Block.GOLD) {
-		return Block.ATLAS[7];
-	} else if (blockType === Block.SAPPHIRE) {
-		return Block.ATLAS[8];
-	} else if (blockType === Block.EMERALD) {
-		return Block.ATLAS[9];
-	} else if (blockType === Block.RUBY) {
-		return Block.ATLAS[10];
-	} else if (blockType === Block.DIAMOND) {
-		return Block.ATLAS[11];
-	} else if (blockType === Block.POUDRETTEITE) {
-		return Block.ATLAS[12];
-	} else if (blockType === Block.GLASS) {
-		return Block.ATLAS[13];
-	} else {
+	var index = Block.TEXTURE_MAP[blockType][face];
+	if (index < 0) {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}
+	return Block.ATLAS[index];
 };
+
+var VERTEX_POSITIONS = [
+	[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ] ],
+	[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ] ],
+	[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ] ],
+	[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ] ],
+	[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ] ],
+	[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ] ],
+];
+
+var UV_WINDING = [
+	[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
+	[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
+	[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
+	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
+	[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
+	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
+];
 
 // TODO: We probably want to move this meshing logic into a seperate file, it's
 // starting to grow pretty big now.
 Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, position) {
-	var positions = [
-		[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ] ],
-		[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ] ],
-		[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ] ],
-		[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ] ],
-		[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ] ],
-		[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ] ],
-	];
-
-	var uvWind = [
-		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
-		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
-		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
-		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
-		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
-		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
-	];
-
 	for (var face = 0; face < 6; face++) {
 		if (!shownFaces[face]) continue;
 
@@ -166,9 +157,9 @@ Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, positi
 		for (var vert = 0; vert < 4; vert++) {
 			// Each of x, y and z
 			for (var comp = 0; comp < 3; comp++) {
-				verts.push(position[comp] + positions[face][vert][comp]);
+				verts.push(position[comp] + VERTEX_POSITIONS[face][vert][comp]);
 			}
-			buildUv(tileOffset, uvWind[face][vert]);
+			buildUv(tileOffset, UV_WINDING[face][vert]);
 		}
 		buildFace(face);
 	}
@@ -180,12 +171,12 @@ Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, positi
 		indices.push(l-3, l-2, l-1);
 	}
 
-	function buildUv(tileOffset, uvWind) {
-		var u = (tileOffset[0] + uvWind[0]) * Block.UV_UNIT;
-		var v = (tileOffset[1] + uvWind[1]) * Block.UV_UNIT;
+	function buildUv(tileOffset, UV_WINDING) {
+		var u = (tileOffset[0] + UV_WINDING[0]) * Block.UV_UNIT;
+		var v = (tileOffset[1] + UV_WINDING[1]) * Block.UV_UNIT;
 		// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
-		u += (uvWind[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
-		v += (uvWind[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
+		u += (UV_WINDING[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
+		v += (UV_WINDING[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
 		uvs.push(u, v);
 	}
 };

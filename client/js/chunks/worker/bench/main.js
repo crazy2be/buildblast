@@ -51,7 +51,7 @@ define(function (require) {
 	var geometry = new ChunkGeometry({x: 0, y: 0, z: 0}, blocks, manager, mesher);
 	manager.setNeighbour(geometry); // neighbours with ourselves!
 
-	var ITERATIONS = 50;
+	var ITERATIONS = 500;
 	return function () {
 		var start = Date.now();
 		for (var i = 0; i < ITERATIONS; i++) {
