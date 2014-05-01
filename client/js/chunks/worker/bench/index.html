@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Meshing Benchmarks</title>
+		<meta charset="utf-8">
+	</head>
+	<body class="no-select">
+		Open developer tools to see logs and run profiler.
+		<script>
+			window.onerror = function (msg, url, lineno) {
+				alert("FATAL PRE-BOOT ERROR:\n" + 
+					msg + "\n" +
+					"(" + url + ":" + lineno + ")");
+			};
+		</script>
+		<script data-main="/js/chunks/worker/bench/boot.js" src="/lib/require.js"></script>
+	</body>
+</html>
