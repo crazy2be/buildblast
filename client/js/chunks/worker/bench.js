@@ -25,8 +25,12 @@ var Block = requireJS('chunks/block');
 // Mock the manager.
 function ChunkManagerMock() {
 	var self = this;
+	var neighbour = null;
+	self.setNeighbour = function (newNeighbour) {
+		neighbour = newNeighbour;
+	}
 	self.chunkAt = function (ccX, ccY, ccZ) {
-		return null;
+		return neighbour;
 	};
 }
 
@@ -64,6 +68,7 @@ var ChunkGeometry = requireJS('chunks/worker/chunkGeometry');
 var manager = new ChunkManagerMock();
 var blocks = generate(flatWorld);
 var geometry = new ChunkGeometry({x: 0, y: 0, z: 0}, blocks, manager, mesher);
+manager.setNeighbour(geometry); // neighbours with ourselves!
 
 var ITERATIONS = 25;
 var start = Date.now();
