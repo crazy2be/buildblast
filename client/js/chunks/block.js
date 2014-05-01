@@ -141,21 +141,21 @@ Block.getTileOffset = function (blockType, face) {
 // starting to grow pretty big now.
 Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, position) {
 	var positions = [
-		[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
-		[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
-		[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ], [ 0.5,   1, 0.5 ] ],
-		[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
-		[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
-		[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
+		[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ] ],
+		[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ] ],
+		[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ] ],
+		[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ] ],
+		[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ] ],
+		[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ] ],
 	];
 
 	var uvWind = [
-		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
-		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
-		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
-		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
-		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
-		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
+		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
+		[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ] ],
+		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
+		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
+		[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ] ],
+		[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ] ],
 	];
 
 	for (var face = 0; face < 6; face++) {
@@ -163,7 +163,7 @@ Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, positi
 
 		var tileOffset = Block.getTileOffset(blockType, face);
 
-		for (var vert = 0; vert < 5; vert++) {
+		for (var vert = 0; vert < 4; vert++) {
 			// Each of x, y and z
 			for (var comp = 0; comp < 3; comp++) {
 				verts.push(position[comp] + positions[face][vert][comp]);
@@ -175,11 +175,9 @@ Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, positi
 
 	function buildFace(face) {
 		var l = verts.length / 3;
-		// Each face is made up of four triangles
-		indices.push(l-5, l-4, l-1);
+		// Each face is made up of two triangles
 		indices.push(l-4, l-3, l-1);
 		indices.push(l-3, l-2, l-1);
-		indices.push(l-2, l-5, l-1);
 	}
 
 	function buildUv(tileOffset, uvWind) {
