@@ -1,5 +1,8 @@
 requirejs.config({
 	baseUrl: '/js/',
+	// On slow connections, THREE and jQuery can cause timeouts with the
+	// default settings.
+	waitSeconds: 30,
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '../lib/three',
