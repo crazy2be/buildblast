@@ -52,6 +52,8 @@ return function simpleMesh(blocks, cc, manager) {
 	//Can get blocks from up to 1 chunk away from out current chunk
 	function blockTypeAt(ocX, ocY, ocZ) {
 		if (ocX < 0) {
+			// We should return Block.NIL here instead of returning null,
+			// but it's (~15%) slower for some reason I cannot figure out.
 			return nxc ? nxc.block(cw - 1, ocY, ocZ) : null;
 		} else if (ocX >= cw) {
 			return pxc ? pxc.block(0, ocY, ocZ) : null;
