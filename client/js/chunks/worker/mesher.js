@@ -22,6 +22,8 @@ return function simpleMesh(blocks, cc, manager) {
 	// Neighbouring chunks (for blockTypeAt)
 	var nxc, pxc, nyc, pyc, nzc, pzc;
 
+	var trans = Block.isTransparent;
+
 	updateNeighbours();
 
 	var blocksGeometry = new BlocksGeometry();
@@ -37,28 +39,24 @@ return function simpleMesh(blocks, cc, manager) {
 	// -- Everything after here is just helper functions.
 
 	// Can get blocks from up to 1 chunk away from out current chunk
-	function blockTypeAt(ocX, ocY, ocZ) {
+	function transparent(ocX, ocY, ocZ) {
 		if (ocX < 0) {
 			// We should return Block.NIL here instead of returning null,
 			// but it's (~15%) slower for some reason I cannot figure out.
-			return nxc ? nxc.block(cw - 1, ocY, ocZ) : null;
+			return nxc ? trans(nxc.block(cw - 1, ocY, ocZ)) : false;
 		} else if (ocX >= cw) {
-			return pxc ? pxc.block(0, ocY, ocZ) : null;
+			return pxc ? trans(pxc.block(0, ocY, ocZ)) : false;
 		} else if (ocY < 0) {
-			return nyc ? nyc.block(ocX, ch - 1, ocZ) : null;
+			return nyc ? trans(nyc.block(ocX, ch - 1, ocZ)) : false;
 		} else if (ocY >= ch) {
-			return pyc ? pyc.block(ocX, 0, ocZ) : null;
+			return pyc ? trans(pyc.block(ocX, 0, ocZ)) : false;
 		} else if (ocZ < 0) {
-			return nzc ? nzc.block(ocX, ocY, cd - 1) : null;
+			return nzc ? trans(nzc.block(ocX, ocY, cd - 1)) : false;
 		} else if (ocZ >= cd) {
-			return pzc ? pzc.block(ocX, ocY, 0) : null;
+			return pzc ? trans(pzc.block(ocX, ocY, 0)) : false;
 		} else {
-			return blocks[ocX*cw*ch + ocY*cw + ocZ];
+			return trans(blocks[ocX*cw*ch + ocY*cw + ocZ]);
 		}
-	}
-
-	function transparent(ocX, ocY, ocZ) {
-		return Block.isTransparent(blockTypeAt(ocX, ocY, ocZ));
 	}
 
 	function addBlockGeometry(blocksGeometry, ocX, ocY, ocZ) {
