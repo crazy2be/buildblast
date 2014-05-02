@@ -5,7 +5,7 @@ var Block = require("chunks/block");
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-var BlockMesh = require("chunks/blockMesh");
+var BlocksGeometry = require("chunks/blocksGeometry");
 
 return function simpleMesh(blocks, cc, manager) {
 	var cw = CHUNK.WIDTH;
@@ -21,15 +21,15 @@ return function simpleMesh(blocks, cc, manager) {
 
 	updateNeighbours();
 
-	var blockMesh = new BlockMesh();
+	var blocksGeometry = new BlocksGeometry();
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
-				addBlockGeometry(blockMesh, ocX, ocY, ocZ);
+				addBlockGeometry(blocksGeometry, ocX, ocY, ocZ);
 			}
 		}
 	}
-	return blockMesh.finish();
+	return blocksGeometry.finish();
 
 	// -- Everything after here is just helper functions.
 
@@ -58,7 +58,7 @@ return function simpleMesh(blocks, cc, manager) {
 		return Block.isTransparent(blockTypeAt(ocX, ocY, ocZ));
 	}
 
-	function addBlockGeometry(blockMesh, ocX, ocY, ocZ) {
+	function addBlockGeometry(blocksGeometry, ocX, ocY, ocZ) {
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
 		if (Block.isInvisible(blockType)) return;
 
@@ -74,7 +74,7 @@ return function simpleMesh(blocks, cc, manager) {
 
 		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
-		blockMesh.add(blockType, position, shownFaces);
+		blocksGeometry.add(blockType, position, shownFaces);
 	}
 
 	function updateNeighbours() {

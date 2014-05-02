@@ -25,10 +25,10 @@ var UV_WINDING = [
  	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
 ];
 
-// BlockMesh represents a mesh consisting of a series of blocks. It is used for
+// BlocksGeometry represents a mesh consisting of a series of blocks. It is used for
 // meshing chunks, making the cubes shown for blocks in your inventory, and
 // hopefully other things by the time you are reading this :).
-return function BlockMesh() {
+return function BlocksGeometry() {
 	var self = this;
 
 	var verts = [];
