@@ -30,11 +30,24 @@ return function simpleMesh(blocks, cc, manager) {
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
+
 				var blockType = blocks[ocX*cw*ch + ocY*cw + ocZ];
 				if (blockType === Block.AIR) {
 					continue;
 				}
-				addBlockGeometry(blocksGeometry, blockType, ocX, ocY, ocZ);
+
+				var shownFaces = [
+					transparent(ocX + 1, ocY,     ocZ    ),
+					transparent(ocX - 1, ocY,     ocZ    ),
+					transparent(ocX,     ocY + 1, ocZ    ),
+					transparent(ocX,     ocY - 1, ocZ    ),
+					transparent(ocX,     ocY,     ocZ + 1),
+					transparent(ocX,     ocY,     ocZ - 1)
+				];
+
+				var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
+
+				blocksGeometry.add(blockType, position, shownFaces);
 			}
 		}
 	}
@@ -59,22 +72,6 @@ return function simpleMesh(blocks, cc, manager) {
 		} else {
 			return trans(blocks[ocX*cw*ch + ocY*cw + ocZ]);
 		}
-	}
-
-	function addBlockGeometry(blocksGeometry, blockType, ocX, ocY, ocZ) {
-		// We only draw faces when there is no cube blocking it.
-		var shownFaces = [
-			transparent(ocX + 1, ocY,     ocZ    ),
-			transparent(ocX - 1, ocY,     ocZ    ),
-			transparent(ocX,     ocY + 1, ocZ    ),
-			transparent(ocX,     ocY - 1, ocZ    ),
-			transparent(ocX,     ocY,     ocZ + 1),
-			transparent(ocX,     ocY,     ocZ - 1)
-		];
-
-		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
-
-		blocksGeometry.add(blockType, position, shownFaces);
 	}
 
 	function updateNeighbours() {
