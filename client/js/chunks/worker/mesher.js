@@ -5,6 +5,8 @@ var Block = require("chunks/block");
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
+var BlockMesh = require("chunks/blockMesh");
+
 return function simpleMesh(blocks, cc, manager) {
 	var cw = CHUNK.WIDTH;
 	var cd = CHUNK.DEPTH;
@@ -17,39 +19,21 @@ return function simpleMesh(blocks, cc, manager) {
 	// Neighbouring chunks (for blockTypeAt)
 	var nxc, pxc, nyc, pyc, nzc, pzc;
 
-	var verts = [];
-	var indices = [];
-	var uvs = [];
-
-	var blocks = blocks;
-
 	updateNeighbours();
 
+	var blockMesh = new BlockMesh();
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
-				addBlockGeometry(verts, indices, uvs, ocX, ocY, ocZ);
+				addBlockGeometry(blockMesh, ocX, ocY, ocZ);
 			}
 		}
 	}
+	return blockMesh.finish();
 
-	var attributes = Block.makeAttributes(verts, indices, uvs);
-	var offsets = Block.makeOffsets(indices);
+	// -- Everything after here is just helper functions.
 
-
-	return {
-		attributes: attributes,
-		offsets: offsets,
-		transferables: [
-			attributes.position.array.buffer,
-			attributes.index.array.buffer,
-			attributes.uv.array.buffer,
-		],
-	};
-
-	//Everything after here is just helper functions.
-
-	//Can get blocks from up to 1 chunk away from out current chunk
+	// Can get blocks from up to 1 chunk away from out current chunk
 	function blockTypeAt(ocX, ocY, ocZ) {
 		if (ocX < 0) {
 			// We should return Block.NIL here instead of returning null,
@@ -74,12 +58,12 @@ return function simpleMesh(blocks, cc, manager) {
 		return Block.isTransparent(blockTypeAt(ocX, ocY, ocZ));
 	}
 
-	function addBlockGeometry(verts, indices, uvs, ocX, ocY, ocZ) {
+	function addBlockGeometry(blockMesh, ocX, ocY, ocZ) {
 		var blockType = blockTypeAt(ocX, ocY, ocZ);
 		if (Block.isInvisible(blockType)) return;
 
 		// We only draw faces when there is no cube blocking it.
-		var shown = [
+		var shownFaces = [
 			transparent(ocX + 1, ocY,     ocZ    ),
 			transparent(ocX - 1, ocY,     ocZ    ),
 			transparent(ocX,     ocY + 1, ocZ    ),
@@ -90,7 +74,7 @@ return function simpleMesh(blocks, cc, manager) {
 
 		var position = [ocX + ccX*cw, ocY + ccY*ch, ocZ + ccZ*cd];
 
-		Block.addGeometry(verts, indices, uvs, shown, blockType, position);
+		blockMesh.add(blockType, position, shownFaces);
 	}
 
 	function updateNeighbours() {
