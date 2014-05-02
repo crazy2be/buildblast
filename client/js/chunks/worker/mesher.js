@@ -36,6 +36,7 @@ return function simpleMesh(blocks, cc, manager) {
 					continue;
 				}
 
+				// We only show faces which are not occluded by other faces.
 				var shownFaces = [
 					transparent(ocX + 1, ocY,     ocZ    ),
 					transparent(ocX - 1, ocY,     ocZ    ),

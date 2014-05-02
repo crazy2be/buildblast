@@ -25,10 +25,10 @@ var UV_WINDING = [
  	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
 ];
 
-// BlocksGeometry represents a mesh consisting of a series of blocks. It is used for
+// Geometry represents a mesh consisting of a series of blocks. It is used for
 // meshing chunks, making the cubes shown for blocks in your inventory, and
 // hopefully other things by the time you are reading this :).
-return function BlocksGeometry() {
+return function Geometry() {
 	var self = this;
 
 	var verts = [];
@@ -69,7 +69,7 @@ return function BlocksGeometry() {
 	};
 
 	// Finalize the meshing, and return an object with attributes and offsets
-	// properties suitable for using with a THREE.BufferGeometry.
+	// properties suitable for passing to a chunks/mesh.
 	self.finish = function () {
 		function copy(src, dst) {
 			for (var i = 0; i < src.length; i++) {
