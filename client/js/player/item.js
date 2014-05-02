@@ -4,7 +4,8 @@ var THREE = require("THREE");
 var Models = require("models");
 var Block = require("chunks/block");
 var Chunk = require("chunks/chunk");
-var BlocksGeometry = require("chunks/blocksGeometry");
+var BlockGeometry = require("chunks/blocksGeometry");
+var BlockMesh = require("chunks/mesh");
 
 function Item(type) {
 	this.type = type;
@@ -200,17 +201,11 @@ Item.realInit = function () {
 	}
 
 	function blockModel(blockType) {
-		var blocksGeometry = new BlocksGeometry();
+		var geometry = new BlockGeometry();
 		var position = [-0.5, -0.5, -0.5];
 		var shownFaces = [1, 1, 1, 1, 1, 1];
-		blocksGeometry.add(blockType, position, shownFaces);
-
-		var result = blocksGeometry.finish();
-
-		var geometry = new THREE.BufferGeometry();
-		geometry.attributes = result.attributes;
-		geometry.offsets = result.offsets;
-		return Chunk.makeBlockMesh(blockType, geometry);
+		geometry.add(blockType, position, shownFaces);
+		return new BlockMesh(geometry.finish());
 	}
 }
 

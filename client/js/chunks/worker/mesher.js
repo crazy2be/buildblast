@@ -7,6 +7,9 @@ var CHUNK = common.CHUNK;
 
 var BlocksGeometry = require("chunks/blocksGeometry");
 
+// Should technically be called a "geometrizer" to match THREE.js conventions
+// (a geometry is a bunch of verticies etc, a mesh is a geometry + material).
+// But nobody uses the word "geometrizer". That's just crazy.
 return function simpleMesh(blocks, cc, manager) {
 	var cw = CHUNK.WIDTH;
 	var cd = CHUNK.DEPTH;
