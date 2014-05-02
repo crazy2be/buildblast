@@ -62,8 +62,8 @@ return function simpleMesh(blocks, cc, manager) {
 	}
 
 	function addBlockGeometry(blocksGeometry, ocX, ocY, ocZ) {
-		var blockType = blockTypeAt(ocX, ocY, ocZ);
-		if (Block.isInvisible(blockType)) return;
+		var blockType = blocks[ocX*cw*ch + ocY*cw + ocZ];
+		if (blockType === Block.AIR) return;
 
 		// We only draw faces when there is no cube blocking it.
 		var shownFaces = [
