@@ -30,7 +30,11 @@ return function simpleMesh(blocks, cc, manager) {
 	for (var ocX = 0; ocX < cw; ocX++) {
 		for (var ocY = 0; ocY < ch; ocY++) {
 			for (var ocZ = 0; ocZ < cd; ocZ++) {
-				addBlockGeometry(blocksGeometry, ocX, ocY, ocZ);
+				var blockType = blocks[ocX*cw*ch + ocY*cw + ocZ];
+				if (blockType === Block.AIR) {
+					continue;
+				}
+				addBlockGeometry(blocksGeometry, blockType, ocX, ocY, ocZ);
 			}
 		}
 	}
@@ -41,8 +45,6 @@ return function simpleMesh(blocks, cc, manager) {
 	// Can get blocks from up to 1 chunk away from out current chunk
 	function transparent(ocX, ocY, ocZ) {
 		if (ocX < 0) {
-			// We should return Block.NIL here instead of returning null,
-			// but it's (~15%) slower for some reason I cannot figure out.
 			return nxc ? trans(nxc.block(cw - 1, ocY, ocZ)) : false;
 		} else if (ocX >= cw) {
 			return pxc ? trans(pxc.block(0, ocY, ocZ)) : false;
@@ -59,10 +61,7 @@ return function simpleMesh(blocks, cc, manager) {
 		}
 	}
 
-	function addBlockGeometry(blocksGeometry, ocX, ocY, ocZ) {
-		var blockType = blocks[ocX*cw*ch + ocY*cw + ocZ];
-		if (blockType === Block.AIR) return;
-
+	function addBlockGeometry(blocksGeometry, blockType, ocX, ocY, ocZ) {
 		// We only draw faces when there is no cube blocking it.
 		var shownFaces = [
 			transparent(ocX + 1, ocY,     ocZ    ),
