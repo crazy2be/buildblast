@@ -62,102 +62,38 @@ Item.init = function () {
 
 Item.realInit = function () {
 	Item.DATA =  [
-	{
-		name: '',
-		model: null,
-		action: null,
-		icon: 0,
-	},{
-		name: 'dirt',
-		model: blockModel(Block.DIRT),
-		action: throttle(blockAction(Block.DIRT)),
-		stackable: true,
-		icon: 1,
-	},{
-		name: 'stone',
-		model: blockModel(Block.STONE),
-		action: throttle(blockAction(Block.STONE)),
-		stackable: true,
-		icon: 2,
-	},{
-		name: 'shovel',
-		model: Models.shovel(),
-		action: throttle(shovelAction),
-		icon: 3,
-	},{
-		name: 'pistol',
-		model: Models.pistol(),
-		//This action does nothing, we send the server our controls every
-		//tick and that's how we shoot.
-		action: function () {},
-		icon: 4,
-	},{
-		name: 'spawn',
-		model: blockModel(Block.SPAWN),
-		action: throttle(blockAction(Block.SPAWN)),
-		stackable: false,
-		icon: 5,
-	},{
-		name: 'grass',
-		model: blockModel(Block.GRASS),
-		action: throttle(blockAction(Block.GRASS)),
-		stackable: true,
-		icon: 6,
-	},{
-		name: 'coal',
-		model: blockModel(Block.COAL),
-		action: throttle(blockAction(Block.COAL)),
-		stackable: true,
-		icon: 7,
-	},{
-		name: 'iron',
-		model: blockModel(Block.IRON),
-		action: throttle(blockAction(Block.IRON)),
-		stackable: true,
-		icon: 8,
-	},{
-		name: 'gold',
-		model: blockModel(Block.GOLD),
-		action: throttle(blockAction(Block.GOLD)),
-		stackable: true,
-		icon: 9,
-	},{
-		name: 'sapphire',
-		model: blockModel(Block.SAPPHIRE),
-		action: throttle(blockAction(Block.SAPPHIRE)),
-		stackable: true,
-		icon: 10,
-	},{
-		name: 'emerald',
-		model: blockModel(Block.EMERALD),
-		action: throttle(blockAction(Block.EMERALD)),
-		stackable: true,
-		icon: 11,
-	},{
-		name: 'ruby',
-		model: blockModel(Block.RUBY),
-		action: throttle(blockAction(Block.RUBY)),
-		stackable: true,
-		icon: 12,
-	},{
-		name: 'diamond',
-		model: blockModel(Block.DIAMOND),
-		action: throttle(blockAction(Block.DIAMOND)),
-		stackable: true,
-		icon: 13,
-	},{
-		name: 'poudretteite',
-		model: blockModel(Block.POUDRETTEITE),
-		action: throttle(blockAction(Block.POUDRETTEITE)),
-		stackable: true,
-		icon: 14,
-	},{
-		name: 'glass',
-		model: blockModel(Block.GLASS),
-		action: throttle(blockAction(Block.GLASS)),
-		stackable: true,
-		icon: 15,
-	}
+		{
+			name: '',
+			model: null,
+			action: null,
+			icon: 0,
+		},
+		block('dirt', Block.DIRT, 1),
+		block('stone', Block.STONE, 2),
+		{
+			name: 'shovel',
+			model: Models.shovel(),
+			action: throttle(shovelAction),
+			icon: 3,
+		},{
+			name: 'pistol',
+			model: Models.pistol(),
+			//This action does nothing, we send the server our controls every
+			//tick and that's how we shoot.
+			action: function () {},
+			icon: 4,
+		},
+		block('spawn', Block.SPAWN, 5),
+		block('grass', Block.GRASS, 6),
+		block('coal', Block.COAL, 7),
+		block('iron', Block.IRON, 8),
+		block('gold', Block.GOLD, 9),
+		block('sapphire', Block.SAPPHIRE, 10),
+		block('emerald', Block.EMERALD, 11),
+		block('ruby', Block.RUBY, 12),
+		block('diamond', Block.DIAMOND, 13),
+		block('poudretteite', Block.POUDRETTEITE, 14),
+		block('glass', Block.GLASS, 15),
 	];
 
 	function throttle(func) {
@@ -190,6 +126,16 @@ Item.realInit = function () {
 				}
 			}
 		}
+	}
+
+	function block(name, id, icon) {
+		return {
+			name: name,
+			model: blockModel(id),
+			action: throttle(blockAction(id)),
+			stackable: true,
+			icon: icon,
+		};
 	}
 
 	function blockAction(block) {
