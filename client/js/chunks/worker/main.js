@@ -27,7 +27,7 @@ function sendChunk() {
 }
 
 //This means we only update added and removed chunks 1000 / this rate per second.
-setInterval(sendChunk, 50);
+setInterval(sendChunk, 16.6);
 
 parent.onmessage = function (e) {
 	if (e.data.kind === 'start-conn') {
