@@ -5,7 +5,7 @@ var Block = require("chunks/block");
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
-var BlocksGeometry = require("chunks/blocksGeometry");
+var BlocksGeometry = require("chunks/geometry");
 
 // Should technically be called a "geometrizer" to match THREE.js conventions
 // (a geometry is a bunch of verticies etc, a mesh is a geometry + material).

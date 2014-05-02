@@ -4,7 +4,7 @@ var THREE = require("THREE");
 var Models = require("models");
 var Block = require("chunks/block");
 var Chunk = require("chunks/chunk");
-var BlockGeometry = require("chunks/blocksGeometry");
+var BlockGeometry = require("chunks/geometry");
 var BlockMesh = require("chunks/mesh");
 
 function Item(type) {
