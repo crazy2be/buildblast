@@ -12,10 +12,15 @@ type Chunk struct {
 
 func generateChunk(generator blockGenerator, cc coords.Chunk) *Chunk {
 	chunk := &Chunk{}
-	for oc := range coords.EveryOffset() {
-		bc := oc.Block(cc)
-		block := generator.Block(bc)
-		chunk.SetBlock(oc, block)
+	for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
+		for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
+			for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
+				oc := coords.Offset{X: ocX, Y: ocY, Z: ocZ}
+				bc := oc.Block(cc)
+				block := generator.Block(bc)
+				chunk.SetBlock(oc, block)
+			}
+		}
 	}
 	return chunk
 }
