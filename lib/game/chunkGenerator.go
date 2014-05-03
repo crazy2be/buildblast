@@ -83,7 +83,6 @@ func (cm *ChunkGenerator) Run() {
 			<-time.After(time.Second / 60)
 			continue
 		}
-		log.Println("{", cc.X, ",", cc.Y, ",", cc.Z, "}", "is valid.")
 
 		cm.mutex.Lock()
 		status := cm.chunks[cc]
