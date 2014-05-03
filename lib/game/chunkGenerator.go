@@ -3,7 +3,6 @@ package game
 import (
 	"sync"
 	"time"
-	"log"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"

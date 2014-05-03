@@ -142,7 +142,6 @@ type Offset struct {
 	Z int
 }
 
-
 // Given an integer 0 <= index < BlocksPerChunk, returns the offset
 // coordinate for that index in "standard" packed format. This
 // logic is duplicated on the client.

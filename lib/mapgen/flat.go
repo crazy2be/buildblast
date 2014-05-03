@@ -25,7 +25,7 @@ func (fw *FlatWorld) Block(bc coords.Block) Block {
 	blockSeed += int64(bc.Y) << 32
 	blockSeed += int64(bc.Z) << 16
 	blockSeed += int64(fw.seed)
-	randGen := rand.New(rand.NewSource(blockSeed));
+	randGen := rand.New(rand.NewSource(blockSeed))
 
 	if bc.X == 0 && bc.Y == 16 && bc.Z == 0 {
 		return BLOCK_SPAWN
