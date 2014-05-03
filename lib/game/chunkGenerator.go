@@ -1,9 +1,9 @@
 package game
 
 import (
+	"runtime"
 	"sync"
 	"time"
-	"runtime"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
@@ -106,7 +106,7 @@ func (cm *ChunkGenerator) Run() {
 
 func (cm *ChunkGenerator) generate(cc coords.Chunk) {
 	// Attempt to use a slot
-	<- cm.goPool
+	<-cm.goPool
 	chunk := cm.generator.Chunk(cc)
 
 	cm.Generated <- ChunkGenerationResult{
