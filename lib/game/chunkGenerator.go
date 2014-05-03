@@ -3,6 +3,7 @@ package game
 import (
 	"sync"
 	"time"
+	"runtime"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
@@ -14,6 +15,7 @@ type ChunkGenerator struct {
 
 	chunks    map[coords.Chunk]ChunkStatus
 	mutex     sync.Mutex
+	goPool    chan bool
 	generator mapgen.Generator
 }
 
@@ -32,6 +34,15 @@ func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 	cm := new(ChunkGenerator)
 	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
 	cm.Generated = make(chan ChunkGenerationResult, 10)
+	// Only cores - 1 chunks can be generated at a time.
+	maxActiveThreads := runtime.NumCPU() - 1
+	if maxActiveThreads < 1 {
+		maxActiveThreads = 1
+	}
+	cm.goPool = make(chan bool, maxActiveThreads)
+	for i := 0; i < maxActiveThreads; i++ {
+		cm.goPool <- true
+	}
 	cm.generator = generator
 	return cm
 }
@@ -94,6 +105,8 @@ func (cm *ChunkGenerator) Run() {
 }
 
 func (cm *ChunkGenerator) generate(cc coords.Chunk) {
+	// Attempt to use a slot
+	<- cm.goPool
 	chunk := cm.generator.Chunk(cc)
 
 	cm.Generated <- ChunkGenerationResult{
@@ -107,6 +120,8 @@ func (cm *ChunkGenerator) generate(cc coords.Chunk) {
 	status.generated = true
 	cm.chunks[cc] = status
 	cm.mutex.Unlock()
+	// Free our slot
+	cm.goPool <- true
 }
 
 func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
@@ -140,7 +155,7 @@ func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
 	}
 
 	cc := wc.Chunk()
-	eachWithin(cc, 2, 0, 2, func(newCC coords.Chunk, dist int) {
+	eachWithin(cc, 2, 1, 2, func(newCC coords.Chunk, dist int) {
 		// We want to prioritize further away chunks lower, but the
 		// priority must be a positive integer.
 		cb(newCC, 10-dist)
