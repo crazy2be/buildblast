@@ -47,22 +47,28 @@ func (w *World) Tick() {
 }
 
 func (w *World) generationTick() {
-	select {
-	case generationResult := <-w.chunkGenerator.Generated:
-		log.Println("Generated chunk! ", generationResult)
-		cc := generationResult.cc
-		chunk := generationResult.chunk
+	for {
+		select {
+		case generationResult := <-w.chunkGenerator.Generated:
+			log.Println("Generated chunk! ", generationResult)
+			cc := generationResult.cc
+			chunk := generationResult.chunk
 
-		for oc := range coords.EveryOffset() {
-			if chunk.Block(oc) == mapgen.BLOCK_SPAWN {
-				w.spawns = append(w.spawns, oc.Block(cc).Center())
+			for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
+				for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
+					for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
+						oc := coords.Offset{X: ocX, Y: ocY, Z: ocZ}
+						w.spawns = append(w.spawns, oc.Block(cc).Center())
+					}
+				}
 			}
+
+			w.chunks[cc] = chunk
+
+			w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
+		default:
+			return
 		}
-
-		w.chunks[cc] = chunk
-
-		w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
-	default:
 	}
 }
 
