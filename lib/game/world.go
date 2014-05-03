@@ -49,7 +49,7 @@ func (w *World) Tick() {
 }
 
 func (w *World) generationTick() {
-	for {
+	for i := 0; i < 10; i++ {
 		select {
 		case generationResult := <-w.chunkGenerator.Generated:
 			log.Println("Generated chunk! ", generationResult)
