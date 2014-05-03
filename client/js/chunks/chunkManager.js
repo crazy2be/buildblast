@@ -50,17 +50,16 @@ return function ChunkManager(scene, clientID) {
 	geometryWorker.onerror = fatalError;
 
 	function processChunk(payload) {
-		var geometry = new THREE.BufferGeometry();
-		geometry.attributes = payload.geometry.attributes;
-		geometry.offsets = payload.geometry.offsets;
-
 		var cc = payload.ccpos;
 
 		var chunk = self.chunk(cc);
-		if (chunk) chunk.remove();
+		if (chunk) {
+			chunk.remove(scene);
+		}
 
-		chunk = new Chunk(payload.blocks, geometry, scene);
-		chunk.add();
+		var geometryResult = payload.geometry;
+		chunk = new Chunk(payload.blocks, geometryResult);
+		chunk.add(scene);
 		chunks[common.ccStr(cc)] = chunk;
 
 		console.log("Added chunk at ", cc);

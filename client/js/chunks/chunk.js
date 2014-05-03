@@ -1,30 +1,20 @@
 define(function(require) {
 
-var THREE = require("THREE");
+var Mesh = require("chunks/mesh");
 
 var Block = require("./block");
 var common = require("./chunkCommon");
 
-var ATLAS_TEXTURE = THREE.ImageUtils.loadTexture("img/block_textures/atlas.png");
-ATLAS_TEXTURE.magFilter = THREE.NearestFilter;
-ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
-
-var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
-	map: ATLAS_TEXTURE,
-	transparent: true,
-	alphaTest: 0.5,
-});
-
-function Chunk(blocks, geometry, scene) {
+function Chunk(blocks, geometryResult) {
 	var self = this;
 
-	var mesh = new THREE.Mesh(geometry, ATLAS_MATERIAL);
+	var mesh = new Mesh(geometryResult);
 
-	self.remove = function () {
+	self.remove = function (scene) {
 		scene.remove(mesh);
 	};
 
-	self.add = function () {
+	self.add = function (scene) {
 		scene.add(mesh);
 	};
 
@@ -33,13 +23,9 @@ function Chunk(blocks, geometry, scene) {
 	};
 
 	self.testExposure = {
-		blocks: blocks
+		blocks: blocks,
 	};
 }
-
-Chunk.makeBlockMesh = function (block, geometry) {
-	return new THREE.Mesh(geometry, ATLAS_MATERIAL);
-};
 
 return Chunk;
 });
