@@ -67,6 +67,18 @@ Block.PROPERTIES = [
 	/** POUDRETTEITE */ 0,
 	/** GLASS        */ Block.TRANSPARENT,
 ];
+Block.isMineable = function (block) {
+	return (Block.PROPERTIES[block] & Block.UNMINEABLE) === 0;
+};
+Block.isInvisible = function (block) {
+	return (Block.PROPERTIES[block] & Block.INVISIBLE) === Block.INVISIBLE;
+};
+Block.isTransparent = function (block) {
+	return (Block.PROPERTIES[block] & Block.TRANSPARENT) == Block.TRANSPARENT;
+};
+Block.isSolid = function (block) {
+	return (Block.PROPERTIES[block] & Block.INTANGIBLE) === 0;
+};
 
 Block.ATLAS_SIZE = 128;
 Block.TILE_SIZE = 16;
@@ -90,6 +102,15 @@ Block.ATLAS = [
 	[5, 6], // Glass
 ];
 
+/**
+ * Faces:
+ * 0 - (+x) Left
+ * 1 - (-x) Right
+ * 2 - (+y) Top
+ * 3 - (-y) Bottom
+ * 4 - (+z) Front
+ * 5 - (-z) Back
+ */
 function same(n) {
 	return [n, n, n, n, n, n];
 }
@@ -110,140 +131,12 @@ Block.TEXTURE_MAP = [
 	/** POUDRETTEITE */ same(12),
 	/** GLASS        */ same(13),
 ];
-
-/**
- * Faces:
- * 0 - (+x) Left
- * 1 - (-x) Right
- * 2 - (+y) Top
- * 3 - (-y) Bottom
- * 4 - (+z) Front
- * 5 - (-z) Back
- */
 Block.getTileOffset = function (blockType, face) {
 	var index = Block.TEXTURE_MAP[blockType][face];
 	if (index < 0) {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}
 	return Block.ATLAS[index];
-};
-
-var VERTEX_POSITIONS = [
- 	[ [ 1, 0, 0 ], [ 1, 1, 0 ], [ 1, 1, 1 ], [ 1, 0, 1 ], [   1, 0.5, 0.5 ] ],
- 	[ [ 0, 0, 1 ], [ 0, 1, 1 ], [ 0, 1, 0 ], [ 0, 0, 0 ], [   0, 0.5, 0.5 ] ],
- 	[ [ 0, 1, 1 ], [ 1, 1, 1 ], [ 1, 1, 0 ], [ 0, 1, 0 ], [ 0.5,   1, 0.5 ] ],
- 	[ [ 0, 0, 0 ], [ 1, 0, 0 ], [ 1, 0, 1 ], [ 0, 0, 1 ], [ 0.5,   0, 0.5 ] ],
- 	[ [ 0, 0, 1 ], [ 1, 0, 1 ], [ 1, 1, 1 ], [ 0, 1, 1 ], [ 0.5, 0.5,   1 ] ],
- 	[ [ 0, 1, 0 ], [ 1, 1, 0 ], [ 1, 0, 0 ], [ 0, 0, 0 ], [ 0.5, 0.5,   0 ] ],
-];
-
-var UV_WINDING = [
- 	[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
- 	[ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 0.5, 0.5 ] ],
- 	[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
- 	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
- 	[ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ 0.5, 0.5 ] ],
- 	[ [ 1, 1 ], [ 0, 1 ], [ 0, 0 ], [ 1, 0 ], [ 0.5, 0.5 ] ],
-];
-
-// TODO: We probably want to move this meshing logic into a seperate file, it's
-// starting to grow pretty big now.
-Block.addGeometry = function (verts, indices, uvs, shownFaces, blockType, position) {
-	for (var face = 0; face < 6; face++) {
-		if (!shownFaces[face]) continue;
-
-		var tileOffset = Block.getTileOffset(blockType, face);
-
-		for (var vert = 0; vert < 4; vert++) {
-			// Each of x, y and z
-			for (var comp = 0; comp < 3; comp++) {
-				verts.push(position[comp] + VERTEX_POSITIONS[face][vert][comp]);
-			}
-			buildUv(tileOffset, UV_WINDING[face][vert]);
-		}
-		buildFace(face);
-	}
-
-	function buildFace(face) {
-		var l = verts.length / 3;
-		// Each face is made up of two triangles
-		indices.push(l-4, l-3, l-1);
-		indices.push(l-3, l-2, l-1);
-	}
-
-	function buildUv(tileOffset, UV_WINDING) {
-		var u = (tileOffset[0] + UV_WINDING[0]) * Block.UV_UNIT;
-		var v = (tileOffset[1] + UV_WINDING[1]) * Block.UV_UNIT;
-		// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
-		u += (UV_WINDING[0] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
-		v += (UV_WINDING[1] === 1 ? -1 : 1) / (Block.ATLAS_SIZE * 8);
-		uvs.push(u, v);
-	}
-};
-
-Block.makeAttributes = function (verts, indices, uvs) {
-	function copy(src, dst) {
-		for (var i = 0; i < src.length; i++) {
-			dst[i] = src[i];
-		}
-	}
-
-	// Here we're just copying the native JavaScript numbers into a typed Float32 array.
-	// This is required by WebGL for attribute buffers.
-	var vertsa = new Float32Array(verts.length);
-	copy(verts, vertsa);
-
-	var indicesa = new Uint16Array(indices.length);
-	copy(indices, indicesa);
-
-	var uvsa = new Float32Array(uvs.length);
-	copy(uvs, uvsa);
-
-	//See the readme for documentation.
-	var attributes = {
-		position: {
-			itemSize: 3,
-			array: vertsa,
-			numItems: verts.length,
-		},
-		index: {
-			itemSize: 1,
-			array: indicesa,
-			numItems: indices.length,
-		},
-		uv: {
-			itemSize: 2,
-			array: uvsa,
-			numItems: uvsa.length,
-		},
-	};
-
-	return attributes;
-};
-
-Block.makeOffsets = function (indices) {
-	var offsets = [{
-		start: 0,
-		count: indices.length,
-		indices: 0,
-	}];
-	return offsets;
-}
-
-Block.isMineable = function (block) {
-	return (Block.PROPERTIES[block] & Block.UNMINEABLE) === 0;
-};
-
-Block.isInvisible = function (block) {
-	return (Block.PROPERTIES[block] & Block.INVISIBLE) === Block.INVISIBLE;
-};
-
-Block.isTransparent = function (block) {
-	return (Block.PROPERTIES[block] & Block.TRANSPARENT) == Block.TRANSPARENT;
-}
-
-Block.isSolid = function (block) {
-	return (Block.PROPERTIES[block] & Block.INTANGIBLE) === 0;
 };
 
 return Block;
