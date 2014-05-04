@@ -13,10 +13,10 @@ type ChunkGenerator struct {
 	// Chunks are sent to this channel as they are generated
 	Generated chan ChunkGenerationResult
 
-	chunks    map[coords.Chunk]ChunkStatus
-	mutex     sync.Mutex
-	goPool    chan bool
-	generator mapgen.Generator
+	chunks       map[coords.Chunk]ChunkStatus
+	mutex        sync.Mutex
+	queuedChunks chan coords.Chunk
+	generator    mapgen.Generator
 }
 
 type ChunkGenerationResult struct {
@@ -33,17 +33,23 @@ type ChunkStatus struct {
 func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 	cm := new(ChunkGenerator)
 	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
-	cm.Generated = make(chan ChunkGenerationResult, 10)
-	// Only cores - 1 chunks can be generated at a time.
+	cm.generator = generator
+
+	// The number of workers we will run.
 	maxActiveThreads := runtime.NumCPU() - 1
 	if maxActiveThreads < 1 {
 		maxActiveThreads = 1
 	}
-	cm.goPool = make(chan bool, maxActiveThreads)
+
+	// Room for 2*workers worth of results.
+	cm.Generated = make(chan ChunkGenerationResult, maxActiveThreads*2)
+	cm.queuedChunks = make(chan coords.Chunk, 200)
+
+	// Start the workers.
 	for i := 0; i < maxActiveThreads; i++ {
-		cm.goPool <- true
+		go cm.runGenerationWorker()
 	}
-	cm.generator = generator
+
 	return cm
 }
 
@@ -100,28 +106,28 @@ func (cm *ChunkGenerator) Run() {
 		cm.chunks[cc] = status
 		cm.mutex.Unlock()
 
-		go cm.generate(cc)
+		cm.queuedChunks <- cc
 	}
 }
 
-func (cm *ChunkGenerator) generate(cc coords.Chunk) {
-	// Attempt to use a slot
-	<-cm.goPool
-	chunk := cm.generator.Chunk(cc)
+func (cm *ChunkGenerator) runGenerationWorker() {
+	for {
+		select {
+		case cc := <-cm.queuedChunks:
+			chunk := cm.generator.Chunk(cc)
 
-	cm.Generated <- ChunkGenerationResult{
-		cc:    cc,
-		chunk: chunk,
+			cm.Generated <- ChunkGenerationResult{
+				cc:    cc,
+				chunk: chunk,
+			}
+			cm.mutex.Lock()
+			status := cm.chunks[cc]
+			status.generating = false
+			status.generated = true
+			cm.chunks[cc] = status
+			cm.mutex.Unlock()
+		}
 	}
-
-	cm.mutex.Lock()
-	status := cm.chunks[cc]
-	status.generating = false
-	status.generated = true
-	cm.chunks[cc] = status
-	cm.mutex.Unlock()
-	// Free our slot
-	cm.goPool <- true
 }
 
 func EachChunkNearby(wc coords.World, cb func(cc coords.Chunk, priority int)) {
