@@ -182,3 +182,9 @@ var ChunkSize Vec3 = Vec3{
 	Y: ChunkHeight,
 	Z: ChunkDepth,
 }
+
+var Origin World = World{
+	X: 0,
+	Y: 0,
+	Z: 0,
+}

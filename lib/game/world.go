@@ -29,7 +29,7 @@ func NewWorld(generator mapgen.Generator) *World {
 
 	w.chunkGenerator = NewChunkGenerator(generator)
 	// Load the initial chunks
-	w.chunkGenerator.QueueChunksNearby(coords.World{X: 0, Y: 0, Z: 0})
+	w.chunkGenerator.QueueChunksNearby(coords.Origin)
 	go w.chunkGenerator.Run()
 
 	w.entities = make([]Entity, 0)
