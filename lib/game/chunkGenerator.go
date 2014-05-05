@@ -24,10 +24,17 @@ type ChunkGenerationResult struct {
 	chunk *mapgen.Chunk
 }
 
+type State int
+
+const (
+	Queued     State = iota
+	Generating State = iota
+	Generated  State = iota
+)
+
 type ChunkStatus struct {
-	generating bool
-	generated  bool
-	priority   int
+	state    State
+	priority int
 }
 
 func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
@@ -41,9 +48,9 @@ func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 		maxActiveThreads = 1
 	}
 
-	// Room for 2*workers worth of results.
+	// Room for 2*workers worth of work and results.
 	cm.Generated = make(chan ChunkGenerationResult, maxActiveThreads*2)
-	cm.queuedChunks = make(chan coords.Chunk, 200)
+	cm.queuedChunks = make(chan coords.Chunk, maxActiveThreads*2)
 
 	// Start the workers.
 	for i := 0; i < maxActiveThreads; i++ {
@@ -57,7 +64,8 @@ func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 // this function is unsafe.
 func (cm *ChunkGenerator) queue(cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
-	if status.generated || status.generating {
+	if status.state != Queued {
+		// Only adjust the priority if it is still queued.
 		return
 	}
 	status.priority += priority
@@ -81,7 +89,7 @@ func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
 
 	highest := -1
 	for key, val := range cm.chunks {
-		if val.priority > highest && !val.generated && !val.generating {
+		if val.priority > highest && val.state == Queued {
 			highest = val.priority
 			cc = key
 		}
@@ -102,7 +110,7 @@ func (cm *ChunkGenerator) Run() {
 
 		cm.mutex.Lock()
 		status := cm.chunks[cc]
-		status.generating = true
+		status.state = Generating
 		cm.chunks[cc] = status
 		cm.mutex.Unlock()
 
@@ -112,21 +120,18 @@ func (cm *ChunkGenerator) Run() {
 
 func (cm *ChunkGenerator) runGenerationWorker() {
 	for {
-		select {
-		case cc := <-cm.queuedChunks:
-			chunk := cm.generator.Chunk(cc)
+		cc := <-cm.queuedChunks
+		chunk := cm.generator.Chunk(cc)
 
-			cm.Generated <- ChunkGenerationResult{
-				cc:    cc,
-				chunk: chunk,
-			}
-			cm.mutex.Lock()
-			status := cm.chunks[cc]
-			status.generating = false
-			status.generated = true
-			cm.chunks[cc] = status
-			cm.mutex.Unlock()
+		cm.Generated <- ChunkGenerationResult{
+			cc:    cc,
+			chunk: chunk,
 		}
+		cm.mutex.Lock()
+		status := cm.chunks[cc]
+		status.state = Generated
+		cm.chunks[cc] = status
+		cm.mutex.Unlock()
 	}
 }
 

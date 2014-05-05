@@ -56,14 +56,11 @@ func (w *World) generationTick() {
 			cc := generationResult.cc
 			chunk := generationResult.chunk
 
-			for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
-				for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
-					for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
-						oc := coords.Offset{X: ocX, Y: ocY, Z: ocZ}
-						w.spawns = append(w.spawns, oc.Block(cc).Center())
-					}
+			coords.EachOffset(func(oc coords.Offset) {
+				if chunk.Block(oc) == mapgen.BLOCK_SPAWN {
+					w.spawns = append(w.spawns, oc.Block(cc).Center())
 				}
-			}
+			})
 
 			w.chunks[cc] = chunk
 

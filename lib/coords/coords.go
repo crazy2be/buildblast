@@ -153,6 +153,32 @@ func IndexOffset(index int) Offset {
 	}
 }
 
+func EachOffset(cb func(oc Offset)) {
+	for ocX := 0; ocX < ChunkWidth; ocX++ {
+		for ocY := 0; ocY < ChunkHeight; ocY++ {
+			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+				cb(Offset{X: ocX, Y: ocY, Z: ocZ})
+			}
+		}
+	}
+}
+
+func EachBlock(cc Chunk, cb func(oc Offset, bc Block)) {
+	ox := cc.X * ChunkWidth
+	oy := cc.Y * ChunkHeight
+	oz := cc.Z * ChunkHeight
+	for ocX := 0; ocX < ChunkWidth; ocX++ {
+		x := ox + ocX
+		for ocY := 0; ocY < ChunkHeight; ocY++ {
+			y := oy + ocY
+			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+				cb(Offset{X: ocX, Y: ocY, Z: ocZ}, Block{X: x, Y: y, Z: oz + ocZ})
+			}
+		}
+	}
+
+}
+
 func (oc Offset) Block(cc Chunk) Block {
 	return Block{
 		X: oc.X + cc.X*ChunkWidth,
