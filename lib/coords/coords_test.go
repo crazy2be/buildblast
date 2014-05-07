@@ -30,13 +30,13 @@ func TestIndexOffset(t *testing.T) {
 	}
 
 	i := 0
-	for oc := range EveryOffset() {
+	EachOffset(func (oc Offset) {
 		i2 := oc.Index()
 		if i != i2 {
 			t.Error("Got ", i2, " expected ", i, " for offset ", oc)
 		}
 		i++
-	}
+	})
 	if i != BlocksPerChunk {
 		t.Error("EveryOffset did not give every offset!", i)
 	}
@@ -44,19 +44,6 @@ func TestIndexOffset(t *testing.T) {
 
 // These functions benchmark the relative speed of different ways
 // of iterating through all the blocks in a chunk.
-
-func BenchmarkEveryOffset(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		j := 0
-		for oc := range EveryOffset() {
-			j2 := oc.Index()
-			if j != j2 {
-				println("Error")
-			}
-			j++
-		}
-	}
-}
 
 func BenchmarkEachOffset(b *testing.B) {
 	for i := 0; i < b.N; i++ {
