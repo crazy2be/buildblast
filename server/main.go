@@ -47,7 +47,7 @@ func main() {
 
 	// Set up the world
 	var world *game.World
-	generator := mapgen.NewFlatWorld(float64(time.Now().Unix()))
+	generator := mapgen.NewFlatWorld(float64(time.Now().UnixNano()))
 	if *persistEnabled {
 		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
 		persister := persist.New(*worldBaseDir, generator)

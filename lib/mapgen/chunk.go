@@ -12,11 +12,11 @@ type Chunk struct {
 
 func generateChunk(generator blockGenerator, cc coords.Chunk) *Chunk {
 	chunk := &Chunk{}
-	for oc := range coords.EveryOffset() {
-		bc := oc.Block(cc)
-		block := generator.Block(bc)
-		chunk.SetBlock(oc, block)
-	}
+	i := 0
+	cc.EachBlock(func(oc coords.Offset, bc coords.Block) {
+		chunk.blocks[i] = generator.Block(bc)
+		i++
+	})
 	return chunk
 }
 
@@ -26,6 +26,15 @@ func (c *Chunk) Block(oc coords.Offset) Block {
 
 func (c *Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 	c.blocks[oc.Index()] = newBlock
+}
+
+// Calls the given function for each block in the chunk.
+func (c *Chunk) Each(cb func(oc coords.Offset, block Block)) {
+	i := 0
+	coords.EachOffset(func (oc coords.Offset) {
+		cb(oc, c.blocks[i])
+		i++
+	})
 }
 
 // Flatten returns the chunk data as a string. It

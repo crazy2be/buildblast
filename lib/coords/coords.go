@@ -136,42 +136,36 @@ type Chunk struct {
 	Z int
 }
 
+// returns the bottom left block in this chunk
+func (cc Chunk) Origin() Block {
+	return Block{
+		X: cc.X * ChunkWidth,
+		Y: cc.Y * ChunkHeight,
+		Z: cc.Z * ChunkDepth,
+	}
+}
+
+// Calls the given function with every valid offset and block coordinate
+// in this chunk.
+// TODO: Should this give both Offset and Block coordinates or just Block?
+func (cc Chunk) EachBlock(cb func(oc Offset, bc Block)) {
+	chunkOrigin := cc.Origin()
+	for ocX := 0; ocX < ChunkWidth; ocX++ {
+		bcX := ocX + chunkOrigin.X
+		for ocY := 0; ocY < ChunkHeight; ocY++ {
+			bcY := ocY + chunkOrigin.Y
+			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+				bcZ := ocZ + chunkOrigin.Z
+				cb(Offset{X: ocX, Y: ocY, Z: ocZ}, Block{X: bcX, Y: bcY, Z: bcZ})
+			}
+		}
+	}
+}
+
 type Offset struct {
 	X int
 	Y int
 	Z int
-}
-
-// A sequential generator for every valid offset coordinate. Useful
-// for going through all the blocks in a chunk. This allows using
-// nice for loop like at
-// https://sites.google.com/site/gopatterns/concurrency/generators
-func EveryOffset() chan Offset {
-	results := make(chan Offset, 100)
-	go func() {
-		for ocX := 0; ocX < ChunkWidth; ocX++ {
-			for ocY := 0; ocY < ChunkHeight; ocY++ {
-				for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
-					results <- Offset{X: ocX, Y: ocY, Z: ocZ}
-				}
-			}
-		}
-		close(results)
-	}()
-	return results
-}
-
-// Same as EveryOffset, but takes a callback rather than returning
-// an iterator. This allows it to run much faster (~20x at the time
-// of writing), at the cost of having slightly clunkier syntax.
-func EachOffset(cb func(oc Offset)) {
-	for ocX := 0; ocX < ChunkWidth; ocX++ {
-		for ocY := 0; ocY < ChunkHeight; ocY++ {
-			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
-				cb(Offset{X: ocX, Y: ocY, Z: ocZ})
-			}
-		}
-	}
 }
 
 // Given an integer 0 <= index < BlocksPerChunk, returns the offset
@@ -184,6 +178,19 @@ func IndexOffset(index int) Offset {
 		Z: index % ChunkDepth,
 	}
 }
+
+// Calls the given function with every valid offset coordinate. Useful
+// for going through all the blocks in a chunk.
+func EachOffset(cb func(oc Offset)) {
+	for ocX := 0; ocX < ChunkWidth; ocX++ {
+		for ocY := 0; ocY < ChunkHeight; ocY++ {
+			for ocZ := 0; ocZ < ChunkDepth; ocZ++ {
+				cb(Offset{X: ocX, Y: ocY, Z: ocZ})
+			}
+		}
+	}
+}
+
 
 func (oc Offset) Block(cc Chunk) Block {
 	return Block{
@@ -213,4 +220,10 @@ var ChunkSize Vec3 = Vec3{
 	X: ChunkWidth,
 	Y: ChunkHeight,
 	Z: ChunkDepth,
+}
+
+var Origin World = World{
+	X: 0,
+	Y: 0,
+	Z: 0,
 }

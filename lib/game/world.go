@@ -28,6 +28,8 @@ func NewWorld(generator mapgen.Generator) *World {
 	w.spawns = make([]coords.World, 0)
 
 	w.chunkGenerator = NewChunkGenerator(generator)
+	// Load the initial chunks
+	w.chunkGenerator.QueueChunksNearby(coords.Origin)
 	go w.chunkGenerator.Run()
 
 	w.entities = make([]Entity, 0)
@@ -47,22 +49,25 @@ func (w *World) Tick() {
 }
 
 func (w *World) generationTick() {
-	select {
-	case generationResult := <-w.chunkGenerator.Generated:
-		log.Println("Generated chunk! ", generationResult)
-		cc := generationResult.cc
-		chunk := generationResult.chunk
+	for i := 0; i < 10; i++ {
+		select {
+		case generationResult := <-w.chunkGenerator.Generated:
+			log.Println("Generated chunk! ", generationResult)
+			cc := generationResult.cc
+			chunk := generationResult.chunk
 
-		for oc := range coords.EveryOffset() {
-			if chunk.Block(oc) == mapgen.BLOCK_SPAWN {
-				w.spawns = append(w.spawns, oc.Block(cc).Center())
-			}
+			chunk.Each(func(oc coords.Offset, block mapgen.Block) {
+				if block == mapgen.BLOCK_SPAWN {
+					w.spawns = append(w.spawns, oc.Block(cc).Center())
+				}
+			})
+
+			w.chunks[cc] = chunk
+
+			w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
+		default:
+			return
 		}
-
-		w.chunks[cc] = chunk
-
-		w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
-	default:
 	}
 }
 
