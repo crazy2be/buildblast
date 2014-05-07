@@ -37,7 +37,7 @@ var ITEM_PROPERTIES []uint32 = []uint32{
 	/** STONE        */ STACKABLE,
 	/** SHOVEL       */ 0,
 	/** GUN          */ SHOOTABLE,
-	/** SPAWN        */ 0,
+	/** SPAWN        */ STACKABLE,
 	/** GRASS        */ STACKABLE,
 	/** COAL         */ STACKABLE,
 	/** IRON         */ STACKABLE,

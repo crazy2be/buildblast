@@ -1,6 +1,7 @@
 package game
 
 import (
+	"runtime"
 	"sync"
 	"time"
 
@@ -12,9 +13,10 @@ type ChunkGenerator struct {
 	// Chunks are sent to this channel as they are generated
 	Generated chan ChunkGenerationResult
 
-	chunks    map[coords.Chunk]ChunkStatus
-	mutex     sync.Mutex
-	generator mapgen.Generator
+	chunks       map[coords.Chunk]ChunkStatus
+	mutex        sync.Mutex
+	queuedChunks chan coords.Chunk
+	generator    mapgen.Generator
 }
 
 type ChunkGenerationResult struct {
@@ -22,16 +24,39 @@ type ChunkGenerationResult struct {
 	chunk *mapgen.Chunk
 }
 
+type State int
+
+const (
+	Queued     State = iota
+	Generating State = iota
+	Generated  State = iota
+)
+
 type ChunkStatus struct {
-	generated bool
-	priority  int
+	state    State
+	priority int
 }
 
 func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 	cm := new(ChunkGenerator)
 	cm.chunks = make(map[coords.Chunk]ChunkStatus, 10)
-	cm.Generated = make(chan ChunkGenerationResult, 10)
 	cm.generator = generator
+
+	// The number of workers we will run.
+	maxActiveThreads := runtime.NumCPU() - 1
+	if maxActiveThreads < 1 {
+		maxActiveThreads = 1
+	}
+
+	// Room for 2*workers worth of work and results.
+	cm.Generated = make(chan ChunkGenerationResult, maxActiveThreads*2)
+	cm.queuedChunks = make(chan coords.Chunk, maxActiveThreads*2)
+
+	// Start the workers.
+	for i := 0; i < maxActiveThreads; i++ {
+		go cm.runGenerationWorker()
+	}
+
 	return cm
 }
 
@@ -39,7 +64,8 @@ func NewChunkGenerator(generator mapgen.Generator) *ChunkGenerator {
 // this function is unsafe.
 func (cm *ChunkGenerator) queue(cc coords.Chunk, priority int) {
 	status := cm.chunks[cc]
-	if status.generated {
+	if status.state != Queued {
+		// Only adjust the priority if it is still queued.
 		return
 	}
 	status.priority += priority
@@ -63,7 +89,7 @@ func (cm *ChunkGenerator) Top() (cc coords.Chunk, valid bool) {
 
 	highest := -1
 	for key, val := range cm.chunks {
-		if val.priority > highest && !val.generated {
+		if val.priority > highest && val.state == Queued {
 			highest = val.priority
 			cc = key
 		}
@@ -78,20 +104,32 @@ func (cm *ChunkGenerator) Run() {
 	for {
 		cc, valid := cm.Top()
 		if !valid {
-			<-time.After(time.Second / 10)
+			<-time.After(time.Second / 60)
 			continue
 		}
 
+		cm.mutex.Lock()
+		status := cm.chunks[cc]
+		status.state = Generating
+		cm.chunks[cc] = status
+		cm.mutex.Unlock()
+
+		cm.queuedChunks <- cc
+	}
+}
+
+func (cm *ChunkGenerator) runGenerationWorker() {
+	for {
+		cc := <-cm.queuedChunks
 		chunk := cm.generator.Chunk(cc)
 
 		cm.Generated <- ChunkGenerationResult{
 			cc:    cc,
 			chunk: chunk,
 		}
-
 		cm.mutex.Lock()
 		status := cm.chunks[cc]
-		status.generated = true
+		status.state = Generated
 		cm.chunks[cc] = status
 		cm.mutex.Unlock()
 	}

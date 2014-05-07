@@ -22,7 +22,11 @@ func NewFlatWorld(seed float64) *FlatWorld {
 }
 
 func (fw *FlatWorld) Block(bc coords.Block) Block {
-	fw.seedRand(bc)
+	blockSeed := int64(bc.X)
+	blockSeed += int64(bc.Y) << 32
+	blockSeed += int64(bc.Z) << 16
+	blockSeed += int64(fw.seed)
+	randGen := rand.New(rand.NewSource(blockSeed))
 
 	if bc.X == 0 && bc.Y == 16 && bc.Z == 0 {
 		return BLOCK_SPAWN
@@ -34,7 +38,7 @@ func (fw *FlatWorld) Block(bc coords.Block) Block {
 		return BLOCK_GRASS
 	}
 	if bc.X%4 == 0 && bc.Z%4 == 0 && bc.Y < 17 {
-		randBlock := 5 + fw.randGen.Int()%9
+		randBlock := 5 + randGen.Int()%9
 		return Block(randBlock)
 	}
 	return BLOCK_AIR
