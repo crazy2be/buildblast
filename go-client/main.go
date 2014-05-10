@@ -156,6 +156,10 @@ func drawScene() {
 
 	texture.Bind(gl.TEXTURE_2D)
 
+	drawGopherCube()
+}
+
+func drawGopherCube() {
 	gl.Color4f(1, 1, 1, 1)
 
 	gl.Begin(gl.QUADS)
@@ -221,7 +225,6 @@ func drawScene() {
 	gl.Vertex3f(-1, 1, -1)
 
 	gl.End()
-
 }
 
 func WindowMatrix() Matrix {
@@ -231,14 +234,14 @@ func WindowMatrix() Matrix {
 }
 
 func renderChunks(attrib *BlockProgram) {
-	x := float32(0.0)
-	y := float32(0.0)
-	z := float32(0.0)
-	ortho := 0 // no boolean for shaders?
+// 	x := float32(0.0)
+// 	y := float32(0.0)
+// 	z := float32(0.0)
+// 	ortho := 0 // no boolean for shaders?
 //     float light = get_daylight();
-	light := float32(0.5)
-	time := float32(0.5)
-	matrix := WindowMatrix()
+// 	light := float32(0.5)
+// 	time := float32(0.5)
+// 	matrix := WindowMatrix()
 //     float matrix[16];
 //     set_matrix_3d(
 //         matrix, g->width, g->height,
@@ -247,19 +250,20 @@ func renderChunks(attrib *BlockProgram) {
 //     frustum_planes(planes, g->render_radius, matrix);
     attrib.program.Use()
 
-	attrib.matrix.UniformMatrix4fv(false, matrix)
-    attrib.camera.Uniform3f(x, y, z)
+// 	attrib.matrix.UniformMatrix4fv(false, matrix)
+//     attrib.camera.Uniform3f(x, y, z)
     attrib.sampler.Uniform1i(0) // Texture unit number
-    attrib.extra1.Uniform1i(2)
-    attrib.extra2.Uniform1f(light)
+//     attrib.extra1.Uniform1i(2)
+//     attrib.extra2.Uniform1f(light)
 //     attrib.extra3.Uniform1f(g->render_radius * CHUNK_SIZE);
-    attrib.extra3.Uniform1f(256);
-    attrib.extra4.Uniform1i(ortho);
-    attrib.timer.Uniform1f(time);
+//     attrib.extra3.Uniform1f(256);
+//     attrib.extra4.Uniform1i(ortho);
+//     attrib.timer.Uniform1f(time);
 
 	for i := 0; i < len(globalChunksList); i++ {
 		globalChunksList[i].Draw(attrib)
 	}
+	gl.ProgramUnuse()
 }
 
 func make_chunk() *Chunk {
