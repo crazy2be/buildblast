@@ -259,7 +259,7 @@ func draw_triangles_3d_ao(attrib *BlockProgram, buffer gl.Buffer, count int) {
 	flt32Size := 4
 	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*10, 0)
 	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*10, flt32Size*3)
-	attrib.uv.AttribPointer(3, gl.FLOAT, false, flt32Size*10, flt32Size*6)
+	attrib.uv.AttribPointer(4, gl.FLOAT, false, flt32Size*10, flt32Size*6)
 
 //     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
 //         sizeof(GLfloat) * 10, 0);
