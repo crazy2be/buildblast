@@ -23,6 +23,7 @@ var (
 	ambient    []float32 = []float32{0.5, 0.5, 0.5, 1}
 	diffuse    []float32 = []float32{1, 1, 1, 1}
 	lightpos   []float32 = []float32{-5, 5, 10, 0}
+	window *glfw.Window
 )
 
 func errorCallback(err glfw.ErrorCode, desc string) {
@@ -37,7 +38,8 @@ func main() {
 	}
 	defer glfw.Terminate()
 
-	window, err := glfw.CreateWindow(Width, Height, Title, nil, nil)
+	var err error
+	window, err = glfw.CreateWindow(Width, Height, Title, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -64,17 +66,19 @@ func main() {
 
 type BlockProgram struct {
 	program  gl.Program
+
 	position gl.AttribLocation
 	normal   gl.AttribLocation
 	uv       gl.AttribLocation
-	matrix   gl.UniformLocation
-	sampler  gl.UniformLocation
-	extra1   gl.UniformLocation
-	extra2   gl.UniformLocation
-	extra3   gl.UniformLocation
-	extra4   gl.UniformLocation
-	camera   gl.UniformLocation
-	timer    gl.UniformLocation
+
+	matrix  gl.UniformLocation
+	sampler gl.UniformLocation
+	extra1  gl.UniformLocation
+	extra2  gl.UniformLocation
+	extra3  gl.UniformLocation
+	extra4  gl.UniformLocation
+	camera  gl.UniformLocation
+	timer   gl.UniformLocation
 }
 
 var block_attrib BlockProgram
@@ -207,4 +211,76 @@ func drawScene() {
 	gl.Vertex3f(-1, 1, -1)
 
 	gl.End()
+
+// 	renderChunks(block_attrib)
+}
+
+func WindowMatrix() Matrix {
+	w, h := window.GetSize()
+	gl.Viewport(0, 0, w, h)
+	return MakePerspective(65.0, float32(w)/float32(h), 0.1, 60.0)
+}
+
+func renderChunks(attrib *BlockProgram) {
+	x := float32(0.0)
+	y := float32(0.0)
+	z := float32(0.0)
+	ortho := 0 // no boolean for shaders?
+//     float light = get_daylight();
+	light := float32(0.5)
+	time := float32(0.5)
+	matrix := WindowMatrix()
+//     float matrix[16];
+//     set_matrix_3d(
+//         matrix, g->width, g->height,
+//         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
+//     float planes[6][4];
+//     frustum_planes(planes, g->render_radius, matrix);
+    attrib.program.Use()
+
+	attrib.matrix.UniformMatrix4fv(false, matrix)
+    attrib.camera.Uniform3f(x, y, z)
+    attrib.sampler.Uniform1i(0)
+    attrib.extra1.Uniform1i(2)
+    attrib.extra2.Uniform1f(light)
+//     attrib.extra3.Uniform1f(g->render_radius * CHUNK_SIZE);
+    attrib.extra3.Uniform1f(256);
+    attrib.extra4.Uniform1i(ortho);
+    attrib.timer.Uniform1f(time);
+}
+
+func draw_triangles_3d_ao(attrib *BlockProgram, buffer gl.Buffer, count int) {
+    buffer.Bind(gl.ARRAY_BUFFER)
+
+	attrib.position.EnableArray()
+	attrib.normal.EnableArray()
+	attrib.uv.EnableArray()
+
+	flt32Size := 4
+	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*10, 0)
+	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*10, flt32Size*3)
+	attrib.uv.AttribPointer(3, gl.FLOAT, false, flt32Size*10, flt32Size*6)
+
+//     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+//         sizeof(GLfloat) * 10, 0);
+//     glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+//         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 3));
+//     glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+//         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+
+	gl.DrawArrays(gl.TRIANGLES, 0, count)
+
+	attrib.position.DisableArray()
+	attrib.normal.DisableArray()
+	attrib.uv.DisableArray()
+
+	buffer.Unbind(gl.ARRAY_BUFFER);
+}
+
+type Chunk struct {
+	buffer gl.Buffer
+	faces int
+}
+func draw_chunk(attrib *BlockProgram, chunk *Chunk) {
+    draw_triangles_3d_ao(attrib, chunk.buffer, chunk.faces * 6);
 }
