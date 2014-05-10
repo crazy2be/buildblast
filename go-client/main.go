@@ -24,6 +24,7 @@ var (
 	diffuse    []float32 = []float32{1, 1, 1, 1}
 	lightpos   []float32 = []float32{-5, 5, 10, 0}
 	window *glfw.Window
+	globalChunksList []*Chunk
 )
 
 func errorCallback(err glfw.ErrorCode, desc string) {
@@ -57,8 +58,15 @@ func main() {
 	}
 	defer destroyScene()
 
+	globalChunksList := make([]*Chunk, 1)
+	for i := 0; i < 1; i++ {
+		globalChunksList[i] = make_chunk()
+	}
+
 	for !window.ShouldClose() {
 		drawScene()
+// 			renderChunks(&block_attrib)
+
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
@@ -85,7 +93,7 @@ var block_attrib BlockProgram
 
 func initScene() (err error) {
 	gl.Enable(gl.CULL_FACE)
-// 	gl.Enable(gl.TEXTURE_2D)
+	gl.Enable(gl.TEXTURE_2D)
 	gl.Enable(gl.DEPTH_TEST)
 	gl.LogicOp(gl.INVERT)
 // 	gl.Enable(gl.LIGHTING)
@@ -107,7 +115,9 @@ func initScene() (err error) {
 	gl.MatrixMode(gl.MODELVIEW)
 	gl.LoadIdentity()
 
+	gl.ActiveTexture(gl.TEXTURE0)
 	texture = loadTexture("../client/img/block_textures/atlas.png")
+	texture.Bind(gl.TEXTURE_2D)
 
 	// Create programs
 	program := loadProgram(
@@ -212,7 +222,6 @@ func drawScene() {
 
 	gl.End()
 
-// 	renderChunks(block_attrib)
 }
 
 func WindowMatrix() Matrix {
@@ -240,26 +249,171 @@ func renderChunks(attrib *BlockProgram) {
 
 	attrib.matrix.UniformMatrix4fv(false, matrix)
     attrib.camera.Uniform3f(x, y, z)
-    attrib.sampler.Uniform1i(0)
+    attrib.sampler.Uniform1i(0) // Texture unit number
     attrib.extra1.Uniform1i(2)
     attrib.extra2.Uniform1f(light)
 //     attrib.extra3.Uniform1f(g->render_radius * CHUNK_SIZE);
     attrib.extra3.Uniform1f(256);
     attrib.extra4.Uniform1i(ortho);
     attrib.timer.Uniform1f(time);
+
+	for i := 0; i < len(globalChunksList); i++ {
+		globalChunksList[i].Draw(attrib)
+	}
 }
 
-func draw_triangles_3d_ao(attrib *BlockProgram, buffer gl.Buffer, count int) {
-    buffer.Bind(gl.ARRAY_BUFFER)
+func make_chunk() *Chunk {
+	positions := []float32 {
+		-1, -1, 1,
+		1, -1, 1,
+		1, 1, 1,
+		-1, 1, 1,
+
+		0, 0, -1,
+		-1, -1, -1,
+		-1, 1, -1,
+		1, 1, -1,
+		1, -1, -1,
+
+		-1, 1, -1,
+		-1, 1, 1,
+		1, 1, 1,
+		1, 1, -1,
+
+		-1, -1, -1,
+		1, -1, -1,
+		1, -1, 1,
+		-1, -1, 1,
+
+		1, -1, -1,
+		1, 1, -1,
+		1, 1, 1,
+		1, -1, 1,
+
+		-1, -1, -1,
+		-1, -1, 1,
+		-1, 1, 1,
+		-1, 1, -1,
+	}
+	normals := []float32 {
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+		0, 0, 1,
+
+		0, 0, -1,
+		0, 0, -1,
+		0, 0, -1,
+		0, 0, -1,
+
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+
+		0, -1, 0,
+		0, -1, 0,
+		0, -1, 0,
+		0, -1, 0,
+
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+		1, 0, 0,
+
+		-1, 0, 0,
+		-1, 0, 0,
+		-1, 0, 0,
+		-1, 0, 0,
+	}
+	uvs := []float32 {
+		0, 0,
+		1, 0,
+		1, 1,
+		0, 1,
+
+		1, 0,
+		1, 1,
+		0, 1,
+		0, 0,
+
+		0, 1,
+		0, 0,
+		1, 0,
+		1, 1,
+
+		1, 1,
+		0, 1,
+		0, 0,
+		1, 0,
+
+		1, 0,
+		1, 1,
+		0, 1,
+		0, 0,
+
+		0, 0,
+		1, 0,
+		1, 1,
+		0, 1,
+	}
+	indices := []uint16 {
+		0, 1, 2,
+		0, 2, 3,
+
+		4, 5, 6,
+		4, 6, 7,
+
+		8, 9, 10,
+		8, 10, 11,
+
+		12, 13, 14,
+		12, 14, 15,
+
+		16, 17, 18,
+		16, 18, 19,
+
+		20, 21, 22,
+		20, 22, 23,
+	}
+
+	bufLen := len(positions) + len(normals) + len(uvs)
+	bufData := make([]float32, bufLen, bufLen)
+	for i := 0; i < 6; i++ {
+		bufData[i*8] = positions[i*3]
+		bufData[i*8 + 1] = positions[i*3 + 1]
+		bufData[i*8 + 2] = positions[i*3 + 2]
+		bufData[i*8 + 3] = normals[i*3]
+		bufData[i*8 + 4] = normals[i*3 + 1]
+		bufData[i*8 + 5] = normals[i*3 + 2]
+		bufData[i*8 + 6] = uvs[i*2]
+		bufData[i*8 + 7] = uvs[i*2 + 1]
+	}
+	return &Chunk {
+		buffer: make_buffer(gl.ARRAY_BUFFER, bufData, bufLen*4),
+		indexBuffer: make_buffer(gl.ELEMENT_ARRAY_BUFFER, indices, 6*6*2),
+		numIndicies: 6*6,
+	}
+}
+
+type Chunk struct {
+	buffer gl.Buffer
+	indexBuffer gl.Buffer
+	numIndicies int
+}
+
+func (chunk *Chunk) Draw (attrib *BlockProgram) {
+    chunk.buffer.Bind(gl.ARRAY_BUFFER)
+	chunk.indexBuffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
 
 	attrib.position.EnableArray()
 	attrib.normal.EnableArray()
 	attrib.uv.EnableArray()
 
 	flt32Size := 4
-	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*10, 0)
-	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*10, flt32Size*3)
-	attrib.uv.AttribPointer(4, gl.FLOAT, false, flt32Size*10, flt32Size*6)
+	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*8, 0)
+	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*8, flt32Size*3)
+	attrib.uv.AttribPointer(2, gl.FLOAT, false, flt32Size*8, flt32Size*6)
 
 //     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
 //         sizeof(GLfloat) * 10, 0);
@@ -268,19 +422,20 @@ func draw_triangles_3d_ao(attrib *BlockProgram, buffer gl.Buffer, count int) {
 //     glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
 //         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
 
-	gl.DrawArrays(gl.TRIANGLES, 0, count)
+	gl.DrawElements(gl.TRIANGLES, chunk.numIndicies, gl.UNSIGNED_BYTE, 0)
 
 	attrib.position.DisableArray()
 	attrib.normal.DisableArray()
 	attrib.uv.DisableArray()
 
-	buffer.Unbind(gl.ARRAY_BUFFER);
+	chunk.indexBuffer.Unbind(gl.ELEMENT_ARRAY_BUFFER)
+	chunk.buffer.Unbind(gl.ARRAY_BUFFER)
 }
 
-type Chunk struct {
-	buffer gl.Buffer
-	faces int
-}
-func draw_chunk(attrib *BlockProgram, chunk *Chunk) {
-    draw_triangles_3d_ao(attrib, chunk.buffer, chunk.faces * 6);
+func make_buffer(target gl.GLenum, data interface{}, size int) gl.Buffer {
+	buf := gl.GenBuffer()
+	buf.Bind(target)
+	gl.BufferData(target, size, data, gl.STATIC_DRAW)
+	buf.Unbind(target)
+	return buf
 }
