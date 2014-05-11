@@ -1,12 +1,12 @@
 #version 120
 
-uniform sampler2D sampler;
+// uniform sampler2D sampler;
 // uniform sampler2D sky_sampler;
 // uniform float timer;
 // uniform float daylight;
 // uniform int ortho;
 
-varying vec2 fragment_uv;
+// varying vec2 fragment_uv;
 // varying float fragment_ao;
 // varying float fragment_light;
 // varying float fog_factor;

@@ -56,40 +56,48 @@ func createTexture(r io.Reader) (gl.Texture, error) {
 	return textureId, nil
 }
 
-
 // Ported from Craft source
+func make_buffer(target gl.GLenum, size int, data interface{}) gl.Buffer {
+	buf := gl.GenBuffer()
+	buf.Bind(target)
+	gl.BufferData(target, size, data, gl.STATIC_DRAW)
+	buf.Unbind(target)
+	return buf
+}
+
+func load_file(name string) []byte {
+	contents, err := ioutil.ReadFile(name)
+	if err != nil {
+		log.Fatal("read file: ", err)
+	}
+	return contents
+}
+
 func make_shader(type_ gl.GLenum, source []byte) gl.Shader {
     shader := gl.CreateShader(type_)
     shader.Source(string(source))
     shader.Compile()
 	status := shader.Get(gl.COMPILE_STATUS)
     if (status == gl.FALSE) {
-		log.Fatal("Error compiling shader! ", shader.GetInfoLog())
+		log.Fatal("shader:", shader.GetInfoLog())
     }
     return shader;
 }
 
 func load_shader(type_ gl.GLenum, path string) gl.Shader {
-    data, err := ioutil.ReadFile(path)
-	if err != nil {panic(err)}
-    return make_shader(type_, data)
+	return make_shader(type_, load_file(path))
 }
 
-func make_program(shader1 gl.Shader, shader2 gl.Shader) gl.Program {
-    program := gl.CreateProgram()
-    program.AttachShader(shader1)
-    program.AttachShader(shader2)
+func make_program(shader1, shader2 gl.Shader) gl.Program {
+	program := gl.CreateProgram()
+	program.AttachShader(shader1)
+	program.AttachShader(shader2)
 	program.Link()
 	status := program.Get(gl.LINK_STATUS)
-    if (status == gl.FALSE) {
-		log.Fatal("Error linking program! ", program.GetInfoLog())
-    }
-    // ???? Why detach the shaders?
-//     glDetachShader(program, shader1);
-//     glDetachShader(program, shader2);
-//     glDeleteShader(shader1);
-//     glDeleteShader(shader2);
-    return program;
+	if status == gl.FALSE {
+		log.Fatal("link:", program.GetInfoLog())
+	}
+	return program
 }
 
 func loadProgram(path1, path2 string) gl.Program {
