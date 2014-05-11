@@ -156,6 +156,8 @@ func drawScene() {
 
 	texture.Bind(gl.TEXTURE_2D)
 
+// 	gl.Color4f(1, 1, 1, 1)
+// 	renderChunks(&block_attrib)
 	drawGopherCube()
 }
 
@@ -273,7 +275,6 @@ func make_chunk() *Chunk {
 		1, 1, 1,
 		-1, 1, 1,
 
-		0, 0, -1,
 		-1, -1, -1,
 		-1, 1, -1,
 		1, 1, -1,
@@ -383,8 +384,8 @@ func make_chunk() *Chunk {
 
 	bufLen := len(positions) + len(normals) + len(uvs)
 	bufData := make([]float32, bufLen, bufLen)
-	for i := 0; i < 6; i++ {
-		bufData[i*8] = positions[i*3]
+	for i := 0; i < 6*4; i++ {
+		bufData[i*8 + 0] = positions[i*3]
 		bufData[i*8 + 1] = positions[i*3 + 1]
 		bufData[i*8 + 2] = positions[i*3 + 2]
 		bufData[i*8 + 3] = normals[i*3]
@@ -393,10 +394,11 @@ func make_chunk() *Chunk {
 		bufData[i*8 + 6] = uvs[i*2]
 		bufData[i*8 + 7] = uvs[i*2 + 1]
 	}
+	fmt.Println(bufData, bufLen, len(bufData), len(positions), len(normals), len(indices))
 	return &Chunk {
 		buffer: make_buffer(gl.ARRAY_BUFFER, bufData, bufLen*4),
-		indexBuffer: make_buffer(gl.ELEMENT_ARRAY_BUFFER, indices, 6*6*2),
-		numIndicies: 6*6,
+		indexBuffer: make_buffer(gl.ELEMENT_ARRAY_BUFFER, indices, len(indices)*2),
+		numIndicies: len(indices),
 	}
 }
 
@@ -415,9 +417,9 @@ func (chunk *Chunk) Draw (attrib *BlockProgram) {
 	attrib.uv.EnableArray()
 
 	flt32Size := 4
-	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*8, 0)
-	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*8, flt32Size*3)
-	attrib.uv.AttribPointer(2, gl.FLOAT, false, flt32Size*8, flt32Size*6)
+	attrib.position.AttribPointer(3, gl.FLOAT, false, flt32Size*8, nil)
+	attrib.normal.AttribPointer(3, gl.FLOAT, false, flt32Size*8, uintptr(flt32Size*3))
+	attrib.uv.AttribPointer(2, gl.FLOAT, false, flt32Size*8, uintptr(flt32Size*6))
 
 //     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
 //         sizeof(GLfloat) * 10, 0);
@@ -426,7 +428,7 @@ func (chunk *Chunk) Draw (attrib *BlockProgram) {
 //     glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
 //         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
 
-	gl.DrawElements(gl.TRIANGLES, chunk.numIndicies, gl.UNSIGNED_BYTE, 0)
+	gl.DrawElements(gl.TRIANGLES, chunk.numIndicies, gl.UNSIGNED_SHORT, nil)
 
 	attrib.position.DisableArray()
 	attrib.normal.DisableArray()

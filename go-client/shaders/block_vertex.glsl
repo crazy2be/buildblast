@@ -19,7 +19,7 @@ varying vec2 fragment_uv;
 // const vec3 light_direction = normalize(vec3(-1.0, 1.0, -1.0));
 
 void main() {
-    gl_Position = gl_ModelViewMatrix * position;//matrix * position;
+    gl_Position = gl_ModelViewProjectionMatrix * position;//matrix * position;
     fragment_uv = uv.xy;
 //     fragment_ao = 0.5;//0.3 + (1.0 - uv.z) * 0.7;
 //     fragment_light = 0.5;//uv.w;
