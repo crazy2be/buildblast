@@ -1,14 +1,14 @@
 package main
 
 import (
+	"errors"
 	"github.com/go-gl/gl"
 	"image"
 	"image/png"
 	"io"
-	"os"
-	"log"
 	"io/ioutil"
-	"errors"
+	"log"
+	"os"
 )
 
 // from go-gl/gl example w/ spinning gopher cube
@@ -74,14 +74,14 @@ func load_file(name string) []byte {
 }
 
 func make_shader(type_ gl.GLenum, source []byte) gl.Shader {
-    shader := gl.CreateShader(type_)
-    shader.Source(string(source))
-    shader.Compile()
+	shader := gl.CreateShader(type_)
+	shader.Source(string(source))
+	shader.Compile()
 	status := shader.Get(gl.COMPILE_STATUS)
-    if (status == gl.FALSE) {
+	if status == gl.FALSE {
 		log.Fatal("shader:", shader.GetInfoLog())
-    }
-    return shader;
+	}
+	return shader
 }
 
 func load_shader(type_ gl.GLenum, path string) gl.Shader {
@@ -101,8 +101,8 @@ func make_program(shader1, shader2 gl.Shader) gl.Program {
 }
 
 func loadProgram(path1, path2 string) gl.Program {
-    shader1 := load_shader(gl.VERTEX_SHADER, path1);
-    shader2 := load_shader(gl.FRAGMENT_SHADER, path2);
-    program := make_program(shader1, shader2);
-    return program;
+	shader1 := load_shader(gl.VERTEX_SHADER, path1)
+	shader2 := load_shader(gl.FRAGMENT_SHADER, path2)
+	program := make_program(shader1, shader2)
+	return program
 }

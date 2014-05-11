@@ -25,12 +25,11 @@ var g_element_buffer_data []uint16 = []uint16{
 var g_window *glfw.Window
 
 func set_3d(matrix *Matrix) {
-    w, h := g_window.GetSize();
-    gl.Enable(gl.DEPTH_TEST);
-    gl.Viewport(0, 0, w, h);
-    matrix.Perspective(65.0, float32(w)/float32(h), 0.1, 60.0);
+	w, h := g_window.GetSize()
+	gl.Enable(gl.DEPTH_TEST)
+	gl.Viewport(0, 0, w, h)
+	matrix.Perspective(65.0, float32(w)/float32(h), 0.1, 60.0)
 }
-
 
 func errorCallback(err glfw.ErrorCode, desc string) {
 	log.Fatal("glfw: ", err, desc)
@@ -39,9 +38,9 @@ func errorCallback(err glfw.ErrorCode, desc string) {
 func main() {
 	glfw.SetErrorCallback(errorCallback)
 
-    if (!glfw.Init()) {
-        log.Fatal("glfw init")
-    }
+	if !glfw.Init() {
+		log.Fatal("glfw init")
+	}
 
 	var err error
 	g_window, err = glfw.CreateWindow(800, 600, "Modern GL", nil, nil)
@@ -55,39 +54,39 @@ func main() {
 	}
 
 	g_vertex_buffer_data = make([]float32, 24)
-    make_cube(g_vertex_buffer_data, 0, 0, -10, 0.5);
+	make_cube(g_vertex_buffer_data, 0, 0, -10, 0.5)
 
 	vertex_buffer := make_buffer(
-        gl.ARRAY_BUFFER,
-        len(g_vertex_buffer_data)*4,
-        g_vertex_buffer_data);
-    element_buffer := make_buffer(
-        gl.ELEMENT_ARRAY_BUFFER,
-        len(g_element_buffer_data)*2,
-        g_element_buffer_data);
+		gl.ARRAY_BUFFER,
+		len(g_vertex_buffer_data)*4,
+		g_vertex_buffer_data)
+	element_buffer := make_buffer(
+		gl.ELEMENT_ARRAY_BUFFER,
+		len(g_element_buffer_data)*2,
+		g_element_buffer_data)
 
-	vertex_shader := load_shader(gl.VERTEX_SHADER, "shaders/block_vertex.glsl");
-    fragment_shader := load_shader(gl.FRAGMENT_SHADER, "shaders/block_fragment.glsl");
-    program := make_program(vertex_shader, fragment_shader);
+	vertex_shader := load_shader(gl.VERTEX_SHADER, "shaders/block_vertex.glsl")
+	fragment_shader := load_shader(gl.FRAGMENT_SHADER, "shaders/block_fragment.glsl")
+	program := make_program(vertex_shader, fragment_shader)
 
-    var matrix Matrix
-    for !g_window.ShouldClose() {
-        gl.ClearColor(0.5, 0.69, 1.0, 1);
-        gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        set_3d(&matrix);
+	var matrix Matrix
+	for !g_window.ShouldClose() {
+		gl.ClearColor(0.5, 0.69, 1.0, 1)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		set_3d(&matrix)
 
 		program.GetUniformLocation("matrix").UniformMatrix4fv(false, matrix)
 		program.GetUniformLocation("timer").Uniform1f(float32(glfw.GetTime()))
-        program.Use()
+		program.Use()
 
-        index := program.GetAttribLocation("position");
-        vertex_buffer.Bind(gl.ARRAY_BUFFER);
-        index.AttribPointer(3, gl.FLOAT, false, 4 * 3, nil);
-        index.EnableArray()
-        element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
-        gl.DrawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, nil);
-        index.DisableArray()
+		index := program.GetAttribLocation("position")
+		vertex_buffer.Bind(gl.ARRAY_BUFFER)
+		index.AttribPointer(3, gl.FLOAT, false, 4*3, nil)
+		index.EnableArray()
+		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
+		gl.DrawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, nil)
+		index.DisableArray()
 
-        g_window.SwapBuffers();
-    }
+		g_window.SwapBuffers()
+	}
 }
