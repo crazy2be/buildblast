@@ -4,6 +4,9 @@ uniform mat4 matrix;
 uniform float timer;
 
 in vec4 position;
+in vec2 uv;
+
+out vec2 frag_uv;
 
 mat4 rotationMatrix(vec3 axis, float angle) {
     vec3 a = normalize(axis);
@@ -35,6 +38,7 @@ mat4 rotationMatrix(vec3 axis, float angle) {
 
 void main() {
     gl_Position = matrix * rotationMatrix(vec3(0, 1, 0), sin(timer * 2) / 2) * position;
+    frag_uv = uv;
 }
 
 

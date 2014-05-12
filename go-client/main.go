@@ -73,6 +73,10 @@ func main() {
 	fragment_shader := load_shader(gl.FRAGMENT_SHADER, "shaders/block_fragment.glsl")
 	program := make_program(vertex_shader, fragment_shader)
 
+	gl.ActiveTexture(gl.TEXTURE0)
+	texture := loadTexture("../client/img/block_textures/atlas.png")
+	texture.Bind(gl.TEXTURE_2D)
+
 	var matrix Matrix
 	for !g_window.ShouldClose() {
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
@@ -81,15 +85,22 @@ func main() {
 
 		program.GetUniformLocation("matrix").UniformMatrix4fv(false, matrix)
 		program.GetUniformLocation("timer").Uniform1f(float32(glfw.GetTime()))
+		program.GetUniformLocation("sampler").Uniform1i(0) // Texture unit #
 		program.Use()
 
-		index := program.GetAttribLocation("position")
 		vertex_buffer.Bind(gl.ARRAY_BUFFER)
-		index.AttribPointer(3, gl.FLOAT, false, 4*3, nil)
-		index.EnableArray()
+		position := program.GetAttribLocation("position")
+		position.AttribPointer(3, gl.FLOAT, false, 4*5, nil)
+		position.EnableArray()
+		uv := program.GetAttribLocation("uv")
+		uv.AttribPointer(2, gl.FLOAT, false, 4*5, nil)
+		uv.EnableArray()
+
 		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
 		gl.DrawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, nil)
-		index.DisableArray()
+
+		uv.DisableArray()
+		position.DisableArray()
 
 		g_window.SwapBuffers()
 		glfw.PollEvents()
