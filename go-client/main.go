@@ -7,19 +7,24 @@ import (
 )
 
 var g_vertex_buffer_data []float32
-var g_element_buffer_data []uint16 = []uint16{
-	0, 3, 2,
-	0, 1, 3,
-	4, 7, 5,
+var g_element_buffer_data []uint16 = []uint16 {
+	0, 1, 2,
+	0, 2, 3,
+
+	4, 5, 6,
 	4, 6, 7,
-	2, 3, 7,
-	2, 7, 6,
-	0, 4, 5,
-	0, 5, 1,
-	1, 5, 7,
-	1, 7, 3,
-	0, 6, 4,
-	0, 2, 6,
+
+	8, 9, 10,
+	8, 10, 11,
+
+	12, 13, 14,
+	12, 14, 15,
+
+	16, 17, 18,
+	16, 18, 19,
+
+	20, 21, 22,
+	20, 22, 23,
 }
 
 var g_window *glfw.Window
@@ -53,8 +58,8 @@ func main() {
 		log.Fatal("gl init")
 	}
 
-	g_vertex_buffer_data = make([]float32, 24)
-	make_cube(g_vertex_buffer_data, 0, 0, -10, 0.5)
+// 	g_vertex_buffer_data = make([]float32, 6*4*3)
+	g_vertex_buffer_data = make_cube(0, 0, -10, 0.5)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
@@ -88,5 +93,6 @@ func main() {
 		index.DisableArray()
 
 		g_window.SwapBuffers()
+		glfw.PollEvents()
 	}
 }
