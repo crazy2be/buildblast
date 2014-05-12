@@ -58,7 +58,6 @@ func main() {
 		log.Fatal("gl init")
 	}
 
-// 	g_vertex_buffer_data = make([]float32, 6*4*3)
 	g_vertex_buffer_data = make_cube(0, 0, -10, 0.5)
 
 	vertex_buffer := make_buffer(
