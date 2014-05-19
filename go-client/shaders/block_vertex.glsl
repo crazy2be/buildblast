@@ -37,7 +37,7 @@ mat4 rotationMatrix(vec3 axis, float angle) {
 }
 
 void main() {
-    gl_Position = matrix * rotationMatrix(vec3(0, 1, 0), sin(timer * 2) / 2) * position;
+    gl_Position = matrix * position;//rotationMatrix(vec3(0, 1, 0), sin(timer * 2) / 2) * position;
     frag_uv = uv;
 }
 

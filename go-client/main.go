@@ -78,10 +78,14 @@ func main() {
 	texture.Bind(gl.TEXTURE_2D)
 
 	var matrix Matrix
+	set_3d(&matrix)
 	for !g_window.ShouldClose() {
+		var rot Matrix
+		rot.Identity()
+		rot.Quaternion(0.0005, 0.0003, 0.001, 0.5)
+		matrix.Multiply(&rot, &matrix)
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		set_3d(&matrix)
 
 		program.GetUniformLocation("matrix").UniformMatrix4fv(false, matrix)
 		program.GetUniformLocation("timer").Uniform1f(float32(glfw.GetTime()))
