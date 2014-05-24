@@ -8,11 +8,11 @@ import (
 
 var g_vertex_buffer_data []float32
 var g_element_buffer_data []uint16 = []uint16 {
-	0, 1, 2,
-	0, 2, 3,
+// 	0, 1, 2,
+// 	0, 2, 3,
 
-	4, 5, 6,
-	4, 6, 7,
+// 	4, 5, 6,
+// 	4, 6, 7,
 
 	8, 9, 10,
 	8, 10, 11,
@@ -103,7 +103,7 @@ func main() {
 		uv.EnableArray()
 
 		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
-		gl.DrawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, nil)
+		gl.DrawElements(gl.TRIANGLES, len(g_element_buffer_data), gl.UNSIGNED_SHORT, nil)
 
 		uv.DisableArray()
 		position.DisableArray()
