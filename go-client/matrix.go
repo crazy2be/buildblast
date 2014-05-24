@@ -173,3 +173,27 @@ func (m *Matrix) RotateY(angle float64) {
 	m[10] = a02 * s + a22 * c
 	m[11] = a03 * s + a23 * c
 }
+
+func (m *Matrix) RotateZ(angle float64) {
+    s := float32(math.Sin(angle))
+	c := float32(math.Cos(angle))
+	a00 := m[0]
+	a01 := m[1]
+	a02 := m[2]
+	a03 := m[3]
+	a10 := m[4]
+	a11 := m[5]
+	a12 := m[6]
+	a13 := m[7]
+
+	// Perform axis-specific matrix multiplication
+	m[0] = a00 * c + a10 * s
+	m[1] = a01 * c + a11 * s
+	m[2] = a02 * c + a12 * s
+	m[3] = a03 * c + a13 * s
+
+	m[4] = a00 * -s + a10 * c
+	m[5] = a01 * -s + a11 * c
+	m[6] = a02 * -s + a12 * c
+	m[7] = a03 * -s + a13 * c
+}

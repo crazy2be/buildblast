@@ -84,6 +84,7 @@ func main() {
 		rot.Identity()
 		rot.RotateX(0.02)
 		rot.RotateY(0.01)
+		rot.RotateZ(0.005)
 		matrix.Multiply(&rot, &matrix)
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
