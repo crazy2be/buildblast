@@ -126,3 +126,50 @@ func (m *Matrix) Multiply(a *Matrix, b *Matrix) {
 	m[11] = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
 	m[15] = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
 }
+
+func (m *Matrix) RotateX(angle float64) {
+	s := float32(math.Sin(angle))
+	c := float32(math.Cos(angle))
+	a10 := m[4]
+	a11 := m[5]
+	a12 := m[6]
+	a13 := m[7]
+	a20 := m[8]
+	a21 := m[9]
+	a22 := m[10]
+	a23 := m[11]
+
+	// Perform axis-specific matrix multiplication
+	m[4] = a10 * c + a20 * s;
+	m[5] = a11 * c + a21 * s;
+	m[6] = a12 * c + a22 * s;
+	m[7] = a13 * c + a23 * s;
+
+	m[8] = a10 * -s + a20 * c;
+	m[9] = a11 * -s + a21 * c;
+	m[10] = a12 * -s + a22 * c;
+	m[11] = a13 * -s + a23 * c;
+}
+
+func (m *Matrix) RotateY(angle float64) {
+	s := float32(math.Sin(angle))
+	c := float32(math.Cos(angle))
+	a00 := m[0]
+	a01 := m[1]
+	a02 := m[2]
+	a03 := m[3]
+	a20 := m[8]
+	a21 := m[9]
+	a22 := m[10]
+	a23 := m[11]
+
+	m[0] = a00 * c + a20 * -s
+	m[1] = a01 * c + a21 * -s
+	m[2] = a02 * c + a22 * -s
+	m[3] = a03 * c + a23 * -s
+
+	m[8]  = a00 * s + a20 * c
+	m[9]  = a01 * s + a21 * c
+	m[10] = a02 * s + a22 * c
+	m[11] = a03 * s + a23 * c
+}
