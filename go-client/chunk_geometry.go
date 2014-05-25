@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/go-gl/gl"
+)
+
 var VERTEX_POSITIONS [][][]float32 = [][][]float32{
  	{ { 1, 0, 0 }, { 1, 1, 0 }, { 1, 1, 1 }, { 1, 0, 1 }, {   1, 0.5, 0.5 } },
  	{ { 0, 0, 1 }, { 0, 1, 1 }, { 0, 1, 0 }, { 0, 0, 0 }, {   0, 0.5, 0.5 } },
@@ -59,8 +63,8 @@ var TEXTURE_MAP [][]int = [][]int {
 
 type ChunkGeometry struct {
 	numVerts int
-	arrayBuffer []float32
-	elementArrayBuffer []uint16
+	vertexArray []float32
+	indexArray []uint16
 }
 
 func NewChunkGeometry() *ChunkGeometry {
@@ -72,11 +76,11 @@ func NewChunkGeometry() *ChunkGeometry {
 }
 
 func (gc *ChunkGeometry) push(n ...float32) {
-	gc.arrayBuffer = append(gc.arrayBuffer, n...)
+	gc.vertexArray = append(gc.vertexArray, n...)
 }
 
 func (gc *ChunkGeometry) pushIndex(n ...uint16) {
-	gc.elementArrayBuffer = append(gc.elementArrayBuffer, n...)
+	gc.indexArray = append(gc.indexArray, n...)
 }
 
 func (gc *ChunkGeometry) buildFace(face int) {
@@ -107,4 +111,37 @@ func (gc *ChunkGeometry) Add(blockType int, x, y, z float32) {
 		}
 		gc.buildFace(face)
 	}
+}
+
+type ChunkMesh struct {
+	vertexBuffer gl.Buffer
+	indexBuffer gl.Buffer
+	numIndices int
+// 	matrix Matrix
+}
+
+func NewChunkMesh(gc *ChunkGeometry) *ChunkMesh {
+	return &ChunkMesh{
+		vertexBuffer: make_buffer(gl.ARRAY_BUFFER, len(gc.vertexArray)*4, gc.vertexArray),
+		indexBuffer: make_buffer(gl.ELEMENT_ARRAY_BUFFER, len(gc.indexArray)*2, gc.indexArray),
+		numIndices: len(gc.indexArray),
+	}
+}
+
+func (cm *ChunkMesh) Draw(program gl.Program) {
+	cm.vertexBuffer.Bind(gl.ARRAY_BUFFER)
+
+	position := program.GetAttribLocation("position")
+	position.AttribPointer(3, gl.FLOAT, false, 4*5, uintptr(0))
+	position.EnableArray()
+
+	uv := program.GetAttribLocation("uv")
+	uv.AttribPointer(2, gl.FLOAT, false, 4*5, uintptr(4*3))
+	uv.EnableArray()
+
+	cm.indexBuffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
+	gl.DrawElements(gl.TRIANGLES, cm.numIndices, gl.UNSIGNED_SHORT, nil)
+
+	uv.DisableArray()
+	position.DisableArray()
 }

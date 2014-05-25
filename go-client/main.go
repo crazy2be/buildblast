@@ -9,11 +9,11 @@ import (
 
 var g_window *glfw.Window
 
-func set_3d(matrix *Matrix) {
+func set_3d(projection *Matrix) {
 	w, h := g_window.GetSize()
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Viewport(0, 0, w, h)
-	matrix.Perspective(65.0, float32(w)/float32(h), 0.1, 100.0)
+	projection.Perspective(65.0, float32(w)/float32(h), 0.1, 100.0)
 }
 
 func errorCallback(err glfw.ErrorCode, desc string) {
@@ -45,14 +45,7 @@ func main() {
 	chunk.Add(5, 1, -1, 0)
 	chunk.Add(6, -1, -1, 0)
 
-	vertex_buffer := make_buffer(
-		gl.ARRAY_BUFFER,
-		len(chunk.arrayBuffer)*4,
-		chunk.arrayBuffer)
-	element_buffer := make_buffer(
-		gl.ELEMENT_ARRAY_BUFFER,
-		len(chunk.elementArrayBuffer)*2,
-		chunk.elementArrayBuffer)
+	chunkMesh := NewChunkMesh(chunk)
 
 	vertex_shader := load_shader(gl.VERTEX_SHADER, "shaders/block_vertex.glsl")
 	fragment_shader := load_shader(gl.FRAGMENT_SHADER, "shaders/block_fragment.glsl")
@@ -85,19 +78,7 @@ func main() {
 		program.GetUniformLocation("sampler").Uniform1i(0) // Texture unit #
 		program.Use()
 
-		vertex_buffer.Bind(gl.ARRAY_BUFFER)
-		position := program.GetAttribLocation("position")
-		position.AttribPointer(3, gl.FLOAT, false, 4*5, uintptr(0))
-		position.EnableArray()
-		uv := program.GetAttribLocation("uv")
-		uv.AttribPointer(2, gl.FLOAT, false, 4*5, uintptr(4*3))
-		uv.EnableArray()
-
-		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
-		gl.DrawElements(gl.TRIANGLES, len(chunk.elementArrayBuffer), gl.UNSIGNED_SHORT, nil)
-
-		uv.DisableArray()
-		position.DisableArray()
+		chunkMesh.Draw(program)
 
 		g_window.SwapBuffers()
 		glfw.PollEvents()
