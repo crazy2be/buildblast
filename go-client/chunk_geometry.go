@@ -39,15 +39,15 @@ func (gc *ChunkGeometry) buildFace(face int) {
 }
 
 func (gc *ChunkGeometry) buildUv(tileOffset, uvWinding []float32) {
-	u := (tileOffset[0] + uvWinding[0])
-	v := (tileOffset[1] + uvWinding[1])
+	u := (tileOffset[0] + uvWinding[0])/8.0
+	v := (tileOffset[1] + uvWinding[1])/8.0
 	gc.arrayBuffer = append(gc.arrayBuffer, u, v)
 }
 
 func (gc *ChunkGeometry) Add(x, y, z float32) {
 	position := []float32{x, y, z}
 	for face := 0; face < 6; face++ {
-		tileOffset := []float32{0, 0}
+		tileOffset := []float32{7, 7}
 		for vert := 0; vert < 4; vert++ {
 			for comp := 0; comp < 3; comp++ {
 				gc.arrayBuffer = append(gc.arrayBuffer,
