@@ -71,16 +71,27 @@ func NewChunkGeometry() *ChunkGeometry {
 	}
 }
 
+func (gc *ChunkGeometry) push(n ...float32) {
+	gc.arrayBuffer = append(gc.arrayBuffer, n...)
+}
+
+func (gc *ChunkGeometry) pushIndex(n ...uint16) {
+	gc.elementArrayBuffer = append(gc.elementArrayBuffer, n...)
+}
+
 func (gc *ChunkGeometry) buildFace(face int) {
 	var l = uint16(gc.numVerts);
-	gc.elementArrayBuffer = append(gc.elementArrayBuffer, l-4, l-3, l-1)
-	gc.elementArrayBuffer = append(gc.elementArrayBuffer, l-3, l-2, l-1)
+	gc.pushIndex(l-4, l-3, l-1)
+	gc.pushIndex(l-3, l-2, l-1)
 }
 
 func (gc *ChunkGeometry) buildUv(tileOffset, uvWinding []float32) {
-	u := (tileOffset[0] + uvWinding[0])/8.0
-	v := (tileOffset[1] + uvWinding[1])/8.0
-	gc.arrayBuffer = append(gc.arrayBuffer, u, v)
+	u := (tileOffset[0] + uvWinding[0]) * UV_UNIT
+	v := (tileOffset[1] + uvWinding[1]) * UV_UNIT
+	// Add a 12.5% texel inset at the edges, to prevent rounding artifacts.
+	u += (-(uvWinding[0] - 0.5)*2) / (ATLAS_SIZE * 8);
+	v += (-(uvWinding[1] - 0.5)*2) / (ATLAS_SIZE * 8);
+	gc.push(u, v)
 }
 
 func (gc *ChunkGeometry) Add(blockType int, x, y, z float32) {
@@ -89,8 +100,7 @@ func (gc *ChunkGeometry) Add(blockType int, x, y, z float32) {
 		tileOffset := ATLAS[TEXTURE_MAP[blockType][face]]
 		for vert := 0; vert < 4; vert++ {
 			for comp := 0; comp < 3; comp++ {
-				gc.arrayBuffer = append(gc.arrayBuffer,
-					position[comp] + VERTEX_POSITIONS[face][vert][comp])
+				gc.push(position[comp] + VERTEX_POSITIONS[face][vert][comp])
 			}
 			gc.buildUv(tileOffset, UV_WINDING[face][vert])
 			gc.numVerts++
