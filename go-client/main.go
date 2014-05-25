@@ -37,9 +37,13 @@ func main() {
 	if gl.Init() != gl.FALSE {
 		log.Fatal("gl init")
 	}
-	
+
 	chunk := NewChunkGeometry()
 	chunk.Add(0, 0, -10)
+	chunk.Add(1, 1, -10)
+	chunk.Add(-1, 1, -10)
+	chunk.Add(1, -1, -10)
+	chunk.Add(-1, -1, -10)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
@@ -64,9 +68,9 @@ func main() {
 		var rot Matrix
 		rot.Identity()
 		rot.Translate(0, 0, 10)
-// 		rot.RotateX(0.002)
-// 		rot.RotateY(0.001)
-		rot.RotateZ(0.05)
+		rot.RotateX(0.002)
+		rot.RotateY(0.001)
+		rot.RotateZ(0.005)
 		rot.Translate(0, 0, -10)
 		matrix.Multiply(&rot, &matrix)
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
