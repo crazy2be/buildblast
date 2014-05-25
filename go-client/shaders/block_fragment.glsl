@@ -36,6 +36,9 @@ void main() {
 //     vec3 sky_color = vec3(texture2D(sky_sampler, vec2(timer, fog_height)));
 //     color = mix(color, sky_color, fog_factor);
 //     gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-	gl_FragColor = texture2D(sampler, frag_uv);
-// 	gl_FragColor = vec4(color, 1.0);
+	vec4 color = texture2D(sampler, frag_uv);
+	if (color.a < 0.5) {
+		discard;
+	}
+	gl_FragColor = color;
 }

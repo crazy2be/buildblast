@@ -113,5 +113,5 @@ func randBlock() int {
 	return (rand.Int() % (len(TEXTURE_MAP) - 2)) + 2
 }
 func randCoord() float32 {
-	return float32(int(rand.Float32()*10 - 5))
+	return float32(int(rand.Float32()*10 - 5 + 0.5))
 }
