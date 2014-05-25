@@ -8,23 +8,23 @@ import (
 
 var g_vertex_buffer_data []float32
 var g_element_buffer_data []uint16 = []uint16 {
-// 	0, 1, 2,
-// 	0, 2, 3,
+	0, 1, 3,
+	1, 2, 3,
 
-// 	4, 5, 6,
-// 	4, 6, 7,
+	4, 5, 7,
+	5, 6, 7,
 
-	8, 9, 10,
-	8, 10, 11,
+	8, 9, 11,
+	9, 10, 11,
 
-	12, 13, 14,
-	12, 14, 15,
+	12, 13, 15,
+	13, 14, 15,
 
-	16, 17, 18,
-	16, 18, 19,
+	16, 17, 19,
+	17, 18, 19,
 
-	20, 21, 22,
-	20, 22, 23,
+	20, 21, 23,
+	21, 22, 23,
 }
 
 var g_window *glfw.Window
@@ -58,7 +58,7 @@ func main() {
 		log.Fatal("gl init")
 	}
 
-	g_vertex_buffer_data = make_cube(0, 0, -10, 0.5)
+	g_vertex_buffer_data = make_cube(0, 0, -10, 1)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
@@ -82,9 +82,11 @@ func main() {
 	for !g_window.ShouldClose() {
 		var rot Matrix
 		rot.Identity()
-		rot.RotateX(0.02)
-		rot.RotateY(0.01)
-		rot.RotateZ(0.005)
+		rot.Translate(0, 0, 10)
+// 		rot.RotateX(0.002)
+// 		rot.RotateY(0.001)
+		rot.RotateZ(0.05)
+		rot.Translate(0, 0, -10)
 		matrix.Multiply(&rot, &matrix)
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
