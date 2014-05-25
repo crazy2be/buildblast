@@ -6,26 +6,6 @@ import (
 	"log"
 )
 
-var g_vertex_buffer_data []float32
-var g_element_buffer_data []uint16 = []uint16 {
-	0, 1, 3,
-	1, 2, 3,
-
-	4, 5, 7,
-	5, 6, 7,
-
-	8, 9, 11,
-	9, 10, 11,
-
-	12, 13, 15,
-	13, 14, 15,
-
-	16, 17, 19,
-	17, 18, 19,
-
-	20, 21, 23,
-	21, 22, 23,
-}
 
 var g_window *glfw.Window
 
@@ -57,17 +37,18 @@ func main() {
 	if gl.Init() != gl.FALSE {
 		log.Fatal("gl init")
 	}
-
-	g_vertex_buffer_data = make_cube(0, 0, -10, 1)
+	
+	chunk := NewChunkGeometry()
+	chunk.Add(0, 0, -10)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
-		len(g_vertex_buffer_data)*4,
-		g_vertex_buffer_data)
+		len(chunk.arrayBuffer)*4,
+		chunk.arrayBuffer)
 	element_buffer := make_buffer(
 		gl.ELEMENT_ARRAY_BUFFER,
-		len(g_element_buffer_data)*2,
-		g_element_buffer_data)
+		len(chunk.elementArrayBuffer)*2,
+		chunk.elementArrayBuffer)
 
 	vertex_shader := load_shader(gl.VERTEX_SHADER, "shaders/block_vertex.glsl")
 	fragment_shader := load_shader(gl.FRAGMENT_SHADER, "shaders/block_fragment.glsl")
@@ -105,7 +86,7 @@ func main() {
 		uv.EnableArray()
 
 		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
-		gl.DrawElements(gl.TRIANGLES, len(g_element_buffer_data), gl.UNSIGNED_SHORT, nil)
+		gl.DrawElements(gl.TRIANGLES, len(chunk.elementArrayBuffer), gl.UNSIGNED_SHORT, nil)
 
 		uv.DisableArray()
 		position.DisableArray()
