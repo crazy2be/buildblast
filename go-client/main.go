@@ -13,7 +13,7 @@ func set_3d(matrix *Matrix) {
 	w, h := g_window.GetSize()
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Viewport(0, 0, w, h)
-	matrix.Perspective(65.0, float32(w)/float32(h), 0.01, 600.0)
+	matrix.Perspective(65.0, float32(w)/float32(h), 0.1, 100.0)
 }
 
 func errorCallback(err glfw.ErrorCode, desc string) {
@@ -87,10 +87,10 @@ func main() {
 
 		vertex_buffer.Bind(gl.ARRAY_BUFFER)
 		position := program.GetAttribLocation("position")
-		position.AttribPointer(3, gl.FLOAT, false, 4*5, nil)
+		position.AttribPointer(3, gl.FLOAT, false, 4*5, uintptr(0))
 		position.EnableArray()
 		uv := program.GetAttribLocation("uv")
-		uv.AttribPointer(2, gl.FLOAT, false, 4*5, nil)
+		uv.AttribPointer(2, gl.FLOAT, false, 4*5, uintptr(4*3))
 		uv.EnableArray()
 
 		element_buffer.Bind(gl.ELEMENT_ARRAY_BUFFER)
