@@ -117,7 +117,7 @@ type ChunkMesh struct {
 	vertexBuffer gl.Buffer
 	indexBuffer gl.Buffer
 	numIndices int
-// 	matrix Matrix
+	matrix Matrix
 }
 
 func NewChunkMesh(gc *ChunkGeometry) *ChunkMesh {

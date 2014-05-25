@@ -6,15 +6,13 @@ import (
 	"log"
 )
 
-
-var g_window *glfw.Window
-
-func set_3d(projection *Matrix) {
-	w, h := g_window.GetSize()
+func updateProjection(projection *Matrix, window *glfw.Window) {
+	w, h := window.GetSize()
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Viewport(0, 0, w, h)
 	projection.Perspective(65.0, float32(w)/float32(h), 0.1, 100.0)
 }
+
 
 func errorCallback(err glfw.ErrorCode, desc string) {
 	log.Fatal("glfw: ", err, desc)
@@ -27,12 +25,11 @@ func main() {
 		log.Fatal("glfw init")
 	}
 
-	var err error
-	g_window, err = glfw.CreateWindow(800, 600, "Modern GL", nil, nil)
+	window, err := glfw.CreateWindow(800, 600, "Modern GL", nil, nil)
 	if err != nil {
 		log.Fatal("window create", err)
 	}
-	g_window.MakeContextCurrent()
+	window.MakeContextCurrent()
 
 	if gl.Init() != gl.FALSE {
 		log.Fatal("gl init")
@@ -56,9 +53,25 @@ func main() {
 	texture.Bind(gl.TEXTURE_2D)
 
 	var projection Matrix
-	set_3d(&projection)
+	updateProjection(&projection, window)
+
+	var view Matrix
+	view.Identity()
+	window.SetKeyCallback(func (window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		switch key {
+		case glfw.KeyUp:
+			view.Translate(0, 0, 1)
+		case glfw.KeyDown:
+			view.Translate(0, 0, -1)
+		case glfw.KeyLeft:
+			view.Translate(1, 0, 0)
+		case glfw.KeyRight:
+			view.Translate(-1, 0, 0)
+		}
+	})
+
 	theta := 0.0
-	for !g_window.ShouldClose() {
+	for !window.ShouldClose() {
 		var model Matrix
 		model.Identity()
 // 		model.RotateX(0.002)
@@ -67,9 +80,12 @@ func main() {
 		theta += 0.01
 		model.Translate(-0.5, -0.5, 0)
 // 		model.RotateZ(0.005)
+
 		var mvp Matrix
 		mvp.Identity()
-		mvp.Multiply(&projection, &model)
+		mvp.Multiply(&projection, &view)
+		mvp.Multiply(&mvp, &model)
+
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -80,7 +96,7 @@ func main() {
 
 		chunkMesh.Draw(program)
 
-		g_window.SwapBuffers()
+		window.SwapBuffers()
 		glfw.PollEvents()
 	}
 }
