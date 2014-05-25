@@ -90,9 +90,10 @@ func (m *Matrix) Quaternion(q0, q1, q2, q3 float32) {
 }
 
 func (m *Matrix) Translate(x, y, z float32) {
-	m[3] += x;
-	m[7] += y;
-	m[11] += z;
+	m[12] = m[0]*x + m[4]*y + m[8]*z + m[12]
+	m[13] = m[1]*x + m[5]*y + m[9]*z + m[13]
+	m[14] = m[2]*x + m[6]*y + m[10]*z + m[14]
+	m[15] = m[3]*x + m[7]*y + m[11]*z + m[15]
 }
 
 func (m *Matrix) Multiply(a *Matrix, b *Matrix) {

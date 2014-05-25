@@ -13,7 +13,7 @@ func set_3d(matrix *Matrix) {
 	w, h := g_window.GetSize()
 	gl.Enable(gl.DEPTH_TEST)
 	gl.Viewport(0, 0, w, h)
-	matrix.Perspective(65.0, float32(w)/float32(h), 0.1, 60.0)
+	matrix.Perspective(65.0, float32(w)/float32(h), 0.01, 600.0)
 }
 
 func errorCallback(err glfw.ErrorCode, desc string) {
@@ -39,11 +39,11 @@ func main() {
 	}
 
 	chunk := NewChunkGeometry()
-	chunk.Add(0, 0, -10)
-	chunk.Add(1, 1, -10)
-	chunk.Add(-1, 1, -10)
-	chunk.Add(1, -1, -10)
-	chunk.Add(-1, -1, -10)
+	chunk.Add(0, 0, 0)
+	chunk.Add(1, 1, 0)
+	chunk.Add(-1, 1, 0)
+	chunk.Add(1, -1, 0)
+	chunk.Add(-1, -1, 0)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
@@ -62,21 +62,25 @@ func main() {
 	texture := loadTexture("../client/img/block_textures/atlas.png")
 	texture.Bind(gl.TEXTURE_2D)
 
-	var matrix Matrix
-	set_3d(&matrix)
+	var projection Matrix
+	set_3d(&projection)
+	theta := 0.0
 	for !g_window.ShouldClose() {
-		var rot Matrix
-		rot.Identity()
-		rot.Translate(0, 0, 10)
-		rot.RotateX(0.002)
-		rot.RotateY(0.001)
-		rot.RotateZ(0.005)
-		rot.Translate(0, 0, -10)
-		matrix.Multiply(&rot, &matrix)
+		var model Matrix
+		model.Identity()
+// 		model.RotateX(0.002)
+		model.Translate(0, 0, -5)
+		model.RotateY(theta)
+		theta += 0.01
+		model.Translate(-0.5, -0.5, 0)
+// 		model.RotateZ(0.005)
+		var mvp Matrix
+		mvp.Identity()
+		mvp.Multiply(&projection, &model)
 		gl.ClearColor(0.5, 0.69, 1.0, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		program.GetUniformLocation("matrix").UniformMatrix4fv(false, matrix)
+		program.GetUniformLocation("matrix").UniformMatrix4fv(false, mvp)
 		program.GetUniformLocation("timer").Uniform1f(float32(glfw.GetTime()))
 		program.GetUniformLocation("sampler").Uniform1i(0) // Texture unit #
 		program.Use()
