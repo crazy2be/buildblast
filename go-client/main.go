@@ -39,11 +39,11 @@ func main() {
 	}
 
 	chunk := NewChunkGeometry()
-	chunk.Add(0, 0, 0)
-	chunk.Add(1, 1, 0)
-	chunk.Add(-1, 1, 0)
-	chunk.Add(1, -1, 0)
-	chunk.Add(-1, -1, 0)
+	chunk.Add(2, 0, 0, 0)
+	chunk.Add(3, 1, 1, 0)
+	chunk.Add(4, -1, 1, 0)
+	chunk.Add(5, 1, -1, 0)
+	chunk.Add(6, -1, -1, 0)
 
 	vertex_buffer := make_buffer(
 		gl.ARRAY_BUFFER,
