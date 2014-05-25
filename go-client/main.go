@@ -4,6 +4,7 @@ import (
 	"github.com/go-gl/gl"
 	glfw "github.com/go-gl/glfw3"
 	"log"
+	"math/rand"
 )
 
 func updateProjection(projection *Matrix, window *glfw.Window) {
@@ -71,6 +72,7 @@ func main() {
 	})
 
 	theta := 0.0
+	i := 0
 	for !window.ShouldClose() {
 		var model Matrix
 		model.Identity()
@@ -98,5 +100,18 @@ func main() {
 
 		window.SwapBuffers()
 		glfw.PollEvents()
+
+		i++
+		if i % 100 == 0 {
+			chunk.Add(randBlock(), randCoord(), randCoord(), randCoord())
+			chunkMesh = NewChunkMesh(chunk)
+		}
 	}
+}
+
+func randBlock() int {
+	return (rand.Int() % (len(TEXTURE_MAP) - 2)) + 2
+}
+func randCoord() float32 {
+	return float32(int(rand.Float32()*10 - 5))
 }
