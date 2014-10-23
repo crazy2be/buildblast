@@ -14,6 +14,7 @@ code.google.com
 *.orig
 .git/info/attributes
 *.idea
+*.iml
 *.DS_Store
 client-build
 client/world/

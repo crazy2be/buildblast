@@ -14,7 +14,7 @@ Installation
 [Install go](http://golang.org/doc/install), set up your [GOPATH](http://golang.org/doc/code.html#GOPATH), then
 
 	cd $GOPATH/src
-	git clone git://github.com/crazy2be/buildblast.git buildblast
+	git clone git@github.com:crazy2be/buildblast.git buildblast
 
 To play,
 
