@@ -23,7 +23,7 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	height := 0.0
 
 	for i := 0; i < 4; i++ {
-		height += noise.PerlinNoise(x/quality, z/quality, pa.seed) * quality
+		height += noise.Perlin(x/quality, z/quality, pa.seed) * quality
 		quality *= 4
 	}
 

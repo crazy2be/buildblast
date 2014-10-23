@@ -11,16 +11,16 @@ import (
 var DEBUG = false
 
 type CaveTest struct {
-	simplexNoise  *noise.SimplexNoise
-	simplexNoise2 *noise.SimplexNoise
+	simplexNoise  *noise.Simplex
+	simplexNoise2 *noise.Simplex
 	ridgedFilter  *noise.RidgedMultifractalFilter
 	heightMap     map[coords.Chunk][][]int
 }
 
 func NewCaveTest(seed int64) *CaveTest {
 	ct := new(CaveTest)
-	ct.simplexNoise = noise.NewSimplexNoise(10, 0.4, seed)
-	ct.simplexNoise2 = noise.NewSimplexNoise(10, 0.4, seed+time.Now().Unix())
+	ct.simplexNoise = noise.NewSimplex(10, 0.4, seed)
+	ct.simplexNoise2 = noise.NewSimplex(10, 0.4, seed+time.Now().Unix())
 	ct.ridgedFilter = noise.NewRidgedMultifractalFilter(
 		1,    // Num octaves
 		1.0,  // Offset

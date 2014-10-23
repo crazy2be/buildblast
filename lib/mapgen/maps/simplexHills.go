@@ -8,13 +8,13 @@ import (
 )
 
 type SimplexHills struct {
-	simplexNoise *noise.SimplexNoise
+	simplexNoise *noise.Simplex
 	heightMap    map[coords.Chunk][][]int
 }
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
-	sh.simplexNoise = noise.NewSimplexNoise(10, 0.4, seed)
+	sh.simplexNoise = noise.NewSimplex(10, 0.4, seed)
 	sh.heightMap = make(map[coords.Chunk][][]int)
 	return sh
 }

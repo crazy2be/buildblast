@@ -73,7 +73,7 @@ func grad(hash int, x, y, z float64) float64 {
 	return r
 }
 
-func PerlinNoise(x, y, z float64) float64 {
+func Perlin(x, y, z float64) float64 {
 	floorX := math.Floor(x)
 	floorY := math.Floor(y)
 	floorZ := math.Floor(z)

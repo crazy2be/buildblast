@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-type SimplexNoise struct {
+type Simplex struct {
 	seed        int64
 	persistence float64
 
@@ -15,8 +15,8 @@ type SimplexNoise struct {
 }
 
 // Persistence is a value [0, 1], where 0 is flat and 1 is vertical cliffs
-func NewSimplexNoise(numOctaves int, persistence float64, seed int64) *SimplexNoise {
-	sn := new(SimplexNoise)
+func NewSimplex(numOctaves int, persistence float64, seed int64) *Simplex {
+	sn := new(Simplex)
 	sn.seed = seed
 	sn.persistence = persistence
 
@@ -34,7 +34,7 @@ func NewSimplexNoise(numOctaves int, persistence float64, seed int64) *SimplexNo
 	return sn
 }
 
-func (sn *SimplexNoise) Noise2(x, y float64) float64 {
+func (sn *Simplex) Noise2(x, y float64) float64 {
 	var result float64
 	for i := 0; i < len(sn.oct); i++ {
 		result += sn.oct[i].noise2(x/sn.freq[i], y/sn.freq[i]) * sn.amp[i]
@@ -42,7 +42,7 @@ func (sn *SimplexNoise) Noise2(x, y float64) float64 {
 	return result
 }
 
-func (sn *SimplexNoise) Noise3(x, y, z float64) float64 {
+func (sn *Simplex) Noise3(x, y, z float64) float64 {
 	var result float64
 	for i := 0; i < len(sn.oct); i++ {
 		result += sn.oct[i].noise3(x/sn.freq[i], y/sn.freq[i], z/sn.freq[i]) * sn.amp[i]

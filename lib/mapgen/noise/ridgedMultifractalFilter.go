@@ -37,7 +37,7 @@ func NewRidgedMultifractalFilter(numOctaves int, offset, lacunarity, gain, H flo
 	return rm
 }
 
-func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source Noise3Source) float64 {
+func (rm *RidgedMultifractalFilter) Filter(x, y, z float64, source Source3d) float64 {
 	signal := source.Noise3(x, y, z)
 
 	// Get absolute value of signal (this creates the ridges).
