@@ -4,7 +4,6 @@ import (
 	"buildblast/lib/coords"
 	. "buildblast/lib/mapgen"
 	"buildblast/lib/mapgen/noise"
-	"log"
 )
 
 type SimplexHills struct {
@@ -52,11 +51,6 @@ func (sh *SimplexHills) Chunk(cc coords.Chunk) *Chunk {
 		}
 	}
 	return chunk
-}
-
-func (sh *SimplexHills) Block(bc coords.Block) Block {
-	log.Println("I shouldn't be called")
-	return sh.block(bc, int(sh.heightAt(float64(bc.X), float64(bc.Z))))
 }
 
 func (sh *SimplexHills) block(bc coords.Block, height int) Block {

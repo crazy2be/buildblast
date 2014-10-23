@@ -4,17 +4,15 @@ import (
 	"buildblast/lib/coords"
 	. "buildblast/lib/mapgen"
 	"buildblast/lib/mapgen/noise"
-	"log"
 	"time"
 )
 
-var DEBUG = false
+var DEBUG = true
 
 type CaveTest struct {
 	simplexNoise  *noise.Simplex
 	simplexNoise2 *noise.Simplex
 	ridgedFilter  *noise.RidgedMultifractalFilter
-	heightMap     map[coords.Chunk][][]int
 }
 
 func NewCaveTest(seed int64) *CaveTest {
@@ -27,7 +25,6 @@ func NewCaveTest(seed int64) *CaveTest {
 		0.05, // Lacunarity (spacing)
 		1.0,  // Gain
 		1.0)  // H?
-	ct.heightMap = make(map[coords.Chunk][][]int)
 	return ct
 }
 
@@ -39,20 +36,15 @@ func (ct *CaveTest) heightAt(x, z float64) float64 {
 func (ct *CaveTest) Chunk(cc coords.Chunk) *Chunk {
 	chunk := &Chunk{}
 	// Build the height map
-	hMap := ct.heightMap[cc]
-	if hMap == nil {
-		hMap = make([][]int, coords.ChunkWidth)
-		for x := range hMap {
-			hMap[x] = make([]int, coords.ChunkDepth)
-			for z := range hMap[x] {
-				oc := coords.Offset{X: x, Y: 0, Z: z}
-				bc := oc.Block(cc)
-				hMap[x][z] = int(ct.heightAt(float64(bc.X), float64(bc.Z)))
-			}
+	hMap := make([][]int, coords.ChunkWidth)
+	for x := range hMap {
+		hMap[x] = make([]int, coords.ChunkDepth)
+		for z := range hMap[x] {
+			oc := coords.Offset{X: x, Y: 0, Z: z}
+			bc := oc.Block(cc)
+			hMap[x][z] = int(ct.heightAt(float64(bc.X), float64(bc.Z)))
 		}
-		ct.heightMap[cc] = hMap
 	}
-
 	for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
 		for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
 			for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {
@@ -64,12 +56,6 @@ func (ct *CaveTest) Chunk(cc coords.Chunk) *Chunk {
 		}
 	}
 	return chunk
-}
-
-func (ct *CaveTest) Block(bc coords.Block) Block {
-	log.Println("I shouldn't be called")
-	xf, yf, _ := bc.Float64()
-	return ct.block(bc, int(ct.heightAt(xf, yf)))
 }
 
 func (ct *CaveTest) block(bc coords.Block, height int) Block {

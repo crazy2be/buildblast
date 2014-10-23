@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-// http://stackoverflow.com/questions/18279456/any-simplex-noise-tutorials-or-resources
+// Ported from http://stackoverflow.com/questions/18279456/any-simplex-noise-tutorials-or-resources
 
 // Struct to speed up gradient computations
 // (array access is a lot slower than member access)
