@@ -22,7 +22,6 @@ func (sh *SimplexHills) heightAt(x, z float64) float64 {
 }
 
 func (sh *SimplexHills) Chunk(cc coords.Chunk) *mapgen.Chunk {
-	chunk := &mapgen.Chunk{}
 	// Build the height map
 	hMap := make([][]int, coords.ChunkWidth)
 	for x := range hMap {
@@ -34,6 +33,7 @@ func (sh *SimplexHills) Chunk(cc coords.Chunk) *mapgen.Chunk {
 		}
 	}
 
+	chunk := &mapgen.Chunk{}
 	for ocX := 0; ocX < coords.ChunkWidth; ocX++ {
 		for ocY := 0; ocY < coords.ChunkHeight; ocY++ {
 			for ocZ := 0; ocZ < coords.ChunkDepth; ocZ++ {

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"buildblast/lib/coords"
-	. "buildblast/lib/mapgen"
+	"buildblast/lib/mapgen"
 	"buildblast/lib/mapgen/noise"
 )
 
@@ -18,26 +18,26 @@ func NewMazeArena(seed float64) *MazeArena {
 	return fa
 }
 
-func (fa *MazeArena) Block(bc coords.Block) Block {
+func (fa *MazeArena) Block(bc coords.Block) mapgen.Block {
 	if bc.X >= 32 || bc.X < -32 ||
 		bc.Z >= 128 || bc.Z < -128 ||
 		bc.Y < 16 {
-		return BLOCK_DIRT
+		return mapgen.BLOCK_DIRT
 	}
 
 	val := noise.Perlin(float64(bc.X)/16, float64(bc.Z)/16, fa.seed)
 	isWall := val-math.Floor(val) < 0.05
 
 	if bc.Y == 21 && isWall {
-		return BLOCK_SPAWN
+		return mapgen.BLOCK_SPAWN
 	}
 
 	if bc.Y < 20 && isWall {
-		return BLOCK_STONE
+		return mapgen.BLOCK_STONE
 	}
-	return BLOCK_AIR
+	return mapgen.BLOCK_AIR
 }
 
-func (fa *MazeArena) Chunk(cc coords.Chunk) *Chunk {
-	return GenerateChunk(fa, cc)
+func (fa *MazeArena) Chunk(cc coords.Chunk) *mapgen.Chunk {
+	return mapgen.GenerateChunk(fa, cc)
 }

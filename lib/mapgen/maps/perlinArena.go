@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"buildblast/lib/coords"
-	. "buildblast/lib/mapgen"
+	"buildblast/lib/mapgen"
 	"buildblast/lib/mapgen/noise"
 )
 
@@ -38,17 +38,17 @@ func (pa *PerlinArena) heightAt(x, z float64) float64 {
 	return height
 }
 
-func (pa *PerlinArena) Block(bc coords.Block) Block {
+func (pa *PerlinArena) Block(bc coords.Block) mapgen.Block {
 	height := int(pa.heightAt(float64(bc.X), float64(bc.Z)))
 	if height > bc.Y {
-		return BLOCK_GRASS
+		return mapgen.BLOCK_GRASS
 	}
 	if height == bc.Y {
-		return BLOCK_SPAWN
+		return mapgen.BLOCK_SPAWN
 	}
-	return BLOCK_AIR
+	return mapgen.BLOCK_AIR
 }
 
-func (pa *PerlinArena) Chunk(cc coords.Chunk) *Chunk {
-	return GenerateChunk(pa, cc)
+func (pa *PerlinArena) Chunk(cc coords.Chunk) *mapgen.Chunk {
+	return mapgen.GenerateChunk(pa, cc)
 }
