@@ -195,7 +195,6 @@ func EachOffset(cb func(oc Offset)) {
 	}
 }
 
-
 func (oc Offset) Block(cc Chunk) Block {
 	return Block{
 		X: oc.X + cc.X*ChunkWidth,
