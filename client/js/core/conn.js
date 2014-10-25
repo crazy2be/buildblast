@@ -36,7 +36,7 @@ function Conn(uri) {
 		var o = JSON.parse(data);
 		var kind = o.Kind;
 		if (!handlers[kind]) {
-			console.warn("Recieved server message of unknown type: " + kind);
+			console.warn("Recieved server message of unknown type:", kind, "with data", data);
 			return;
 		}
 		var h = handlers[kind];

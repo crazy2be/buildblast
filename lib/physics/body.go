@@ -1,9 +1,12 @@
 package physics
 
 import (
-	"buildblast/lib/coords"
+	"buildblast/lib/vmath"
 )
 
-type Body interface {
-	Pos() coords.World
+type Body struct {
+	Pos vmath.Vec3
+	Vel vmath.Vec3
+	Dir vmath.Vec3
+	Box *Box
 }

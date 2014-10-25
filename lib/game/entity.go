@@ -6,35 +6,60 @@ import (
 )
 
 type Entity interface {
-	Pos() coords.World
-	Vy() float64
-	LastUpdated() float64
-	State() EntityState
+	EntityId()    EntityId
+	Body()        *physics.Body
+	Wpos()        coords.World
+	Look()        coords.Direction
 
 	Tick(w *World)
-	Damage(amount int)
+}
+
+type EntityState struct {
+	EntityId  EntityId
+	Body      *physics.Body
+}
+
+func (es *EntityState) Wpos() coords.World {
+	return coords.World(es.Body.Pos)
+}
+
+func (es *EntityState) Look() coords.Direction {
+	return coords.Direction(es.Body.Dir)
+}
+
+type Damageable interface {
+	Life() int
 	Dead() bool
+
+	Damage(amount int)
+}
+
+type Health struct {
+	Life int
+}
+
+type Respawnable interface {
 	Respawn(pos coords.World)
-	BoxAt(t float64) *physics.Box
-	ID() EntityID
 }
 
 type Sprite interface {
 	Entity
-	Look() coords.Direction
-	Health() int
+	Damageable
+	Respawnable
+
+	State() SpriteState
+	LastUpdated() float64
+	BoxAt(t float64) *physics.Box
 }
 
-type EntityState struct {
-	Pos       coords.World
-	Look      coords.Direction
-	Health    int
-	Vy        float64
-	Timestamp float64
+type SpriteState struct {
+	EntityState EntityState
+	Health      Health
+	Timestamp   float64
 }
 
 // Should be an int someday...
-type EntityID string
+type EntityId string
 
 type EntityKind string
 

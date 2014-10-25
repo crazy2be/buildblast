@@ -15,9 +15,9 @@ type MessageKind string
 const (
 	MSG_HANDSHAKE_REPLY   = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR   = MessageKind("handshake-error")
-	MSG_ENTITY_CREATE     = MessageKind("entity-create")
-	MSG_ENTITY_STATE      = MessageKind("entity-state")
-	MSG_ENTITY_REMOVE     = MessageKind("entity-remove")
+	MSG_SPRITE_CREATE     = MessageKind("sprite-create")
+	MSG_SPRITE_STATE      = MessageKind("sprite-state")
+	MSG_SPRITE_REMOVE     = MessageKind("sprite-remove")
 	MSG_CHUNK             = MessageKind("chunk")
 	MSG_BLOCK             = MessageKind("block")
 	MSG_CONTROLS_STATE    = MessageKind("controls-state")
@@ -33,12 +33,12 @@ const (
 
 func kindToType(kind MessageKind) Message {
 	switch kind {
-	case MSG_ENTITY_CREATE:
-		return &MsgEntityCreate{}
-	case MSG_ENTITY_STATE:
-		return &MsgEntityState{}
-	case MSG_ENTITY_REMOVE:
-		return &MsgEntityRemove{}
+	case MSG_SPRITE_CREATE:
+		return &MsgSpriteCreate{}
+	case MSG_SPRITE_STATE:
+		return &MsgSpriteState{}
+	case MSG_SPRITE_REMOVE:
+		return &MsgSpriteRemove{}
 	case MSG_BLOCK:
 		return &MsgBlock{}
 	case MSG_CONTROLS_STATE:
@@ -63,12 +63,12 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
-	case *MsgEntityCreate:
-		return MSG_ENTITY_CREATE
-	case *MsgEntityState:
-		return MSG_ENTITY_STATE
-	case *MsgEntityRemove:
-		return MSG_ENTITY_REMOVE
+	case *MsgSpriteCreate:
+		return MSG_SPRITE_CREATE
+	case *MsgSpriteState:
+		return MSG_SPRITE_STATE
+	case *MsgSpriteRemove:
+		return MSG_SPRITE_REMOVE
 	case *MsgChunk:
 		return MSG_CHUNK
 	case *MsgBlock:
@@ -98,7 +98,7 @@ func typeToKind(m Message) MessageKind {
 type MsgHandshakeReply struct {
 	ServerTime       float64
 	ClientID         string
-	PlayerEntityInfo MsgEntityCreate
+	PlayerEntityInfo MsgSpriteCreate
 	Authenticated    bool
 	AuthMessage      string
 }
@@ -107,21 +107,21 @@ type MsgHandshakeError struct {
 	Message string
 }
 
-type MsgEntityCreate struct {
-	ID           game.EntityID
+type MsgSpriteCreate struct {
+	ID           game.EntityId
 	Kind         game.EntityKind
 	HalfExtents  vmath.Vec3
 	CenterOffset vmath.Vec3
-	InitialState game.EntityState
+	InitialState game.SpriteState
 }
 
-type MsgEntityState struct {
-	ID    game.EntityID
-	State game.EntityState
+type MsgSpriteState struct {
+	ID    game.EntityId
+	State game.SpriteState
 }
 
-type MsgEntityRemove struct {
-	ID game.EntityID
+type MsgSpriteRemove struct {
+	ID game.EntityId
 }
 
 type MsgChunk struct {

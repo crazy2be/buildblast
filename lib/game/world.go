@@ -15,11 +15,11 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	entities []Entity
+	sprites []Sprite
 
 	blockListeners  genericListenerContainer
 	chunkListeners  genericListenerContainer
-	entityListeners genericListenerContainer
+	spriteListeners genericListenerContainer
 }
 
 func NewWorld(generator mapgen.Generator) *World {
@@ -32,19 +32,19 @@ func NewWorld(generator mapgen.Generator) *World {
 	w.chunkGenerator.QueueChunksNearby(coords.Origin)
 	go w.chunkGenerator.Run()
 
-	w.entities = make([]Entity, 0)
+	w.sprites = make([]Sprite, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
-	w.entityListeners = makeGenericListenerContainer()
+	w.spriteListeners = makeGenericListenerContainer()
 	return w
 }
 
 func (w *World) Tick() {
 	w.generationTick()
-	for _, e := range w.entities {
-		e.Tick(w)
-		w.chunkGenerator.QueueChunksNearby(e.Pos())
+	for _, s := range w.sprites {
+		s.Tick(w)
+		w.chunkGenerator.QueueChunksNearby(s.Wpos())
 	}
 }
 
@@ -105,47 +105,47 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 	w.blockListeners.FireEvent("BlockChanged", bc, block, newBlock)
 }
 
-func (w *World) AddEntity(e Entity) {
-	w.entities = append(w.entities, e)
-	e.Respawn(w.findSpawn())
+func (w *World) AddSprite(s Sprite) {
+	w.sprites = append(w.sprites, s)
+	s.Respawn(w.findSpawn())
 
-	w.entityListeners.FireEvent("EntityCreated", e.ID(), e)
+	w.spriteListeners.FireEvent("SpriteCreated", s.EntityId(), s)
 }
 
-func (w *World) RemoveEntity(e Entity) {
-	for i, entity := range w.entities {
-		if entity == e {
-			w.entities[i] = w.entities[len(w.entities)-1]
-			w.entities = w.entities[:len(w.entities)-1]
+func (w *World) RemoveSprite(s Sprite) {
+	for i, sprite := range w.sprites {
+		if sprite == s {
+			w.sprites[i] = w.sprites[len(w.sprites)-1]
+			w.sprites = w.sprites[:len(w.sprites)-1]
 
-			w.entityListeners.FireEvent("EntityRemoved", e.ID())
+			w.spriteListeners.FireEvent("SpriteRemoved", s.EntityId())
 		}
 	}
 }
 
-func (w *World) DamageEntity(damager string, amount int, e Entity) {
-	e.Damage(amount)
-	if e.Dead() {
-		e.Respawn(w.findSpawn())
-		w.entityListeners.FireEvent("EntityDied", e.ID(), e, damager)
+func (w *World) DamageSprite(damager string, amount int, s Sprite) {
+	s.Damage(amount)
+	if s.Dead() {
+		s.Respawn(w.findSpawn())
+		w.spriteListeners.FireEvent("SpriteDied", s.EntityId(), s, damager)
 	} else {
 		// Should we fire Damaged events if they
 		// end up dying? I dunno. Currently we don't.
-		w.entityListeners.FireEvent("EntityDamaged", e.ID(), e)
+		w.spriteListeners.FireEvent("SpriteDamaged", s.EntityId(), s)
 	}
 }
 
-func (w *World) Entities() map[EntityID]Entity {
-	result := make(map[EntityID]Entity, len(w.entities))
-	for _, entity := range w.entities {
-		result[entity.ID()] = entity
+func (w *World) Sprites() map[EntityId]Sprite {
+	result := make(map[EntityId]Sprite, len(w.sprites))
+	for _, sprite := range w.sprites {
+		result[sprite.EntityId()] = sprite
 	}
 	return result
 }
 
-func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
-	boxes := make([]*physics.Box, len(w.entities))
-	for i, other := range w.entities {
+func (w *World) FindFirstIntersect(entity Sprite, t float64, ray *physics.Ray) (*coords.World, Sprite) {
+	boxes := make([]*physics.Box, len(w.sprites))
+	for i, other := range w.sprites {
 		if other == entity {
 			boxes[i] = nil
 		} else {
@@ -156,7 +156,7 @@ func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (
 	hitPos, hitIndex := ray.FindAnyIntersect(w, boxes)
 	hitPosWorld := (*coords.World)(hitPos)
 	if hitIndex != -1 {
-		return hitPosWorld, w.entities[hitIndex]
+		return hitPosWorld, w.sprites[hitIndex]
 	}
 	return hitPosWorld, nil
 }
