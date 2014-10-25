@@ -154,8 +154,9 @@ func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (
 	}
 
 	hitPos, hitIndex := ray.FindAnyIntersect(w, boxes)
+	hitPosWorld := (*coords.World)(hitPos)
 	if hitIndex != -1 {
-		return hitPos, w.entities[hitIndex]
+		return hitPosWorld, w.entities[hitIndex]
 	}
-	return hitPos, nil
+	return hitPosWorld, nil
 }

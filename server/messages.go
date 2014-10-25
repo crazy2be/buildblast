@@ -7,6 +7,7 @@ import (
 	"buildblast/lib/coords"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/vmath"
 )
 
 type MessageKind string
@@ -109,8 +110,8 @@ type MsgHandshakeError struct {
 type MsgEntityCreate struct {
 	ID           game.EntityID
 	Kind         game.EntityKind
-	HalfExtents  coords.Vec3
-	CenterOffset coords.Vec3
+	HalfExtents  vmath.Vec3
+	CenterOffset vmath.Vec3
 	InitialState game.EntityState
 }
 
@@ -125,7 +126,7 @@ type MsgEntityRemove struct {
 
 type MsgChunk struct {
 	CCPos coords.Chunk
-	Size  coords.Vec3
+	Size  vmath.Vec3
 	// Go is really slow at encoding JSON arrays. This
 	// is much faster (and more space efficient)
 	Data string

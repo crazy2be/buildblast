@@ -6,6 +6,7 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
+	"buildblast/lib/vmath"
 )
 
 type ControlState struct {
@@ -28,12 +29,12 @@ const (
 	playerEyeHeight = 0.936 * playerHeight
 )
 
-var PlayerHalfExtents = coords.Vec3{
+var PlayerHalfExtents = vmath.Vec3{
 	0.4,
 	playerHeight / 2,
 	0.4,
 }
-var PlayerCenterOffset = coords.Vec3{
+var PlayerCenterOffset = vmath.Vec3{
 	0,
 	playerHeight/2 - playerEyeHeight,
 	0,
@@ -134,11 +135,13 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
-		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s")
+		log.Println("WARN: Attempt to simulate step with dt of ", dt,
+			" which is too large. Clipping to 1.0s")
 		dt = 1.0
 	}
 	if dt < 0.0 {
-		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
+		log.Println("WARN: Attempting to simulate step with negative dt of ", dt,
+			" this is probably wrong.")
 	}
 
 	p.updateLook(controls)
@@ -175,7 +178,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	cos := math.Cos
 	sin := math.Sin
 
-	move := coords.Vec3{
+	move := vmath.Vec3{
 		X: -cos(controls.Lon)*fw + sin(controls.Lon)*rt,
 		Y: p.vy * dt,
 		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
@@ -231,7 +234,7 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 		return nil
 	}
 
-	ray := physics.NewRay(p.pos, p.look)
+	ray := physics.NewRay(p.pos.Vec3(), p.look.Vec3())
 	// We let the user shoot in the past, but they always move in the present.
 	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
 	if hitEntity != nil {
@@ -242,14 +245,14 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
-		p.pos,
+		p.pos.Vec3(),
 		PlayerHalfExtents,
 		PlayerCenterOffset)
 }
 
 func (p *Player) BoxAt(t float64) *physics.Box {
 	return physics.NewBoxOffset(
-		p.history.PositionAt(t),
+		p.history.PositionAt(t).Vec3(),
 		PlayerHalfExtents,
 		PlayerCenterOffset)
 }

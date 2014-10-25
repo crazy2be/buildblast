@@ -5,12 +5,8 @@ import (
 	"buildblast/lib/physics"
 )
 
-//Interface currently implemented by Player (not to say anything cannot
-//implement it, but for now it is just implemented by player).
 type Entity interface {
 	Pos() coords.World
-	Look() coords.Direction
-	Health() int
 	Vy() float64
 	LastUpdated() float64
 	State() EntityState
@@ -21,6 +17,12 @@ type Entity interface {
 	Respawn(pos coords.World)
 	BoxAt(t float64) *physics.Box
 	ID() EntityID
+}
+
+type Sprite interface {
+	Entity
+	Look() coords.Direction
+	Health() int
 }
 
 type EntityState struct {
