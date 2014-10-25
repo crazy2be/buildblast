@@ -36,8 +36,8 @@ func (v Vec3) Translate(dir Vec3, amount float64) Vec3 {
 // the result. (alpha of 0 => v, alpha of 1 => other).
 func (v Vec3) Lerp(other Vec3, alpha float64) Vec3 {
 	return Vec3{
-		X: v.X * (1 - alpha) + other.X * alpha,
-		Y: v.Y * (1 - alpha) + other.Y * alpha,
-		Z: v.Z * (1 - alpha) + other.Z * alpha,
+		X: v.X*(1-alpha) + other.X*alpha,
+		Y: v.Y*(1-alpha) + other.Y*alpha,
+		Z: v.Z*(1-alpha) + other.Z*alpha,
 	}
 }

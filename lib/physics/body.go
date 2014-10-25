@@ -6,5 +6,4 @@ import (
 
 type Body interface {
 	Pos() coords.World
-
 }

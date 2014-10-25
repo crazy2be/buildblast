@@ -1,8 +1,8 @@
 package coords
 
 import (
-	"math"
 	"buildblast/lib/vmath"
+	"math"
 )
 
 type Direction vmath.Vec3
