@@ -89,6 +89,10 @@ type Block struct {
 	Z int
 }
 
+func (bc Block) Float64() (float64, float64, float64) {
+	return float64(bc.X), float64(bc.Y), float64(bc.Z)
+}
+
 func (bc Block) Chunk() Chunk {
 	div := func(a, b int) int {
 		if a < 0 {

@@ -10,7 +10,7 @@ type Chunk struct {
 	blocks [coords.BlocksPerChunk]Block
 }
 
-func generateChunk(generator blockGenerator, cc coords.Chunk) *Chunk {
+func GenerateChunk(generator blockGenerator, cc coords.Chunk) *Chunk {
 	chunk := &Chunk{}
 	i := 0
 	cc.EachBlock(func(oc coords.Offset, bc coords.Block) {
