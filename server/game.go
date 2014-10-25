@@ -41,7 +41,7 @@ func NewGame(world *game.World) *Game {
 	g.scores = make(map[string]int, 0)
 
 	g.world = world
-	g.world.AddEntityListener(g)
+	g.world.AddSpriteListener(g)
 
 	return g
 }
@@ -146,19 +146,19 @@ func (g *Game) Tick() {
 	}
 }
 
-func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
+func (g *Game) SpriteCreated(id game.EntityId, sprite game.Sprite) {
 	g.Broadcast(&MsgScoreboardAdd{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 }
 
-func (g *Game) EntityUpdated(id game.EntityID, entity game.Entity) {}
-func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {}
+func (g *Game) SpriteUpdated(id game.EntityId, sprite game.Sprite) {}
+func (g *Game) SpriteDamaged(id game.EntityId, sprite game.Sprite) {}
 
-func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
+func (g *Game) SpriteDied(id game.EntityId, sprite game.Sprite, killer string) {
 	g.Announce(killer + " killed " + string(id))
-	g.EntityDamaged(id, entity)
+	g.SpriteDamaged(id, sprite)
 	g.scores[killer]++
 	g.scores[string(id)]--
 	g.Broadcast(&MsgScoreboardSet{
@@ -171,7 +171,7 @@ func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
 	})
 }
 
-func (g *Game) EntityRemoved(id game.EntityID) {
+func (g *Game) SpriteRemoved(id game.EntityId) {
 	g.Broadcast(&MsgScoreboardRemove{
 		Name: string(id),
 	})

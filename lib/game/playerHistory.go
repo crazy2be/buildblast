@@ -89,5 +89,5 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	}
 
 	alpha := (t - older.t) / (newer.t - older.t)
-	return older.pos.Lerp(newer.pos, alpha)
+	return coords.World(older.pos.Vec3().Lerp(newer.pos.Vec3(), alpha))
 }

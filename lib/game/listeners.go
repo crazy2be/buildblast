@@ -16,12 +16,12 @@ type ChunkListener interface {
 	ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk)
 }
 
-type EntityListener interface {
-	EntityCreated(id EntityID, entity Entity)
-	EntityUpdated(id EntityID, entity Entity)
-	EntityDamaged(id EntityID, entity Entity)
-	EntityDied(id EntityID, entity Entity, killer string)
-	EntityRemoved(id EntityID)
+type SpriteListener interface {
+	SpriteCreated(id EntityId, sprite Sprite)
+	SpriteUpdated(id EntityId, sprite Sprite)
+	SpriteDamaged(id EntityId, sprite Sprite)
+	SpriteDied(id EntityId, sprite Sprite, killer string)
+	SpriteRemoved(id EntityId)
 }
 
 // genericListenerContainer is essentially a convenience wrapper to
@@ -110,14 +110,14 @@ func (w *World) RemoveChunkListener(listener ChunkListener) {
 	w.chunkListeners.Remove(listener)
 }
 
-func (w *World) AddEntityListener(listener EntityListener) {
-	w.entityListeners.Add(listener)
+func (w *World) AddSpriteListener(listener SpriteListener) {
+	w.spriteListeners.Add(listener)
 }
 
-func (w *World) RemoveEntityListener(listener EntityListener) {
-	w.entityListeners.Remove(listener)
+func (w *World) RemoveSpriteListener(listener SpriteListener) {
+	w.spriteListeners.Remove(listener)
 }
 
-func (w *World) FireEntityUpdated(id EntityID, entity Entity) {
-	w.entityListeners.FireEvent("EntityUpdated", id, entity)
+func (w *World) FireSpriteUpdated(id EntityId, sprite Sprite) {
+	w.spriteListeners.FireEvent("SpriteUpdated", id, sprite)
 }

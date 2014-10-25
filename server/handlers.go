@@ -72,7 +72,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	// actual initial state as part of the handshake,
 	// but it's currently impossible since the entity
 	// isn't yet created at the handshake stage.
-	info := makePlayerEntityCreatedMessage(game.EntityID(name), game.EntityState{})
+	info := makePlayerEntityCreatedMessage(game.EntityId(name), game.SpriteState{})
 
 	conn.Send(&MsgHandshakeReply{
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,

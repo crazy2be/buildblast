@@ -29,10 +29,10 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	conn.on('entity-create', function (payload) {
+	conn.on('sprite-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
+			console.warn("Got sprite-create message for sprite which already exists!", id);
 			return;
 		}
 		var entity = EntityManager.makeEntity(payload);
@@ -53,18 +53,18 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on('entity-state', function (payload) {
+	conn.on('sprite-state', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
-			console.warn("Got entity-pos message for entity which does not exist!", id);
+			console.warn("Got sprite-state message for sprite which does not exist!", id);
 			return;
 		}
 
 		controller.message(protocolToLocal(payload.State));
 	});
 
-	conn.on('entity-remove', function (payload) {
+	conn.on('sprite-remove', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
@@ -112,10 +112,10 @@ function protocolToLocal(payload) {
 	return {
 		time: payload.Timestamp,
 		data: new EntityState(
-			vecFromNet(payload.Pos),
-			vecFromNet(payload.Look),
-			payload.Health,
-			payload.Vy),
+			vecFromNet(payload.EntityState.Body.Pos),
+			vecFromNet(payload.EntityState.Body.Dir),
+            payload.Health.Life,
+			payload.EntityState.Body.Vel.Y),
 	};
 }
 

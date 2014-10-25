@@ -5,6 +5,7 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/vmath"
 )
 
 // xs means x start, xe means x end, etc.
@@ -17,12 +18,12 @@ type Box struct {
 	ze float64
 }
 
-func NewBox(position coords.World, halfExtents coords.Vec3) *Box {
-	return NewBoxOffset(position, halfExtents, coords.Vec3{X: 0, Y: 0, Z: 0})
+func NewBox(pos vmath.Vec3, halfExtents vmath.Vec3) *Box {
+	return NewBoxOffset(pos, halfExtents, vmath.Vec3{X: 0, Y: 0, Z: 0})
 }
 
-func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset coords.Vec3) *Box {
-	p := position
+func NewBoxOffset(pos vmath.Vec3, halfExtents vmath.Vec3, centerOffset vmath.Vec3) *Box {
+	p := pos
 	he := halfExtents
 	co := centerOffset
 	return &Box{
@@ -35,7 +36,7 @@ func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset c
 	}
 }
 
-func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.Vec3 {
+func (b *Box) AttemptMove(world mapgen.BlockSource, amount vmath.Vec3) vmath.Vec3 {
 	if b.inSolid(world) {
 		amount.X = 0
 		amount.Y = 1
@@ -70,7 +71,7 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 	return amount
 }
 
-func (b *Box) Contains(position coords.World) bool {
+func (b *Box) Contains(position vmath.Vec3) bool {
 	p := position
 	return b.xs < p.X && b.xe > p.X &&
 		b.ys < p.Y && b.ye > p.Y &&

@@ -6,6 +6,7 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
+	"buildblast/lib/vmath"
 )
 
 type ControlState struct {
@@ -28,59 +29,112 @@ const (
 	playerEyeHeight = 0.936 * playerHeight
 )
 
-var PlayerHalfExtents = coords.Vec3{
+var PlayerHalfExtents = vmath.Vec3{
 	0.4,
 	playerHeight / 2,
 	0.4,
 }
-var PlayerCenterOffset = coords.Vec3{
+var PlayerCenterOffset = vmath.Vec3{
 	0,
 	playerHeight/2 - playerEyeHeight,
 	0,
 }
 
 // Gameplay state defaults
-var PLAYER_MAX_HP = 100
+var PLAYER_MAX_LIFE = 100
 
 type Player struct {
-	box      physics.Box
-	controls ControlState
-	history  *HistoryBuffer
-	world    *World
-	name     string
+	spriteState SpriteState
+	controls    ControlState
+	history     *HistoryBuffer
+	world       *World
+	name        string
 
 	inventory *Inventory
-
-	pos    coords.World
-	look   coords.Direction
-	health int
-	vy     float64
 }
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
+		spriteState: SpriteState{
+			EntityState: EntityState{
+				EntityId: EntityId(name),
+				Body:     &physics.Body{},
+			},
+			Health: Health{
+				Life: PLAYER_MAX_LIFE,
+			},
+		},
 		history:   NewHistoryBuffer(),
 		inventory: NewInventory(),
 		world:     world,
 		name:      name,
-		health:    PLAYER_MAX_HP,
 	}
 }
 
-func (p *Player) Pos() coords.World {
-	return p.pos
+/**
+ * Entity interface
+ */
+
+func (p *Player) EntityId() EntityId {
+	return EntityId(p.name) // This needs to change...
+}
+
+func (p *Player) Body() *physics.Body {
+	return p.spriteState.EntityState.Body
+}
+
+func (p *Player) Wpos() coords.World {
+	return p.spriteState.EntityState.Wpos()
 }
 
 func (p *Player) Look() coords.Direction {
-	return p.look
+	return p.spriteState.EntityState.Look()
 }
 
-func (p *Player) Health() int {
-	return p.health
+func (p *Player) Tick(w *World) {}
+
+/**
+ * Damageable interface
+ */
+
+func (p *Player) Life() int {
+	return p.spriteState.Health.Life
 }
 
-func (p *Player) Vy() float64 {
-	return p.vy
+func (p *Player) Dead() bool {
+	return p.Life() <= 0
+}
+
+func (p *Player) Damage(amount int) {
+	p.spriteState.Health.Life -= amount
+}
+
+/**
+ * Respawnable interface
+ */
+
+func (p *Player) Respawn(pos coords.World) {
+	p.spriteState.EntityState.Body.Pos = pos.Vec3()
+	p.spriteState.Health.Life = PLAYER_MAX_LIFE
+	p.history.Clear()
+	p.history.Add(p.LastUpdated(), p.Wpos())
+}
+
+/**
+ * Sprite interface
+ */
+
+func (p *Player) State() SpriteState {
+	return SpriteState{
+		EntityState: EntityState{
+			EntityId: p.EntityId(),
+			Body:     p.Body(),
+		},
+		Health: Health{
+			Life: p.Life(),
+		},
+		Timestamp: p.LastUpdated(),
+	}
 }
 
 // Returns the last time this entity's state was updated
@@ -89,40 +143,20 @@ func (p *Player) LastUpdated() float64 {
 	return p.controls.Timestamp
 }
 
-func (p *Player) State() EntityState {
-	return EntityState{
-		Pos:       p.Pos(),
-		Look:      p.Look(),
-		Health:    p.Health(),
-		Vy:        p.Vy(),
-		Timestamp: p.LastUpdated(),
-	}
+func (p *Player) BoxAt(t float64) *physics.Box {
+	return physics.NewBoxOffset(
+		p.history.PositionAt(t).Vec3(),
+		PlayerHalfExtents,
+		PlayerCenterOffset)
 }
 
-func (p *Player) Damage(amount int) {
-	p.health -= amount
-}
-
-func (p *Player) Dead() bool {
-	return p.health <= 0
-}
-
-func (p *Player) Respawn(pos coords.World) {
-	p.pos = pos
-	p.health = PLAYER_MAX_HP
-	p.history.Clear()
-	p.history.Add(p.LastUpdated(), p.pos)
-}
-
-func (p *Player) ID() EntityID {
-	return EntityID(p.name)
-}
+/**
+ * Other stuff
+ */
 
 func (p *Player) Inventory() *Inventory {
 	return p.inventory
 }
-
-func (p *Player) Tick(w *World) {}
 
 func (p *Player) ClientTick(controls ControlState) *coords.World {
 	// First frame
@@ -134,11 +168,13 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	dt := (controls.Timestamp - p.controls.Timestamp) / 1000
 
 	if dt > 1.0 {
-		log.Println("WARN: Attempt to simulate step with dt of ", dt, " which is too large. Clipping to 1.0s")
+		log.Println("WARN: Attempt to simulate step with dt of ", dt,
+			" which is too large. Clipping to 1.0s")
 		dt = 1.0
 	}
 	if dt < 0.0 {
-		log.Println("WARN: Attempting to simulate step with negative dt of ", dt, " this is probably wrong.")
+		log.Println("WARN: Attempting to simulate step with negative dt of ", dt,
+			" this is probably wrong.")
 	}
 
 	p.updateLook(controls)
@@ -148,15 +184,16 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
-	p.history.Add(controls.Timestamp, p.pos)
+	p.history.Add(controls.Timestamp, p.Wpos())
 
-	p.world.FireEntityUpdated(p.ID(), p)
+	p.world.FireSpriteUpdated(p.EntityId(), p)
 
 	return hitPos
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
-	p.vy += dt * -9.81
+	body := p.Body()
+	body.Vel.Y += dt * -9.81
 
 	fw := 0.0
 	if controls.Forward {
@@ -175,9 +212,9 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	cos := math.Cos
 	sin := math.Sin
 
-	move := coords.Vec3{
+	move := vmath.Vec3{
 		X: -cos(controls.Lon)*fw + sin(controls.Lon)*rt,
-		Y: p.vy * dt,
+		Y: body.Vel.Y * dt,
 		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
 	}
 
@@ -187,15 +224,15 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	if move.Y == 0 {
 		if controls.Jump {
-			p.vy = 6
+			body.Vel.Y = 6
 		} else {
-			p.vy = 0
+			body.Vel.Y = 0
 		}
 	}
 
-	p.pos.X += move.X
-	p.pos.Y += move.Y
-	p.pos.Z += move.Z
+	body.Pos.X += move.X
+	body.Pos.Y += move.Y
+	body.Pos.Z += move.Z
 }
 
 func (p *Player) updateLook(controls ControlState) {
@@ -205,9 +242,11 @@ func (p *Player) updateLook(controls ControlState) {
 	lat := controls.Lat
 	lon := controls.Lon
 
-	p.look.X = sin(lat) * cos(lon)
-	p.look.Y = cos(lat)
-	p.look.Z = sin(lat) * sin(lon)
+	body := p.Body()
+
+	body.Dir.X = sin(lat) * cos(lon)
+	body.Dir.Y = cos(lat)
+	body.Dir.Z = sin(lat) * sin(lon)
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {
@@ -231,25 +270,18 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 		return nil
 	}
 
-	ray := physics.NewRay(p.pos, p.look)
+	ray := physics.NewRay(p.Body().Pos, p.Body().Dir)
 	// We let the user shoot in the past, but they always move in the present.
-	hitPos, hitEntity := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
-	if hitEntity != nil {
-		p.world.DamageEntity(p.name, 40, hitEntity)
+	hitPos, hitSprite := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
+	if hitSprite != nil {
+		p.world.DamageSprite(p.name, 40, hitSprite)
 	}
 	return hitPos
 }
 
 func (p *Player) Box() *physics.Box {
 	return physics.NewBoxOffset(
-		p.pos,
-		PlayerHalfExtents,
-		PlayerCenterOffset)
-}
-
-func (p *Player) BoxAt(t float64) *physics.Box {
-	return physics.NewBoxOffset(
-		p.history.PositionAt(t),
+		p.Body().Pos,
 		PlayerHalfExtents,
 		PlayerCenterOffset)
 }
