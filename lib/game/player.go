@@ -58,7 +58,7 @@ func NewPlayer(world *World, name string) *Player {
 		spriteState: SpriteState{
 			EntityState: EntityState{
 				EntityId: EntityId(name),
-				Body: &physics.Body{},
+				Body:     &physics.Body{},
 			},
 			Health: Health{
 				Life: PLAYER_MAX_LIFE,
@@ -127,8 +127,8 @@ func (p *Player) Respawn(pos coords.World) {
 func (p *Player) State() SpriteState {
 	return SpriteState{
 		EntityState: EntityState{
-			EntityId:  p.EntityId(),
-			Body:      p.Body(),
+			EntityId: p.EntityId(),
+			Body:     p.Body(),
 		},
 		Health: Health{
 			Life: p.Life(),
@@ -142,7 +142,6 @@ func (p *Player) State() SpriteState {
 func (p *Player) LastUpdated() float64 {
 	return p.controls.Timestamp
 }
-
 
 func (p *Player) BoxAt(t float64) *physics.Box {
 	return physics.NewBoxOffset(
@@ -193,7 +192,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 }
 
 func (p *Player) simulateMovement(dt float64, controls ControlState) {
-	body := p.Body();
+	body := p.Body()
 	body.Vel.Y += dt * -9.81
 
 	fw := 0.0

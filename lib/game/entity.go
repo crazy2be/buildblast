@@ -6,17 +6,17 @@ import (
 )
 
 type Entity interface {
-	EntityId()    EntityId
-	Body()        *physics.Body
-	Wpos()        coords.World
-	Look()        coords.Direction
+	EntityId() EntityId
+	Body() *physics.Body
+	Wpos() coords.World
+	Look() coords.Direction
 
 	Tick(w *World)
 }
 
 type EntityState struct {
-	EntityId  EntityId
-	Body      *physics.Body
+	EntityId EntityId
+	Body     *physics.Body
 }
 
 func (es *EntityState) Wpos() coords.World {
