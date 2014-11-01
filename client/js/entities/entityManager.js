@@ -29,10 +29,10 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	conn.on('sprite-create', function (payload) {
+	conn.on('biotic-create', function (payload) {
 		var id = payload.ID;
 		if (controllers[id]) {
-			console.warn("Got sprite-create message for sprite which already exists!", id);
+			console.warn("Got biotic-create message for biotic which already exists!", id);
 			return;
 		}
 		var entity = EntityManager.makeEntity(payload);
@@ -53,18 +53,18 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on('sprite-state', function (payload) {
+	conn.on('biotic-state', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
-			console.warn("Got sprite-state message for sprite which does not exist!", id);
+			console.warn("Got biotic-state message for biotic which does not exist!", id);
 			return;
 		}
 
 		controller.message(protocolToLocal(payload.State));
 	});
 
-	conn.on('sprite-remove', function (payload) {
+	conn.on('biotic-remove', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {

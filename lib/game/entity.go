@@ -40,17 +40,17 @@ type Respawnable interface {
 	Respawn(pos coords.World)
 }
 
-type Sprite interface {
+type Biotic interface {
 	Entity
 	Damageable
 	Respawnable
 
-	State() SpriteState
+	State() BioticState
 	LastUpdated() float64
 	BoxAt(t float64) *physics.Box
 }
 
-type SpriteState struct {
+type BioticState struct {
 	EntityState EntityState
 	Health      Health
 	Timestamp   float64

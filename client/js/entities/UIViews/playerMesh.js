@@ -63,7 +63,7 @@ function Arm(offset) {
 
 	self.mesh = function () {
 		return mesh;
-	}
+	};
 
 	var jumpAngle = 0;
 	var maxJumpAngle = 4 * Math.PI / 5;

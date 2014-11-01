@@ -15,9 +15,9 @@ type MessageKind string
 const (
 	MSG_HANDSHAKE_REPLY   = MessageKind("handshake-reply")
 	MSG_HANDSHAKE_ERROR   = MessageKind("handshake-error")
-	MSG_SPRITE_CREATE     = MessageKind("sprite-create")
-	MSG_SPRITE_STATE      = MessageKind("sprite-state")
-	MSG_SPRITE_REMOVE     = MessageKind("sprite-remove")
+	MSG_BIOTIC_CREATE     = MessageKind("biotic-create")
+	MSG_BIOTIC_STATE      = MessageKind("biotic-state")
+	MSG_BIOTIC_REMOVE     = MessageKind("biotic-remove")
 	MSG_CHUNK             = MessageKind("chunk")
 	MSG_BLOCK             = MessageKind("block")
 	MSG_CONTROLS_STATE    = MessageKind("controls-state")
@@ -35,12 +35,12 @@ const (
 
 func kindToType(kind MessageKind) Message {
 	switch kind {
-	case MSG_SPRITE_CREATE:
-		return &MsgSpriteCreate{}
-	case MSG_SPRITE_STATE:
-		return &MsgSpriteState{}
-	case MSG_SPRITE_REMOVE:
-		return &MsgSpriteRemove{}
+	case MSG_BIOTIC_CREATE:
+		return &MsgBioticCreate{}
+	case MSG_BIOTIC_STATE:
+		return &MsgBioticState{}
+	case MSG_BIOTIC_REMOVE:
+		return &MsgBioticRemove{}
 	case MSG_BLOCK:
 		return &MsgBlock{}
 	case MSG_CONTROLS_STATE:
@@ -69,12 +69,12 @@ func typeToKind(m Message) MessageKind {
 		return MSG_HANDSHAKE_REPLY
 	case *MsgHandshakeError:
 		return MSG_HANDSHAKE_ERROR
-	case *MsgSpriteCreate:
-		return MSG_SPRITE_CREATE
-	case *MsgSpriteState:
-		return MSG_SPRITE_STATE
-	case *MsgSpriteRemove:
-		return MSG_SPRITE_REMOVE
+	case *MsgBioticCreate:
+		return MSG_BIOTIC_CREATE
+	case *MsgBioticState:
+		return MSG_BIOTIC_STATE
+	case *MsgBioticRemove:
+		return MSG_BIOTIC_REMOVE
 	case *MsgChunk:
 		return MSG_CHUNK
 	case *MsgBlock:
@@ -108,7 +108,7 @@ func typeToKind(m Message) MessageKind {
 type MsgHandshakeReply struct {
 	ServerTime       float64
 	ClientID         string
-	PlayerEntityInfo MsgSpriteCreate
+	PlayerEntityInfo MsgBioticCreate
 	Authenticated    bool
 	AuthMessage      string
 }
@@ -117,20 +117,20 @@ type MsgHandshakeError struct {
 	Message string
 }
 
-type MsgSpriteCreate struct {
+type MsgBioticCreate struct {
 	ID           game.EntityId
 	Kind         game.EntityKind
 	HalfExtents  vmath.Vec3
 	CenterOffset vmath.Vec3
-	InitialState game.SpriteState
+	InitialState game.BioticState
 }
 
-type MsgSpriteState struct {
+type MsgBioticState struct {
 	ID    game.EntityId
-	State game.SpriteState
+	State game.BioticState
 }
 
-type MsgSpriteRemove struct {
+type MsgBioticRemove struct {
 	ID game.EntityId
 }
 

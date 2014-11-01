@@ -134,18 +134,18 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for id, s := range w.Sprites() {
-		c.SpriteCreated(id, s)
+	for id, s := range w.Biotics() {
+		c.BioticCreated(id, s)
 		c.Send(&MsgScoreboardAdd{
 			Name:  string(id),
 			Score: g.scores[string(id)],
 		})
 	}
 
-	w.AddSprite(p)
+	w.AddBiotic(p)
 
 	w.AddBlockListener(c)
-	w.AddSpriteListener(c)
+	w.AddBioticListener(c)
 	w.AddWorldItemListener(c)
 
 	c.player = p
@@ -155,9 +155,9 @@ func (c *Client) Connected(g *Game, w *game.World) {
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
-	w.RemoveSprite(c.player)
+	w.RemoveBiotic(c.player)
 	w.RemoveBlockListener(c)
-	w.RemoveSpriteListener(c)
+	w.RemoveBioticListener(c)
 	w.RemoveWorldItemListener(c)
 	c.conn.Close()
 }
@@ -178,27 +178,27 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) SpriteCreated(id game.EntityId, sprite game.Sprite) {
-	c.Send(makePlayerEntityCreatedMessage(id, sprite.State()))
+func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
+	c.Send(makePlayerEntityCreatedMessage(id, biotic.State()))
 }
 
-func (c *Client) SpriteUpdated(id game.EntityId, sprite game.Sprite) {
-	c.SendLossy(&MsgSpriteState{
+func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
+	c.SendLossy(&MsgBioticState{
 		ID:    id,
-		State: sprite.State(),
+		State: biotic.State(),
 	})
 }
 
-func (c *Client) SpriteDamaged(id game.EntityId, sprite game.Sprite) {
-	c.SpriteUpdated(id, sprite)
+func (c *Client) BioticDamaged(id game.EntityId, biotic game.Biotic) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) SpriteDied(id game.EntityId, sprite game.Sprite, killer string) {
-	c.SpriteUpdated(id, sprite)
+func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) SpriteRemoved(id game.EntityId) {
-	c.Send(&MsgSpriteRemove{
+func (c *Client) BioticRemoved(id game.EntityId) {
+	c.Send(&MsgBioticRemove{
 		ID: id,
 	})
 }
@@ -262,8 +262,8 @@ func (c *Client) internalRunChunks(conn *Conn) {
 	}
 }
 
-func makePlayerEntityCreatedMessage(id game.EntityId, state game.SpriteState) *MsgSpriteCreate {
-	return &MsgSpriteCreate{
+func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgBioticCreate {
+	return &MsgBioticCreate{
 		ID:           id,
 		Kind:         game.EntityKindPlayer,
 		HalfExtents:  game.PlayerHalfExtents,

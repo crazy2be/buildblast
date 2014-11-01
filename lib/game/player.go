@@ -44,7 +44,7 @@ var PlayerCenterOffset = vmath.Vec3{
 var PLAYER_MAX_LIFE = 100
 
 type Player struct {
-	spriteState SpriteState
+	bioticState BioticState
 	controls    ControlState
 	history     *HistoryBuffer
 	world       *World
@@ -55,7 +55,7 @@ type Player struct {
 
 func NewPlayer(world *World, name string) *Player {
 	return &Player{
-		spriteState: SpriteState{
+		bioticState: BioticState{
 			EntityState: EntityState{
 				EntityId: EntityId(name),
 				Body:     &physics.Body{},
@@ -80,15 +80,15 @@ func (p *Player) EntityId() EntityId {
 }
 
 func (p *Player) Body() *physics.Body {
-	return p.spriteState.EntityState.Body
+	return p.bioticState.EntityState.Body
 }
 
 func (p *Player) Wpos() coords.World {
-	return p.spriteState.EntityState.Wpos()
+	return p.bioticState.EntityState.Wpos()
 }
 
 func (p *Player) Look() coords.Direction {
-	return p.spriteState.EntityState.Look()
+	return p.bioticState.EntityState.Look()
 }
 
 /**
@@ -96,7 +96,7 @@ func (p *Player) Look() coords.Direction {
  */
 
 func (p *Player) Life() int {
-	return p.spriteState.Health.Life
+	return p.bioticState.Health.Life
 }
 
 func (p *Player) Dead() bool {
@@ -104,7 +104,7 @@ func (p *Player) Dead() bool {
 }
 
 func (p *Player) Damage(amount int) {
-	p.spriteState.Health.Life -= amount
+	p.bioticState.Health.Life -= amount
 }
 
 /**
@@ -112,18 +112,18 @@ func (p *Player) Damage(amount int) {
  */
 
 func (p *Player) Respawn(pos coords.World) {
-	p.spriteState.EntityState.Body.Pos = pos.Vec3()
-	p.spriteState.Health.Life = PLAYER_MAX_LIFE
+	p.bioticState.EntityState.Body.Pos = pos.Vec3()
+	p.bioticState.Health.Life = PLAYER_MAX_LIFE
 	p.history.Clear()
 	p.history.Add(p.LastUpdated(), p.Wpos())
 }
 
 /**
- * Sprite interface
+ * Biotic interface
  */
 
-func (p *Player) State() SpriteState {
-	return SpriteState{
+func (p *Player) State() BioticState {
+	return BioticState{
 		EntityState: EntityState{
 			EntityId: p.EntityId(),
 			Body:     p.Body(),
@@ -184,7 +184,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.Wpos())
 
-	p.world.FireSpriteUpdated(p.EntityId(), p)
+	p.world.FireBioticUpdated(p.EntityId(), p)
 
 	return hitPos
 }
@@ -270,9 +270,9 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 
 	ray := physics.NewRay(p.Body().Pos, p.Body().Dir)
 	// We let the user shoot in the past, but they always move in the present.
-	hitPos, hitSprite := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
-	if hitSprite != nil {
-		p.world.DamageSprite(p.name, 40, hitSprite)
+	hitPos, hitBiotic := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
+	if hitBiotic != nil {
+		p.world.DamageBiotic(p.name, 40, hitBiotic)
 	}
 	return hitPos
 }
