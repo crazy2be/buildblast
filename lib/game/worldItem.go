@@ -22,9 +22,9 @@ func NewWorldItem(kind Item, pos coords.World) *WorldItem {
 		worldItemState: WorldItemState{
 			EntityState: EntityState{
 				EntityId: EntityId("worldItem" + string(globalWorldItemId)),
-				Body: &physics.Body{
-					Pos: pos.Vec3(),
-					Box: physics.NewBox(pos.Vec3(), WorldItemHalfExtends),
+				Body: physics.Body{
+					Pos:         pos.Vec3(),
+					HalfExtents: WorldItemHalfExtends,
 				},
 			},
 			ItemKind: kind,
@@ -40,7 +40,7 @@ func (wi WorldItem) EntityId() EntityId {
 	return wi.worldItemState.EntityState.EntityId
 }
 
-func (wi WorldItem) Body() *physics.Body {
+func (wi WorldItem) Body() physics.Body {
 	return wi.worldItemState.EntityState.Body
 }
 

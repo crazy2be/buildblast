@@ -1,18 +1,22 @@
 define(function (require) {
-var Entity = require("./entity");
-var EntityState = require("./entityState");
+
+var Protocol = require("core/protocol");
+var Biotic = require("./biotic");
+var EntityState = require("./model/bioticState");
 var EntityLagInducer = require("./entityLagInducer");
-var EntityBar = require("./UIViews/entityBar");
-var PlayerMesh = require("./UIViews/playerMesh");
+var EntityBar = require("meshes/entityBar");
+var PlayerMesh = require("meshes/playerMesh");
 
 var EntityKindPlayer = "player";
+var EntityKindWorldItem = "worldItem";
 
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
-	//The network controls the entities, these
-	//	are just data, and inside the data are the views (which are isolated).
-	//They are in a sense, ViewModels :D
+	/**
+	 * The network controls the entities, these are just data, and inside the data are the
+	 * views (which are isolated). They are in a sense, ViewModels :D
+	 */
 	var controllers = {};
 
 	var _playerId = null;
@@ -29,16 +33,38 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	conn.on('biotic-create', function (payload) {
+	function payloadToHistoryState(payload) {
+		var kind = payload.Kind;
+		var result = { time: null, data: null };
+		if (kind == EntityKindPlayer) {
+			var bioticState = Protocol.parseBioticState(payload.BioticState);
+			result.time = bioticState.entityState.lastUpdated;
+			result.data = bioticState;
+		}
+		return result;
+	}
+
+	function createEntity(payload) {
 		var id = payload.ID;
+		var kind = payload.Kind;
+
 		if (controllers[id]) {
-			console.warn("Got biotic-create message for biotic which already exists!", id);
+			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
-		var entity = EntityManager.makeEntity(payload);
+
+		if (kind != EntityKindPlayer) {
+			console.warn("Got biotic-create message for unrecognized entity kind", kind);
+		}
+
+		var initialState = payloadToHistoryState(payload);
+		var entity = new Biotic(initialState.data);
+
+		if (kind === EntityKindPlayer) {
+			entity.add(new PlayerMesh());
+		}
 		entity.addTo(scene);
 
-		var initialState = protocolToLocal(payload.InitialState);
 		var controller = new EntityLagInducer(entity, initialState);
 
 		controllers[id] = controller;
@@ -51,6 +77,10 @@ function EntityManager(scene, conn, world, clock) {
 			historyBar.setOffset(0.3);
 			entity.add(historyBar);
 		}
+	}
+
+	conn.on('biotic-create', function (payload) {
+		createEntity(payload);
 	});
 
 	conn.on('biotic-state', function (payload) {
@@ -60,8 +90,7 @@ function EntityManager(scene, conn, world, clock) {
 			console.warn("Got biotic-state message for biotic which does not exist!", id);
 			return;
 		}
-
-		controller.message(protocolToLocal(payload.State));
+		controller.message(payloadToHistoryState(payload));
 	});
 
 	conn.on('biotic-remove', function (payload) {
@@ -95,33 +124,9 @@ function EntityManager(scene, conn, world, clock) {
 	};
 }
 
-EntityManager.makeEntity = function (payload) {
-	var id = payload.ID;
-	var halfExtents = vecFromNet(payload.HalfExtents);
-	var centerOffset = vecFromNet(payload.CenterOffset);
-	var entity = new Entity(id, halfExtents, centerOffset);
-	if (payload.Kind === EntityKindPlayer) {
-		entity.add(new PlayerMesh());
-	} else {
-		console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
-	}
-	return entity;
+EntityManager.createPlayerEntity = function(payload) {
+	return new Biotic(Protocol.parseBioticState(payload.BioticState));
 };
-
-function protocolToLocal(payload) {
-	return {
-		time: payload.Timestamp,
-		data: new EntityState(
-			vecFromNet(payload.EntityState.Body.Pos),
-			vecFromNet(payload.EntityState.Body.Dir),
-			payload.Health.Life,
-			payload.EntityState.Body.Vel.Y)
-	};
-}
-
-function vecFromNet(obj) {
-	return new THREE.Vector3(obj.X || 0, obj.Y || 0, obj.Z || 0);
-}
 
 return EntityManager;
 });

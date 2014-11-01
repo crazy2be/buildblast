@@ -5,16 +5,29 @@ import (
 	"buildblast/lib/physics"
 )
 
+// Should be an int someday...
+type EntityId string
+
+type EntityKind string
+
+const (
+	EntityKindPlayer = EntityKind("player")
+	EntityKindWorldItem = EntityKind("worldItem")
+)
+
 type Entity interface {
 	EntityId() EntityId
-	Body() *physics.Body
+	Body() physics.Body
+	LastUpdated() float64
 	Wpos() coords.World
 	Look() coords.Direction
+	BoxAt(t float64) *physics.Box
 }
 
 type EntityState struct {
-	EntityId EntityId
-	Body     *physics.Body
+	EntityId    EntityId
+	Body        physics.Body
+	LastUpdated float64
 }
 
 func (es *EntityState) Wpos() coords.World {
@@ -46,21 +59,9 @@ type Biotic interface {
 	Respawnable
 
 	State() BioticState
-	LastUpdated() float64
-	BoxAt(t float64) *physics.Box
 }
 
 type BioticState struct {
 	EntityState EntityState
 	Health      Health
-	Timestamp   float64
 }
-
-// Should be an int someday...
-type EntityId string
-
-type EntityKind string
-
-const (
-	EntityKindPlayer = EntityKind("player")
-)

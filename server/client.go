@@ -184,8 +184,9 @@ func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
 
 func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
 	c.SendLossy(&MsgBioticState{
-		ID:    id,
-		State: biotic.State(),
+		ID:          id,
+		Kind:        game.EntityKindPlayer,
+		BioticState: biotic.State(),
 	})
 }
 
@@ -205,8 +206,8 @@ func (c *Client) BioticRemoved(id game.EntityId) {
 
 func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
 	c.Send(&MsgWorldItemAdd{
-		ID:           id,
-		InitialState: worldItem.State(),
+		ID:             id,
+		WorldItemState: worldItem.State(),
 	})
 }
 
@@ -264,10 +265,8 @@ func (c *Client) internalRunChunks(conn *Conn) {
 
 func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgBioticCreate {
 	return &MsgBioticCreate{
-		ID:           id,
-		Kind:         game.EntityKindPlayer,
-		HalfExtents:  game.PlayerHalfExtents,
-		CenterOffset: game.PlayerCenterOffset,
-		InitialState: state,
+		ID:          id,
+		Kind:        game.EntityKindPlayer,
+		BioticState: state,
 	}
 }

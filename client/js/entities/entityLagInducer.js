@@ -1,4 +1,5 @@
 define(function (require) {
+
 var HistoryBuffer = require("./historyBuffer");
 
 return function EntityLagInducer(entity, initialState) {
@@ -21,4 +22,5 @@ return function EntityLagInducer(entity, initialState) {
 
 	self.drawHistory = history.draw;
 }
+
 });

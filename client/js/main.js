@@ -47,7 +47,7 @@ function main () {
 				console.log("Got handshake reply:", payload);
 				clock.init(payload.ServerTime);
 				clientID = payload.ClientID;
-				playerEntity = EntityManager.makeEntity(payload.PlayerEntityInfo)
+				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)
 				conn.setImmediate(false);
 				callback();
 			});

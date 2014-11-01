@@ -8,6 +8,8 @@ import (
 	"buildblast/lib/vmath"
 )
 
+// TODO: These should be rotatable.
+
 // xs means x start, xe means x end, etc.
 type Box struct {
 	xs float64

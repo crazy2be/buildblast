@@ -54,7 +54,7 @@ function simulate(collides, state, c, dt) /* newState */ {
 		sin(c.lat) * sin(c.lon)
 	);
 
-	newState.vy = state.vy + dt * -9.81;
+	newState.entityState.body.vel.y = state.entityState.body.vel.y + dt * -9.81;
 
 	var fw = c.forward ? 1 : c.back ? -1 : 0;
 	var rt = c.right   ? 1 : c.left ? -1 : 0;
@@ -62,23 +62,23 @@ function simulate(collides, state, c, dt) /* newState */ {
 	rt *= 10 * dt;
 	var delta = {
 		x: -cos(c.lon)*fw + sin(c.lon)*rt,
-		y: newState.vy * dt,
+		y: newState.entityState.body.vel.y * dt,
 		z: -sin(c.lon)*fw - cos(c.lon)*rt,
 	};
 
-	newState.pos.copy(state.pos);
+	newState.entityState.body.pos.copy(state.entityState.body.pos);
 
-	delta = attemptMove(newState.pos, delta, collides);
+	delta = attemptMove(newState.entityState.body.pos, delta, collides);
 
 	if (delta.y === 0) {
-		newState.vy = c.jump ? 6 : 0;
+		newState.entityState.body.vel.y = c.jump ? 6 : 0;
 	}
 
 	return newState;
 }
 
 return {
-	simulate: simulate,
+	simulate: simulate
 };
 
 });

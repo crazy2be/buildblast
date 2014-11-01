@@ -118,16 +118,15 @@ type MsgHandshakeError struct {
 }
 
 type MsgBioticCreate struct {
-	ID           game.EntityId
-	Kind         game.EntityKind
-	HalfExtents  vmath.Vec3
-	CenterOffset vmath.Vec3
-	InitialState game.BioticState
+	ID          game.EntityId
+	Kind        game.EntityKind
+	BioticState game.BioticState
 }
 
 type MsgBioticState struct {
-	ID    game.EntityId
-	State game.BioticState
+	ID          game.EntityId
+	Kind        game.EntityKind
+	BioticState game.BioticState
 }
 
 type MsgBioticRemove struct {
@@ -204,8 +203,9 @@ type ClientMessage struct {
 }
 
 type MsgWorldItemAdd struct {
-	ID           game.EntityId
-	InitialState game.WorldItemState
+	ID             game.EntityId
+	Kind           game.EntityKind
+	WorldItemState game.WorldItemState
 }
 
 type MsgWorldItemRemoved struct {

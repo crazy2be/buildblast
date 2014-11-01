@@ -5,7 +5,7 @@ var Models = require("models");
 var Block = require("chunks/block");
 var Chunk = require("chunks/chunk");
 var BlockGeometry = require("chunks/geometry");
-var BlockMesh = require("chunks/mesh");
+var BlockMesh = require("meshes/blockMesh");
 
 function Item(type) {
 	this.type = type;

@@ -58,7 +58,10 @@ func NewPlayer(world *World, name string) *Player {
 		bioticState: BioticState{
 			EntityState: EntityState{
 				EntityId: EntityId(name),
-				Body:     &physics.Body{},
+				Body: physics.Body{
+					HalfExtents:  PlayerHalfExtents,
+					CenterOffset: PlayerCenterOffset,
+				},
 			},
 			Health: Health{
 				Life: PLAYER_MAX_LIFE,
@@ -79,7 +82,7 @@ func (p *Player) EntityId() EntityId {
 	return EntityId(p.name) // This needs to change...
 }
 
-func (p *Player) Body() *physics.Body {
+func (p *Player) Body() physics.Body {
 	return p.bioticState.EntityState.Body
 }
 
@@ -115,7 +118,7 @@ func (p *Player) Respawn(pos coords.World) {
 	p.bioticState.EntityState.Body.Pos = pos.Vec3()
 	p.bioticState.Health.Life = PLAYER_MAX_LIFE
 	p.history.Clear()
-	p.history.Add(p.LastUpdated(), p.Wpos())
+	p.history.Add(p.LastUpdated(), p.Body())
 }
 
 /**
@@ -125,13 +128,13 @@ func (p *Player) Respawn(pos coords.World) {
 func (p *Player) State() BioticState {
 	return BioticState{
 		EntityState: EntityState{
-			EntityId: p.EntityId(),
-			Body:     p.Body(),
+			EntityId:    p.EntityId(),
+			Body:        p.Body(),
+			LastUpdated: p.LastUpdated(),
 		},
 		Health: Health{
 			Life: p.Life(),
 		},
-		Timestamp: p.LastUpdated(),
 	}
 }
 
@@ -142,10 +145,7 @@ func (p *Player) LastUpdated() float64 {
 }
 
 func (p *Player) BoxAt(t float64) *physics.Box {
-	return physics.NewBoxOffset(
-		p.history.PositionAt(t).Vec3(),
-		PlayerHalfExtents,
-		PlayerCenterOffset)
+	return p.history.BodyAt(t).GetBox()
 }
 
 /**
@@ -154,6 +154,10 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 
 func (p *Player) Inventory() *Inventory {
 	return p.inventory
+}
+
+func (p *Player) setBody(body physics.Body) {
+	p.bioticState.EntityState.Body = body;
 }
 
 func (p *Player) ClientTick(controls ControlState) *coords.World {
@@ -182,7 +186,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
 	p.controls = controls
-	p.history.Add(controls.Timestamp, p.Wpos())
+	p.history.Add(controls.Timestamp, p.Body())
 
 	p.world.FireBioticUpdated(p.EntityId(), p)
 
@@ -231,6 +235,8 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	body.Pos.X += move.X
 	body.Pos.Y += move.Y
 	body.Pos.Z += move.Z
+
+	p.setBody(body);
 }
 
 func (p *Player) updateLook(controls ControlState) {
@@ -245,6 +251,8 @@ func (p *Player) updateLook(controls ControlState) {
 	body.Dir.X = sin(lat) * cos(lon)
 	body.Dir.Y = cos(lat)
 	body.Dir.Z = sin(lat) * sin(lon)
+
+	p.setBody(body);
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {

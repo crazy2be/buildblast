@@ -20,7 +20,7 @@ return function ChunkManager(scene, clientID) {
 			'kind': 'block-change',
 			'payload': {
 				'Pos': {X: wcX, Y: wcY, Z: wcZ},
-				'Type': newType,
+				'Type': newType
 			}
 		});
 	};
@@ -29,7 +29,7 @@ return function ChunkManager(scene, clientID) {
 		geometryWorker.postMessage({
 			'kind': 'start-conn',
 			'payload': {
-				'uri': Conn.socketURI('chunk/' + name),
+				'uri': Conn.socketURI('chunk/' + name)
 			}
 		});
 	}
