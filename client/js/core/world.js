@@ -73,7 +73,7 @@ return function World(scene, conn, clientID, clock) {
 				return {
 					point: point,
 					dist: dist,
-					item: collision,
+					item: collision
 				};
 			}
 		}
@@ -130,9 +130,9 @@ return function World(scene, conn, clientID, clock) {
 			Pos: {
 				X: Math.floor(wcX),
 				Y: Math.floor(wcY),
-				Z: Math.floor(wcZ),
+				Z: Math.floor(wcZ)
 			},
-			Type: newType,
+			Type: newType
 		});
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}

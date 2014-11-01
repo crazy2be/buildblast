@@ -91,8 +91,6 @@ func (p *Player) Look() coords.Direction {
 	return p.spriteState.EntityState.Look()
 }
 
-func (p *Player) Tick(w *World) {}
-
 /**
  * Damageable interface
  */

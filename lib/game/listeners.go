@@ -24,6 +24,11 @@ type SpriteListener interface {
 	SpriteRemoved(id EntityId)
 }
 
+type WorldItemListener interface {
+	WorldItemAdded(id EntityId, worldItem *WorldItem)
+	WorldItemRemoved(id EntityId)
+}
+
 // genericListenerContainer is essentially a convenience wrapper to
 // avoid having to duplicate too much boilerplate code (at least, too
 // much boilerplate code with actual logic) in order to add new events.
@@ -120,4 +125,12 @@ func (w *World) RemoveSpriteListener(listener SpriteListener) {
 
 func (w *World) FireSpriteUpdated(id EntityId, sprite Sprite) {
 	w.spriteListeners.FireEvent("SpriteUpdated", id, sprite)
+}
+
+func (w *World) AddWorldItemListener(listener WorldItemListener) {
+	w.worldItemListeners.Add(listener)
+}
+
+func (w *World) RemoveWorldItemListener(listener WorldItemListener) {
+	w.worldItemListeners.Remove(listener)
 }

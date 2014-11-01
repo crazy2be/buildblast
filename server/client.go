@@ -110,7 +110,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
-		inv.AddItem(item)
+		w.AddWorldItem(game.NewWorldItem(item, m.Pos.Center()))
 		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
@@ -146,6 +146,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	w.AddBlockListener(c)
 	w.AddSpriteListener(c)
+	w.AddWorldItemListener(c)
 
 	c.player = p
 	c.Send(&MsgInventoryState{
@@ -157,6 +158,7 @@ func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveSprite(c.player)
 	w.RemoveBlockListener(c)
 	w.RemoveSpriteListener(c)
+	w.RemoveWorldItemListener(c)
 	c.conn.Close()
 }
 
@@ -197,6 +199,19 @@ func (c *Client) SpriteDied(id game.EntityId, sprite game.Sprite, killer string)
 
 func (c *Client) SpriteRemoved(id game.EntityId) {
 	c.Send(&MsgSpriteRemove{
+		ID: id,
+	})
+}
+
+func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
+	c.Send(&MsgWorldItemAdd{
+		ID:           id,
+		InitialState: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemRemoved(id game.EntityId) {
+	c.Send(&MsgWorldItemRemoved{
 		ID: id,
 	})
 }

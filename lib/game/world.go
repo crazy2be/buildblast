@@ -15,11 +15,13 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	sprites []Sprite
+	sprites    []Sprite
+	worldItems []*WorldItem
 
-	blockListeners  genericListenerContainer
-	chunkListeners  genericListenerContainer
-	spriteListeners genericListenerContainer
+	blockListeners     genericListenerContainer
+	chunkListeners     genericListenerContainer
+	spriteListeners    genericListenerContainer
+	worldItemListeners genericListenerContainer
 }
 
 func NewWorld(generator mapgen.Generator) *World {
@@ -33,17 +35,18 @@ func NewWorld(generator mapgen.Generator) *World {
 	go w.chunkGenerator.Run()
 
 	w.sprites = make([]Sprite, 0)
+	w.worldItems = make([]*WorldItem, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
 	w.spriteListeners = makeGenericListenerContainer()
+	w.worldItemListeners = makeGenericListenerContainer()
 	return w
 }
 
 func (w *World) Tick() {
 	w.generationTick()
 	for _, s := range w.sprites {
-		s.Tick(w)
 		w.chunkGenerator.QueueChunksNearby(s.Wpos())
 	}
 }
@@ -141,6 +144,21 @@ func (w *World) Sprites() map[EntityId]Sprite {
 		result[sprite.EntityId()] = sprite
 	}
 	return result
+}
+
+func (w *World) AddWorldItem(wi *WorldItem) {
+	w.worldItems = append(w.worldItems, wi)
+	w.worldItemListeners.FireEvent("WorldItemAdded", wi.EntityId(), wi)
+}
+
+func (w *World) RemoveWorldItem(wi *WorldItem) {
+	for i, worldItem := range w.worldItems {
+		if worldItem == wi {
+			w.worldItems[i] = w.worldItems[len(w.worldItems)-1]
+			w.worldItems = w.worldItems[:len(w.worldItems)-1]
+			w.worldItemListeners.FireEvent("WorldItemRemoved", wi.EntityId())
+		}
+	}
 }
 
 func (w *World) FindFirstIntersect(entity Sprite, t float64, ray *physics.Ray) (*coords.World, Sprite) {

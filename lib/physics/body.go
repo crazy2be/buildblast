@@ -8,5 +8,5 @@ type Body struct {
 	Pos vmath.Vec3
 	Vel vmath.Vec3
 	Dir vmath.Vec3
-	Box *Box
+	Box *Box `json:"-"`
 }

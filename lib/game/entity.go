@@ -10,8 +10,6 @@ type Entity interface {
 	Body() *physics.Body
 	Wpos() coords.World
 	Look() coords.Direction
-
-	Tick(w *World)
 }
 
 type EntityState struct {

@@ -79,7 +79,8 @@ function main () {
 		var controls = new Controls(container);
 
 		var playerController = makePlayerController(world);
-		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity, playerController);
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity,
+				playerController);
 		world.setPlayer(clientID, playerEntity, playerController);
 
 		window.testExposure.playerUI = playerUI;

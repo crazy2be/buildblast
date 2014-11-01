@@ -115,7 +115,7 @@ function protocolToLocal(payload) {
 			vecFromNet(payload.EntityState.Body.Pos),
 			vecFromNet(payload.EntityState.Body.Dir),
 			payload.Health.Life,
-			payload.EntityState.Body.Vel.Y),
+			payload.EntityState.Body.Vel.Y)
 	};
 }
 

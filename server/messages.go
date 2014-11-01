@@ -29,6 +29,8 @@ const (
 	MSG_SCOREBOARD_ADD    = MessageKind("scoreboard-add")
 	MSG_SCOREBOARD_SET    = MessageKind("scoreboard-set")
 	MSG_SCOREBOARD_REMOVE = MessageKind("scoreboard-remove")
+	MSG_WORLD_ITEM_ADD    = MessageKind("world-item-add")
+	MSG_WORLD_ITEM_REMOVE = MessageKind("world-item-remove")
 )
 
 func kindToType(kind MessageKind) Message {
@@ -53,6 +55,10 @@ func kindToType(kind MessageKind) Message {
 		return &MsgInventoryState{}
 	case MSG_INVENTORY_MOVE:
 		return &MsgInventoryMove{}
+	case MSG_WORLD_ITEM_ADD:
+		return &MsgWorldItemAdd{}
+	case MSG_WORLD_ITEM_REMOVE:
+		return &MsgWorldItemRemoved{}
 	}
 	panic("Unknown message recieved from client: " + string(kind))
 }
@@ -91,6 +97,10 @@ func typeToKind(m Message) MessageKind {
 		return MSG_SCOREBOARD_SET
 	case *MsgScoreboardRemove:
 		return MSG_SCOREBOARD_REMOVE
+	case *MsgWorldItemAdd:
+		return MSG_WORLD_ITEM_ADD
+	case *MsgWorldItemRemoved:
+		return MSG_WORLD_ITEM_REMOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 }
@@ -191,6 +201,15 @@ type ClientMessage struct {
 	// json.RawMessage implements Marshaler and Unmarshaler,
 	// so it will NOT be serialized twice.
 	Payload json.RawMessage
+}
+
+type MsgWorldItemAdd struct {
+	ID           game.EntityId
+	InitialState game.WorldItemState
+}
+
+type MsgWorldItemRemoved struct {
+	ID game.EntityId
 }
 
 type Message interface{}
