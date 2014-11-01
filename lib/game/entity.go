@@ -11,7 +11,7 @@ type EntityId string
 type EntityKind string
 
 const (
-	EntityKindPlayer = EntityKind("player")
+	EntityKindPlayer    = EntityKind("player")
 	EntityKindWorldItem = EntityKind("worldItem")
 )
 

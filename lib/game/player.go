@@ -157,7 +157,7 @@ func (p *Player) Inventory() *Inventory {
 }
 
 func (p *Player) setBody(body physics.Body) {
-	p.bioticState.EntityState.Body = body;
+	p.bioticState.EntityState.Body = body
 }
 
 func (p *Player) ClientTick(controls ControlState) *coords.World {
@@ -236,7 +236,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	body.Pos.Y += move.Y
 	body.Pos.Z += move.Z
 
-	p.setBody(body);
+	p.setBody(body)
 }
 
 func (p *Player) updateLook(controls ControlState) {
@@ -252,7 +252,7 @@ func (p *Player) updateLook(controls ControlState) {
 	body.Dir.Y = cos(lat)
 	body.Dir.Z = sin(lat) * sin(lon)
 
-	p.setBody(body);
+	p.setBody(body)
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {

@@ -89,10 +89,10 @@ func (ph *HistoryBuffer) BodyAt(t float64) *physics.Body {
 
 	alpha := (t - older.t) / (newer.t - older.t)
 	return &physics.Body{
-		Pos: older.body.Pos.Lerp(newer.body.Pos, alpha),
-		Vel: older.body.Vel.Lerp(newer.body.Vel, alpha),
-		Dir: older.body.Dir.Lerp(newer.body.Dir, alpha),
-		HalfExtents: newer.body.HalfExtents,
+		Pos:          older.body.Pos.Lerp(newer.body.Pos, alpha),
+		Vel:          older.body.Vel.Lerp(newer.body.Vel, alpha),
+		Dir:          older.body.Dir.Lerp(newer.body.Dir, alpha),
+		HalfExtents:  newer.body.HalfExtents,
 		CenterOffset: newer.body.CenterOffset,
 	}
 }
