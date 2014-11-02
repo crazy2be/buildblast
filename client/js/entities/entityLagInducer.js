@@ -9,6 +9,7 @@ return function EntityLagInducer(entity, initialState) {
 
 	self.update = function (clock, camera) {
 		var state = history.at(clock.entityTime());
+		if (!state) return;
 		entity.update(state, clock, camera);
 	};
 
