@@ -51,7 +51,7 @@ func (w *World) Tick(dt int64) {
 	}
 	for i, wi := range w.worldItems {
 		if wi.Tick(dt, w) {
-			w.worldItems[i] = wi;
+			w.worldItems[i] = wi
 			w.worldItemListeners.FireEvent("WorldItemUpdated", wi.EntityId(), wi)
 		}
 	}

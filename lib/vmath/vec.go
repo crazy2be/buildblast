@@ -64,9 +64,9 @@ func (v *Vec3) To(other *Vec3) *Vec3 {
 
 func (v *Vec3) DistTo(other *Vec3) float64 {
 	return math.Sqrt(
-				(other.X - v.X)*(other.X - v.X) +
-				(other.Y - v.Y)*(other.Y - v.Y) +
-				(other.Z - v.Z)*(other.Z - v.Z))
+		(other.X-v.X)*(other.X-v.X) +
+			(other.Y-v.Y)*(other.Y-v.Y) +
+			(other.Z-v.Z)*(other.Z-v.Z))
 }
 
 func (v *Vec3) DistBetween(other *Vec3) float64 {

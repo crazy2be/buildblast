@@ -64,7 +64,7 @@ func (wi *WorldItem) Look() coords.Direction {
 func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	body := wi.Body()
 	// These have really low gravity
-	body.Vel.Y += float64(dt)/1000 * -0.2
+	body.Vel.Y += float64(dt) / 1000 * -0.2
 
 	var closestBody *physics.Body
 	var closestDist float64
@@ -82,7 +82,7 @@ func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	if closestBody != nil {
 		dir := body.Pos.To(&closestBody.Pos)
 		dir.Y = 0
-		dir.SetLength(100 * (1/(closestDist*closestDist)) * float64(dt) / 1000)
+		dir.SetLength(100 * (1 / (closestDist * closestDist)) * float64(dt) / 1000)
 		body.Vel.X = dir.X
 		body.Vel.Z = dir.Z
 	} else {
@@ -110,5 +110,5 @@ func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	body.Vel = move
 	body.Pos.Add(&move)
 	wi.worldItemState.EntityState.Body = body
-	return true;
+	return true
 }

@@ -110,13 +110,13 @@ type MsgHandshakeError struct {
 type MsgEntityCreate struct {
 	ID    game.EntityId
 	Kind  game.EntityKind
-	State interface {}
+	State interface{}
 }
 
 type MsgEntityState struct {
 	ID    game.EntityId
 	Kind  game.EntityKind
-	State interface {}
+	State interface{}
 }
 
 type MsgEntityRemove struct {
