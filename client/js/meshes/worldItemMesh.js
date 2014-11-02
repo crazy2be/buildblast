@@ -7,8 +7,10 @@ function WorldItemMesh(halfExtents) {
 
 	var geometry = new THREE.Geometry();
 
-	var darkMaterial = new THREE.MeshBasicMaterial( { color: 0xffffcc } );
-	var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, transparent: true } );
+	var darkMaterial = new THREE.MeshBasicMaterial({ color: 0x7FFF00 });
+	var wireframeMaterial = new THREE.MeshBasicMaterial({
+		color: 0x000000, wireframe: true, transparent: true
+	});
 	var multiMaterial = [ darkMaterial, wireframeMaterial ];
 
 	var mesh = THREE.SceneUtils.createMultiMaterialObject(
