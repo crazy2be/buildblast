@@ -82,7 +82,7 @@ func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	if closestBody != nil {
 		dir := body.Pos.To(&closestBody.Pos)
 		dir.Y = 0
-		dir.SetLength(100 * (1 / (closestDist * closestDist)) * float64(dt) / 1000)
+		dir.SetLength(30 * (1 / closestDist) * float64(dt) / 1000)
 		body.Vel.X = dir.X
 		body.Vel.Z = dir.Z
 	} else {
