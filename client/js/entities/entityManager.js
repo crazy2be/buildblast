@@ -38,11 +38,11 @@ function EntityManager(scene, conn, world, clock) {
 		var kind = payload.Kind;
 		var result = { time: null, data: null };
 		if (kind === EntityKindPlayer) {
-			var bioticState = Protocol.parseBioticState(payload.BioticState);
+			var bioticState = Protocol.parseBioticState(payload.State);
 			result.time = bioticState.entityState.lastUpdated;
 			result.data = bioticState;
 		} else if (kind === EntityKindWorldItem) {
-			var worldItemState = Protocol.parseWorldItemState(payload.WorldItemState);
+			var worldItemState = Protocol.parseWorldItemState(payload.State);
 			result.time = worldItemState.entityState.lastUpdated;
 			result.data = worldItemState;
 		} else {
@@ -51,7 +51,7 @@ function EntityManager(scene, conn, world, clock) {
 		return result;
 	}
 
-	function createEntity(payload) {
+	conn.on('entity-create', function(payload) {
 		var id = payload.ID;
 		var kind = payload.Kind;
 
@@ -88,17 +88,9 @@ function EntityManager(scene, conn, world, clock) {
 			historyBar.setOffset(0.3);
 			entity.add(historyBar);
 		}
-	}
-
-	conn.on('biotic-create', function(payload) {
-		createEntity(payload);
 	});
 
-	conn.on('world-item-add', function(payload){
-		createEntity(payload);
-	});
-
-	conn.on('biotic-state', function (payload) {
+	conn.on('entity-state', function (payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
@@ -108,7 +100,7 @@ function EntityManager(scene, conn, world, clock) {
 		controller.message(payloadToHistoryState(payload));
 	});
 
-	function removeEntity(payload) {
+	conn.on('entity-remove', function(payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
@@ -116,14 +108,6 @@ function EntityManager(scene, conn, world, clock) {
 		}
 		controller.entity().removeFrom(scene);
 		delete controllers[id];
-	}
-
-	conn.on('biotic-remove', function(payload) {
-		removeEntity(payload);
-	});
-
-	conn.on('world-item-remove', function(payload){
-		removeEntity(payload);
 	});
 
 	self.entityAt = function (wcX, wcY, wcZ) {
@@ -148,7 +132,7 @@ function EntityManager(scene, conn, world, clock) {
 }
 
 EntityManager.createPlayerEntity = function(payload) {
-	return new Biotic(Protocol.parseBioticState(payload.BioticState));
+	return new Biotic(Protocol.parseBioticState(payload.State));
 };
 
 return EntityManager;

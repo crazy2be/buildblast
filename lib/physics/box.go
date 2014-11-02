@@ -91,7 +91,12 @@ func (b *Box) Contains(position vmath.Vec3) bool {
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
 	blockCollide := func(x, y, z int) bool {
-		return world.Block(coords.Block{x, y, z}).Solid()
+		blockCoord := coords.Block{x, y, z}
+		if world.Block(blockCoord).Solid() {
+			blockBox := NewBox(blockCoord.Center().Vec3(), vmath.Vec3{0.5, 0.5, 0.5})
+			return b.Collides(blockBox)
+		}
+		return false
 	}
 	f := func(n float64) int {
 		return int(math.Floor(n))

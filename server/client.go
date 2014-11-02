@@ -204,10 +204,10 @@ func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
 }
 
 func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
-	c.SendLossy(&MsgBioticState{
-		ID:          id,
-		Kind:        game.EntityKindPlayer,
-		BioticState: biotic.State(),
+	c.SendLossy(&MsgEntityState{
+		ID:    id,
+		Kind:  game.EntityKindPlayer,
+		State: biotic.State(),
 	})
 }
 
@@ -220,21 +220,29 @@ func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic, killer string)
 }
 
 func (c *Client) BioticRemoved(id game.EntityId) {
-	c.Send(&MsgBioticRemove{
+	c.Send(&MsgEntityRemove{
 		ID: id,
 	})
 }
 
 func (c *Client) WorldItemAdded(id game.EntityId, worldItem game.WorldItem) {
-	c.Send(&MsgWorldItemAdd{
-		ID:             id,
-		Kind:           game.EntityKindWorldItem,
-		WorldItemState: worldItem.State(),
+	c.Send(&MsgEntityCreate{
+		ID:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemUpdated(id game.EntityId, worldItem game.WorldItem) {
+	c.Send(&MsgEntityState{
+		ID:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
 	})
 }
 
 func (c *Client) WorldItemRemoved(id game.EntityId) {
-	c.Send(&MsgWorldItemRemoved{
+	c.Send(&MsgEntityRemove{
 		ID: id,
 	})
 }
@@ -285,10 +293,10 @@ func (c *Client) internalRunChunks(conn *Conn) {
 	}
 }
 
-func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgBioticCreate {
-	return &MsgBioticCreate{
-		ID:          id,
-		Kind:        game.EntityKindPlayer,
-		BioticState: state,
+func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgEntityCreate {
+	return &MsgEntityCreate{
+		ID:    id,
+		Kind:  game.EntityKindPlayer,
+		State: state,
 	}
 }

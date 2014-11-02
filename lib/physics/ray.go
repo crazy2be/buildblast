@@ -27,7 +27,7 @@ func NewRay(pos vmath.Vec3, dir vmath.Vec3) *Ray {
 func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*vmath.Vec3, int) {
 	pos := ray.pos
 	for dist := 0.0; dist < RAY_MAX_DIST; dist += RAY_PRECISION {
-		pos = pos.Translate(ray.dir, RAY_PRECISION)
+		pos.Translate(&ray.dir, RAY_PRECISION)
 
 		for i, v := range boxes {
 			if v == nil {

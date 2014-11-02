@@ -7,6 +7,10 @@ import (
 	"buildblast/lib/game"
 )
 
+const (
+	FramePeriod = time.Second / 60
+)
+
 type clientResponse struct {
 	client *Client
 	isNew  bool
@@ -130,17 +134,17 @@ func (g *Game) BroadcastLossy(m Message) {
 }
 
 func (g *Game) Run() {
-	updateTicker := time.Tick(time.Second / 60)
+	updateTicker := time.Tick(FramePeriod)
 	for {
 		<-updateTicker
-		g.Tick()
+		g.Tick(int64(FramePeriod / time.Millisecond))
 	}
 }
 
-func (g *Game) Tick() {
+func (g *Game) Tick(dt int64) {
 	g.handleClientRequests()
 
-	g.world.Tick()
+	g.world.Tick(dt)
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
 	}

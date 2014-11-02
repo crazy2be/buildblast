@@ -44,10 +44,16 @@ func NewWorld(generator mapgen.Generator) *World {
 	return w
 }
 
-func (w *World) Tick() {
+func (w *World) Tick(dt int64) {
 	w.generationTick()
 	for _, s := range w.biotics {
 		w.chunkGenerator.QueueChunksNearby(s.Wpos())
+	}
+	for i, wi := range w.worldItems {
+		if wi.Tick(dt, w) {
+			w.worldItems[i] = wi;
+			w.worldItemListeners.FireEvent("WorldItemUpdated", wi.EntityId(), wi)
+		}
 	}
 }
 

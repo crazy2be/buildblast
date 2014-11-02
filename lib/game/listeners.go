@@ -26,6 +26,7 @@ type BioticListener interface {
 
 type WorldItemListener interface {
 	WorldItemAdded(id EntityId, worldItem WorldItem)
+	WorldItemUpdated(id EntityId, worldItem WorldItem)
 	WorldItemRemoved(id EntityId)
 }
 

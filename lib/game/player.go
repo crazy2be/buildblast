@@ -225,6 +225,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	move = box.AttemptMove(p.world, move)
 
 	if move.Y == 0 {
+		body.Vel.Y = 0
 		if controls.Jump {
 			body.Vel.Y = 6
 		} else {
@@ -232,10 +233,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 		}
 	}
 
-	body.Pos.X += move.X
-	body.Pos.Y += move.Y
-	body.Pos.Z += move.Z
-
+	body.Pos.Add(&move)
 	p.setBody(body)
 }
 
