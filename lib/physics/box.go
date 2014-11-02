@@ -73,6 +73,15 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount vmath.Vec3) vmath.Vec
 	return amount
 }
 
+func (b *Box) Collides(o *Box) bool {
+	return b.xe > o.xs &&
+		b.xs < o.xe &&
+		b.ye > o.ys &&
+		b.ys < o.ye &&
+		b.ze > o.zs &&
+		b.zs < o.ze
+}
+
 func (b *Box) Contains(position vmath.Vec3) bool {
 	p := position
 	return b.xs < p.X && b.xe > p.X &&

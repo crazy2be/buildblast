@@ -72,7 +72,7 @@ function EntityManager(scene, conn, world, clock) {
 			entity.add(new PlayerMesh());
 		} else if (kind === EntityKindWorldItem) {
 			entity = new WorldItem(initialState.data);
-			entity.add(new WorldItemMesh(entity.halfExtents()));
+			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
 		}
 		entity.addTo(scene);
 
@@ -108,7 +108,7 @@ function EntityManager(scene, conn, world, clock) {
 		controller.message(payloadToHistoryState(payload));
 	});
 
-	conn.on('biotic-remove', function (payload) {
+	function removeEntity(payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
@@ -116,6 +116,14 @@ function EntityManager(scene, conn, world, clock) {
 		}
 		controller.entity().removeFrom(scene);
 		delete controllers[id];
+	}
+
+	conn.on('biotic-remove', function(payload) {
+		removeEntity(payload);
+	});
+
+	conn.on('world-item-remove', function(payload){
+		removeEntity(payload);
 	});
 
 	self.entityAt = function (wcX, wcY, wcZ) {

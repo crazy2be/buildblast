@@ -38,6 +38,7 @@ func NewClient(name string) *Client {
 }
 
 func (c *Client) Tick(g *Game, w *game.World) {
+conn:
 	for {
 		select {
 		case m := <-c.conn.recvQueue:
@@ -46,8 +47,24 @@ func (c *Client) Tick(g *Game, w *game.World) {
 			g.disconnect(c.name, e.Error())
 			return
 		default:
-			return
+			break conn
 		}
+	}
+
+	pickedUp := false
+	for _, worldItem := range w.WorldItems() {
+		pBody := c.player.Body()
+		wiBody := worldItem.Body()
+		if pBody.Box().Collides(wiBody.Box()) {
+			c.player.Inventory().AddItem(worldItem.State().ItemKind)
+			w.RemoveWorldItem(worldItem)
+			pickedUp = true
+		}
+	}
+	if pickedUp {
+		c.Send(&MsgInventoryState{
+			Items: c.player.Inventory().ItemsToString(),
+		})
 	}
 }
 

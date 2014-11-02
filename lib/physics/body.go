@@ -12,7 +12,7 @@ type Body struct {
 	CenterOffset vmath.Vec3
 }
 
-func (b *Body) GetBox() *Box {
+func (b *Body) Box() *Box {
 	return NewBoxOffset(b.Pos, b.HalfExtents, b.CenterOffset)
 }
 

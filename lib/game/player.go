@@ -145,7 +145,7 @@ func (p *Player) LastUpdated() float64 {
 }
 
 func (p *Player) BoxAt(t float64) *physics.Box {
-	return p.history.BodyAt(t).GetBox()
+	return p.history.BodyAt(t).Box()
 }
 
 /**
@@ -220,7 +220,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 		Z: -sin(controls.Lon)*fw - cos(controls.Lon)*rt,
 	}
 
-	box := p.Box()
+	box := body.Box()
 
 	move = box.AttemptMove(p.world, move)
 
@@ -283,11 +283,4 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 		p.world.DamageBiotic(p.name, 40, hitBiotic)
 	}
 	return hitPos
-}
-
-func (p *Player) Box() *physics.Box {
-	return physics.NewBoxOffset(
-		p.Body().Pos,
-		PlayerHalfExtents,
-		PlayerCenterOffset)
 }
