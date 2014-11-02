@@ -51,7 +51,9 @@ return function HistoryBuffer() {
 		}
 
 		var alpha = (t - times[older_i]) / (times[newer_i] - times[older_i]);
-		return datums[older_i].clone().lerp(datums[newer_i], alpha);
+		var result = datums[older_i].clone();
+		result.lerp(datums[newer_i], alpha);
+		return result;
 	};
 
 	/**

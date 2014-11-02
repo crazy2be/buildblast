@@ -51,6 +51,7 @@ conn:
 		}
 	}
 
+	// TODO: Move this logic to world or game
 	pickedUp := false
 	for _, worldItem := range w.WorldItems() {
 		pBody := c.player.Body()
