@@ -110,7 +110,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
-		w.AddWorldItem(game.NewWorldItem(item, m.Pos.Center()))
+		w.AddWorldItem(*game.NewWorldItem(item, m.Pos.Center()))
 		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
@@ -134,12 +134,16 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for id, s := range w.Biotics() {
-		c.BioticCreated(id, s)
+	for id, b := range w.Biotics() {
+		c.BioticCreated(id, b)
 		c.Send(&MsgScoreboardAdd{
 			Name:  string(id),
 			Score: g.scores[string(id)],
 		})
+	}
+
+	for id, wi := range w.WorldItems() {
+		c.WorldItemAdded(id, wi)
 	}
 
 	w.AddBiotic(p)
@@ -204,9 +208,10 @@ func (c *Client) BioticRemoved(id game.EntityId) {
 	})
 }
 
-func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
+func (c *Client) WorldItemAdded(id game.EntityId, worldItem game.WorldItem) {
 	c.Send(&MsgWorldItemAdd{
 		ID:             id,
+		Kind:           game.EntityKindWorldItem,
 		WorldItemState: worldItem.State(),
 	})
 }

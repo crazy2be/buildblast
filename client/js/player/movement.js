@@ -1,7 +1,9 @@
 define(function () {
 
-function attemptMove(pos, delta, collides) {
-	if (collides(pos)) {
+function attemptMove(body, delta, collides) {
+	var pos = body.pos;
+	var box = body.box;
+	if (collides(box, pos)) {
 		delta.x = 0;
 		delta.y = 1;
 		delta.z = 0;
@@ -13,19 +15,19 @@ function attemptMove(pos, delta, collides) {
 	// some "stickyness" when jumping is likely
 	// caused by lack of partial movement application.
 	pos.x += delta.x;
-	if (collides(pos)) {
+	if (collides(box, pos)) {
 		pos.x -= delta.x;
 		delta.x = 0;
 	}
 
 	pos.y += delta.y;
-	if (collides(pos)) {
+	if (collides(box, pos)) {
 		pos.y -= delta.y;
 		delta.y = 0;
 	}
 
 	pos.z += delta.z;
-	if (collides(pos)) {
+	if (collides(box, pos)) {
 		pos.z -= delta.z;
 		delta.z = 0;
 	}
@@ -47,14 +49,16 @@ function simulate(collides, state, c, dt) /* newState */ {
 		dt = 1;
 	}
 
-	var sin = Math.sin, cos = Math.cos;
+	var sin = Math.sin;
+	var cos = Math.cos;
+
 	newState.look = new THREE.Vector3(
 		sin(c.lat) * cos(c.lon),
 		cos(c.lat),
 		sin(c.lat) * sin(c.lon)
 	);
 
-	newState.entityState.body.vel.y = state.entityState.body.vel.y + dt * -9.81;
+	newState.entityState.body.vel.y += dt * -9.81;
 
 	var fw = c.forward ? 1 : c.back ? -1 : 0;
 	var rt = c.right   ? 1 : c.left ? -1 : 0;
@@ -63,12 +67,10 @@ function simulate(collides, state, c, dt) /* newState */ {
 	var delta = {
 		x: -cos(c.lon)*fw + sin(c.lon)*rt,
 		y: newState.entityState.body.vel.y * dt,
-		z: -sin(c.lon)*fw - cos(c.lon)*rt,
+		z: -sin(c.lon)*fw - cos(c.lon)*rt
 	};
 
-	newState.entityState.body.pos.copy(state.entityState.body.pos);
-
-	delta = attemptMove(newState.entityState.body.pos, delta, collides);
+	delta = attemptMove(newState.entityState.body, delta, collides);
 
 	if (delta.y === 0) {
 		newState.entityState.body.vel.y = c.jump ? 6 : 0;

@@ -4,6 +4,7 @@ var Body = require("physics/body");
 var EntityState = require("entities/model/entityState");
 var Health = require("entities/model/health");
 var BioticState = require("entities/model/bioticState");
+var WorldItemState = require("entities/model/worldItemState");
 
 var Protocol = {};
 
@@ -28,6 +29,10 @@ Protocol.parseHealth = function(proto) {
 Protocol.parseBioticState = function(proto) {
 	return new BioticState(Protocol.parseEntityState(proto.EntityState),
 			Protocol.parseHealth(proto.Health));
+};
+
+Protocol.parseWorldItemState = function(proto) {
+	return new WorldItemState(Protocol.parseEntityState(proto.EntityState), proto.ItemKind);
 };
 
 function threeVecFromProto(proto) {

@@ -1,17 +1,26 @@
 package game
 
 import (
+	"strconv"
+
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
 	"buildblast/lib/vmath"
 )
 
-var WorldItemHalfExtends = vmath.Vec3{
-	1 / 8, 1 / 8, 1 / 8,
+var WorldItemHalfExtents = vmath.Vec3{
+	float64(1) / 8,
+	float64(1) / 8,
+	float64(1) / 8,
 }
 
 type WorldItem struct {
 	worldItemState WorldItemState
+}
+
+type WorldItemState struct {
+	EntityState EntityState
+	ItemKind    Item
 }
 
 var globalWorldItemId uint64
@@ -21,10 +30,10 @@ func NewWorldItem(kind Item, pos coords.World) *WorldItem {
 	return &WorldItem{
 		worldItemState: WorldItemState{
 			EntityState: EntityState{
-				EntityId: EntityId("worldItem" + string(globalWorldItemId)),
+				EntityId: EntityId("worldItem" + strconv.FormatUint(globalWorldItemId, 10)),
 				Body: physics.Body{
 					Pos:         pos.Vec3(),
-					HalfExtents: WorldItemHalfExtends,
+					HalfExtents: WorldItemHalfExtents,
 				},
 			},
 			ItemKind: kind,
@@ -50,9 +59,4 @@ func (wi WorldItem) Wpos() coords.World {
 
 func (wi WorldItem) Look() coords.Direction {
 	return wi.worldItemState.EntityState.Look()
-}
-
-type WorldItemState struct {
-	EntityState EntityState
-	ItemKind    Item
 }

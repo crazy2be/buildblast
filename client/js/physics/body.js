@@ -1,13 +1,14 @@
 define(function(require){
 
 var THREE = require("THREE");
+var Box = require("./box");
 
 /**
  * @param pos          type=THREE.Vector3
- * @param vel          type=float64
- * @param dir          type=physics.Body
- * @param halfExtents  type=physics.Body
- * @param centerOffset type=physics.Body
+ * @param vel          type=THREE.Vector3
+ * @param dir          type=THREE.Vector3
+ * @param halfExtents  type=THREE.Vector3
+ * @param centerOffset type=THREE.Vector3
  */
 return function Body(pos, vel, dir, halfExtents, centerOffset) {
 	var self = this;
@@ -17,6 +18,7 @@ return function Body(pos, vel, dir, halfExtents, centerOffset) {
 	self.dir = dir || new THREE.Vector3(0, 0, 0);
 	self.halfExtents = halfExtents || new THREE.Vector3(0, 0, 0);
 	self.centerOffset = centerOffset || new THREE.Vector3(0, 0, 0);
+	self.box = new Box(self.halfExtents, self.centerOffset);
 
 	self.clone = function() {
 		return new Body(self.pos.clone(), self.vel.clone(), self.dir.clone(),

@@ -16,7 +16,7 @@ type World struct {
 	chunkGenerator *ChunkGenerator
 
 	biotics    []Biotic
-	worldItems []*WorldItem
+	worldItems []WorldItem
 
 	blockListeners     genericListenerContainer
 	chunkListeners     genericListenerContainer
@@ -35,7 +35,7 @@ func NewWorld(generator mapgen.Generator) *World {
 	go w.chunkGenerator.Run()
 
 	w.biotics = make([]Biotic, 0)
-	w.worldItems = make([]*WorldItem, 0)
+	w.worldItems = make([]WorldItem, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
@@ -146,12 +146,12 @@ func (w *World) Biotics() map[EntityId]Biotic {
 	return result
 }
 
-func (w *World) AddWorldItem(wi *WorldItem) {
+func (w *World) AddWorldItem(wi WorldItem) {
 	w.worldItems = append(w.worldItems, wi)
 	w.worldItemListeners.FireEvent("WorldItemAdded", wi.EntityId(), wi)
 }
 
-func (w *World) RemoveWorldItem(wi *WorldItem) {
+func (w *World) RemoveWorldItem(wi WorldItem) {
 	for i, worldItem := range w.worldItems {
 		if worldItem == wi {
 			w.worldItems[i] = w.worldItems[len(w.worldItems)-1]
@@ -159,6 +159,14 @@ func (w *World) RemoveWorldItem(wi *WorldItem) {
 			w.worldItemListeners.FireEvent("WorldItemRemoved", wi.EntityId())
 		}
 	}
+}
+
+func (w *World) WorldItems() map[EntityId]WorldItem {
+	result := make(map[EntityId]WorldItem, len(w.worldItems))
+	for _, worldItem := range w.worldItems {
+		result[worldItem.EntityId()] = worldItem
+	}
+	return result
 }
 
 func (w *World) FindFirstIntersect(entity Biotic, t float64, ray *physics.Ray) (*coords.World, Biotic) {

@@ -9,10 +9,6 @@ return function Biotic(bioticState) {
 	var self = this;
 	var hitboxMesh;
 
-	function compare(left, right) {
-		return left.x === right.x && left.y === right.y && left.z === right.z;
-	}
-
 	self.pos = function () {
 		return bioticState.entityState.body.pos.clone();
 	};
@@ -24,10 +20,6 @@ return function Biotic(bioticState) {
 	};
 	self.vy = function () {
 		return bioticState.entityState.body.vel.y;
-	};
-	self.box = function () {
-		return new Box(bioticState.entityState.body.halfExtents,
-			bioticState.entityState.body.centerOffset).setPosition(self.pos());
 	};
 	self.contains = function (x, y, z) {
 		return self.box().contains(x, y, z);

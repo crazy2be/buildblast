@@ -14,7 +14,7 @@ return function EntityBar(drawFunc) {
 
 	var material = new THREE.MeshBasicMaterial({
 		map: texture,
-		side: THREE.DoubleSide,
+		side: THREE.DoubleSide
 	});
 	material.transparent = true;
 
@@ -27,6 +27,7 @@ return function EntityBar(drawFunc) {
 	mesh.rotation.order = 'YXZ';
 
 	self.update = function (entity, clock, camera) {
+		ctx.fillStyle = 'blue';
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, canvas.width, canvas.height);
 		texture.needsUpdate = true;

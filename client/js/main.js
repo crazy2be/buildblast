@@ -60,8 +60,7 @@ function main () {
 	});
 
 	function makePlayerController(world) {
-		var box = playerEntity.box();
-		function collides(pos) {
+		function collides(box, pos) {
 			box.setPosition(pos);
 			return box.collides(world);
 		}
