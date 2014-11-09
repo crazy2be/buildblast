@@ -50,22 +50,11 @@ conn:
 			break conn
 		}
 	}
-
-	// TODO: Move this logic to world or game
-	pickedUp := false
-	for _, worldItem := range w.WorldItems() {
-		pBody := c.player.Body()
-		wiBody := worldItem.Body()
-		if pBody.Box().Collides(wiBody.Box()) {
-			c.player.Inventory().AddItem(worldItem.State().ItemKind)
-			w.RemoveWorldItem(worldItem)
-			pickedUp = true
-		}
-	}
-	if pickedUp {
+	if c.player.NeedsInventoryUpdate() {
 		c.Send(&MsgInventoryState{
 			Items: c.player.Inventory().ItemsToString(),
 		})
+		c.player.ClientInventoryUpdated()
 	}
 }
 
@@ -128,7 +117,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
-		w.AddWorldItem(*game.NewWorldItem(item, m.Pos.Center()))
+		w.AddEntity(game.NewWorldItem(item, m.Pos.Center()))
 		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
@@ -164,7 +153,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		c.WorldItemAdded(id, wi)
 	}
 
-	w.AddBiotic(p)
+	w.AddEntity(p)
 
 	w.AddBlockListener(c)
 	w.AddBioticListener(c)
@@ -177,7 +166,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
-	w.RemoveBiotic(c.player)
+	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
 	w.RemoveBioticListener(c)
 	w.RemoveWorldItemListener(c)
@@ -226,7 +215,7 @@ func (c *Client) BioticRemoved(id game.EntityId) {
 	})
 }
 
-func (c *Client) WorldItemAdded(id game.EntityId, worldItem game.WorldItem) {
+func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
 	c.Send(&MsgEntityCreate{
 		ID:    id,
 		Kind:  game.EntityKindWorldItem,
@@ -234,8 +223,8 @@ func (c *Client) WorldItemAdded(id game.EntityId, worldItem game.WorldItem) {
 	})
 }
 
-func (c *Client) WorldItemUpdated(id game.EntityId, worldItem game.WorldItem) {
-	c.Send(&MsgEntityState{
+func (c *Client) WorldItemUpdated(id game.EntityId, worldItem *game.WorldItem) {
+	c.SendLossy(&MsgEntityState{
 		ID:    id,
 		Kind:  game.EntityKindWorldItem,
 		State: worldItem.State(),

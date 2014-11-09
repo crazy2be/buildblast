@@ -2,6 +2,7 @@ package game
 
 import (
 	"strconv"
+	"time"
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
@@ -16,6 +17,8 @@ var WorldItemHalfExtents = vmath.Vec3{
 
 type WorldItem struct {
 	worldItemState WorldItemState
+	history        *HistoryBuffer
+	lastUpdated    float64
 }
 
 type WorldItemState struct {
@@ -38,6 +41,7 @@ func NewWorldItem(kind Item, pos coords.World) *WorldItem {
 			},
 			ItemKind: kind,
 		},
+		history: NewHistoryBuffer(),
 	}
 }
 
@@ -45,6 +49,9 @@ func (wi *WorldItem) State() WorldItemState {
 	return wi.worldItemState
 }
 
+/**
+ * Entity interface
+ */
 func (wi *WorldItem) EntityId() EntityId {
 	return wi.worldItemState.EntityState.EntityId
 }
@@ -53,12 +60,20 @@ func (wi *WorldItem) Body() physics.Body {
 	return wi.worldItemState.EntityState.Body
 }
 
+func (wi *WorldItem) LastUpdated() float64 {
+	return wi.lastUpdated
+}
+
 func (wi *WorldItem) Wpos() coords.World {
 	return wi.worldItemState.EntityState.Wpos()
 }
 
 func (wi *WorldItem) Look() coords.Direction {
 	return wi.worldItemState.EntityState.Look()
+}
+
+func (wi *WorldItem) BoxAt(t float64) *physics.Box {
+	return wi.history.BodyAt(t).Box()
 }
 
 func (wi *WorldItem) Tick(dt int64, w *World) bool {
@@ -103,12 +118,16 @@ func (wi *WorldItem) Tick(dt int64, w *World) bool {
 		body.Vel.Z = 0
 	}
 
+	var result bool
 	if move.X == 0 && move.Y == 0 && move.Z == 0 {
-		return false
+		result = false
+	} else {
+		body.Vel = move
+		body.Pos.Add(&move)
+		wi.worldItemState.EntityState.Body = body
+		result = true
 	}
-
-	body.Vel = move
-	body.Pos.Add(&move)
-	wi.worldItemState.EntityState.Body = body
-	return true
+	wi.lastUpdated = float64(time.Now().UnixNano()) / 1e6
+	wi.history.Add(wi.LastUpdated(), wi.Body())
+	return result
 }

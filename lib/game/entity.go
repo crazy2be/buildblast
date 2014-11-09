@@ -49,6 +49,17 @@ type Health struct {
 	Life int
 }
 
+type Possessor interface {
+	Inventory() *Inventory
+	Give(item Item) bool
+	Take(item Item) bool
+
+	// Do items in the world gravitate towards this?
+	Collects() bool
+	// If Collects return true, then Body must return a value
+	Body() physics.Body
+}
+
 type Respawnable interface {
 	Respawn(pos coords.World)
 }

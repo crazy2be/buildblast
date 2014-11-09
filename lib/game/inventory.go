@@ -76,7 +76,7 @@ func (inv *Inventory) findItemOfKind(item Item) int {
 	return -1
 }
 
-// Adds an item to the inventory. Returns true if the addition was sucessful,
+// Adds an item to the inventory. Returns true if the addition was successful,
 // false if there is no room remaining in the inventory.
 func (inv *Inventory) AddItem(item Item) bool {
 	for i := len(inv.slots) - 1; i >= 0; i-- {
@@ -95,7 +95,7 @@ func (inv *Inventory) AddItem(item Item) bool {
 }
 
 // Removes an item from the inventory. Returns true if the removal was
-// sucessful, false if the given item does not exist in the inventory.
+// successful, false if the given item does not exist in the inventory.
 func (inv *Inventory) RemoveItem(item Item) bool {
 	if item == ITEM_NIL {
 		return false

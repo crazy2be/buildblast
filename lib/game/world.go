@@ -16,7 +16,8 @@ type World struct {
 	chunkGenerator *ChunkGenerator
 
 	biotics    []Biotic
-	worldItems []WorldItem
+	possessors []Possessor
+	worldItems []*WorldItem
 
 	blockListeners     genericListenerContainer
 	chunkListeners     genericListenerContainer
@@ -35,7 +36,8 @@ func NewWorld(generator mapgen.Generator) *World {
 	go w.chunkGenerator.Run()
 
 	w.biotics = make([]Biotic, 0)
-	w.worldItems = make([]WorldItem, 0)
+	w.possessors = make([]Possessor, 0)
+	w.worldItems = make([]*WorldItem, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
@@ -49,11 +51,33 @@ func (w *World) Tick(dt int64) {
 	for _, s := range w.biotics {
 		w.chunkGenerator.QueueChunksNearby(s.Wpos())
 	}
+
+	// Check the world item collisions.
+	removedWorldItems := make([]*WorldItem, len(w.worldItems))
 	for i, wi := range w.worldItems {
-		if wi.Tick(dt, w) {
+		updated := wi.Tick(dt, w)
+		pickedUp := false
+		for _, possessor := range w.possessors {
+			if !possessor.Collects() {
+				continue
+			}
+			pBody := possessor.Body()
+			wiBody := wi.Body()
+			if pBody.Box().Collides(wiBody.Box()) {
+				possessor.Give(wi.State().ItemKind)
+				pickedUp = true
+				break
+			}
+		}
+		if pickedUp {
+			removedWorldItems = append(removedWorldItems, wi)
+		} else if updated {
 			w.worldItems[i] = wi
 			w.worldItemListeners.FireEvent("WorldItemUpdated", wi.EntityId(), wi)
 		}
+	}
+	for _, wi := range removedWorldItems {
+		w.RemoveEntity(wi)
 	}
 }
 
@@ -114,14 +138,38 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 	w.blockListeners.FireEvent("BlockChanged", bc, block, newBlock)
 }
 
-func (w *World) AddBiotic(s Biotic) {
+func (w *World) AddEntity(e Entity) {
+	switch e.(type) {
+	case Biotic:
+		w.addBiotic(e.(Biotic))
+	case *WorldItem:
+		w.addWorldItem(e.(*WorldItem))
+	}
+	if p, ok := e.(Possessor); ok {
+		w.addPossessor(p)
+	}
+}
+
+func (w *World) RemoveEntity(e Entity) {
+	switch e.(type) {
+	case Biotic:
+		w.removeBiotic(e.(Biotic))
+	case *WorldItem:
+		w.removeWorldItem(e.(*WorldItem))
+	}
+	if p, ok := e.(Possessor); ok {
+		w.removePossessor(p)
+	}
+}
+
+func (w *World) addBiotic(s Biotic) {
 	w.biotics = append(w.biotics, s)
 	s.Respawn(w.findSpawn())
 
 	w.bioticListeners.FireEvent("BioticCreated", s.EntityId(), s)
 }
 
-func (w *World) RemoveBiotic(s Biotic) {
+func (w *World) removeBiotic(s Biotic) {
 	for i, biotic := range w.biotics {
 		if biotic == s {
 			w.biotics[i] = w.biotics[len(w.biotics)-1]
@@ -152,12 +200,25 @@ func (w *World) Biotics() map[EntityId]Biotic {
 	return result
 }
 
-func (w *World) AddWorldItem(wi WorldItem) {
+func (w *World) addPossessor(p Possessor) {
+	w.possessors = append(w.possessors, p)
+}
+
+func (w *World) removePossessor(p Possessor) {
+	for i, possessor := range w.possessors {
+		if possessor == p {
+			w.possessors[i] = w.possessors[len(w.possessors)-1]
+			w.possessors = w.possessors[:len(w.possessors)-1]
+		}
+	}
+}
+
+func (w *World) addWorldItem(wi *WorldItem) {
 	w.worldItems = append(w.worldItems, wi)
 	w.worldItemListeners.FireEvent("WorldItemAdded", wi.EntityId(), wi)
 }
 
-func (w *World) RemoveWorldItem(wi WorldItem) {
+func (w *World) removeWorldItem(wi *WorldItem) {
 	for i, worldItem := range w.worldItems {
 		if worldItem == wi {
 			w.worldItems[i] = w.worldItems[len(w.worldItems)-1]
@@ -167,8 +228,8 @@ func (w *World) RemoveWorldItem(wi WorldItem) {
 	}
 }
 
-func (w *World) WorldItems() map[EntityId]WorldItem {
-	result := make(map[EntityId]WorldItem, len(w.worldItems))
+func (w *World) WorldItems() map[EntityId]*WorldItem {
+	result := make(map[EntityId]*WorldItem, len(w.worldItems))
 	for _, worldItem := range w.worldItems {
 		result[worldItem.EntityId()] = worldItem
 	}

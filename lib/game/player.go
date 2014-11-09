@@ -51,6 +51,7 @@ type Player struct {
 	name        string
 
 	inventory *Inventory
+	invDirty  bool
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -86,12 +87,22 @@ func (p *Player) Body() physics.Body {
 	return p.bioticState.EntityState.Body
 }
 
+// Returns the last time this entity's state was updated
+// (i.e. by a client sending a control-state packet).
+func (p *Player) LastUpdated() float64 {
+	return p.controls.Timestamp
+}
+
 func (p *Player) Wpos() coords.World {
 	return p.bioticState.EntityState.Wpos()
 }
 
 func (p *Player) Look() coords.Direction {
 	return p.bioticState.EntityState.Look()
+}
+
+func (p *Player) BoxAt(t float64) *physics.Box {
+	return p.history.BodyAt(t).Box()
 }
 
 /**
@@ -138,22 +149,46 @@ func (p *Player) State() BioticState {
 	}
 }
 
-// Returns the last time this entity's state was updated
-// (i.e. by a client sending a control-state packet).
-func (p *Player) LastUpdated() float64 {
-	return p.controls.Timestamp
+/**
+ * Possessor interface
+ */
+
+func (p *Player) Inventory() *Inventory {
+	return p.inventory
 }
 
-func (p *Player) BoxAt(t float64) *physics.Box {
-	return p.history.BodyAt(t).Box()
+func (p *Player) Give(item Item) bool {
+	given := p.inventory.AddItem(item)
+	if given {
+		p.invDirty = true
+	}
+	return given
 }
+
+func (p *Player) Take(item Item) bool {
+	taken := p.inventory.RemoveItem(item)
+	if taken {
+		p.invDirty = true
+	}
+	return taken
+}
+
+func (p *Player) Collects() bool {
+	return true
+}
+
+// Body() is covered by Entity interface
 
 /**
  * Other stuff
  */
 
-func (p *Player) Inventory() *Inventory {
-	return p.inventory
+func (p *Player) NeedsInventoryUpdate() bool {
+	return p.invDirty
+}
+
+func (p *Player) ClientInventoryUpdated() {
+	p.invDirty = false
 }
 
 func (p *Player) setBody(body physics.Body) {

@@ -57,12 +57,13 @@ return function WorldItem(worldItemState) {
 		for (var i = 0; i < pieces.length; i++) {
 			pieces[i].update(self, clock, camera);
 		}
-		var newHalfExtents = self.halfExtents();
-		if (!hitboxMesh.equals(newHalfExtents)) {
-			self.remove(hitboxMesh);
-			hitboxMesh = new HitboxMesh(newHalfExtents);
-			self.add(hitboxMesh);
-		}
+
+//		var newHalfExtents = self.halfExtents();
+//		if (!hitboxMesh.equals(newHalfExtents)) {
+//			self.remove(hitboxMesh);
+//			hitboxMesh = new HitboxMesh(newHalfExtents);
+//			self.add(hitboxMesh);
+//		}
 	};
 
 	function init() {
@@ -73,8 +74,8 @@ return function WorldItem(worldItemState) {
 			ctx.font = '20px courier';
 			ctx.fillText(worldItemState.entityState.entityId, w/2, h/2);
 		}
-		hitboxMesh = new HitboxMesh(self.halfExtents());
-		self.add(hitboxMesh);
+//		hitboxMesh = new HitboxMesh(self.halfExtents());
+//		self.add(hitboxMesh);
 		// TODO: Draw name (smaller)
 		// self.add(new EntityBar(drawID));
 	}
