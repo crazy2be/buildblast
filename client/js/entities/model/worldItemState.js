@@ -2,10 +2,6 @@ define(function(require){
 
 var EntityState = require("./entityState");
 
-/**
- * @param entityState type=EntityState
- * @param itemKind type=byte
- */
 return function WorldItemState(entityState, itemKind) {
 	var self = this;
 

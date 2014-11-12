@@ -75,9 +75,7 @@ func NewPlayer(world *World, name string) *Player {
 	}
 }
 
-/**
- * Entity interface
- */
+// Entity interface
 
 func (p *Player) EntityId() EntityId {
 	return EntityId(p.name) // This needs to change...
@@ -105,9 +103,7 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 	return p.history.BodyAt(t).Box()
 }
 
-/**
- * Damageable interface
- */
+// Damageable interface
 
 func (p *Player) Life() int {
 	return p.bioticState.Health.Life
@@ -121,9 +117,7 @@ func (p *Player) Damage(amount int) {
 	p.bioticState.Health.Life -= amount
 }
 
-/**
- * Respawnable interface
- */
+// Respawnable interface
 
 func (p *Player) Respawn(pos coords.World) {
 	p.bioticState.EntityState.Body.Pos = pos.Vec3()
@@ -132,9 +126,7 @@ func (p *Player) Respawn(pos coords.World) {
 	p.history.Add(p.LastUpdated(), p.Body())
 }
 
-/**
- * Biotic interface
- */
+// Biotic interface
 
 func (p *Player) State() BioticState {
 	return BioticState{
@@ -149,9 +141,7 @@ func (p *Player) State() BioticState {
 	}
 }
 
-/**
- * Possessor interface
- */
+// Possessor interface
 
 func (p *Player) Inventory() *Inventory {
 	return p.inventory
@@ -179,9 +169,7 @@ func (p *Player) Collects() bool {
 
 // Body() is covered by Entity interface
 
-/**
- * Other stuff
- */
+// Other stuff
 
 func (p *Player) NeedsInventoryUpdate() bool {
 	return p.invDirty

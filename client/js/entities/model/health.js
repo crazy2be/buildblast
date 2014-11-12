@@ -1,8 +1,5 @@
 define(function(){
 
-/**
-  * @param life type=int
-  */
 return function Health(life) {
 	var self = this;
 

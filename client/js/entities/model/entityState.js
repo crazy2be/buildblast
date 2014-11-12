@@ -2,11 +2,6 @@ define(function(require){
 
 var Body = require("physics/body");
 
-/**
- * @param entityId type=string
- * @param lastUpdated type=float64
- * @param body type=physics.Body
- */
 return function EntityState(entityId, body, lastUpdated) {
 	var self = this;
 

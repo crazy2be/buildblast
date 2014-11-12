@@ -3,10 +3,6 @@ define(function(require){
 var EntityState = require("./entityState");
 var Health = require("./health");
 
-/**
- * @param entityState type=EntityState
- * @param health type=Health
- */
 return function BioticState(entityState, health) {
 	var self = this;
 

@@ -3,7 +3,6 @@ define(function(require) {
 var THREE = require("THREE");
 var EntityBar = require("meshes/entityBar");
 var HitboxMesh = require("meshes/hitboxMesh");
-var Box = require("physics/box");
 
 return function Biotic(bioticState) {
 	var self = this;

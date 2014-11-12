@@ -27,7 +27,6 @@ return function EntityBar(drawFunc) {
 	mesh.rotation.order = 'YXZ';
 
 	self.update = function (entity, clock, camera) {
-		ctx.fillStyle = 'blue';
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		drawFunc(ctx, canvas.width, canvas.height);
 		texture.needsUpdate = true;

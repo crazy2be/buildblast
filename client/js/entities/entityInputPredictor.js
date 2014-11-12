@@ -2,9 +2,7 @@ define(function (require) {
 
 var BioticState = require("./model/bioticState");
 
-/**
- * This is only valid for BioticStates
- */
+// This is only valid for BioticStates
 function PredictionBuffer(predictor) {
 	var self = this;
 	var times = [];

@@ -49,9 +49,8 @@ func (wi *WorldItem) State() WorldItemState {
 	return wi.worldItemState
 }
 
-/**
- * Entity interface
- */
+// Entity interface
+
 func (wi *WorldItem) EntityId() EntityId {
 	return wi.worldItemState.EntityState.EntityId
 }
@@ -75,6 +74,8 @@ func (wi *WorldItem) Look() coords.Direction {
 func (wi *WorldItem) BoxAt(t float64) *physics.Box {
 	return wi.history.BodyAt(t).Box()
 }
+
+// End Entity interface
 
 func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	body := wi.Body()

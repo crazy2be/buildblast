@@ -20,13 +20,8 @@ return function HistoryBuffer() {
 		}
 	};
 
-	/**
-	 * Ideally, this should be as similar to the server as possible. That way, where we are
-	 * displaying the entity is in the same place the server will calculate it as.
-	 *
-	 * @param t The time to check
-	 * @returns data
-	 */
+	// Ideally, this should be as similar to the server as possible. That way, where we are
+	// displaying the entity is in the same place the server will calculate it as.
 	self.at = function (t) {
 		if (len <= 0) {
 			throw "Attempt to access item in empty history buffer.";
@@ -56,11 +51,9 @@ return function HistoryBuffer() {
 		return result;
 	};
 
-	/**
-	 * Draw the state of this history buffer to a canvas. Useful for debugging! Green lines
-	 * correspond to history entries, orange to our current rendering time (well actually
-	 * whatever time is passed in).
-	 */
+	// Draw the state of this history buffer to a canvas. Useful for debugging! Green lines
+	// correspond to history entries, orange to our current rendering time (well actually
+	// whatever time is passed in).
 	self.draw = function (ctx, width, height, time) {
 		oldest_t = times[0];
 		newest_t = times[len - 1];

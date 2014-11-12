@@ -3,13 +3,6 @@ define(function(require){
 var THREE = require("THREE");
 var Box = require("./box");
 
-/**
- * @param pos          type=THREE.Vector3
- * @param vel          type=THREE.Vector3
- * @param dir          type=THREE.Vector3
- * @param halfExtents  type=THREE.Vector3
- * @param centerOffset type=THREE.Vector3
- */
 return function Body(pos, vel, dir, halfExtents, centerOffset) {
 	var self = this;
 

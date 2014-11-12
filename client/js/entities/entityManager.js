@@ -14,10 +14,8 @@ var EntityKindWorldItem = "worldItem";
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
-	/**
-	 * The network controls the entities, these are just data, and inside the data are the
-	 * views (which are isolated). They are in a sense, ViewModels :D
-	 */
+	// The network controls the entities, these are just data, and inside the data are the
+	// views (which are isolated). They are in a sense, ViewModels :D
 	var controllers = {};
 
 	var _playerId = null;
@@ -62,7 +60,7 @@ function EntityManager(scene, conn, world, clock) {
 
 		var initialState = payloadToHistoryState(payload);
 		if (initialState == null) {
-			console.warn("Got entity-create message for unrecognized entity kind", kind);
+			console.warn("Got entity create message for unrecognized entity kind", kind);
 			return;
 		}
 
@@ -94,7 +92,7 @@ function EntityManager(scene, conn, world, clock) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
-			console.warn("Got biotic-state message for biotic which does not exist!", id);
+			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
 		controller.message(payloadToHistoryState(payload));
