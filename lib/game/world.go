@@ -55,20 +55,7 @@ func (w *World) Tick(dt int64) {
 	// Check the world item collisions.
 	removedWorldItems := make([]*WorldItem, len(w.worldItems))
 	for i, wi := range w.worldItems {
-		updated := wi.Tick(dt, w)
-		pickedUp := false
-		for _, possessor := range w.possessors {
-			if !possessor.Collects() {
-				continue
-			}
-			pBody := possessor.Body()
-			wiBody := wi.Body()
-			if pBody.Box().Collides(wiBody.Box()) {
-				possessor.Give(wi.State().ItemKind)
-				pickedUp = true
-				break
-			}
-		}
+		updated, pickedUp := wi.Tick(dt, w)
 		if pickedUp {
 			removedWorldItems = append(removedWorldItems, wi)
 		} else if updated {
@@ -94,9 +81,7 @@ func (w *World) generationTick() {
 					w.spawns = append(w.spawns, oc.Block(cc).Center())
 				}
 			})
-
 			w.chunks[cc] = chunk
-
 			w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
 		default:
 			return

@@ -1,5 +1,6 @@
 define(function(require) {
 
+var Debug = require("debug");
 var THREE = require("THREE");
 var EntityBar = require("meshes/entityBar");
 var HitboxMesh = require("meshes/hitboxMesh");
@@ -58,12 +59,14 @@ return function WorldItem(worldItemState) {
 			pieces[i].update(self, clock, camera);
 		}
 
-//		var newHalfExtents = self.halfExtents();
-//		if (!hitboxMesh.equals(newHalfExtents)) {
-//			self.remove(hitboxMesh);
-//			hitboxMesh = new HitboxMesh(newHalfExtents);
-//			self.add(hitboxMesh);
-//		}
+		if (Debug.ITEM_MESH) {
+			var newHalfExtents = self.halfExtents();
+			if (!hitboxMesh.equals(newHalfExtents)) {
+				self.remove(hitboxMesh);
+				hitboxMesh = new HitboxMesh(newHalfExtents);
+				self.add(hitboxMesh);
+			}
+		}
 	};
 
 	function init() {
@@ -74,10 +77,13 @@ return function WorldItem(worldItemState) {
 			ctx.font = '20px courier';
 			ctx.fillText(worldItemState.entityState.entityId, w/2, h/2);
 		}
-//		hitboxMesh = new HitboxMesh(self.halfExtents());
-//		self.add(hitboxMesh);
-		// TODO: Draw name (smaller)
-		// self.add(new EntityBar(drawID));
+
+		if (Debug.ITEM_MESH) {
+			hitboxMesh = new HitboxMesh(self.halfExtents());
+			self.add(hitboxMesh);
+			// TODO: Draw item name smaller
+			//self.add(new EntityBar(drawID));
+		}
 	}
 	init();
 };

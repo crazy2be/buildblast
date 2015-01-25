@@ -22,17 +22,15 @@ return function BioticState(entityState, health) {
 		return Math.abs(a - b) < 0.0001;
 	}
 
+	function closeVec(a, b) {
+		return close(a.x, b.x) && close(a.y, b.y) && close(a.z, b.z);
+	}
+
 	self.prettyCloseTo = function (other) {
-		return close(self.entityState.body.pos.x, other.entityState.body.pos.x) &&
-			close(self.entityState.body.pos.y, other.entityState.body.pos.y) &&
-			close(self.entityState.body.pos.z, other.entityState.body.pos.z) &&
-			close(self.entityState.body.dir.x, other.entityState.body.dir.x) &&
-			close(self.entityState.body.dir.y, other.entityState.body.dir.y) &&
-			close(self.entityState.body.dir.z, other.entityState.body.dir.z) &&
-			close(self.entityState.body.vel.x, other.entityState.body.vel.x) &&
-			close(self.entityState.body.vel.y, other.entityState.body.vel.y) &&
-			close(self.entityState.body.vel.z, other.entityState.body.vel.z) &&
-			close(self.health.life, other.health.life);
+		return closeVec(self.entityState.body.pos, other.entityState.body.pos)
+			&& closeVec(self.entityState.body.dir, other.entityState.body.dir)
+			&& closeVec(self.entityState.body.vel, other.entityState.body.vel)
+			&& close(self.health.life, other.health.life);
 	};
 }
 

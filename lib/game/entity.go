@@ -20,7 +20,6 @@ type Entity interface {
 	Body() physics.Body
 	LastUpdated() float64
 	Wpos() coords.World
-	Look() coords.Direction
 	BoxAt(t float64) *physics.Box
 }
 

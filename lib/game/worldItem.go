@@ -77,7 +77,8 @@ func (wi *WorldItem) BoxAt(t float64) *physics.Box {
 
 // End Entity interface
 
-func (wi *WorldItem) Tick(dt int64, w *World) bool {
+// Returns "updated" and "pickedUp", in that order
+func (wi *WorldItem) Tick(dt int64, w *World) (bool, bool) {
 	body := wi.Body()
 	// These have really low gravity
 	body.Vel.Y += float64(dt) / 1000 * -0.2
@@ -119,16 +120,31 @@ func (wi *WorldItem) Tick(dt int64, w *World) bool {
 		body.Vel.Z = 0
 	}
 
-	var result bool
+	var updated bool
 	if move.X == 0 && move.Y == 0 && move.Z == 0 {
-		result = false
+		updated = false
 	} else {
 		body.Vel = move
 		body.Pos.Add(&move)
 		wi.worldItemState.EntityState.Body = body
-		result = true
+		updated = true
 	}
 	wi.lastUpdated = float64(time.Now().UnixNano()) / 1e6
 	wi.history.Add(wi.LastUpdated(), wi.Body())
-	return result
+
+	pickedUp := false
+	for _, possessor := range w.possessors {
+		if !possessor.Collects() {
+			continue
+		}
+		pBody := possessor.Body()
+		wiBody := wi.Body()
+		if pBody.Box().Collides(wiBody.Box()) {
+			possessor.Give(wi.State().ItemKind)
+			pickedUp = true
+			break
+		}
+	}
+
+	return updated, pickedUp
 }
