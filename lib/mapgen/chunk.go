@@ -31,7 +31,7 @@ func (c *Chunk) SetBlock(oc coords.Offset, newBlock Block) {
 // Calls the given function for each block in the chunk.
 func (c *Chunk) Each(cb func(oc coords.Offset, block Block)) {
 	i := 0
-	coords.EachOffset(func (oc coords.Offset) {
+	coords.EachOffset(func(oc coords.Offset) {
 		cb(oc, c.blocks[i])
 		i++
 	})

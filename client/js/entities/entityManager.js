@@ -1,18 +1,21 @@
 define(function (require) {
-var Entity = require("./entity");
-var EntityState = require("./entityState");
+
+var Protocol = require("core/protocol");
+var Biotic = require("./biotic");
+var WorldItem = require("./worldItem");
 var EntityLagInducer = require("./entityLagInducer");
-var EntityBar = require("./UIViews/entityBar");
-var PlayerMesh = require("./UIViews/playerMesh");
+var EntityBar = require("meshes/entityBar");
+var PlayerMesh = require("meshes/playerMesh");
+var WorldItemMesh = require("meshes/worldItemMesh");
 
 var EntityKindPlayer = "player";
+var EntityKindWorldItem = "worldItem";
 
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
-	//The network controls the entities, these
-	//	are just data, and inside the data are the views (which are isolated).
-	//They are in a sense, ViewModels :D
+	// The network controls the entities, these are just data, and inside the data are the
+	// views (which are isolated). They are in a sense, ViewModels :D
 	var controllers = {};
 
 	var _playerId = null;
@@ -29,16 +32,48 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	conn.on('entity-create', function (payload) {
+	function payloadToHistoryState(payload) {
+		var kind = payload.Kind;
+		var result = { time: null, data: null };
+		if (kind === EntityKindPlayer) {
+			var bioticState = Protocol.parseBioticState(payload.State);
+			result.time = bioticState.entityState.lastUpdated;
+			result.data = bioticState;
+		} else if (kind === EntityKindWorldItem) {
+			var worldItemState = Protocol.parseWorldItemState(payload.State);
+			result.time = worldItemState.entityState.lastUpdated;
+			result.data = worldItemState;
+		} else {
+			return null;
+		}
+		return result;
+	}
+
+	conn.on('entity-create', function(payload) {
 		var id = payload.ID;
+		var kind = payload.Kind;
+
 		if (controllers[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
+			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
-		var entity = EntityManager.makeEntity(payload);
+
+		var initialState = payloadToHistoryState(payload);
+		if (initialState == null) {
+			console.warn("Got entity create message for unrecognized entity kind", kind);
+			return;
+		}
+
+		var entity;
+		if (kind === EntityKindPlayer) {
+			entity = new Biotic(initialState.data);
+			entity.add(new PlayerMesh());
+		} else if (kind === EntityKindWorldItem) {
+			entity = new WorldItem(initialState.data);
+			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
+		}
 		entity.addTo(scene);
 
-		var initialState = protocolToLocal(payload.InitialState);
 		var controller = new EntityLagInducer(entity, initialState);
 
 		controllers[id] = controller;
@@ -57,14 +92,13 @@ function EntityManager(scene, conn, world, clock) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
-			console.warn("Got entity-pos message for entity which does not exist!", id);
+			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
-
-		controller.message(protocolToLocal(payload.State));
+		controller.message(payloadToHistoryState(payload));
 	});
 
-	conn.on('entity-remove', function (payload) {
+	conn.on('entity-remove', function(payload) {
 		var id = payload.ID;
 		var controller = controllers[id];
 		if (!controller) {
@@ -95,33 +129,9 @@ function EntityManager(scene, conn, world, clock) {
 	};
 }
 
-EntityManager.makeEntity = function (payload) {
-	var id = payload.ID;
-	var halfExtents = vecFromNet(payload.HalfExtents);
-	var centerOffset = vecFromNet(payload.CenterOffset);
-	var entity = new Entity(id, halfExtents, centerOffset);
-	if (payload.Kind === EntityKindPlayer) {
-		entity.add(new PlayerMesh());
-	} else {
-		console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
-	}
-	return entity;
+EntityManager.createPlayerEntity = function(payload) {
+	return new Biotic(Protocol.parseBioticState(payload.State));
 };
-
-function protocolToLocal(payload) {
-	return {
-		time: payload.Timestamp,
-		data: new EntityState(
-			vecFromNet(payload.Pos),
-			vecFromNet(payload.Look),
-			payload.Health,
-			payload.Vy),
-	};
-}
-
-function vecFromNet(obj) {
-	return new THREE.Vector3(obj.X || 0, obj.Y || 0, obj.Z || 0);
-}
 
 return EntityManager;
 });

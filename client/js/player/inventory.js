@@ -246,7 +246,7 @@ function Inventory(world, camera, conn, controls) {
 			}
 
 			return swapDown;
-		};
+		}
 	};
 }
 
@@ -259,7 +259,7 @@ function InventoryModel(world, model, leftward) {
 		positionItem(playerPos, lat, lon);
 		postitionPerspective();
 		addJitter();
-	}
+	};
 
 	self.setModel = function (newModel) {
 		if (model !== null) {
@@ -269,7 +269,7 @@ function InventoryModel(world, model, leftward) {
 		newModel.scale.set(1/16, 1/16, 1/16);
 		world.addToScene(newModel);
 		model = newModel;
-	}
+	};
 
 	function pointItem(lat, lon) {
 		var p = model.position;

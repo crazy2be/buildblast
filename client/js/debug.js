@@ -1,8 +1,10 @@
 define(function (require) {
 	var THREE = require("THREE");
 
+	var ITEM_MESH = false;
+
 	function addNaNWatch(obj, propertyName) {
-			hash = {};
+			var hash = {};
 			hash[propertyName] = {
 					get: function () {
 							return this["_" + propertyName];
@@ -13,7 +15,7 @@ define(function (require) {
 							}
 							this["_" + propertyName] = val;
 					}
-			}
+			};
 			Object.defineProperties(obj, hash);
 	}
 
@@ -25,12 +27,12 @@ define(function (require) {
 			this.clone = function () {
 				return new DVector3(this.x, this.y, this.z);
 			}
-	}
+	};
 
 	DVector3.prototype = THREE.Vector3.prototype;
 
 	return {
 		addNaNWatch: addNaNWatch,
-		DVector3: DVector3,
+		DVector3: DVector3
 	};
 });

@@ -14,7 +14,7 @@ return function EntityBar(drawFunc) {
 
 	var material = new THREE.MeshBasicMaterial({
 		map: texture,
-		side: THREE.DoubleSide,
+		side: THREE.DoubleSide
 	});
 	material.transparent = true;
 
