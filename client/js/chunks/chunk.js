@@ -1,6 +1,6 @@
 define(function(require) {
 
-var Mesh = require("chunks/mesh");
+var Mesh = require("meshes/blockMesh");
 
 var Block = require("./block");
 var common = require("./chunkCommon");

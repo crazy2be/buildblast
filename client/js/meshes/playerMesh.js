@@ -17,7 +17,7 @@ function PlayerMesh() {
 		new Arm(ARM_LEFT),
 		new Arm(ARM_RIGHT),
 		new Head(),
-		new Body(),
+		new Body()
 	];
 
 	var mesh = new THREE.Object3D();
@@ -28,7 +28,7 @@ function PlayerMesh() {
 
 	self.mesh = function () {
 		return mesh;
-	}
+	};
 
 	self.update = function (entity, clock) {
 		var look = entity.look();
@@ -63,7 +63,7 @@ function Arm(offset) {
 
 	self.mesh = function () {
 		return mesh;
-	}
+	};
 
 	var jumpAngle = 0;
 	var maxJumpAngle = 4 * Math.PI / 5;
@@ -72,7 +72,6 @@ function Arm(offset) {
 	var isMoving = false;
 	var previousPos = vec(0, 0, 0);
 
-	var swingAngle = 0;
 	var maxSwingAngle = Math.PI / 2;
 	var swingSpeed = 2 * Math.PI / 1000;
 	var totalSwingTime = 0;
@@ -95,14 +94,14 @@ function Arm(offset) {
 		// Arm swinging animation (as you walk)
 		if (!isMoving) return;
 		totalSwingTime += dt;
-		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed)
+		var swingAngle = maxSwingAngle * sin(totalSwingTime * swingSpeed);
 		if (swingAngle > -0.1 && swingAngle < 0.1) {
 			isMoving = false;
 			swingAngle = 0;
 		}
 		mesh.rotation.x = offset * swingAngle;
 	}
-};
+}
 
 function Body() {
 	var self = this;
@@ -120,7 +119,7 @@ function Body() {
 	};
 
 	self.update = function (entity, clock) {};
-};
+}
 
 function Head() {
 	var self = this;
@@ -141,19 +140,20 @@ function Head() {
 	geometry.faces[4].materialIndex = 1;
 	geometry.faces[5].materialIndex = 0;
 
-	var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial([headMat, headMat, headMat, headMat, faceMat, headMat]));
+	var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(
+			[headMat, headMat, headMat, headMat, faceMat, headMat]));
 
 	mesh.position.y = 0.936 * scale;
 
 	self.mesh = function () {
 		return mesh;
-	}
+	};
 
 	self.update = function (entity, clock) {
 		var look = entity.look();
 		faceToward(mesh, vec(0, look.y, 1));
 	}
-};
+}
 
 function vec(x, y, z) {
 	return new THREE.Vector3(x || 0, y || 0, z || 0);
@@ -169,4 +169,5 @@ function faceToward(mesh, direction) {
 }
 
 return PlayerMesh;
+
 });

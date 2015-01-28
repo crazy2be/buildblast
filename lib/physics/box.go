@@ -5,7 +5,10 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/vmath"
 )
+
+// TODO: These should be rotatable.
 
 // xs means x start, xe means x end, etc.
 type Box struct {
@@ -17,12 +20,12 @@ type Box struct {
 	ze float64
 }
 
-func NewBox(position coords.World, halfExtents coords.Vec3) *Box {
-	return NewBoxOffset(position, halfExtents, coords.Vec3{X: 0, Y: 0, Z: 0})
+func NewBox(pos vmath.Vec3, halfExtents vmath.Vec3) *Box {
+	return NewBoxOffset(pos, halfExtents, vmath.Vec3{X: 0, Y: 0, Z: 0})
 }
 
-func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset coords.Vec3) *Box {
-	p := position
+func NewBoxOffset(pos vmath.Vec3, halfExtents vmath.Vec3, centerOffset vmath.Vec3) *Box {
+	p := pos
 	he := halfExtents
 	co := centerOffset
 	return &Box{
@@ -35,7 +38,7 @@ func NewBoxOffset(position coords.World, halfExtents coords.Vec3, centerOffset c
 	}
 }
 
-func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.Vec3 {
+func (b *Box) AttemptMove(world mapgen.BlockSource, amount vmath.Vec3) vmath.Vec3 {
 	if b.inSolid(world) {
 		amount.X = 0
 		amount.Y = 1
@@ -70,7 +73,16 @@ func (b *Box) AttemptMove(world mapgen.BlockSource, amount coords.Vec3) coords.V
 	return amount
 }
 
-func (b *Box) Contains(position coords.World) bool {
+func (b *Box) Collides(o *Box) bool {
+	return b.xe > o.xs &&
+		b.xs < o.xe &&
+		b.ye > o.ys &&
+		b.ys < o.ye &&
+		b.ze > o.zs &&
+		b.zs < o.ze
+}
+
+func (b *Box) Contains(position vmath.Vec3) bool {
 	p := position
 	return b.xs < p.X && b.xe > p.X &&
 		b.ys < p.Y && b.ye > p.Y &&
@@ -79,7 +91,12 @@ func (b *Box) Contains(position coords.World) bool {
 
 func (b *Box) inSolid(world mapgen.BlockSource) bool {
 	blockCollide := func(x, y, z int) bool {
-		return world.Block(coords.Block{x, y, z}).Solid()
+		blockCoord := coords.Block{x, y, z}
+		if world.Block(blockCoord).Solid() {
+			blockBox := NewBox(blockCoord.Center().Vec3(), vmath.Vec3{0.5, 0.5, 0.5})
+			return b.Collides(blockBox)
+		}
+		return false
 	}
 	f := func(n float64) int {
 		return int(math.Floor(n))

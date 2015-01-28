@@ -38,6 +38,7 @@ func NewClient(name string) *Client {
 }
 
 func (c *Client) Tick(g *Game, w *game.World) {
+conn:
 	for {
 		select {
 		case m := <-c.conn.recvQueue:
@@ -46,8 +47,14 @@ func (c *Client) Tick(g *Game, w *game.World) {
 			g.disconnect(c.name, e.Error())
 			return
 		default:
-			return
+			break conn
 		}
+	}
+	if c.player.NeedsInventoryUpdate() {
+		c.Send(&MsgInventoryState{
+			Items: c.player.Inventory().ItemsToString(),
+		})
+		c.player.ClientInventoryUpdated()
 	}
 }
 
@@ -110,7 +117,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
-		inv.AddItem(item)
+		w.AddEntity(game.NewWorldItem(item, m.Pos.Center()))
 		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
@@ -122,7 +129,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
 	hitPos := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(w, c.player.Pos())
+	c.cm.QueueChunksNearby(w, c.player.Wpos())
 
 	if hitPos != nil {
 		g.Broadcast(&MsgDebugRay{
@@ -134,18 +141,23 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for id, e := range w.Entities() {
-		c.EntityCreated(id, e)
+	for id, b := range w.Biotics() {
+		c.BioticCreated(id, b)
 		c.Send(&MsgScoreboardAdd{
 			Name:  string(id),
 			Score: g.scores[string(id)],
 		})
 	}
 
+	for id, wi := range w.WorldItems() {
+		c.WorldItemAdded(id, wi)
+	}
+
 	w.AddEntity(p)
 
 	w.AddBlockListener(c)
-	w.AddEntityListener(c)
+	w.AddBioticListener(c)
+	w.AddWorldItemListener(c)
 
 	c.player = p
 	c.Send(&MsgInventoryState{
@@ -156,7 +168,8 @@ func (c *Client) Connected(g *Game, w *game.World) {
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
-	w.RemoveEntityListener(c)
+	w.RemoveBioticListener(c)
+	w.RemoveWorldItemListener(c)
 	c.conn.Close()
 }
 
@@ -176,26 +189,49 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
-	c.Send(makePlayerEntityCreatedMessage(id, entity.State()))
+func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
+	c.Send(makePlayerEntityCreatedMessage(id, biotic.State()))
 }
 
-func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
+func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
 	c.SendLossy(&MsgEntityState{
 		ID:    id,
-		State: entity.State(),
+		Kind:  game.EntityKindPlayer,
+		State: biotic.State(),
 	})
 }
 
-func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity) {
-	c.EntityUpdated(id, entity)
+func (c *Client) BioticDamaged(id game.EntityId, biotic game.Biotic) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {
-	c.EntityUpdated(id, entity)
+func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) EntityRemoved(id game.EntityID) {
+func (c *Client) BioticRemoved(id game.EntityId) {
+	c.Send(&MsgEntityRemove{
+		ID: id,
+	})
+}
+
+func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
+	c.Send(&MsgEntityCreate{
+		ID:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemUpdated(id game.EntityId, worldItem *game.WorldItem) {
+	c.SendLossy(&MsgEntityState{
+		ID:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemRemoved(id game.EntityId) {
 	c.Send(&MsgEntityRemove{
 		ID: id,
 	})
@@ -247,12 +283,10 @@ func (c *Client) internalRunChunks(conn *Conn) {
 	}
 }
 
-func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *MsgEntityCreate {
+func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgEntityCreate {
 	return &MsgEntityCreate{
-		ID:           id,
-		Kind:         game.EntityKindPlayer,
-		HalfExtents:  game.PlayerHalfExtents,
-		CenterOffset: game.PlayerCenterOffset,
-		InitialState: state,
+		ID:    id,
+		Kind:  game.EntityKindPlayer,
+		State: state,
 	}
 }

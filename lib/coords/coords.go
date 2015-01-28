@@ -1,64 +1,21 @@
 package coords
 
 import (
+	"buildblast/lib/vmath"
 	"math"
 )
 
-// Vec3 is a generic three-dimensional vector.
-// Generally, prefer using one of the more meaningful
-// vector types that conveys not only that the
-// variable is a 3d vector, but also what that 3d
-// vector represents, such as a look direction,
-// location in 3d space, etc.
-type Vec3 struct {
-	X float64
-	Y float64
-	Z float64
-}
+type Direction vmath.Vec3
 
-type Direction struct {
-	X float64
-	Y float64
-	Z float64
-}
-
-func (d Direction) Length() float64 {
-	return math.Sqrt(d.X*d.X + d.Y*d.Y + d.Z*d.Z)
-}
-
-func (d Direction) SetLength(newLen float64) Direction {
-	ratio := newLen / d.Length()
-	return Direction{
-		X: d.X * ratio,
-		Y: d.Y * ratio,
-		Z: d.Z * ratio,
-	}
+func (d Direction) Vec3() vmath.Vec3 {
+	return vmath.Vec3(d)
 }
 
 // World represents a position in the 3d world.
-type World struct {
-	X float64
-	Y float64
-	Z float64
-}
+type World vmath.Vec3
 
-func (wc World) Move(d Direction, amount float64) World {
-	d = d.SetLength(amount)
-	return World{
-		X: wc.X + d.X,
-		Y: wc.Y + d.Y,
-		Z: wc.Z + d.Z,
-	}
-}
-
-// alpha: [0, 1]. How much of "other" should be in
-// the result. (alpha of 0 => wc, alpha of 1 => other).
-func (wc World) Lerp(other World, alpha float64) World {
-	return World{
-		X: wc.X*(1-alpha) + other.X*alpha,
-		Y: wc.Y*(1-alpha) + other.Y*alpha,
-		Z: wc.Z*(1-alpha) + other.Z*alpha,
-	}
+func (wc World) Vec3() vmath.Vec3 {
+	return vmath.Vec3(wc)
 }
 
 func (wc World) Chunk() Chunk {
@@ -195,7 +152,6 @@ func EachOffset(cb func(oc Offset)) {
 	}
 }
 
-
 func (oc Offset) Block(cc Chunk) Block {
 	return Block{
 		X: oc.X + cc.X*ChunkWidth,
@@ -220,7 +176,7 @@ const (
 	BlocksPerChunk = ChunkWidth * ChunkHeight * ChunkDepth
 )
 
-var ChunkSize Vec3 = Vec3{
+var ChunkSize vmath.Vec3 = vmath.Vec3{
 	X: ChunkWidth,
 	Y: ChunkHeight,
 	Z: ChunkDepth,

@@ -3,9 +3,8 @@ var THREE = require("THREE");
 
 var Models = require("models");
 var Block = require("chunks/block");
-var Chunk = require("chunks/chunk");
 var BlockGeometry = require("chunks/geometry");
-var BlockMesh = require("chunks/mesh");
+var BlockMesh = require("meshes/blockMesh");
 
 function Item(type) {
 	this.type = type;
@@ -58,7 +57,7 @@ Item.init = function () {
 	if (Item.initialized) return;
 	Item.realInit();
 	Item.initialized = true;
-}
+};
 
 Item.realInit = function () {
 	Item.DATA =  [
@@ -66,7 +65,7 @@ Item.realInit = function () {
 			name: '',
 			model: null,
 			action: null,
-			icon: 0,
+			icon: 0
 		},
 		block('dirt', Block.DIRT, 1),
 		block('stone', Block.STONE, 2),
@@ -74,14 +73,14 @@ Item.realInit = function () {
 			name: 'shovel',
 			model: Models.shovel(),
 			action: throttle(shovelAction),
-			icon: 3,
+			icon: 3
 		},{
 			name: 'pistol',
 			model: Models.pistol(),
 			//This action does nothing, we send the server our controls every
 			//tick and that's how we shoot.
 			action: function () {},
-			icon: 4,
+			icon: 4
 		},
 		block('spawn', Block.SPAWN, 5),
 		block('grass', Block.GRASS, 6),
@@ -134,7 +133,7 @@ Item.realInit = function () {
 			model: blockModel(id),
 			action: throttle(blockAction(id)),
 			stackable: true,
-			icon: icon,
+			icon: icon
 		};
 	}
 
@@ -153,7 +152,8 @@ Item.realInit = function () {
 		geometry.add(blockType, position, shownFaces);
 		return new BlockMesh(geometry.finish());
 	}
-}
+};
 
 return Item;
+
 });

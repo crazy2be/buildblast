@@ -7,6 +7,10 @@ import (
 	"buildblast/lib/game"
 )
 
+const (
+	FramePeriod = time.Second / 60
+)
+
 type clientResponse struct {
 	client *Client
 	isNew  bool
@@ -41,7 +45,7 @@ func NewGame(world *game.World) *Game {
 	g.scores = make(map[string]int, 0)
 
 	g.world = world
-	g.world.AddEntityListener(g)
+	g.world.AddBioticListener(g)
 
 	return g
 }
@@ -130,35 +134,35 @@ func (g *Game) BroadcastLossy(m Message) {
 }
 
 func (g *Game) Run() {
-	updateTicker := time.Tick(time.Second / 60)
+	updateTicker := time.Tick(FramePeriod)
 	for {
 		<-updateTicker
-		g.Tick()
+		g.Tick(int64(FramePeriod / time.Millisecond))
 	}
 }
 
-func (g *Game) Tick() {
+func (g *Game) Tick(dt int64) {
 	g.handleClientRequests()
 
-	g.world.Tick()
+	g.world.Tick(dt)
 	for _, c := range g.clients {
 		c.Tick(g, g.world)
 	}
 }
 
-func (g *Game) EntityCreated(id game.EntityID, entity game.Entity) {
+func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {
 	g.Broadcast(&MsgScoreboardAdd{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 }
 
-func (g *Game) EntityUpdated(id game.EntityID, entity game.Entity) {}
-func (g *Game) EntityDamaged(id game.EntityID, entity game.Entity) {}
+func (g *Game) BioticUpdated(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticDamaged(id game.EntityId, biotic game.Biotic) {}
 
-func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
+func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
 	g.Announce(killer + " killed " + string(id))
-	g.EntityDamaged(id, entity)
+	g.BioticDamaged(id, biotic)
 	g.scores[killer]++
 	g.scores[string(id)]--
 	g.Broadcast(&MsgScoreboardSet{
@@ -171,7 +175,7 @@ func (g *Game) EntityDied(id game.EntityID, entity game.Entity, killer string) {
 	})
 }
 
-func (g *Game) EntityRemoved(id game.EntityID) {
+func (g *Game) BioticRemoved(id game.EntityId) {
 	g.Broadcast(&MsgScoreboardRemove{
 		Name: string(id),
 	})

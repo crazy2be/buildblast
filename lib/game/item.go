@@ -23,6 +23,9 @@ const (
 	ITEM_DIAMOND
 	ITEM_POUDRETTEITE
 	ITEM_GLASS
+
+	// Keep this last
+	TOTAL_ITEMS
 )
 
 const (
@@ -65,7 +68,7 @@ func ItemFromBlock(block mapgen.Block) Item {
 }
 
 func EveryItem() chan Item {
-	results := make(chan Item, 100)
+	results := make(chan Item, TOTAL_ITEMS)
 	go func() {
 		for i := int(ITEM_DIRT); i < len(ITEM_PROPERTIES); i++ {
 			results <- Item(i)

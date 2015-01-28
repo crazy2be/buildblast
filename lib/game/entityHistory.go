@@ -1,13 +1,12 @@
 package game
 
 import (
-	"buildblast/lib/coords"
+	"buildblast/lib/physics"
 )
 
 type HistoryEntry struct {
-	pos coords.World
-	// JavaScript performance.now() timestamp.
-	t float64
+	body physics.Body
+	t    float64 // JavaScript performance.now() timestamp.
 }
 
 type HistoryBuffer struct {
@@ -21,12 +20,12 @@ func NewHistoryBuffer() *HistoryBuffer {
 	return ph
 }
 
-func (ph *HistoryBuffer) Add(t float64, pos coords.World) {
+func (ph *HistoryBuffer) Add(t float64, body physics.Body) {
 	ph.offset++
 	if ph.offset >= len(ph.buf) {
 		ph.offset = 0
 	}
-	ph.buf[ph.offset] = HistoryEntry{pos, t}
+	ph.buf[ph.offset] = HistoryEntry{body, t}
 }
 
 func mod(a, b int) int {
@@ -58,7 +57,7 @@ func (ph *HistoryBuffer) Clear() {
 // ring buffer, return that entry. If t is between
 // two entries in the ring buffer, interpolate
 // between them.
-func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
+func (ph *HistoryBuffer) BodyAt(t float64) *physics.Body {
 	l := len(ph.buf)
 	if l < 0 {
 		panic("Attempt to access item in empty history buffer!")
@@ -67,13 +66,13 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	newest := ph.at(l - 1)
 	if newest.t <= t {
 		// We could extrapolate, but this should do.
-		return newest.pos
+		return physics.CloneBody(&newest.body)
 	}
 
 	oldest := ph.at(0)
 	if oldest.t >= t {
 		// We don't go back that far :(
-		return oldest.pos
+		return physics.CloneBody(&oldest.body)
 	}
 
 	older := newest
@@ -89,5 +88,11 @@ func (ph *HistoryBuffer) PositionAt(t float64) coords.World {
 	}
 
 	alpha := (t - older.t) / (newer.t - older.t)
-	return older.pos.Lerp(newer.pos, alpha)
+	return &physics.Body{
+		Pos:          *older.body.Pos.Lerp(&newer.body.Pos, alpha),
+		Vel:          *older.body.Vel.Lerp(&newer.body.Vel, alpha),
+		Dir:          *older.body.Dir.Lerp(&newer.body.Dir, alpha),
+		HalfExtents:  newer.body.HalfExtents,
+		CenterOffset: newer.body.CenterOffset,
+	}
 }

@@ -9,7 +9,7 @@ ATLAS_TEXTURE.minFilter = THREE.NearestFilter;
 var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
 	map: ATLAS_TEXTURE,
 	transparent: true,
-	alphaTest: 0.5,
+	alphaTest: 0.5
 });
 
 // takes a chunk/geometry result, NOT a THREE.Geometry

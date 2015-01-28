@@ -30,7 +30,7 @@ func TestIndexOffset(t *testing.T) {
 	}
 
 	i := 0
-	EachOffset(func (oc Offset) {
+	EachOffset(func(oc Offset) {
 		i2 := oc.Index()
 		if i != i2 {
 			t.Error("Got ", i2, " expected ", i, " for offset ", oc)

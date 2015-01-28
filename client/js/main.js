@@ -47,7 +47,7 @@ function main () {
 				console.log("Got handshake reply:", payload);
 				clock.init(payload.ServerTime);
 				clientID = payload.ClientID;
-				playerEntity = EntityManager.makeEntity(payload.PlayerEntityInfo)
+				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)
 				conn.setImmediate(false);
 				callback();
 			});
@@ -60,8 +60,7 @@ function main () {
 	});
 
 	function makePlayerController(world) {
-		var box = playerEntity.box();
-		function collides(pos) {
+		function collides(box, pos) {
 			box.setPosition(pos);
 			return box.collides(world);
 		}
@@ -79,7 +78,8 @@ function main () {
 		var controls = new Controls(container);
 
 		var playerController = makePlayerController(world);
-		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity, playerController);
+		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity,
+				playerController);
 		world.setPlayer(clientID, playerEntity, playerController);
 
 		window.testExposure.playerUI = playerUI;

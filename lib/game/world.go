@@ -15,11 +15,14 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
-	entities []Entity
+	biotics    []Biotic
+	possessors []Possessor
+	worldItems []*WorldItem
 
-	blockListeners  genericListenerContainer
-	chunkListeners  genericListenerContainer
-	entityListeners genericListenerContainer
+	blockListeners     genericListenerContainer
+	chunkListeners     genericListenerContainer
+	bioticListeners    genericListenerContainer
+	worldItemListeners genericListenerContainer
 }
 
 func NewWorld(generator mapgen.Generator) *World {
@@ -32,19 +35,36 @@ func NewWorld(generator mapgen.Generator) *World {
 	w.chunkGenerator.QueueChunksNearby(coords.Origin)
 	go w.chunkGenerator.Run()
 
-	w.entities = make([]Entity, 0)
+	w.biotics = make([]Biotic, 0)
+	w.possessors = make([]Possessor, 0)
+	w.worldItems = make([]*WorldItem, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
-	w.entityListeners = makeGenericListenerContainer()
+	w.bioticListeners = makeGenericListenerContainer()
+	w.worldItemListeners = makeGenericListenerContainer()
 	return w
 }
 
-func (w *World) Tick() {
+func (w *World) Tick(dt int64) {
 	w.generationTick()
-	for _, e := range w.entities {
-		e.Tick(w)
-		w.chunkGenerator.QueueChunksNearby(e.Pos())
+	for _, s := range w.biotics {
+		w.chunkGenerator.QueueChunksNearby(s.Wpos())
+	}
+
+	// Check the world item collisions.
+	removedWorldItems := make([]*WorldItem, len(w.worldItems))
+	for i, wi := range w.worldItems {
+		updated, pickedUp := wi.Tick(dt, w)
+		if pickedUp {
+			removedWorldItems = append(removedWorldItems, wi)
+		} else if updated {
+			w.worldItems[i] = wi
+			w.worldItemListeners.FireEvent("WorldItemUpdated", wi.EntityId(), wi)
+		}
+	}
+	for _, wi := range removedWorldItems {
+		w.RemoveEntity(wi)
 	}
 }
 
@@ -61,9 +81,7 @@ func (w *World) generationTick() {
 					w.spawns = append(w.spawns, oc.Block(cc).Center())
 				}
 			})
-
 			w.chunks[cc] = chunk
-
 			w.chunkListeners.FireEvent("ChunkGenerated", cc, chunk)
 		default:
 			return
@@ -106,46 +124,106 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 }
 
 func (w *World) AddEntity(e Entity) {
-	w.entities = append(w.entities, e)
-	e.Respawn(w.findSpawn())
-
-	w.entityListeners.FireEvent("EntityCreated", e.ID(), e)
+	switch e.(type) {
+	case Biotic:
+		w.addBiotic(e.(Biotic))
+	case *WorldItem:
+		w.addWorldItem(e.(*WorldItem))
+	}
+	if p, ok := e.(Possessor); ok {
+		w.addPossessor(p)
+	}
 }
 
 func (w *World) RemoveEntity(e Entity) {
-	for i, entity := range w.entities {
-		if entity == e {
-			w.entities[i] = w.entities[len(w.entities)-1]
-			w.entities = w.entities[:len(w.entities)-1]
+	switch e.(type) {
+	case Biotic:
+		w.removeBiotic(e.(Biotic))
+	case *WorldItem:
+		w.removeWorldItem(e.(*WorldItem))
+	}
+	if p, ok := e.(Possessor); ok {
+		w.removePossessor(p)
+	}
+}
 
-			w.entityListeners.FireEvent("EntityRemoved", e.ID())
+func (w *World) addBiotic(s Biotic) {
+	w.biotics = append(w.biotics, s)
+	s.Respawn(w.findSpawn())
+
+	w.bioticListeners.FireEvent("BioticCreated", s.EntityId(), s)
+}
+
+func (w *World) removeBiotic(s Biotic) {
+	for i, biotic := range w.biotics {
+		if biotic == s {
+			w.biotics[i] = w.biotics[len(w.biotics)-1]
+			w.biotics = w.biotics[:len(w.biotics)-1]
+
+			w.bioticListeners.FireEvent("BioticRemoved", s.EntityId())
 		}
 	}
 }
 
-func (w *World) DamageEntity(damager string, amount int, e Entity) {
-	e.Damage(amount)
-	if e.Dead() {
-		e.Respawn(w.findSpawn())
-		w.entityListeners.FireEvent("EntityDied", e.ID(), e, damager)
+func (w *World) DamageBiotic(damager string, amount int, s Biotic) {
+	s.Damage(amount)
+	if s.Dead() {
+		s.Respawn(w.findSpawn())
+		w.bioticListeners.FireEvent("BioticDied", s.EntityId(), s, damager)
 	} else {
 		// Should we fire Damaged events if they
 		// end up dying? I dunno. Currently we don't.
-		w.entityListeners.FireEvent("EntityDamaged", e.ID(), e)
+		w.bioticListeners.FireEvent("BioticDamaged", s.EntityId(), s)
 	}
 }
 
-func (w *World) Entities() map[EntityID]Entity {
-	result := make(map[EntityID]Entity, len(w.entities))
-	for _, entity := range w.entities {
-		result[entity.ID()] = entity
+func (w *World) Biotics() map[EntityId]Biotic {
+	result := make(map[EntityId]Biotic, len(w.biotics))
+	for _, biotic := range w.biotics {
+		result[biotic.EntityId()] = biotic
 	}
 	return result
 }
 
-func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (*coords.World, Entity) {
-	boxes := make([]*physics.Box, len(w.entities))
-	for i, other := range w.entities {
+func (w *World) addPossessor(p Possessor) {
+	w.possessors = append(w.possessors, p)
+}
+
+func (w *World) removePossessor(p Possessor) {
+	for i, possessor := range w.possessors {
+		if possessor == p {
+			w.possessors[i] = w.possessors[len(w.possessors)-1]
+			w.possessors = w.possessors[:len(w.possessors)-1]
+		}
+	}
+}
+
+func (w *World) addWorldItem(wi *WorldItem) {
+	w.worldItems = append(w.worldItems, wi)
+	w.worldItemListeners.FireEvent("WorldItemAdded", wi.EntityId(), wi)
+}
+
+func (w *World) removeWorldItem(wi *WorldItem) {
+	for i, worldItem := range w.worldItems {
+		if worldItem == wi {
+			w.worldItems[i] = w.worldItems[len(w.worldItems)-1]
+			w.worldItems = w.worldItems[:len(w.worldItems)-1]
+			w.worldItemListeners.FireEvent("WorldItemRemoved", wi.EntityId())
+		}
+	}
+}
+
+func (w *World) WorldItems() map[EntityId]*WorldItem {
+	result := make(map[EntityId]*WorldItem, len(w.worldItems))
+	for _, worldItem := range w.worldItems {
+		result[worldItem.EntityId()] = worldItem
+	}
+	return result
+}
+
+func (w *World) FindFirstIntersect(entity Biotic, t float64, ray *physics.Ray) (*coords.World, Biotic) {
+	boxes := make([]*physics.Box, len(w.biotics))
+	for i, other := range w.biotics {
 		if other == entity {
 			boxes[i] = nil
 		} else {
@@ -154,8 +232,9 @@ func (w *World) FindFirstIntersect(entity Entity, t float64, ray *physics.Ray) (
 	}
 
 	hitPos, hitIndex := ray.FindAnyIntersect(w, boxes)
+	hitPosWorld := (*coords.World)(hitPos)
 	if hitIndex != -1 {
-		return hitPos, w.entities[hitIndex]
+		return hitPosWorld, w.biotics[hitIndex]
 	}
-	return hitPos, nil
+	return hitPosWorld, nil
 }
