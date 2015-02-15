@@ -98,9 +98,11 @@ func (gc *ChunkGeometry) buildUv(tileOffset, uvWinding []float32) {
 	gc.push(u, v)
 }
 
-func (gc *ChunkGeometry) Add(blockType int, x, y, z float32) {
-	position := []float32{x, y, z}
+func (gc *ChunkGeometry) Add(blockType int, position []float32, shownFaces []bool) {
 	for face := 0; face < 6; face++ {
+		if !shownFaces[face] {
+			continue
+		}
 		tileOffset := ATLAS[TEXTURE_MAP[blockType][face]]
 		for vert := 0; vert < 4; vert++ {
 			for comp := 0; comp < 3; comp++ {
@@ -144,4 +146,61 @@ func (cm *ChunkMesh) Draw(program gl.Program) {
 
 	uv.DisableArray()
 	position.DisableArray()
+}
+
+type ChunkManager struct {
+}
+
+func (cm *ChunkManager) ChunkAt(cc coords.Chunk) *mapgen.Chunk {
+	return nil
+}
+
+func MeshChunk(chunk mapgen.Chunk, cc coords.Chunk, manager ChunkManager) *ChunkGeometry {
+	cg := NewChunkGeometry()
+
+	pxc := manager.ChunkAt(cc.X + 1, cc.Y, cc.Z);
+	nxc := manager.ChunkAt(cc.X - 1, cc.Y, cc.Z);
+	pyc := manager.ChunkAt(cc.X, cc.Y + 1, cc.Z);
+	nyc := manager.ChunkAt(cc.X, cc.Y - 1, cc.Z);
+	pzc := manager.ChunkAt(cc.X, cc.Y, cc.Z + 1);
+	nzc := manager.ChunkAt(cc.X, cc.Y, cc.Z - 1);
+
+	transparent := func (ocX, ocY, ocZ float32) {
+		if (ocX < 0) {
+			return nxc ? trans(nxc.Block(cw - 1, ocY, ocZ)) : false;
+		} else if (ocX >= cw) {
+			return pxc ? trans(pxc.Block(0, ocY, ocZ)) : false;
+		} else if (ocY < 0) {
+			return nyc ? trans(nyc.Block(ocX, ch - 1, ocZ)) : false;
+		} else if (ocY >= ch) {
+			return pyc ? trans(pyc.Block(ocX, 0, ocZ)) : false;
+		} else if (ocZ < 0) {
+			return nzc ? trans(nzc.Block(ocX, ocY, cd - 1)) : false;
+		} else if (ocZ >= cd) {
+			return pzc ? trans(pzc.Block(ocX, ocY, 0)) : false;
+		} else {
+			return trans(blocks[ocX*cw*ch + ocY*cw + ocZ]);
+		}
+	}
+
+	chunk.Each(func (oc coords.Offset, block mapgen.Block) {
+		if block == mapgen.BLOCK_AIR {
+			return
+		}
+		shownFaces := []bool{
+			transparent(oc.X + 1, oc.Y,     oc.Z    ),
+			transparent(oc.X - 1, oc.Y,     oc.Z    ),
+			transparent(oc.X,     oc.Y + 1, oc.Z    ),
+			transparent(oc.X,     oc.Y - 1, oc.Z    ),
+			transparent(oc.X,     oc.Y,     oc.Z + 1),
+			transparent(oc.X,     oc.Y,     oc.Z - 1)
+		}
+		position := []float32{
+			oc.X + cc.X*mapgen.ChunkWidth,
+			oc.Y + cc.Y*mapgen.ChunkHeight,
+			oc.Z + cc.Z*mapgen.ChunkDepth,
+		}
+		cg.Add(block, position, shownFaces)
+	})
+	return cg
 }
