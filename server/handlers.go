@@ -107,7 +107,7 @@ func protoDebugSocketHandler(ws *websocket.Conn) {
 			return
 		}
 		log.Println("Got data:", data)
-		message := "Hello, world 𠜎"
+		message := "Hello, world! こんにちは世界! 𠜎"
 		sendThis := make([]byte, 1)
 		sendThis[0] = 0
 		sendThis = append(sendThis, message...)
