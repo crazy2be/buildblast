@@ -90,7 +90,7 @@ Conn.socketURI = function (path) {
 	}
 
 	return uri;
-}
+};
 
 return Conn;
 });

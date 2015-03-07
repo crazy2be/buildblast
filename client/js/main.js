@@ -3,6 +3,7 @@ define(function(require) {
 var async = require("async");
 
 var Conn = require("core/conn");
+var ConnTest = require("core/connTest");
 var Clock = require("core/clock");
 var Controls = require("player/controls");
 var FeatureTester = require("featureTester");
@@ -37,6 +38,20 @@ function main () {
 	var clock = new Clock(conn);
 	var clientID;
 	var playerEntity;
+
+	// Test a lot of awesome stuff
+	var conn2 = new ConnTest(Conn.socketURI("proto"));
+	conn2.on(0, function(dataView) {
+		function uintToString(uintArray) {
+			var encodedString = String.fromCharCode.apply(null, uintArray);
+			return decodeURIComponent(escape(encodedString));
+		}
+		console.log("Got message:", uintToString(new Uint8Array(dataView.buffer.slice(1))));
+	});
+	var uint8 = new Uint8Array(2);
+	uint8[0] = 0;
+	uint8[1] = 42;
+	conn2.queue(uint8);
 
 	async.parallel([
 		function (callback) {

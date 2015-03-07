@@ -96,3 +96,21 @@ func chunkSocketHandler(ws *websocket.Conn) {
 	}
 	client.RunChunks(NewConn(ws))
 }
+
+func protoDebugSocketHandler(ws *websocket.Conn) {
+	conn := NewConn(ws)
+
+	for {
+		data, err := conn.RecvProto()
+		if err != nil {
+			log.Println("Error", err)
+			return
+		}
+		log.Println("Got data:", data)
+		message := "Hello, world 𠜎"
+		sendThis := make([]byte, 1)
+		sendThis[0] = 0
+		sendThis = append(sendThis, message...)
+		conn.SendProto(sendThis)
+	}
+}

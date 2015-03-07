@@ -1,7 +1,10 @@
 package vmath
 
 import (
+	"errors"
 	"math"
+
+	"buildblast/lib/proto"
 )
 
 type Vec3 struct {
@@ -71,4 +74,25 @@ func (v *Vec3) DistTo(other *Vec3) float64 {
 
 func (v *Vec3) DistBetween(other *Vec3) float64 {
 	return math.Abs(v.DistTo(other))
+}
+
+// Protocol stuff
+
+func (v *Vec3) ToProto() []byte {
+	// We have 3 64bit values. We need 24 bytes.
+	buf := make([]byte, 24)
+	proto.MarshalFloat64(buf[0:8], v.X)
+	proto.MarshalFloat64(buf[8:16], v.Y)
+	proto.MarshalFloat64(buf[16:24], v.Z)
+	return buf
+}
+
+func (v *Vec3) FromProto(buf []byte) (int, error) {
+	if len(buf) < 24 {
+		return 0, errors.New("Buffer too small: vec")
+	}
+	v.X = proto.UnmarshalFloat64(buf[0:8])
+	v.Y = proto.UnmarshalFloat64(buf[8:16])
+	v.Z = proto.UnmarshalFloat64(buf[16:24])
+	return 24, nil
 }

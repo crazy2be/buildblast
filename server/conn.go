@@ -60,6 +60,26 @@ func (c *Conn) Recv() (Message, error) {
 	return m, nil
 }
 
+func (c *Conn) SendProto(data []byte) error {
+	err := websocket.Message.Send(c.ws, data)
+	if err != nil {
+		return fmt.Errorf("Sending websocket binary data: %s", err)
+	}
+	return nil
+}
+
+func (c *Conn) RecvProto() ([]byte, error) {
+	var data []byte
+	err := websocket.Message.Receive(c.ws, &data)
+	if err != nil {
+		if err == io.EOF {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
+	}
+	return data, nil
+}
+
 func (c *Conn) Close() error {
 	return c.ws.Close()
 }

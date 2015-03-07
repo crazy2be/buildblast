@@ -70,6 +70,8 @@ func main() {
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
+	http.Handle("/sockets/proto/", websocket.Handler(protoDebugSocketHandler))
+
 	err := http.ListenAndServe(*host, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
