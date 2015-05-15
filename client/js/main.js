@@ -56,7 +56,7 @@ function main () {
 		var dataView = new DataView(buffer);
 		dataView.setUint8(0, 1);
 		dataView.setFloat64(1, threeVec.x);
-		dataView.setFloat64(1 + 8, threeVec.x);
+		dataView.setFloat64(1 + 8, threeVec.y);
 		dataView.setFloat64(1 + 16, threeVec.z);
 		conn2.queue(dataView);
 	});

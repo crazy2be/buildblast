@@ -11,6 +11,7 @@ import (
 
 	"buildblast/lib/game"
 	"buildblast/lib/vmath"
+	"buildblast/lib/proto"
 )
 
 var globalGame *Game
