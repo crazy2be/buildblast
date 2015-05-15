@@ -40,11 +40,11 @@ func (b *Body) FromProto(buf []byte) (int, error) {
 	if len(buf) < 5*3*8 {
 		return 0, errors.New("Buffer too small: Body")
 	}
-	size := 3*8;
+	size := 3 * 8
 	b.Pos.FromProto(buf[0*size:])
 	b.Vel.FromProto(buf[1*size:])
 	b.Dir.FromProto(buf[2*size:])
 	b.HalfExtents.FromProto(buf[3*size:])
 	b.CenterOffset.FromProto(buf[4*size:])
-	return 5*3*8, nil
+	return 5 * 3 * 8, nil
 }

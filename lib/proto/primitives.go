@@ -3,7 +3,6 @@ package proto
 import (
 	"encoding/binary"
 	"math"
-	"errors"
 )
 
 // We use big endian for all our network traffic.

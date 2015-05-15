@@ -50,12 +50,12 @@ func (es *EntityState) FromProto(buf []byte) (int, error) {
 	var offset int
 	es.EntityId, offset = proto.UnmarshalString(buf)
 	read, err := es.Body.FromProto(buf[offset:])
-	offset += read;
+	offset += read
 	if err != nil {
 		return 0, err
 	}
 	es.LastUpdated, read = proto.UnmarshalFloat64(buf[offset:])
-	offset += read;
+	offset += read
 	return offset, nil
 }
 

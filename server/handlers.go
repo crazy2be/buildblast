@@ -10,8 +10,8 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
-	"buildblast/lib/vmath"
 	"buildblast/lib/proto"
+	"buildblast/lib/vmath"
 )
 
 var globalGame *Game
