@@ -7,6 +7,7 @@ import (
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
 	"buildblast/lib/vmath"
+	"buildblast/lib/proto"
 )
 
 type MessageId byte;
@@ -102,8 +103,24 @@ type MsgHandshakeReply struct {
 	AuthMessage      string
 }
 
+func (msg *MsgHandshakeReply) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, proto.MarshalInt(MSG_HANDSHAKE_REPLY))
+	buf = append(buf, proto.MarshalFloat64(msg.ServerTime))
+	buf = append(buf, proto.MarshalString(msg.ClientID))
+	buf = append(buf, msg.PlayerEntityInfo.ToProto()...)
+	return buf
+}
+
 type MsgHandshakeError struct {
 	Message string
+}
+
+func (msg *MsgHandshakeError) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MarshalInt(MSG_HANDSHAKE_ERROR))
+	buf = append(buf, MarshalString(msg.Message))
+	return buf;
 }
 
 type MsgEntityCreate struct {

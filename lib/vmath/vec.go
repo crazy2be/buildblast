@@ -93,5 +93,5 @@ func (v *Vec3) FromProto(buf []byte) (int, error) {
 	v.X = proto.UnmarshalFloat64(buf[0:8])
 	v.Y = proto.UnmarshalFloat64(buf[8:16])
 	v.Z = proto.UnmarshalFloat64(buf[16:24])
-	return 3*8, nil
+	return 3 * 8, nil
 }

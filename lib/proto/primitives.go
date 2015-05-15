@@ -12,7 +12,7 @@ import (
 func MarshalInt(v int) []byte {
 	buf := make([]byte, 10) // Maximum size is 10 bytes
 	binary.PutVarint(buf, int64(v))
-	return buf;
+	return buf
 }
 
 func UnmarshalInt(buf []byte) (int64, int) {
@@ -23,7 +23,7 @@ func MarshalFloat64(v float64) []byte {
 	buf := make([]byte, 8)
 	bits := math.Float64bits(v)
 	binary.BigEndian.PutUint64(buf, bits)
-	return buf;
+	return buf
 }
 
 func UnmarshalFloat64(buf []byte) (float64, int) {
@@ -32,7 +32,7 @@ func UnmarshalFloat64(buf []byte) (float64, int) {
 }
 
 func MarshalString(s string) []byte {
-	buf := make([]byte, 10 + len(s))
+	buf := make([]byte, 10+len(s))
 	buf = append(buf, MarshalInt(len(s))...)
 	return append(buf, s...)
 }
