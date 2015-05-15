@@ -105,9 +105,9 @@ type MsgHandshakeReply struct {
 
 func (msg *MsgHandshakeReply) ToProto() []byte {
 	buf := make([]byte, 256)
-	buf = append(buf, proto.MarshalInt(MSG_HANDSHAKE_REPLY))
-	buf = append(buf, proto.MarshalFloat64(msg.ServerTime))
-	buf = append(buf, proto.MarshalString(msg.ClientID))
+	buf = append(buf, MSG_HANDSHAKE_REPLY)
+	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
+	buf = append(buf, proto.MarshalString(msg.ClientID)...)
 	buf = append(buf, msg.PlayerEntityInfo.ToProto()...)
 	return buf
 }
@@ -118,25 +118,50 @@ type MsgHandshakeError struct {
 
 func (msg *MsgHandshakeError) ToProto() []byte {
 	buf := make([]byte, 256)
-	buf = append(buf, MarshalInt(MSG_HANDSHAKE_ERROR))
-	buf = append(buf, MarshalString(msg.Message))
+	buf = append(buf, MSG_HANDSHAKE_ERROR)
+	buf = append(buf, proto.MarshalString(msg.Message)...)
 	return buf;
 }
 
 type MsgEntityCreate struct {
 	ID    game.EntityId
 	Kind  game.EntityKind
-	State interface{}
+	State Proto
+}
+
+func (msg *MsgEntityCreate) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_ENTITY_CREATE)
+	buf = append(buf, proto.MarshalString(msg.ID)...)
+	buf = append(buf, proto.MarshalString(msg.Kind)...)
+	buf = append(buf, msg.State.ToProto()...)
+	return buf
 }
 
 type MsgEntityState struct {
 	ID    game.EntityId
 	Kind  game.EntityKind
-	State interface{}
+	State Proto
+}
+
+func (msg *MsgEntityState) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_ENTITY_STATE)
+	buf = append(buf, proto.MarshalString(msg.ID)...)
+	buf = append(buf, proto.MarshalString(msg.Kind)...)
+	buf = append(buf, msg.State.ToProto()...)
+	return buf
 }
 
 type MsgEntityRemove struct {
 	ID game.EntityId
+}
+
+func (msg *MsgEntityRemove) ToProto() []byte {
+	buf := make([]byte, 64)
+	buf = append(buf, MSG_ENTITY_REMOVE)
+	buf = append(buf, proto.MarshalString(msg.ID)...)
+	return buf
 }
 
 type MsgChunk struct {
@@ -147,9 +172,26 @@ type MsgChunk struct {
 	Data string
 }
 
+func (msg *MsgChunk) ToProto() []byte {
+	buf := make([]byte, 3*8*32*32*32 + 3*30 + 3*8)
+	buf = append(buf, MSG_CHUNK)
+	buf = append(buf, msg.CCPos.ToProto()...)
+	buf = append(buf, msg.Size.ToProto()...)
+	buf = append(buf, proto.MarshalString(msg.Data)...)
+	return buf
+}
+
 type MsgBlock struct {
 	Pos  coords.Block
 	Type mapgen.Block
+}
+
+func (msg *MsgBlock) ToProto() []byte {
+	buf := make([]byte, 32)
+	buf = append(buf, MSG_BLOCK)
+	buf = append(buf, msg.Pos.ToProto()...)
+	buf = append(buf, msg.Type)
+	return buf
 }
 
 type MsgControlsState struct {
@@ -158,8 +200,19 @@ type MsgControlsState struct {
 	// TimeStamp is when it was sent, ViewTimestamp is
 	// what time the client was displaying when it was sent
 	// (with lag induction they may differ).
+
+	// DOIT: Why is this here when it's part of the Control state?
 	Timestamp     float64
 	ViewTimestamp float64
+}
+
+func (msg *MsgControlsState) ToProto() []byte {
+	buf := make([]byte, 34 + 2 * 8)
+	buf = append(buf, MSG_CONTROLS_STATE)
+	buf = append(buf, msg.Controls.ToProto()...)
+	buf = append(buf, proto.MarshalFloat64(msg.Timestamp)...)
+	buf = append(buf, proto.MarshalFloat64(msg.ViewTimestamp)...)
+	return buf
 }
 
 type MsgChat struct {
@@ -167,12 +220,34 @@ type MsgChat struct {
 	Message     string
 }
 
+func (msg *MsgChat) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_CHAT)
+	buf = append(buf, proto.MarshalString(msg.DisplayName)...)
+	buf = append(buf, proto.MarshalString(msg.Message)...)
+	return buf
+}
+
 type MsgDebugRay struct {
 	Pos coords.World
 }
 
+func (msg *MsgDebugRay) ToProto() []byte {
+	buf := make([]byte, 31)
+	buf = append(buf, MSG_DEBUG_RAY)
+	buf = append(buf, msg.Pos.ToProto()...)
+	return buf
+}
+
 type MsgNtpSync struct {
 	ServerTime float64
+}
+
+func (msg *MsgNtpSync) ToProto() []byte {
+	buf := make([]byte, 3*8+1)
+	buf = append(buf, MSG_NTP_SYNC)
+	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
+	return buf
 }
 
 type MsgInventoryState struct {
@@ -182,9 +257,26 @@ type MsgInventoryState struct {
 	ItemRight int
 }
 
+func (msg *MsgInventoryState) ToProto() []byte {
+	buf := make([]byte, 1024)
+	buf = append(buf, MSG_INVENTORY_STATE)
+	buf = append(buf, proto.MarshalString(msg.Items)...)
+	buf = append(buf, proto.MarshalInt(msg.ItemLeft)...)
+	buf = append(buf, proto.MarshalInt(msg.ItemRight)...)
+	return buf
+}
+
 type MsgInventoryMove struct {
 	From int
 	To   int
+}
+
+func (msg *MsgInventoryMove) ToProto() []byte {
+	buf := make([]byte, 21)
+	buf = append(buf, MSG_INVENTORY_MOVE)
+	buf = append(buf, proto.MarshalInt(msg.From)...)
+	buf = append(buf, proto.MarshalInt(msg.To)...)
+	return buf
 }
 
 type MsgScoreboardAdd struct {
@@ -192,13 +284,36 @@ type MsgScoreboardAdd struct {
 	Score int
 }
 
+func (msg *MsgScoreboardAdd) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_SCOREBOARD_ADD)
+	buf = append(buf, proto.MarshalString(msg.Name)...)
+	buf = append(buf, proto.MarshalInt(msg.Score)...)
+	return buf
+}
+
 type MsgScoreboardSet struct {
 	Name  string
 	Score int
 }
 
+func (msg *MsgScoreboardSet) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_SCOREBOARD_SET)
+	buf = append(buf, proto.MarshalString(msg.Name)...)
+	buf = append(buf, proto.MarshalInt(msg.Score)...)
+	return buf
+}
+
 type MsgScoreboardRemove struct {
 	Name string
+}
+
+func (msg *MsgScoreboardRemove) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, MSG_SCOREBOARD_REMOVE)
+	buf = append(buf, proto.MarshalString(msg.Name)...)
+	return buf
 }
 
 type Message interface {

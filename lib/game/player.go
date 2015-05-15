@@ -6,6 +6,7 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
+	"buildblast/lib/proto"
 	"buildblast/lib/vmath"
 )
 
@@ -22,6 +23,39 @@ type ControlState struct {
 
 	Timestamp     float64 // In ms
 	ViewTimestamp float64
+}
+
+func (cs *ControlState) ToProto() []byte {
+	buf := make([]byte, 33)
+	// DOIT: Convert this to a bit field internally
+	flags := byte(0)
+	if cs.Forward {
+		flags |= 1 << 0
+	}
+	if cs.Left {
+		flags |= 1 << 1
+	}
+	if cs.Right {
+		flags |= 1 << 2
+	}
+	if cs.Back {
+		flags |= 1 << 3
+	}
+	if cs.Jump {
+		flags |= 1 << 4
+	}
+	if cs.ActivateLeft {
+		flags |= 1 << 5
+	}
+	if cs.ActivateRight {
+		flags |= 1 << 6
+	}
+	buf = append(buf, flags)
+	buf = append(buf, proto.MarshalFloat64(cs.Lat)...)
+	buf = append(buf, proto.MarshalFloat64(cs.Lon)...)
+	buf = append(buf, proto.MarshalFloat64(cs.Timestamp)...)
+	buf = append(buf, proto.MarshalFloat64(cs.ViewTimestamp)...)
+	return buf
 }
 
 const (
