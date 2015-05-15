@@ -35,7 +35,7 @@ define(function () {
 		function handleMessage(dataView) {
 			var id = dataView.getUint8(0);
 			if (!handlers[id]) {
-				console.warn("Recieved server message of unknown type:", kind, "with data", data);
+				console.warn("Recieved server message of unknown id:", id, "with data", dataView);
 				return;
 			}
 			var h = handlers[id];

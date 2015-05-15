@@ -10,6 +10,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
+	"buildblast/lib/vmath"
 )
 
 var globalGame *Game
@@ -106,11 +107,28 @@ func protoDebugSocketHandler(ws *websocket.Conn) {
 			log.Println("Error", err)
 			return
 		}
-		log.Println("Got data:", data)
-		message := "Hello, world! こんにちは世界! 𠜎"
-		sendThis := make([]byte, 1)
-		sendThis[0] = 0
-		sendThis = append(sendThis, message...)
-		conn.SendProto(sendThis)
+		if data[0] == 0 {
+			log.Println("Got data:", data)
+			message := "Hello, world! こんにちは世界! 𠜎"
+			sendThis := make([]byte, 1)
+			sendThis[0] = 0
+			sendThis = append(sendThis, message...)
+			conn.SendProto(sendThis)
+
+			vec := vmath.Vec3{
+				X: 1,
+				Y: 11,
+				Z: 111,
+			}
+			sendToo := make([]byte, 1)
+			sendToo[0] = 1
+			sendToo = append(sendToo, vec.ToProto()...)
+			conn.SendProto(sendToo)
+		} else {
+			log.Println("Got more data:", data)
+			vec := vmath.Vec3{}
+			vec.FromProto(data[1:])
+			log.Println("Vector!", vec.X, vec.Y, vec.Z)
+		}
 	}
 }

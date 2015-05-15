@@ -10,6 +10,7 @@ var FeatureTester = require("featureTester");
 var Models = require("models");
 
 var World = require("core/world");
+var Protocol = require("core/protocol");
 
 var PlayerUI = require("player/playerUI");
 var EntityManager = require("entities/entityManager");
@@ -47,6 +48,17 @@ function main () {
 			return decodeURIComponent(escape(encodedString));
 		}
 		console.log("Got message:", uintToString(new Uint8Array(dataView.buffer.slice(1))));
+	});
+	conn2.on(1, function(dataView) {
+		var threeVec = Protocol.threeVecFromBinProto(1, dataView);
+		console.log(threeVec);
+		var buffer = new ArrayBuffer(25);
+		var dataView = new DataView(buffer);
+		dataView.setUint8(0, 1);
+		dataView.setFloat64(1, threeVec.x);
+		dataView.setFloat64(1 + 8, threeVec.x);
+		dataView.setFloat64(1 + 16, threeVec.z);
+		conn2.queue(dataView);
 	});
 	var uint8 = new Uint8Array(2);
 	uint8[0] = 0;

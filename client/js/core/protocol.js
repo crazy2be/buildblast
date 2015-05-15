@@ -9,6 +9,9 @@ var WorldItemState = require("entities/model/worldItemState");
 var Protocol = {};
 
 Protocol.parseBody = function(proto) {
+	function threeVecFromProto(proto) {
+		return new THREE.Vector3(proto.X || 0, proto.Y || 0, proto.Z || 0);
+	}
 	return new Body(
 		threeVecFromProto(proto.Pos),
 		threeVecFromProto(proto.Vel),
@@ -35,9 +38,10 @@ Protocol.parseWorldItemState = function(proto) {
 	return new WorldItemState(Protocol.parseEntityState(proto.EntityState), proto.ItemKind);
 };
 
-function threeVecFromProto(proto) {
-	return new THREE.Vector3(proto.X || 0, proto.Y || 0, proto.Z || 0);
-}
+Protocol.threeVecFromBinProto = function(offset, dataView) {
+	return new THREE.Vector3(dataView.getFloat64(offset),
+		dataView.getFloat64(offset + 8), dataView.getFloat64(offset + 16));
+};
 
 return Protocol;
 
