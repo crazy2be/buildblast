@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -20,47 +18,7 @@ func NewConn(ws *websocket.Conn) *Conn {
 }
 
 func (c *Conn) Send(m Message) error {
-	var err error
-
-	cm := new(ClientMessage)
-	cm.Kind = typeToKind(m)
-
-	//Payload(json.RawMessage) implements Marshaler and Unmarshaler,
-	//so it will NOT be serialized twice.
-	cm.Payload, err = json.Marshal(m)
-	if err != nil {
-		return fmt.Errorf("marshalling websocket message: %s", err)
-	}
-
-	err = websocket.JSON.Send(c.ws, cm)
-	if err != nil {
-		return fmt.Errorf("sending websocket message: %s", err)
-	}
-
-	return nil
-}
-
-func (c *Conn) Recv() (Message, error) {
-	cm := new(ClientMessage)
-	err := websocket.JSON.Receive(c.ws, cm)
-	if err != nil {
-		if err == io.EOF {
-			return nil, err
-		}
-		return nil, fmt.Errorf("reading websocket message: %s", err)
-	}
-
-	m := kindToType(cm.Kind)
-	err = json.Unmarshal(cm.Payload, &m)
-	if err != nil {
-		log.Println(cm.Payload)
-		return nil, fmt.Errorf("unmarshalling websocket message of kind %s: %s (value: %s)", cm.Kind, err, string(cm.Payload))
-	}
-
-	return m, nil
-}
-
-func (c *Conn) SendProto(data []byte) error {
+	data := m.ToProto()
 	err := websocket.Message.Send(c.ws, data)
 	if err != nil {
 		return fmt.Errorf("Sending websocket binary data: %s", err)
@@ -68,7 +26,7 @@ func (c *Conn) SendProto(data []byte) error {
 	return nil
 }
 
-func (c *Conn) RecvProto() ([]byte, error) {
+func (c *Conn) Recv() (Message, error) {
 	var data []byte
 	err := websocket.Message.Receive(c.ws, &data)
 	if err != nil {
@@ -77,7 +35,9 @@ func (c *Conn) RecvProto() ([]byte, error) {
 		}
 		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
 	}
-	return data, nil
+	m := idToType(MessageId(data[0]))
+	_, err = m.FromProto(data)
+	return m, err
 }
 
 func (c *Conn) Close() error {

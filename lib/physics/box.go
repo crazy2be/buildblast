@@ -93,7 +93,8 @@ func (b *Box) inSolid(world mapgen.BlockSource) bool {
 	blockCollide := func(x, y, z int) bool {
 		blockCoord := coords.Block{x, y, z}
 		if world.Block(blockCoord).Solid() {
-			blockBox := NewBox(blockCoord.Center().Vec3(), vmath.Vec3{0.5, 0.5, 0.5})
+			center := blockCoord.Center()
+			blockBox := NewBox(center.Vec3(), vmath.Vec3{0.5, 0.5, 0.5})
 			return b.Collides(blockBox)
 		}
 		return false

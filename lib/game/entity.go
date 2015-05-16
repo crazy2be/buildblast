@@ -40,15 +40,17 @@ func (es *EntityState) Look() coords.Direction {
 
 func (es *EntityState) ToProto() []byte {
 	buf := make([]byte, 256)
-	buf = append(buf, proto.MarshalString(es.EntityId)...)
+	buf = append(buf, proto.MarshalString(string(es.EntityId))...)
 	buf = append(buf, es.Body.ToProto()...)
 	buf = append(buf, proto.MarshalFloat64(es.LastUpdated)...)
 	return buf
 }
 
 func (es *EntityState) FromProto(buf []byte) (int, error) {
+	var idString string
 	var offset int
-	es.EntityId, offset = proto.UnmarshalString(buf)
+	idString, offset = proto.UnmarshalString(buf)
+	es.EntityId = EntityId(idString)
 	read, err := es.Body.FromProto(buf[offset:])
 	offset += read
 	if err != nil {
@@ -68,6 +70,16 @@ type Damageable interface {
 
 type Health struct {
 	Life int
+}
+
+func (h *Health) ToProto() []byte {
+	return proto.MarshalInt(h.Life)
+}
+
+func (h *Health) FromProto(buf []byte) (int, error) {
+	life, read := proto.UnmarshalInt(buf)
+	h.Life = int(life)
+	return read, nil
 }
 
 type Possessor interface {
@@ -90,10 +102,30 @@ type Biotic interface {
 	Damageable
 	Respawnable
 
-	State() BioticState
+	State() *BioticState
 }
 
 type BioticState struct {
 	EntityState EntityState
 	Health      Health
+}
+
+func (bs *BioticState) ToProto() []byte {
+	buf := make([]byte, 256)
+	buf = append(buf, bs.EntityState.ToProto()...)
+	buf = append(buf, bs.Health.ToProto()...)
+	return buf
+}
+
+func (bs *BioticState) FromProto(buf []byte) (int, error) {
+	var offset int
+	read, err := bs.EntityState.FromProto(buf)
+	if err != nil {
+		return 0, err
+	}
+	offset, err = bs.Health.FromProto(buf[read:])
+	if err != nil {
+		return 0, err
+	}
+	return read+offset, nil
 }

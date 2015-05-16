@@ -9,34 +9,38 @@ import (
 
 type Direction vmath.Vec3
 
-func (d Direction) ToProto() []byte {
-	return d.Vec3().ToProto()
+func (d *Direction) ToProto() []byte {
+	vec3 := d.Vec3()
+	return vec3.ToProto()
 }
 
-func (d Direction) Vec3() vmath.Vec3 {
-	return vmath.Vec3(d)
+func (d *Direction) Vec3() vmath.Vec3 {
+	return vmath.Vec3(*d)
 }
 
 // World represents a position in the 3d world.
 type World vmath.Vec3
 
-func (wc World) ToProto() []byte {
-	return wc.Vec3().ToProto()
+func (wc *World) ToProto() []byte {
+	vec3 := wc.Vec3()
+	return vec3.ToProto()
 }
 
-func (wc World) Vec3() vmath.Vec3 {
-	return vmath.Vec3(wc)
+func (wc *World) Vec3() vmath.Vec3 {
+	return vmath.Vec3(*wc)
 }
 
-func (wc World) Chunk() Chunk {
-	return wc.Block().Chunk()
+func (wc *World) Chunk() Chunk {
+	block := wc.Block()
+	return block.Chunk()
 }
 
-func (wc World) Offset() Offset {
-	return wc.Block().Offset()
+func (wc *World) Offset() Offset {
+	block := wc.Block()
+	return block.Offset()
 }
 
-func (wc World) Block() Block {
+func (wc *World) Block() Block {
 	floor := func(n float64) int {
 		return int(math.Floor(n))
 	}
@@ -64,11 +68,11 @@ func (bc *Block) ToProto() []byte {
 	return buf
 }
 
-func (bc Block) Float64() (float64, float64, float64) {
+func (bc *Block) Float64() (float64, float64, float64) {
 	return float64(bc.X), float64(bc.Y), float64(bc.Z)
 }
 
-func (bc Block) Chunk() Chunk {
+func (bc *Block) Chunk() Chunk {
 	div := func(a, b int) int {
 		if a < 0 {
 			// By default, integer division in go, like in C,
@@ -90,7 +94,7 @@ func (bc Block) Chunk() Chunk {
 	}
 }
 
-func (bc Block) Offset() Offset {
+func (bc *Block) Offset() Offset {
 	mod := func(a, b int) int {
 		return ((a % b) + b) % b
 	}
@@ -101,7 +105,7 @@ func (bc Block) Offset() Offset {
 	}
 }
 
-func (bc Block) Center() World {
+func (bc *Block) Center() World {
 	return World{
 		X: float64(bc.X) + 0.5,
 		Y: float64(bc.Y) + 0.5,
@@ -124,7 +128,7 @@ func (cc *Chunk) ToProto() []byte {
 }
 
 // returns the bottom left block in this chunk
-func (cc Chunk) Origin() Block {
+func (cc *Chunk) Origin() Block {
 	return Block{
 		X: cc.X * ChunkWidth,
 		Y: cc.Y * ChunkHeight,
@@ -135,7 +139,7 @@ func (cc Chunk) Origin() Block {
 // Calls the given function with every valid offset and block coordinate
 // in this chunk.
 // TODO: Should this give both Offset and Block coordinates or just Block?
-func (cc Chunk) EachBlock(cb func(oc Offset, bc Block)) {
+func (cc *Chunk) EachBlock(cb func(oc Offset, bc Block)) {
 	chunkOrigin := cc.Origin()
 	for ocX := 0; ocX < ChunkWidth; ocX++ {
 		bcX := ocX + chunkOrigin.X
@@ -186,7 +190,7 @@ func EachOffset(cb func(oc Offset)) {
 	}
 }
 
-func (oc Offset) Block(cc Chunk) Block {
+func (oc *Offset) Block(cc Chunk) Block {
 	return Block{
 		X: oc.X + cc.X*ChunkWidth,
 		Y: oc.Y + cc.Y*ChunkHeight,
@@ -197,7 +201,7 @@ func (oc Offset) Block(cc Chunk) Block {
 // Index is the inverse of IndexOffset. Given a chunk offset coordinate,
 // it returns the offset into the standard packed chunk representation.
 // This logic is duplicated on the client.
-func (oc Offset) Index() int {
+func (oc *Offset) Index() int {
 	return oc.X*ChunkWidth*ChunkHeight +
 		oc.Y*ChunkWidth +
 		oc.Z

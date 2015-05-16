@@ -10,8 +10,6 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
-	"buildblast/lib/proto"
-	"buildblast/lib/vmath"
 )
 
 var globalGame *Game
@@ -74,7 +72,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	// actual initial state as part of the handshake,
 	// but it's currently impossible since the entity
 	// isn't yet created at the handshake stage.
-	info := makePlayerEntityCreatedMessage(game.EntityId(name), game.BioticState{})
+	info := makePlayerEntityCreatedMessage(game.EntityId(name), &game.BioticState{})
 
 	conn.Send(&MsgHandshakeReply{
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
@@ -97,39 +95,4 @@ func chunkSocketHandler(ws *websocket.Conn) {
 		return
 	}
 	client.RunChunks(NewConn(ws))
-}
-
-func protoDebugSocketHandler(ws *websocket.Conn) {
-	conn := NewConn(ws)
-
-	for {
-		data, err := conn.RecvProto()
-		if err != nil {
-			log.Println("Error", err)
-			return
-		}
-		if data[0] == 0 {
-			log.Println("Got data:", data)
-			message := "Hello, world! こんにちは世界! 𠜎"
-			sendThis := make([]byte, 1)
-			sendThis[0] = 0
-			sendThis = append(sendThis, message...)
-			conn.SendProto(sendThis)
-
-			vec := vmath.Vec3{
-				X: 1,
-				Y: 11,
-				Z: 111,
-			}
-			sendToo := make([]byte, 1)
-			sendToo[0] = 1
-			sendToo = append(sendToo, vec.ToProto()...)
-			conn.SendProto(sendToo)
-		} else {
-			log.Println("Got more data:", data)
-			vec := vmath.Vec3{}
-			vec.FromProto(data[1:])
-			log.Println("Vector!", vec.X, vec.Y, vec.Z)
-		}
-	}
 }

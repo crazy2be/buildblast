@@ -162,8 +162,8 @@ func (p *Player) Respawn(pos coords.World) {
 
 // Biotic interface
 
-func (p *Player) State() BioticState {
-	return BioticState{
+func (p *Player) State() *BioticState {
+	return &BioticState{
 		EntityState: EntityState{
 			EntityId:    p.EntityId(),
 			Body:        p.Body(),

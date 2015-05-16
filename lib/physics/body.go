@@ -28,11 +28,11 @@ func CloneBody(body *Body) *Body {
 
 func (b *Body) ToProto() []byte {
 	buf := make([]byte, 5*3*8)
-	buf = append(buf, b.Pos.ToProto())
-	buf = append(buf, b.Vel.ToProto())
-	buf = append(buf, b.Dir.ToProto())
-	buf = append(buf, b.HalfExtents.ToProto())
-	buf = append(buf, b.CenterOffset.ToProto())
+	buf = append(buf, b.Pos.ToProto()...)
+	buf = append(buf, b.Vel.ToProto()...)
+	buf = append(buf, b.Dir.ToProto()...)
+	buf = append(buf, b.HalfExtents.ToProto()...)
+	buf = append(buf, b.CenterOffset.ToProto()...)
 	return buf
 }
 

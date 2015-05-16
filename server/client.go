@@ -283,7 +283,7 @@ func (c *Client) internalRunChunks(conn *Conn) {
 	}
 }
 
-func makePlayerEntityCreatedMessage(id game.EntityId, state game.BioticState) *MsgEntityCreate {
+func makePlayerEntityCreatedMessage(id game.EntityId, state *game.BioticState) *MsgEntityCreate {
 	return &MsgEntityCreate{
 		ID:    id,
 		Kind:  game.EntityKindPlayer,
