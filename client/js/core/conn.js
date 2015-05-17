@@ -1,96 +1,93 @@
 define(function () {
-function Conn(uri) {
-	var self = this;
-	var WS_OPEN = 1;
+	function Conn(uri) {
+		var self = this;
+		var WS_OPEN = 1;
 
-	if (!uri) {
-		throw "URI required, but not provided to Conn constructor.";
-	}
-	var ws = new WebSocket(uri);
-
-	var messageQueue = [];
-	self.queue = function (kind, payload) {
-		var obj = { kind: kind, payload: payload };
-		if (ws.readyState === WS_OPEN) {
-			ws.send(JSON.stringify(obj));
-		} else {
-			messageQueue.push(obj);
+		if (!uri) {
+			throw "URI required, but not provided to Conn constructor.";
 		}
-	};
+		var ws = new WebSocket(uri);
+		ws.binaryType = "arraybuffer";
 
-	ws.onopen = function () {
-		for (var i = 0; i < messageQueue.length; i++) {
-			ws.send(JSON.stringify(messageQueue[i]));
+		var messageQueue = [];
+		self.queue = function (dataView) {
+			if (ws.readyState === WS_OPEN) {
+				ws.send(dataView);
+			} else {
+				messageQueue.push(dataView);
+			}
+		};
+
+		ws.onopen = function () {
+			for (var i = 0; i < messageQueue.length; i++) {
+				ws.send(messageQueue[i]);
+			}
+			messageQueue = [];
+		};
+
+		var handlers = {};
+		self.on = function (id, cb) {
+			handlers[id] = handlers[id] || [];
+			handlers[id].push(cb);
+		};
+
+		function handleMessage(dataView) {
+			var id = dataView.getUint8(0);
+			if (!handlers[id]) {
+				console.warn("Recieved server message of unknown id:", id, "with data", dataView);
+				return;
+			}
+			var h = handlers[id];
+			for (var i = 0; i < h.length; h++) {
+				h[i](dataView);
+			}
 		}
-		messageQueue = [];
-	};
 
 
-	var handlers = {};
-	self.on = function (kind, cb) {
-		handlers[kind] = handlers[kind] || [];
-		handlers[kind].push(cb);
-	};
+		// Should messages be parsed, and their handlers called, immediately?
+		// If false, we wait until update() is called to process messages.
+		var immediate = true;
+		self.setImmediate = function (isImmediate) {
+			immediate = !!isImmediate;
+		};
 
-	function handleMessage(data) {
-		var o = JSON.parse(data);
-		var kind = o.Kind;
-		if (!handlers[kind]) {
-			console.warn("Recieved server message of unknown type:", kind, "with data", data);
-			return;
-		}
-		var h = handlers[kind];
-		for (var i = 0; i < h.length; h++) {
-			h[i](o.Payload);
-		}
-	}
+		var incomingQueue = [];
+		self.update = function () {
+			while (incomingQueue.length) {
+				var data = incomingQueue.shift();
+				handleMessage(data);
+			}
+		};
 
+		ws.onmessage = function (ev) {
+			if (immediate) {
+				handleMessage(new DataView(ev.data));
+			} else {
+				incomingQueue.push(new DataView(ev.data));
+			}
+		};
 
-	// Should messages be parsed, and their handlers called, immediately?
-	// If false, we wait until update() is called to process messages.
-	var immediate = true;
-	self.setImmediate = function (isImmediate) {
-		immediate = !!isImmediate;
-	};
+		ws.onerror = function (ev) {
+			throw new Error("Alas, it seems I have errd. Forgive me master!", ev);
+		};
 
-	var incomingQueue = [];
-	self.update = function () {
-		while (incomingQueue.length) {
-			var data = incomingQueue.shift();
-			handleMessage(data);
-		}
-	};
-
-	ws.onmessage = function (ev) {
-		if (immediate) {
-			handleMessage(ev.data);
-		} else {
-			incomingQueue.push(ev.data);
-		}
-	};
-
-
-	ws.onerror = function (ev) {
-		throw new Error("Alas, it seems I have errd. Forgive me master!", ev);
-	};
-
-	ws.onclose = function (ev) {
-		throw new Error("Someone closed my websocket :(", ev);
-	};
-}
-
-Conn.socketURI = function (path) {
-	//self == window, but also works when in a worker.
-	var loc = self.location;
-	var uri = loc.protocol === "https:" ? "wss:" : "ws:";
-	uri += "//" + loc.host + "/sockets/" + path;
-
-	if (uri[uri.length - 1] !== '/') {
-		uri += '/';
+		ws.onclose = function (ev) {
+			throw new Error("Someone closed my websocket :(", ev);
+		};
 	}
 
-	return uri;
-};
+	Conn.socketURI = function (path) {
+		//self == window, but also works when in a worker.
+		var loc = self.location;
+		var uri = loc.protocol === "https:" ? "wss:" : "ws:";
+		uri += "//" + loc.host + "/sockets/" + path;
 
-return Conn;
+		if (uri[uri.length - 1] !== '/') {
+			uri += '/';
+		}
+
+		return uri;
+	};
+
+	return Conn;
 });

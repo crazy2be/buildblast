@@ -3,7 +3,6 @@ define(function(require) {
 var async = require("async");
 
 var Conn = require("core/conn");
-var ConnTest = require("core/connTest");
 var Clock = require("core/clock");
 var Controls = require("player/controls");
 var FeatureTester = require("featureTester");
@@ -40,38 +39,25 @@ function main () {
 	var clientID;
 	var playerEntity;
 
-	// Test a lot of awesome stuff
-	var conn2 = new ConnTest(Conn.socketURI("proto"));
-	conn2.on(0, function(dataView) {
-		function uintToString(uintArray) {
-			var encodedString = String.fromCharCode.apply(null, uintArray);
-			return decodeURIComponent(escape(encodedString));
-		}
-		console.log("Got message:", uintToString(new Uint8Array(dataView.buffer.slice(1))));
+	conn.on(1, function(dataView) {
+		var result = Protocol.unmarshalInt(1, dataView);
+		console.log("Got result:", result.value, "Read:", result.read);
 	});
-	conn2.on(1, function(dataView) {
-		var threeVec = Protocol.threeVecFromBinProto(1, dataView);
-		console.log(threeVec);
-		var buffer = new ArrayBuffer(25);
+	for (var i = 0; i < 200; i++) {
+		var buffer = new ArrayBuffer(11);
 		var dataView = new DataView(buffer);
-		dataView.setUint8(0, 1);
-		dataView.setFloat64(1, threeVec.x);
-		dataView.setFloat64(1 + 8, threeVec.y);
-		dataView.setFloat64(1 + 16, threeVec.z);
-		conn2.queue(dataView);
-	});
-	var uint8 = new Uint8Array(2);
-	uint8[0] = 0;
-	uint8[1] = 42;
-	conn2.queue(uint8);
+		Protocol.marshalInt(1, dataView, 1234567890);
+		conn.queue(dataView);
+	}
+	return;
 
 	async.parallel([
 		function (callback) {
 			Models.init(callback);
 		},
 		function (callback) {
-			conn.on('handshake-reply', function (payload) {
-				console.log("Got handshake reply:", payload);
+			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function (dataView) {
+				console.log("Got handshake reply:", dataView);
 				clock.init(payload.ServerTime);
 				clientID = payload.ClientID;
 				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)

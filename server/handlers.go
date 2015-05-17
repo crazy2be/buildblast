@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
+//	"time"
 
 	"code.google.com/p/go.net/websocket"
 
-	"buildblast/lib/game"
+//	"buildblast/lib/game"
 )
 
 var globalGame *Game
@@ -68,19 +68,24 @@ func mainSocketHandler(ws *websocket.Conn) {
 		nameNumber++
 	}
 
+	for {
+		conn.Recv()
+	}
+	fmt.Println(authMessage)
+
 	// FIXME: We could give the client their entity's
 	// actual initial state as part of the handshake,
 	// but it's currently impossible since the entity
 	// isn't yet created at the handshake stage.
-	info := makePlayerEntityCreatedMessage(game.EntityId(name), &game.BioticState{})
-
-	conn.Send(&MsgHandshakeReply{
-		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
-		ClientID:         name,
-		PlayerEntityInfo: *info,
-		Authenticated:    authed,
-		AuthMessage:      authMessage,
-	})
+//	info := makePlayerEntityCreatedMessage(game.EntityId(name), &game.BioticState{})
+//
+//	conn.Send(&MsgHandshakeReply{
+//		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
+//		ClientID:         name,
+//		PlayerEntityInfo: *info,
+//		Authenticated:    authed,
+//		AuthMessage:      authMessage,
+//	})
 
 	client.Run(conn)
 }
