@@ -68,6 +68,19 @@ Protocol.unmarshalInt = function(offset, dataView) {
 	}
 };
 
+Protocol.marshalFloat64 = function(offset, dataView, x) {
+	dataView.setFloat64(offset, x);
+	return 8;
+};
+
+Protocol.unmarshalFloat64 = function(offset, dataView) {
+	return { value: dataView.getFloat64(offset), read: 8 }
+};
+
+Protocol.marshalString = function(offset, dataView, s) {
+
+};
+
 Protocol.parseBody = function(proto) {
 	function threeVecFromProto(proto) {
 		return new THREE.Vector3(proto.X || 0, proto.Y || 0, proto.Z || 0);

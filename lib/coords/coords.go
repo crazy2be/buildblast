@@ -61,7 +61,7 @@ type Block struct {
 }
 
 func (bc *Block) ToProto() []byte {
-	buf := make([]byte, 30)
+	buf := make([]byte, 0, 30)
 	buf = append(buf, proto.MarshalInt(bc.X)...)
 	buf = append(buf, proto.MarshalInt(bc.Y)...)
 	buf = append(buf, proto.MarshalInt(bc.Z)...)
@@ -120,7 +120,7 @@ type Chunk struct {
 }
 
 func (cc *Chunk) ToProto() []byte {
-	buf := make([]byte, 30)
+	buf := make([]byte, 0, 30)
 	buf = append(buf, proto.MarshalInt(cc.X)...)
 	buf = append(buf, proto.MarshalInt(cc.Y)...)
 	buf = append(buf, proto.MarshalInt(cc.Z)...)
@@ -160,7 +160,7 @@ type Offset struct {
 }
 
 func (oc *Offset) ToProto() []byte {
-	buf := make([]byte, 30)
+	buf := make([]byte, 0, 30)
 	buf = append(buf, proto.MarshalInt(oc.X)...)
 	buf = append(buf, proto.MarshalInt(oc.Y)...)
 	buf = append(buf, proto.MarshalInt(oc.Z)...)

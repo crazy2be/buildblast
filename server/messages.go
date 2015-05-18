@@ -104,7 +104,7 @@ type MsgHandshakeReply struct {
 }
 
 func (msg *MsgHandshakeReply) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_HANDSHAKE_REPLY)
 	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
 	buf = append(buf, proto.MarshalString(msg.ClientID)...)
@@ -121,7 +121,7 @@ type MsgHandshakeError struct {
 }
 
 func (msg *MsgHandshakeError) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_HANDSHAKE_ERROR)
 	buf = append(buf, proto.MarshalString(msg.Message)...)
 	return buf
@@ -138,7 +138,7 @@ type MsgEntityCreate struct {
 }
 
 func (msg *MsgEntityCreate) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_ENTITY_CREATE)
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
@@ -157,7 +157,7 @@ type MsgEntityState struct {
 }
 
 func (msg *MsgEntityState) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_ENTITY_STATE)
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
@@ -174,7 +174,7 @@ type MsgEntityRemove struct {
 }
 
 func (msg *MsgEntityRemove) ToProto() []byte {
-	buf := make([]byte, 64)
+	buf := make([]byte, 0, 64)
 	buf = append(buf, MSG_ENTITY_REMOVE)
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	return buf
@@ -193,7 +193,7 @@ type MsgChunk struct {
 }
 
 func (msg *MsgChunk) ToProto() []byte {
-	buf := make([]byte, 3*8*32*32*32+3*30+3*8)
+	buf := make([]byte, 0, 3*8*32*32*32+3*30+3*8)
 	buf = append(buf, MSG_CHUNK)
 	buf = append(buf, msg.CCPos.ToProto()...)
 	buf = append(buf, msg.Size.ToProto()...)
@@ -211,7 +211,7 @@ type MsgBlock struct {
 }
 
 func (msg *MsgBlock) ToProto() []byte {
-	buf := make([]byte, 32)
+	buf := make([]byte, 0, 32)
 	buf = append(buf, MSG_BLOCK)
 	buf = append(buf, msg.Pos.ToProto()...)
 	buf = append(buf, byte(msg.Type))
@@ -235,7 +235,7 @@ type MsgControlsState struct {
 }
 
 func (msg *MsgControlsState) ToProto() []byte {
-	buf := make([]byte, 34+2*8)
+	buf := make([]byte, 0, 34+2*8)
 	buf = append(buf, MSG_CONTROLS_STATE)
 	buf = append(buf, msg.Controls.ToProto()...)
 	buf = append(buf, proto.MarshalFloat64(msg.Timestamp)...)
@@ -253,7 +253,7 @@ type MsgChat struct {
 }
 
 func (msg *MsgChat) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_CHAT)
 	buf = append(buf, proto.MarshalString(msg.DisplayName)...)
 	buf = append(buf, proto.MarshalString(msg.Message)...)
@@ -269,7 +269,7 @@ type MsgDebugRay struct {
 }
 
 func (msg *MsgDebugRay) ToProto() []byte {
-	buf := make([]byte, 31)
+	buf := make([]byte, 0, 31)
 	buf = append(buf, MSG_DEBUG_RAY)
 	buf = append(buf, msg.Pos.ToProto()...)
 	return buf
@@ -284,7 +284,7 @@ type MsgNtpSync struct {
 }
 
 func (msg *MsgNtpSync) ToProto() []byte {
-	buf := make([]byte, 3*8+1)
+	buf := make([]byte, 0, 3*8+1)
 	buf = append(buf, MSG_NTP_SYNC)
 	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
 	return buf
@@ -302,7 +302,7 @@ type MsgInventoryState struct {
 }
 
 func (msg *MsgInventoryState) ToProto() []byte {
-	buf := make([]byte, 1024)
+	buf := make([]byte, 0, 1024)
 	buf = append(buf, MSG_INVENTORY_STATE)
 	buf = append(buf, proto.MarshalString(msg.Items)...)
 	buf = append(buf, proto.MarshalInt(msg.ItemLeft)...)
@@ -320,7 +320,7 @@ type MsgInventoryMove struct {
 }
 
 func (msg *MsgInventoryMove) ToProto() []byte {
-	buf := make([]byte, 21)
+	buf := make([]byte, 0, 21)
 	buf = append(buf, MSG_INVENTORY_MOVE)
 	buf = append(buf, proto.MarshalInt(msg.From)...)
 	buf = append(buf, proto.MarshalInt(msg.To)...)
@@ -337,7 +337,7 @@ type MsgScoreboardAdd struct {
 }
 
 func (msg *MsgScoreboardAdd) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_SCOREBOARD_ADD)
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	buf = append(buf, proto.MarshalInt(msg.Score)...)
@@ -354,7 +354,7 @@ type MsgScoreboardSet struct {
 }
 
 func (msg *MsgScoreboardSet) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_SCOREBOARD_SET)
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	buf = append(buf, proto.MarshalInt(msg.Score)...)
@@ -370,7 +370,7 @@ type MsgScoreboardRemove struct {
 }
 
 func (msg *MsgScoreboardRemove) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, MSG_SCOREBOARD_REMOVE)
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	return buf

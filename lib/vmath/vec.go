@@ -79,7 +79,7 @@ func (v *Vec3) DistBetween(other *Vec3) float64 {
 // Protocol stuff
 
 func (v *Vec3) ToProto() []byte {
-	buf := make([]byte, 3*8)
+	buf := make([]byte, 0, 3*8)
 	buf = append(buf, proto.MarshalFloat64(v.X)...)
 	buf = append(buf, proto.MarshalFloat64(v.Y)...)
 	buf = append(buf, proto.MarshalFloat64(v.Z)...)

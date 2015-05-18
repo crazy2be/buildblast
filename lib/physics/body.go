@@ -27,7 +27,7 @@ func CloneBody(body *Body) *Body {
 // Protocol stuff
 
 func (b *Body) ToProto() []byte {
-	buf := make([]byte, 5*3*8)
+	buf := make([]byte, 0, 5*3*8)
 	buf = append(buf, b.Pos.ToProto()...)
 	buf = append(buf, b.Vel.ToProto()...)
 	buf = append(buf, b.Dir.ToProto()...)

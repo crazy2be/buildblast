@@ -20,7 +20,7 @@ func UnmarshalInt(buf []byte) (int64, int) {
 }
 
 func MarshalFloat64(v float64) []byte {
-	buf := make([]byte, 0, 8)
+	buf := make([]byte, 8)
 	bits := math.Float64bits(v)
 	binary.BigEndian.PutUint64(buf, bits)
 	return buf

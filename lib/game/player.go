@@ -26,7 +26,7 @@ type ControlState struct {
 }
 
 func (cs *ControlState) ToProto() []byte {
-	buf := make([]byte, 33)
+	buf := make([]byte, 0, 33)
 	// DOIT: Convert this to a bit field internally
 	flags := byte(0)
 	if cs.Forward {

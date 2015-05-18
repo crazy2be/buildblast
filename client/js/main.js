@@ -39,26 +39,16 @@ function main () {
 	var clientID;
 	var playerEntity;
 
-	conn.on(1, function(dataView) {
-		var result = Protocol.unmarshalInt(1, dataView);
-		console.log("Got result:", result.value, "Read:", result.read);
-	});
-	for (var i = 0; i < 200; i++) {
-		var buffer = new ArrayBuffer(11);
-		var dataView = new DataView(buffer);
-		Protocol.marshalInt(1, dataView, 1234567890);
-		conn.queue(dataView);
-	}
-	return;
-
 	async.parallel([
 		function (callback) {
 			Models.init(callback);
 		},
 		function (callback) {
 			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function (dataView) {
-				console.log("Got handshake reply:", dataView);
-				clock.init(payload.ServerTime);
+				console.log("Got handshake reply");
+				var read = 1;
+				var result = Protocol.unmarshalInt(read, dataView);
+				clock.init(result.value);
 				clientID = payload.ClientID;
 				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)
 				conn.setImmediate(false);

@@ -39,7 +39,7 @@ func (es *EntityState) Look() coords.Direction {
 }
 
 func (es *EntityState) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, proto.MarshalString(string(es.EntityId))...)
 	buf = append(buf, es.Body.ToProto()...)
 	buf = append(buf, proto.MarshalFloat64(es.LastUpdated)...)
@@ -111,7 +111,7 @@ type BioticState struct {
 }
 
 func (bs *BioticState) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, bs.EntityState.ToProto()...)
 	buf = append(buf, bs.Health.ToProto()...)
 	return buf
@@ -127,5 +127,5 @@ func (bs *BioticState) FromProto(buf []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return read+offset, nil
+	return read + offset, nil
 }

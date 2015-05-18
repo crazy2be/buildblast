@@ -27,7 +27,7 @@ type WorldItemState struct {
 }
 
 func (wis *WorldItemState) ToProto() []byte {
-	buf := make([]byte, 256)
+	buf := make([]byte, 0, 256)
 	buf = append(buf, wis.EntityState.ToProto()...)
 	buf = append(buf, byte(wis.ItemKind))
 	return buf
