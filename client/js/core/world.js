@@ -3,6 +3,7 @@ define(function(require) {
 var ChunkManager = require("chunks/chunkManager");
 var EntityManager = require("entities/entityManager");
 var Block = require("chunks/block");
+var Protocol = require("core/protocol");
 
 var common = require("chunks/chunkCommon");
 
@@ -17,12 +18,10 @@ return function World(scene, conn, clientID, clock) {
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
-	conn.on('debug-ray', processRay);
-
-	function processRay(payload) {
-		var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
-		self.addSmallCube(pos);
-	}
+	conn.on(Protocol.MSG_DEBUG_RAY, function(dataView) {
+		var posResult = Protocol.unmarshalVec3(1, dataview);
+		self.addSmallCube(posResult.value);
+	});
 
 	self.update = function (dt, playerPos) {
 		entityManager.update(dt, playerPos);

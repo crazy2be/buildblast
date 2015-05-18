@@ -111,34 +111,57 @@ Protocol.unmarshalString = function(offset, dataView) {
 			 read: returned.value + returned.read }
 };
 
-Protocol.parseBody = function(proto) {
-	function threeVecFromProto(proto) {
-		return new THREE.Vector3(proto.X || 0, proto.Y || 0, proto.Z || 0);
-	}
-	return new Body(
-		threeVecFromProto(proto.Pos),
-		threeVecFromProto(proto.Vel),
-		threeVecFromProto(proto.Dir),
-		threeVecFromProto(proto.HalfExtents),
-		threeVecFromProto(proto.CenterOffset)
-	)
+Protocol.unmarshalVec3 = function(offset, dataView) {
+	return { value: new THREE.Vector3(dataView.getFloat64(offset),
+	                                  dataView.getFloat64(offset + 8),
+									  dataView.getFloat64(offset + 16)),
+			 read: 24 }
 };
 
-Protocol.parseEntityState = function(proto) {
-	return new EntityState(proto.EntityId, Protocol.parseBody(proto.Body), proto.LastUpdated);
+Protocol.unmarshalBody = function(offset, dataView) {
+	var posResult = Protocol.unmarshalVec3(offset, dataView);
+	offset += posResult.read;
+	var velResult = Protocol.unmarshalVec3(offset, dataView);
+	offset += velResult.read;
+	var dirResult = Protocol.unmarshalVec3(offset, dataView);
+	offset += dirResult.read;
+	var halfExtentsResult = Protocol.unmarshalVec3(offset, dataView);
+	offset += halfExtentsResult.read;
+	var centerOffsetResult = Protocol.unmarshalVec3(offset, dataView);
+	return { value: new Body(posResult.value, velResult.value, dirResult.value,
+							 halfExtentsResult.value, centerOffsetResult.value),
+	         read: posResult.read + velResult.read + dirResult.read + halfExtentsResult.read
+	               + centerOffsetResult.read }
 };
 
-Protocol.parseHealth = function(proto) {
-	return new Health(proto.Life);
+Protocol.unmarshalEntityState = function(offset, dataView) {
+	var entityIdResult = Protocol.unmarshalString(offset, dataView);
+	offset += entityIdResult.read;
+	var bodyResult = Protocol.unmarshalBody(offset, dataView);
+	offset += bodyResult.read;
+	var lastUpdatedResult = Protocol.unmarshalFloat64(offset, dataView);
+	return { value: new EntityState(entityIdResult.value, bodyResult.value, lastUpdatedResult.value),
+		     read: entityIdResult.read + bodyResult.read + lastUpdatedResult.read }
 };
 
-Protocol.parseBioticState = function(proto) {
-	return new BioticState(Protocol.parseEntityState(proto.EntityState),
-			Protocol.parseHealth(proto.Health));
+Protocol.unmarshalHealth = function(offset, dataView) {
+	var result = Protocol.unmarshalInt(offset, dataView);
+	return { value: new Health(result.value), read: result.read }
 };
 
-Protocol.parseWorldItemState = function(proto) {
-	return new WorldItemState(Protocol.parseEntityState(proto.EntityState), proto.ItemKind);
+Protocol.unmarshalBioticState = function(offset, dataView) {
+	var entityStateResult = Protocol.unmarshalEntityState(offset, dataView);
+	offset += entityStateResult.read;
+	var healthResult = Protocol.unmarshalHealth(offset, dataView);
+	return { value: new BioticState(entityStateResult.value, healthResult.value),
+			 read: entityStateResult.read + healthResult.read }
+};
+
+Protocol.unmarshalWorldItemState = function(offset, dataView) {
+	var entityResult = Protocol.unmarshalEntityState(offset, dataView);
+	offset += entityResult.read;
+	return { value: new WorldItemState(entityResult.value, dataView.getUint8(offset)),
+	         read: entityResult.read + 1 }
 };
 
 Protocol.threeVecFromBinProto = function(offset, dataView) {

@@ -60,16 +60,23 @@ function main () {
 		function (callback) {
 			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(dataView) {
 				console.log("Got handshake reply");
-				var read = 1;
-				var result = Protocol.unmarshalInt(read, dataView);
+				var offset = 1;
+				var result = Protocol.unmarshalFloat64(offset, dataView);
 				clock.init(result.value);
-				clientID = payload.ClientID;
-				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)
+				offset += result.read;
+				result = Protocol.unmarshalString(offset, dataView);
+				clientID = result.value;
+				offset += result.read;
+				playerEntityResult = EntityManager.createPlayerEntity(offset, dataView);
+				playerEntity = playerEntityResult.value;
+				offset += playerEntityResult.read;
 				conn.setImmediate(false);
 				callback();
 			});
-			conn.on('handshake-error', function (payload) {
-				throw payload.Message;
+			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (dataView) {
+				console.log("Got handshake error");
+				var result = Protocol.unmarshalString(1, dataView);
+				throw result.value;
 			});
 		}
 	], function (err, results) {

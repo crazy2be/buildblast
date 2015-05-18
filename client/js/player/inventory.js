@@ -3,6 +3,8 @@ define(function(require) {
 var Stack = require("player/stack");
 var Item = require("player/item");
 
+var Protocol = require("core/protocol");
+
 var $ = require("jquery");
 var jqueryUi = require("jqueryui");
 var jqueryWaitImgs = require("jqueryWaitImgs");
@@ -44,14 +46,17 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(true);
 	updateHtmlEquipChanged(false);
 
-	conn.on('inventory-state', function (payload) {
-		var items = new Uint8Array(payload.Items.length);
+	conn.on(Protocol.MSG_INVENTORY_STATE, function (dataView) {
+		var offset = 1;
+		itemStringResult = Protocol.unmarshalString(offset, dataView);
+		offset += itemStringResult.read;
+		var items = new Uint8Array(itemStringResult.value.length);
 		for (var i = 0; i < items.length; i++) {
 			// 35: # charater. Control charaters
 			// are not allowed in JSON strings, and
 			// we want to avoid '"', which requires
 			// escaping.
-			items[i] = payload.Items.charCodeAt(i) - 35;
+			items[i] = itemStringResult.value.charCodeAt(i) - 35;
 		}
 
 		var oldLeft = leftStack();

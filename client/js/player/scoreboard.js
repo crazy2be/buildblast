@@ -1,46 +1,60 @@
 define(function(require) {
 
+var Protocol = require("core/protocol");
+
 return function Scoreboard(controls, conn, container) {
 	var self = this;
 	var scoreboard = document.getElementById("scoreboard");
 	var scores = {};
 	var dirty = false;
 
-	conn.on('scoreboard-add', handleAdd);
-	conn.on('scoreboard-set', handleSet);
-	conn.on('scoreboard-remove', handleRemove);
+	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(dataView) {
+		var offset = 1;
+		var nameResult = Protocol.unmarshalString(offset, dataView);
+		var name = nameResult.value;
+		offset += nameResult.read;
+		var scoreResult = Protocol.unmarshalInt(offset, dataView);
+		var score = scoreResult.value;
+		offset += scoreResult.read;
 
-	function handleAdd(payload) {
-		var name = payload.Name;
-		var score = payload.Score || 0;
 		if (scores[name] !== undefined) {
 			console.error("Server Error: Got scoreboard-add message for entity which is already on the scoreboard.");
 			return;
 		}
 		scores[name] = score;
 		dirty = true;
-	}
+	});
 
-	function handleSet(payload) {
-		var name = payload.Name;
-		var score = payload.Score;
+	conn.on(Protocol.MSG_SCOREBOARD_SET, function handleSet(dataView) {
+		var offset = 1;
+		var nameResult = Protocol.unmarshalString(offset, dataView);
+		var name = nameResult.value;
+		offset += nameResult.read;
+		var scoreResult = Protocol.unmarshalInt(offset, dataView);
+		var score = scoreResult.value;
+		offset += scoreResult.read;
+
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-set message for entity which is not on the scoreboard.");
 			return;
 		}
 		scores[name] = score;
 		dirty = true;
-	}
+	});
 
-	function handleRemove(payload) {
-		var name = payload.Name;
+	conn.on('scoreboard-remove', function(dataView) {
+		var offset = 1;
+		var nameResult = Protocol.unmarshalString(offset, dataView);
+		var name = nameResult.value;
+		offset += nameResult.read;
+
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-remove message for entity which is not on the scoreboard.");
 			return;
 		}
 		delete scores[name];
 		dirty = true;
-	}
+	});
 
 	var wasVisible = false;
 	self.update = function () {

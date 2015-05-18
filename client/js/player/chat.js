@@ -2,6 +2,8 @@ define(function(require) {
 
 var $ = require("jquery");
 
+var Protocol = require("core/protocol");
+
 return function Chat(controls, conn, container) {
 	var self = this;
 
@@ -9,7 +11,26 @@ return function Chat(controls, conn, container) {
 	var focused = false;
 	var chat = document.getElementById("chat");
 
-	conn.on('chat', processChat);
+	conn.on(Protocol.MSG_CHAT, function(dataView) {
+		var offset = 1;
+		displayNameResult = Protocol.unmarshalString(offset, dataView);
+		offset += displayNameResult.read;
+		messageResult = Protocol.unmarshalString(offset, dataView);
+		offset += messageResult.value;
+
+		var message = document.createElement('div');
+		message.className = "message";
+		message.innerText = displayNameResult.value + ": " + messageResult.value;
+		addTween(message);
+
+		var wrapper = document.createElement("div");
+		wrapper.className = "message-wrapper";
+		wrapper.appendChild(message);
+
+		var messages = chat.querySelector(".messages");
+		messages.appendChild(wrapper);
+		messages.scrollTop = messages.scrollHeight;
+	});
 
 	var $input = $("#chat .input");
 	$input.on('keydown', keydown);
@@ -59,21 +80,6 @@ return function Chat(controls, conn, container) {
 	function blur(event) {
 		chat.classList.remove('active');
 		focused = false;
-	}
-
-	function processChat(payload) {
-		var message = document.createElement('div');
-		message.className = "message";
-		message.innerText = payload.DisplayName + ": " + payload.Message;
-		addTween(message);
-
-		var wrapper = document.createElement("div");
-		wrapper.className = "message-wrapper";
-		wrapper.appendChild(message);
-
-		var messages = chat.querySelector(".messages");
-		messages.appendChild(wrapper);
-		messages.scrollTop = messages.scrollHeight;
 	}
 
 	var tweens = [];

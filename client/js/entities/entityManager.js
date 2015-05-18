@@ -32,47 +32,57 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	function payloadToHistoryState(payload) {
-		var kind = payload.Kind;
+	function stateToHistoryState(kind, state) {
 		var result = { time: null, data: null };
-		if (kind === EntityKindPlayer) {
-			var bioticState = Protocol.parseBioticState(payload.State);
-			result.time = bioticState.entityState.lastUpdated;
-			result.data = bioticState;
-		} else if (kind === EntityKindWorldItem) {
-			var worldItemState = Protocol.parseWorldItemState(payload.State);
-			result.time = worldItemState.entityState.lastUpdated;
-			result.data = worldItemState;
+		if (kind === EntityKindPlayer || kind == EntityKindWorldItem) {
+			result.time = state.entityState.lastUpdated;
+			result.data = state;
 		} else {
 			return null;
 		}
 		return result;
 	}
 
-	conn.on('entity-create', function(payload) {
-		var id = payload.ID;
-		var kind = payload.Kind;
+	function unmarshalState(offset, dataView, kind) {
+		var stateResult;
+		if (kind === EntityKindPlayer) {
+			stateResult = Protocol.unmarshalBioticState(offset, dataView);
+		} else if (kind === EntityKindWorldItem) {
+			stateResult = Protocol.unmarshalWorldItemState(offset, dataView);
+		}
+	}
+
+	conn.on(Protocol.MSG_ENTITY_CREATE, function(dataView) {
+		var offset = 1;
+		var idResult = Protocol.unmarshalString(offset, dataView);
+		var id = idResult.value;
+		offset += idResult.read;
+		var kindResult = Protocl.unmarshalString(offset, dataView);
+		var kind = kindResult.value;
+		offset += kindResult.read;
 
 		if (controllers[id]) {
 			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
 
-		var initialState = payloadToHistoryState(payload);
+		var stateResult = unmarshalState(offset, dataView, kind);
+		var entity;
+		if (kind === EntityKindPlayer) {
+			entity = new Biotic(stateResult.value);
+			entity.add(new PlayerMesh());
+		} else if (kind === EntityKindWorldItem) {
+			entity = new WorldItem(stateResult.value);
+			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
+		}
+		offset += stateResult.read;
+		entity.addTo(scene);
+
+		var initialState = stateToHistoryState(kind, stateResult.value);
 		if (initialState == null) {
 			console.warn("Got entity create message for unrecognized entity kind", kind);
 			return;
 		}
-
-		var entity;
-		if (kind === EntityKindPlayer) {
-			entity = new Biotic(initialState.data);
-			entity.add(new PlayerMesh());
-		} else if (kind === EntityKindWorldItem) {
-			entity = new WorldItem(initialState.data);
-			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
-		}
-		entity.addTo(scene);
 
 		var controller = new EntityLagInducer(entity, initialState);
 
@@ -88,18 +98,26 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on('entity-state', function (payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_STATE, function(dataView) {
+		var offset = 1;
+		var idResult = Protocol.unmarshalString(offset, dataView);
+		var id = idResult.value;
+		offset += idResult.read;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
-		controller.message(payloadToHistoryState(payload));
+		var kindResult = Protocol.unmarshalString(offset, dataView);
+		var kind = kindResult.value;
+		offset += kindResult.read;
+		var stateResult = unmarshalState(offset, dataView, kind);
+		controller.message(stateToHistoryState(kind, stateResult.value));
 	});
 
-	conn.on('entity-remove', function(payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_REMOVE, function(dataView) {
+		var idResult = Protocol.unmarshalString(1, dataView);
+		var id = idResult.value;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);
@@ -129,8 +147,9 @@ function EntityManager(scene, conn, world, clock) {
 	};
 }
 
-EntityManager.createPlayerEntity = function(payload) {
-	return new Biotic(Protocol.parseBioticState(payload.State));
+EntityManager.createPlayerEntity = function(offset, dataView) {
+	var result = Protocol.unmarshalBioticState(offset, dataView);
+	return { value: new Biotic(result.value), read: result.read }
 };
 
 return EntityManager;
