@@ -39,12 +39,26 @@ function main () {
 	var clientID;
 	var playerEntity;
 
+	// DOIT: Proto testing
+	//var append = Protocol.append;
+	//conn.on(0, function(dataView) {
+	//	var result = Protocol.unmarshalString(1, dataView);
+	//	console.log("Got reply:", result.value);
+	//});
+	//var buf = new ArrayBuffer(1);
+	//var dataView = new DataView(buf);
+	//dataView.setUint8(0, 0);
+	//buf = append(buf, Protocol.marshalString("Hello, world! こんにちは世界! 𠜎"));
+	//conn.queue(new DataView(buf));
+	//console.log("Sent:", "Hello, world! こんにちは世界! 𠜎");
+	//return;
+
 	async.parallel([
 		function (callback) {
 			Models.init(callback);
 		},
 		function (callback) {
-			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function (dataView) {
+			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(dataView) {
 				console.log("Got handshake reply");
 				var read = 1;
 				var result = Protocol.unmarshalInt(read, dataView);

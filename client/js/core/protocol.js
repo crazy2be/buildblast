@@ -42,12 +42,11 @@ Protocol.marshalInt = function(x) {
 
 	var i = 0;
 	while (ux >= 0x80) {
-		buf[i] = ux | 0x80;
+		buf[i++] = ux | 0x80;
 		ux >>>= 7;
-		i++;
 	}
-	buf[i] = ux;
-	return buf.subarray(0, i).buffer;
+	buf[i++] = ux;
+	return buf.buffer.slice(0, i);
 };
 
 // Ported from varint.go
@@ -88,12 +87,14 @@ Protocol.unmarshalFloat64 = function(offset, dataView) {
 };
 
 Protocol.marshalString = function(s) {
-	var result = Protocol.marshalInt(s.length*2);
+	var utf8 = unescape(encodeURIComponent(s));
+	var result = Protocol.marshalInt(utf8.length);
+	console.log(result.length, utf8.length);
 
-	var buf = new ArrayBuffer(s.length*2); // 2 bytes for each char
-	var bufView = new Uint16Array(buf);
-	for (var i = 0, strLen=str.length; i < strLen; i++) {
-		bufView[i] = s.charCodeAt(i);
+	var buf = new ArrayBuffer(utf8.length);
+	var bufView = new Uint8Array(buf);
+	for (var i = 0, len = utf8.length; i < len; i++) {
+		bufView[i] = utf8.charCodeAt(i);
 	}
 	return Protocol.append(result, buf);
 };
@@ -103,9 +104,10 @@ Protocol.unmarshalString = function(offset, dataView) {
 		var encodedString = String.fromCharCode.apply(null, uintArray);
 		return decodeURIComponent(escape(encodedString));
 	}
-	var returned = Protocol.unmarshalInt(0, dataView);
-	offset += returned.read;
-	return { value: uintToString(new Uint8Array(dataView.buffer.slice(offset, offset + returned.value))),
+	var returned = Protocol.unmarshalInt(offset, dataView);
+	return { value: uintToString(
+				new Uint8Array(
+					dataView.buffer.slice(offset + returned.read, offset + returned.read + returned.value))),
 			 read: returned.value + returned.read }
 };
 

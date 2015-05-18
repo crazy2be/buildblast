@@ -38,7 +38,7 @@ func MarshalString(s string) []byte {
 }
 
 func UnmarshalString(buf []byte) (string, int) {
-	strLen, read := UnmarshalInt(buf)
-	totalBytes := int(strLen) + read
+	length, read := UnmarshalInt(buf)
+	totalBytes := int(length) + read
 	return string(buf[read:totalBytes]), totalBytes
 }
