@@ -1,5 +1,7 @@
 define(function(require){
 
+var THREE = require("THREE");
+
 var Body = require("physics/body");
 var EntityState = require("entities/model/entityState");
 var Health = require("entities/model/health");
@@ -78,7 +80,7 @@ Protocol.unmarshalInt = function(offset, dataView) {
 Protocol.marshalFloat64 = function(x) {
 	var buf = new ArrayBuffer(8);
 	var dataView = new DataView(buf);
-	dataView.setFloat64(x);
+	dataView.setFloat64(0, x);
 	return buf;
 };
 

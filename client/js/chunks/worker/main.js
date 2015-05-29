@@ -1,4 +1,5 @@
 define(function(require) {
+
 var common = require("chunks/chunkCommon");
 var CHUNK = common.CHUNK;
 
@@ -9,6 +10,7 @@ var ChunkGeometry = require("./chunkGeometry");
 var WorkerChunkManager = require("./workerChunkManager");
 
 var Conn = require("core/conn");
+var Protocol = require("core/protocol");
 
 function sendChunk() {
 	var chunk = manager.top();
@@ -41,39 +43,47 @@ parent.onmessage = function (e) {
 
 function initConn(payload) {
 	var conn = new Conn(payload.uri);
-	conn.on('chunk', processChunk);
-	conn.on('block', processBlockChange);
+	conn.on(Protocol.MSG_CHUNK, processChunk);
+	conn.on(Protocol.MSG_BLOCK, processBlockChange);
 }
 
 var manager = new WorkerChunkManager();
 
-function processChunk(payload) {
-	var size = payload.Size;
-	if (size.X != CHUNK.WIDTH ||
-		size.Y != CHUNK.HEIGHT ||
-		size.Z != CHUNK.DEPTH
+function processChunk(dataView) {
+	var cc = {};
+	var offset = 1;
+	var result = Protocol.unmarshalInt(offset, dataView);
+	cc.x = result.value;
+	offset += result.read;
+	result = Protocol.unmarshalInt(offset, dataView);
+	cc.y = result.value;
+	offset += result.read;
+	result = Protocol.unmarshalInt(offset, dataView);
+	cc.z = result.value;
+	offset += result.read;
+
+	result = Protocol.unmarshalVec3(offset, dataView);
+	size = result.value;
+	offset += result.read;
+	if (size.x != CHUNK.WIDTH ||
+		size.y != CHUNK.HEIGHT ||
+		size.z != CHUNK.DEPTH
 	) {
 		throw "Got chunk of size which does not match our expected chunk size!";
 	}
 
-	var cc = {
-		x: payload.CCPos.X,
-		y: payload.CCPos.Y,
-		z: payload.CCPos.Z,
-	};
-	var data = payload.Data;
+	// Blocks are Block Types (see block.js)
+	var blocks = new Uint8Array(dataView.buffer.slice(offset,
+			offset + 32*32*32));
+	console.log(blocks.length);
+	for (var i = 0; i < blocks.length; i++) {
+		if (blocks[i] == undefined) {
+			console.log("Undefined at index", i);
+		}
+	}
 
-	//Blocks are Block Types (see block.js)
 	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
 	//into indices in this array.
-	var blocks = new Uint8Array(data.length);
-	for (var i = 0; i < blocks.length; i++) {
-		// 35: # charater. Control charaters
-		// are not allowed in JSON strings, and
-		// we want to avoid '"', which requires
-		// escaping.
-		blocks[i] = data.charCodeAt(i) - 35;
-	}
 
 	var chunk = manager.get(cc);
 	if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);

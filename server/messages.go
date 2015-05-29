@@ -187,17 +187,15 @@ func (msg *MsgEntityRemove) FromProto(buf []byte) (int, error) {
 type MsgChunk struct {
 	CCPos coords.Chunk
 	Size  vmath.Vec3
-	// Go is really slow at encoding JSON arrays. This
-	// is much faster (and more space efficient)
-	Data string
+	Data  []byte
 }
 
 func (msg *MsgChunk) ToProto() []byte {
-	buf := make([]byte, 0, 3*8*32*32*32+3*30+3*8)
+	buf := make([]byte, 0, 1+3*30+3*8+32*32*32)
 	buf = append(buf, MSG_CHUNK)
 	buf = append(buf, msg.CCPos.ToProto()...)
 	buf = append(buf, msg.Size.ToProto()...)
-	buf = append(buf, proto.MarshalString(msg.Data)...)
+	buf = append(buf, msg.Data...)
 	return buf
 }
 
@@ -224,22 +222,12 @@ func (msg *MsgBlock) FromProto(buf []byte) (int, error) {
 
 type MsgControlsState struct {
 	Controls game.ControlState
-	// JavaScript performance.now() timestamp.
-	// TimeStamp is when it was sent, ViewTimestamp is
-	// what time the client was displaying when it was sent
-	// (with lag induction they may differ).
-
-	// DOIT: Why is this here when it's part of the Control state?
-	Timestamp     float64
-	ViewTimestamp float64
 }
 
 func (msg *MsgControlsState) ToProto() []byte {
-	buf := make([]byte, 0, 34+2*8)
+	buf := make([]byte, 0, 34)
 	buf = append(buf, MSG_CONTROLS_STATE)
 	buf = append(buf, msg.Controls.ToProto()...)
-	buf = append(buf, proto.MarshalFloat64(msg.Timestamp)...)
-	buf = append(buf, proto.MarshalFloat64(msg.ViewTimestamp)...)
 	return buf
 }
 

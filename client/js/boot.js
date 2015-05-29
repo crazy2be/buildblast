@@ -30,7 +30,9 @@ requirejs.config({
 	}
 });
 
-require(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, math, fatalError, debug, THREE) {
+require(["main", "settings", "math", "fatalError", "debug", "THREE"],
+		function(main, __loadSettingsScheme, math, fatalError, debug, THREE)
+{
 	THREE.DVector3 = debug.DVector3;
 
 	window.onerror = function (msg, url, lineno) {

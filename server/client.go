@@ -66,8 +66,6 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 
 	case *MsgControlsState:
 		m := m.(*MsgControlsState)
-		m.Controls.Timestamp = m.Timestamp
-		m.Controls.ViewTimestamp = m.ViewTimestamp
 		c.handleControlState(g, w, m)
 
 	case *MsgChat:
@@ -274,7 +272,7 @@ func (c *Client) internalRunChunks(conn *Conn) {
 				m := &MsgChunk{
 					CCPos: cc,
 					Size:  coords.ChunkSize,
-					Data:  chunk.Flatten(),
+					Data:  chunk.ToByteArray(),
 				}
 				conn.Send(m)
 			}

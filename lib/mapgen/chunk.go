@@ -1,9 +1,8 @@
 package mapgen
 
 import (
-	"fmt"
-
 	"buildblast/lib/coords"
+	"fmt"
 )
 
 type Chunk struct {
@@ -37,30 +36,13 @@ func (c *Chunk) Each(cb func(oc coords.Offset, block Block)) {
 	})
 }
 
-// Flatten returns the chunk data as a string. It
-// can be used for various forms of serialization
-// where a valid UTF-8 string is required, and
-// efficiency (in terms of size) is not hugely
-// important. We use this format for chunk data
-// in JSON documents because:
-//  a) It's smaller, at least half the size, of a
-//     normal JSON array, potentially more.
-//     (depending on the contents)
-//  b) It's much faster - the go JSON implementation
-//     isn't particulilly fast at serializing large
-//     arrays of numbers.
-func (c *Chunk) Flatten() string {
+func (c *Chunk) ToByteArray() []byte {
 	data := make([]byte, coords.BlocksPerChunk)
 	for i := 0; i < coords.BlocksPerChunk; i++ {
-		// 35: # charater. Control charaters are not allowed in JSON
-		// strings, and we want to avoid '"', which requires escaping.
-		value := byte(c.blocks[i] + 35)
-		if value >= 127 || value < 35 {
-			panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to chunk data. (It might work but we need to test it)", value))
-		}
-		data[i] = value
+		data[i] = byte(c.blocks[i])
 	}
-	return string(data)
+
+	return data
 }
 
 // TODO: Is this function needed?

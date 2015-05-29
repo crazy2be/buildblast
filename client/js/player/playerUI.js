@@ -9,6 +9,8 @@ var Inventory = require("player/inventory");
 
 var PerfChart = require("perf/chart");
 
+var Protocol = require("core/protocol");
+
 return function PlayerUI(world, conn, clock, container, controls, playerEntity, playerController) {
 	var self = this;
 
@@ -78,12 +80,23 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 		var c = controls.sample();
 
-		var controlState = {
-			Controls: c,
-			Timestamp: clock.time(),
-			ViewTimestamp: clock.entityTime()
-		};
-		conn.queue('controls-state', controlState);
+		var buf = new ArrayBuffer(2);
+		var dataView = new DataView(buf);
+		var flags = 0;
+		flags |= (c.Forward ? 1 : 0)       << 0;
+		flags |= (c.Left ? 1 : 0)          << 1;
+		flags |= (c.Right ? 1 : 0)         << 2;
+		flags |= (c.Back ? 1 : 0)          << 3;
+		flags |= (c.Jump ? 1 : 0)          << 4;
+		flags |= (c.ActivateLeft ? 1 : 0)  << 5;
+		flags |= (c.ActivateRight ? 1 : 0) << 6;
+		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
+		dataView.setUint8(1, flags);
+		buf = Protocol.append(buf, Protocol.marshalFloat64(c.lat));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(c.lon));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(clock.time()));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(clock.entityTime()));
+		conn.queue(new DataView(buf));
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();
