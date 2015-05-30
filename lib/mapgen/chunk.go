@@ -2,7 +2,6 @@ package mapgen
 
 import (
 	"buildblast/lib/coords"
-	"fmt"
 )
 
 type Chunk struct {

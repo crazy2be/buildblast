@@ -4,6 +4,7 @@ var Chunk = require("./chunk");
 var common = require("./chunkCommon");
 
 var Conn = require("core/conn");
+var Protocol = require("core/protocol");
 
 return function ChunkManager(scene, clientID) {
 	var self = this;
@@ -16,12 +17,19 @@ return function ChunkManager(scene, clientID) {
 	};
 
 	self.queueBlockChange = function (wcX, wcY, wcZ, newType) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_BLOCK);
+		buf = Protocol.append(buf, Protocol.marshalFloat64(wcX));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(wcY));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(wcZ));
+		var temp = new ArrayBuffer(1);
+		dataView = new DataView(temp);
+		dataView.setUint8(0, newType);
+		buf = Protocol.append(buf, temp);
 		geometryWorker.postMessage({
 			'kind': 'block-change',
-			'payload': {
-				'Pos': {X: wcX, Y: wcY, Z: wcZ},
-				'Type': newType
-			}
+			'dataView': new DataView(buf)
 		});
 	};
 

@@ -68,6 +68,22 @@ func (bc *Block) ToProto() []byte {
 	return buf
 }
 
+func (bc *Block) FromProto(buf []byte) (int, error) {
+	offset := 0
+	var value int64
+	var read int
+	value, read = proto.UnmarshalInt(buf)
+	bc.X = int(value)
+	offset += read
+	value, read = proto.UnmarshalInt(buf[offset:])
+	bc.Y = int(value)
+	offset += read
+	value, read = proto.UnmarshalInt(buf[offset:])
+	bc.Z = int(value)
+	offset += read
+	return offset, nil
+}
+
 func (bc *Block) Float64() (float64, float64, float64) {
 	return float64(bc.X), float64(bc.Y), float64(bc.Z)
 }

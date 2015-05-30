@@ -35,7 +35,7 @@ parent.onmessage = function (e) {
 	if (e.data.kind === 'start-conn') {
 		initConn(e.data.payload);
 	} else if (e.data.kind === 'block-change') {
-		processBlockChange(e.data.payload);
+		processBlockChange(e.data.dataView);
 	} else {
 		throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
 	}
@@ -75,7 +75,6 @@ function processChunk(dataView) {
 	// Blocks are Block Types (see block.js)
 	var blocks = new Uint8Array(dataView.buffer.slice(offset,
 			offset + 32*32*32));
-	console.log(blocks.length);
 	for (var i = 0; i < blocks.length; i++) {
 		if (blocks[i] == undefined) {
 			console.log("Undefined at index", i);
@@ -93,10 +92,18 @@ function processChunk(dataView) {
 	manager.refreshNeighbouring(cc);
 }
 
-function processBlockChange(payload) {
-	var pos = payload.Pos;
-	var type = payload.Type;
-	var x = pos.X, y = pos.Y, z = pos.Z;
+function processBlockChange(dataView) {
+	var offset = 1;
+	var result = Protocol.unmarshalFloat64(offset, dataView);
+	var x = result.value;
+	offset += result.read;
+	result = Protocol.unmarshalFloat64(offset, dataView);
+	var y = result.value;
+	offset += result.read;
+	result = Protocol.unmarshalFloat64(offset, dataView);
+	var z = result.value;
+	offset += result.read;
+	var type = dataView.getUint8(offset);
 	var coords = common.worldToChunk(x, y, z);
 	var cc = coords.c;
 	var oc = coords.o;

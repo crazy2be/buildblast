@@ -217,7 +217,9 @@ func (msg *MsgBlock) ToProto() []byte {
 }
 
 func (msg *MsgBlock) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	read, _ := msg.Pos.FromProto(buf[1:])
+	msg.Type = mapgen.Block(buf[read+1])
+	return read + 1, nil
 }
 
 type MsgControlsState struct {
@@ -232,7 +234,8 @@ func (msg *MsgControlsState) ToProto() []byte {
 }
 
 func (msg *MsgControlsState) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	read, err := msg.Controls.FromProto(buf[1:])
+	return read + 1, err
 }
 
 type MsgChat struct {

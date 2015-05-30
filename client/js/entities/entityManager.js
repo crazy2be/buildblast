@@ -50,6 +50,7 @@ function EntityManager(scene, conn, world, clock) {
 		} else if (kind === EntityKindWorldItem) {
 			stateResult = Protocol.unmarshalWorldItemState(offset, dataView);
 		}
+		return stateResult;
 	}
 
 	conn.on(Protocol.MSG_ENTITY_CREATE, function(dataView) {
@@ -67,6 +68,7 @@ function EntityManager(scene, conn, world, clock) {
 		}
 
 		var stateResult = unmarshalState(offset, dataView, kind);
+		console.log("OnCreate", stateResult);
 		var entity;
 		if (kind === EntityKindPlayer) {
 			entity = new Biotic(stateResult.value);

@@ -84,7 +84,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		})
 
 	default:
-		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m)))
+		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s, %s", reflect.TypeOf(m), m))
 	}
 }
 
