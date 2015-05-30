@@ -305,7 +305,18 @@ func (msg *MsgInventoryState) ToProto() []byte {
 }
 
 func (msg *MsgInventoryState) FromProto(buf []byte) (int, error) {
-	panic("FromProto not implemented: MsgInventoryState")
+	var value int64
+	var read int
+	offset := 1
+	// Client doesn't send the string
+	value, read = proto.UnmarshalInt(buf[offset:])
+	msg.ItemLeft = int(value)
+	offset += read
+	value, read = proto.UnmarshalInt(buf[offset:])
+	msg.ItemRight = int(value)
+	offset += read
+	return read, nil
+
 }
 
 type MsgInventoryMove struct {
@@ -322,7 +333,16 @@ func (msg *MsgInventoryMove) ToProto() []byte {
 }
 
 func (msg *MsgInventoryMove) FromProto(buf []byte) (int, error) {
-	panic("FromProto not implemented: MsgInventoryMove")
+	var value int64
+	var read int
+	offset := 1
+	value, read = proto.UnmarshalInt(buf[offset:])
+	msg.From = int(value)
+	offset += read
+	value, read = proto.UnmarshalInt(buf[offset:])
+	msg.To = int(value)
+	offset += read
+	return read, nil
 }
 
 type MsgScoreboardAdd struct {

@@ -137,10 +137,12 @@ function Inventory(world, camera, conn, controls) {
 				$fromSpan.text($toSpan.text());
 				$toSpan.text(fromText);
 
-				conn.queue('inventory-move', {
-					From: parseInt(from),
-					To: parseInt(to),
-				});
+				var buf = new ArrayBuffer(1);
+				var dataView = new DataView(buf);
+				dataView.setUint8(0, Protocol.MSG_INVENTORY_MOVE);
+				buf = Protocol.append(buf, Protocol.marshalInt(parseInt(from)));
+				buf = Protocol.append(buf, Protocol.marshalInt(parseInt(to)));
+				conn.queue(new dataView(buf));
 			},
 		});
 	}
@@ -236,10 +238,12 @@ function Inventory(world, camera, conn, controls) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
 				updateModels();
-				conn.queue('inventory-state', {
-					ItemLeft: getEquippedSlot(true, leftIsPrimary),
-					ItemRight: getEquippedSlot(false, rightIsPrimary),
-				});
+				var buf = new ArrayBuffer(1);
+				var dataView = new DataView(buf);
+				dataView.setUint8(0, Protocol.MSG_INVENTORY_STATE);
+				buf = Protocol.append(buf, Protocol.marshalInt(getEquippedSlot(true, leftIsPrimary)));
+				buf = Protocol.append(buf, Protocol.marshalInt(getEquippedSlot(false, rightIsPrimary)));
+				conn.queue(new DataView(buf));
 				updateHtmlEquipChanged(isLeft);
 			}
 
