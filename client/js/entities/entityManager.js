@@ -58,7 +58,7 @@ function EntityManager(scene, conn, world, clock) {
 		var idResult = Protocol.unmarshalString(offset, dataView);
 		var id = idResult.value;
 		offset += idResult.read;
-		var kindResult = Protocl.unmarshalString(offset, dataView);
+		var kindResult = Protocol.unmarshalString(offset, dataView);
 		var kind = kindResult.value;
 		offset += kindResult.read;
 

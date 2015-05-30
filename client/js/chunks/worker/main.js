@@ -94,13 +94,13 @@ function processChunk(dataView) {
 
 function processBlockChange(dataView) {
 	var offset = 1;
-	var result = Protocol.unmarshalFloat64(offset, dataView);
+	var result = Protocol.unmarshalInt(offset, dataView);
 	var x = result.value;
 	offset += result.read;
-	result = Protocol.unmarshalFloat64(offset, dataView);
+	result = Protocol.unmarshalInt(offset, dataView);
 	var y = result.value;
 	offset += result.read;
-	result = Protocol.unmarshalFloat64(offset, dataView);
+	result = Protocol.unmarshalInt(offset, dataView);
 	var z = result.value;
 	offset += result.read;
 	var type = dataView.getUint8(offset);

@@ -19,7 +19,7 @@ return function World(scene, conn, clientID, clock) {
 	window.testExposure.entityManager = entityManager;
 
 	conn.on(Protocol.MSG_DEBUG_RAY, function(dataView) {
-		var posResult = Protocol.unmarshalVec3(1, dataview);
+		var posResult = Protocol.unmarshalVec3(1, dataView);
 		self.addSmallCube(posResult.value);
 	});
 
@@ -135,7 +135,8 @@ return function World(scene, conn, clientID, clock) {
 		dataView = new DataView(temp);
 		dataView.setUint8(0, newType);
 		buf = Protocol.append(buf, temp);
-		conn.queue(Protocol.MSG_BLOCK, dataView);
+		dataView = new DataView(buf);
+		conn.queue(dataView);
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 
 	"buildblast/lib/coords"
@@ -54,7 +55,7 @@ func idToType(id MessageId) Message {
 	case MSG_INVENTORY_MOVE:
 		return &MsgInventoryMove{}
 	}
-	panic("Unknown message recieved from client: " + string(id))
+	panic(fmt.Sprintf("Unknown message recieved from client: %d", id))
 }
 
 func typeToId(m Message) MessageId {
