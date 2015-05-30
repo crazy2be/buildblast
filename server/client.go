@@ -222,7 +222,7 @@ func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
 }
 
 func (c *Client) WorldItemUpdated(id game.EntityId, worldItem *game.WorldItem) {
-	c.SendLossy(&MsgEntityState{
+	c.Send(&MsgEntityState{
 		ID:    id,
 		Kind:  game.EntityKindWorldItem,
 		State: worldItem.State(),

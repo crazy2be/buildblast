@@ -74,7 +74,7 @@ function processChunk(dataView) {
 
 	// Blocks are Block Types (see block.js)
 	var blocks = new Uint8Array(dataView.buffer.slice(offset,
-			offset + 32*32*32));
+			offset + dataView.byteOffset + dataView.byteLength));
 	for (var i = 0; i < blocks.length; i++) {
 		if (blocks[i] == undefined) {
 			console.log("Undefined at index", i);

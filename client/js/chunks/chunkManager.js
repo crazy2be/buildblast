@@ -20,9 +20,9 @@ return function ChunkManager(scene, clientID) {
 		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
 		dataView.setUint8(0, Protocol.MSG_BLOCK);
-		buf = Protocol.append(buf, Protocol.marshalFloat64(wcX));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(wcY));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(wcZ));
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcX)));
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcY)));
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcZ)));
 		var temp = new ArrayBuffer(1);
 		dataView = new DataView(temp);
 		dataView.setUint8(0, newType);

@@ -27,16 +27,6 @@ func (c *Conn) Send(m Message) error {
 }
 
 func (c *Conn) Recv() (Message, error) {
-	// DOIT: Proto testing
-	//	var data []byte
-	//	websocket.Message.Receive(c.ws, &data)
-	//	value, _ := proto.UnmarshalString(data[1:])
-	//	fmt.Printf("Got stuff: %s\n", value)
-	//	data = make([]byte, 1)
-	//	data[0] = 0
-	//	data = append(data, proto.MarshalString(value)...)
-	//	websocket.Message.Send(c.ws, data)
-	//	return nil, nil
 	var data []byte
 	err := websocket.Message.Receive(c.ws, &data)
 	if err != nil {

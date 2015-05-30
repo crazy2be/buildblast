@@ -132,7 +132,7 @@ Block.TEXTURE_MAP = [
 	/** GLASS        */ same(13),
 ];
 Block.getTileOffset = function (blockType, face) {
-	var index = Block.TEXTURE_MAP[blockType][face]; // DOIT: This is causing undefined errors.
+	var index = Block.TEXTURE_MAP[blockType][face];
 	if (index < 0) {
 		throw "I don't know how to render that... TYPE: " + blockType + " FACE: " + face;
 	}

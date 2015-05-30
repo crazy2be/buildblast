@@ -68,11 +68,6 @@ func mainSocketHandler(ws *websocket.Conn) {
 		nameNumber++
 	}
 
-	// DOIT: Proto testing
-	//	for {
-	//		conn.Recv()
-	//	}
-
 	// FIXME: We could give the client their entity's
 	// actual initial state as part of the handshake,
 	// but it's currently impossible since the entity
