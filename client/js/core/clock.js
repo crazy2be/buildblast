@@ -72,10 +72,7 @@ return function Clock(conn) {
 	var clientTime = now();
 	function startSync() {
 		clientTime = now();
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_NTP_SYNC);
-		conn.queue(dataView);
+		conn.queue(Protocol.MsgNtpSync.toProto());
 	}
 
 	// http://en.wikipedia.org/wiki/Network_Time_Protocol

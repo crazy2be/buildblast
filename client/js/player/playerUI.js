@@ -79,23 +79,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 		scoreBoard.update(clock.dt());
 
 		var c = controls.sample();
-		var flags = 0;
-		flags |= (c.forward ? 1 : 0)       << 0;
-		flags |= (c.left ? 1 : 0)          << 1;
-		flags |= (c.right ? 1 : 0)         << 2;
-		flags |= (c.back ? 1 : 0)          << 3;
-		flags |= (c.jump ? 1 : 0)          << 4;
-		flags |= (c.activateLeft ? 1 : 0)  << 5;
-		flags |= (c.activateRight ? 1 : 0) << 6;
-		var buf = new ArrayBuffer(2);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
-		dataView.setUint8(1, flags);
-		buf = Protocol.append(buf, Protocol.marshalFloat64(c.lat));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(c.lon));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(clock.time()));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(clock.entityTime()));
-		conn.queue(new DataView(buf));
+		conn.queue(Protocol.MsgControlsState.toProto(c, clock.time(), clock.entityTime()));
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();

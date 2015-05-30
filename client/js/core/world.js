@@ -125,18 +125,7 @@ return function World(scene, conn, clientID, clock) {
 	};
 
 	self.changeBlock = function(wcX, wcY, wcZ, newType) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_BLOCK);
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcX)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcY)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcZ)));
-		var temp = new ArrayBuffer(1);
-		dataView = new DataView(temp);
-		dataView.setUint8(0, newType);
-		buf = Protocol.append(buf, temp);
-		dataView = new DataView(buf);
-		conn.queue(dataView);
+		conn.queue(Protocol.MsgBlock.toProto(wcX, wcY, wcZ, newType));
 		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
 	}
 }

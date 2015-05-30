@@ -59,11 +59,7 @@ return function Chat(controls, conn, container) {
 
 		var text = $.trim($input.val());
 		if (text !== '') {
-			var buf = new ArrayBuffer(1);
-			var dataView = new DataView(buf);
-			dataView.setUint8(0, Protocol.MSG_CHAT);
-			buf = Protocol.append(buf, Protocol.marshalString($input.val()));
-			conn.queue(new DataView(buf));
+			conn.queue(Protocol.MsgChat.toProto(text));
 		}
 
 		$input.val("").blur();

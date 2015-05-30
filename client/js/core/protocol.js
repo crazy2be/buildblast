@@ -286,6 +286,19 @@ Protocol.MsgChunk = {
 };
 
 Protocol.MsgBlock = {
+	toProto: function(wcX, wcY, wcZ, newType) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_BLOCK);
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcX)));
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcY)));
+		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcZ)));
+		var temp = new ArrayBuffer(1);
+		dataView = new DataView(temp);
+		dataView.setUint8(0, newType);
+		buf = Protocol.append(buf, temp);
+		return new DataView(buf);
+	},
 	fromProto: function(dataView) {
 		var result = {};
 		result.pos = {};
@@ -304,7 +317,36 @@ Protocol.MsgBlock = {
 	}
 };
 
+Protocol.MsgControlsState =  {
+	toProto: function(controls, time, entityTime) {
+		var flags = 0;
+		flags |= (controls.forward ? 1 : 0)       << 0;
+		flags |= (controls.left ? 1 : 0)          << 1;
+		flags |= (controls.right ? 1 : 0)         << 2;
+		flags |= (controls.back ? 1 : 0)          << 3;
+		flags |= (controls.jump ? 1 : 0)          << 4;
+		flags |= (controls.activateLeft ? 1 : 0)  << 5;
+		flags |= (controls.activateRight ? 1 : 0) << 6;
+		var buf = new ArrayBuffer(2);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
+		dataView.setUint8(1, flags);
+		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lat));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lon));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(time));
+		buf = Protocol.append(buf, Protocol.marshalFloat64(entityTime));
+		return new DataView(buf);
+	}
+};
+
 Protocol.MsgChat = {
+	toProto: function(text) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_CHAT);
+		buf = Protocol.append(buf, Protocol.marshalString(text));
+		return new DataView(buf);
+	},
 	fromProto: function(dataView) {
 		var result = {};
 		var offset = 1;
@@ -327,6 +369,12 @@ Protocol.MsgDebugRay = {
 };
 
 Protocol.MsgNtpSync = {
+	toProto: function() {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_NTP_SYNC);
+		return dataView;
+	},
 	fromProto: function(dataView) {
 		var result = {};
 		var proto = Protocol.unmarshalFloat64(1, dataView);
@@ -336,6 +384,14 @@ Protocol.MsgNtpSync = {
 };
 
 Protocol.MsgInventoryState = {
+	toProto: function(equippedLeft, equippedRight) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_INVENTORY_STATE);
+		buf = Protocol.append(buf, Protocol.marshalInt(equippedLeft));
+		buf = Protocol.append(buf, Protocol.marshalInt(equippedRight));
+		return new DataView(buf);
+	},
 	fromProto: function(dataView) {
 		var result = {};
 		var offset = 1;
@@ -344,6 +400,17 @@ Protocol.MsgInventoryState = {
 		offset += proto.read;
 		result.items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
 		return result;
+	}
+};
+
+Protocol.MsgInventoryMove = {
+	toProto: function(from, to) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_INVENTORY_MOVE);
+		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(from)));
+		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(to)));
+		return new DataView(buf);
 	}
 };
 
