@@ -142,7 +142,7 @@ function Inventory(world, camera, conn, controls) {
 				dataView.setUint8(0, Protocol.MSG_INVENTORY_MOVE);
 				buf = Protocol.append(buf, Protocol.marshalInt(parseInt(from)));
 				buf = Protocol.append(buf, Protocol.marshalInt(parseInt(to)));
-				conn.queue(new dataView(buf));
+				conn.queue(new DataView(buf));
 			},
 		});
 	}
