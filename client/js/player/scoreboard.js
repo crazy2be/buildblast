@@ -9,13 +9,9 @@ return function Scoreboard(controls, conn, container) {
 	var dirty = false;
 
 	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(dataView) {
-		var offset = 1;
-		var nameResult = Protocol.unmarshalString(offset, dataView);
-		var name = nameResult.value;
-		offset += nameResult.read;
-		var scoreResult = Protocol.unmarshalInt(offset, dataView);
-		var score = scoreResult.value;
-		offset += scoreResult.read;
+		var result = Protocol.MsgScoreboardAdd.fromProto(dataView);
+		var name = result.name;
+		var score = result.score;
 
 		if (scores[name] !== undefined) {
 			console.error("Server Error: Got scoreboard-add message for entity which is already on the scoreboard.");
@@ -26,13 +22,9 @@ return function Scoreboard(controls, conn, container) {
 	});
 
 	conn.on(Protocol.MSG_SCOREBOARD_SET, function handleSet(dataView) {
-		var offset = 1;
-		var nameResult = Protocol.unmarshalString(offset, dataView);
-		var name = nameResult.value;
-		offset += nameResult.read;
-		var scoreResult = Protocol.unmarshalInt(offset, dataView);
-		var score = scoreResult.value;
-		offset += scoreResult.read;
+		var result = Protocol.MsgScoreboardSet.fromProto(dataView);
+		var name = result.name;
+		var score = result.score;
 
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-set message for entity which is not on the scoreboard.");
@@ -43,10 +35,8 @@ return function Scoreboard(controls, conn, container) {
 	});
 
 	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(dataView) {
-		var offset = 1;
-		var nameResult = Protocol.unmarshalString(offset, dataView);
-		var name = nameResult.value;
-		offset += nameResult.read;
+		var result = Protocol.MsgScoreboardRemove.fromProto(dataView);
+		var name = result.name;
 
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-remove message for entity which is not on the scoreboard.");

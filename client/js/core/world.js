@@ -19,8 +19,8 @@ return function World(scene, conn, clientID, clock) {
 	window.testExposure.entityManager = entityManager;
 
 	conn.on(Protocol.MSG_DEBUG_RAY, function(dataView) {
-		var posResult = Protocol.unmarshalVec3(1, dataView);
-		self.addSmallCube(posResult.value);
+		var result = Protocol.MsgDebugRay.fromProto(dataView);
+		self.addSmallCube(result.pos);
 	});
 
 	self.update = function (dt, playerPos) {

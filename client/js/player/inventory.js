@@ -47,11 +47,8 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(false);
 
 	conn.on(Protocol.MSG_INVENTORY_STATE, function (dataView) {
-		var offset = 1;
-		var result = Protocol.unmarshalInt(offset, dataView);
-		var itemLength = result.value;
-		offset += result.read;
-		var items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
+		var result = Protocol.MsgInventoryState.fromProto(dataView);
+		var items = result.items;
 
 		slots = [];
 		for (var i = 0; i < items.length; i += 2) {

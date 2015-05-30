@@ -50,40 +50,12 @@ function initConn(payload) {
 var manager = new WorkerChunkManager();
 
 function processChunk(dataView) {
-	var cc = {};
-	var offset = 1;
-	var result = Protocol.unmarshalInt(offset, dataView);
-	cc.x = result.value;
-	offset += result.read;
-	result = Protocol.unmarshalInt(offset, dataView);
-	cc.y = result.value;
-	offset += result.read;
-	result = Protocol.unmarshalInt(offset, dataView);
-	cc.z = result.value;
-	offset += result.read;
-
-	result = Protocol.unmarshalVec3(offset, dataView);
-	size = result.value;
-	offset += result.read;
-	if (size.x != CHUNK.WIDTH ||
-		size.y != CHUNK.HEIGHT ||
-		size.z != CHUNK.DEPTH
-	) {
-		throw "Got chunk of size which does not match our expected chunk size!";
-	}
-
-	// Blocks are Block Types (see block.js)
-	var blocks = new Uint8Array(dataView.buffer.slice(offset,
-			offset + dataView.byteOffset + dataView.byteLength));
-	for (var i = 0; i < blocks.length; i++) {
-		if (blocks[i] == undefined) {
-			console.log("Undefined at index", i);
-		}
-	}
+	var result = Protocol.MsgChunk.fromProto(dataView);
+	var cc = result.cc;
+	var blocks = result.blocks;
 
 	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
 	//into indices in this array.
-
 	var chunk = manager.get(cc);
 	if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
@@ -93,17 +65,11 @@ function processChunk(dataView) {
 }
 
 function processBlockChange(dataView) {
-	var offset = 1;
-	var result = Protocol.unmarshalInt(offset, dataView);
-	var x = result.value;
-	offset += result.read;
-	result = Protocol.unmarshalInt(offset, dataView);
-	var y = result.value;
-	offset += result.read;
-	result = Protocol.unmarshalInt(offset, dataView);
-	var z = result.value;
-	offset += result.read;
-	var type = dataView.getUint8(offset);
+	var result = Protocol.MsgBlock.fromProto(dataView);
+	var x = result.pos.x;
+	var y = result.pos.y;
+	var z = result.pos.z;
+	var type = result.type;
 	var coords = common.worldToChunk(x, y, z);
 	var cc = coords.c;
 	var oc = coords.o;

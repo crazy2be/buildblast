@@ -1,12 +1,15 @@
 define(function(require){
 
 var THREE = require("THREE");
+var common = require("chunks/chunkCommon");
+var CHUNK = common.CHUNK;
 
 var Body = require("physics/body");
 var EntityState = require("entities/model/entityState");
 var Health = require("entities/model/health");
 var BioticState = require("entities/model/bioticState");
 var WorldItemState = require("entities/model/worldItemState");
+var Biotic = require("entities/biotic");
 
 var Protocol = {
 	MSG_HANDSHAKE_REPLY:    0,
@@ -26,6 +29,9 @@ var Protocol = {
 	MSG_SCOREBOARD_SET:    14,
 	MSG_SCOREBOARD_REMOVE: 15
 };
+
+Protocol.EntityKindPlayer = "player";
+Protocol.EntityKindWorldItem = "worldItem";
 
 Protocol.append = function(a, b) {
 	var result = new Uint8Array(a.byteLength + b.byteLength);
@@ -166,9 +172,215 @@ Protocol.unmarshalWorldItemState = function(offset, dataView) {
 	         read: entityResult.read + 1 }
 };
 
-Protocol.threeVecFromBinProto = function(offset, dataView) {
-	return new THREE.Vector3(dataView.getFloat64(offset),
-		dataView.getFloat64(offset + 8), dataView.getFloat64(offset + 16));
+Protocol.unmarshalPlayerEntity = function(offset, dataView) {
+	var result = Protocol.unmarshalBioticState(offset, dataView);
+	return { value: new Biotic(result.value), read: result.read }
+};
+
+
+Protocol.unmarshalState = function(offset, dataView, kind) {
+	var result;
+	if (kind === Protocol.EntityKindPlayer) {
+		result = Protocol.unmarshalBioticState(offset, dataView);
+	} else if (kind === Protocol.EntityKindWorldItem) {
+		result = Protocol.unmarshalWorldItemState(offset, dataView);
+	}
+	return result;
+}
+
+Protocol.MsgHandshakeReply = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalFloat64(offset, dataView);
+		result.serverTime = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalString(offset, dataView);
+		result.clientID = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalPlayerEntity(offset, dataView);
+		result.playerEntity = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgHandshakeError = {
+	fromProto: function(dataView) {
+		var result = {};
+		result.Message = Protocol.unmarshalString(1, dataView);
+		return result;
+	}
+};
+
+Protocol.MsgEntityCreate = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.id = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalString(offset, dataView);
+		result.kind = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalState(offset, dataView, result.kind);
+		result.state = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgEntityState = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.id = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalString(offset, dataView);
+		result.kind = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalState(offset, dataView, result.kind);
+		result.state = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgEntityRemove = {
+	fromProto: function(dataView) {
+		var result = {};
+		var proto = Protocol.unmarshalString(1, dataView);
+		result.id = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgChunk = {
+	fromProto: function(dataView) {
+		var result = {};
+		result.cc = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalInt(offset, dataView);
+		result.cc.x = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.cc.y = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.cc.z = proto.value;
+		offset += proto.read;
+
+		proto = Protocol.unmarshalVec3(offset, dataView);
+		result.size = proto.value;
+		offset += proto.read;
+		if (result.size.x != CHUNK.WIDTH ||
+			result.size.y != CHUNK.HEIGHT ||
+			result.size.z != CHUNK.DEPTH
+		) {
+			throw "Got chunk of size which does not match our expected chunk size!";
+		}
+
+		// Blocks are Block Types (see block.js)
+		result.blocks = new Uint8Array(dataView.buffer.slice(offset,
+				offset + dataView.byteOffset + dataView.byteLength));
+		return result;
+	}
+};
+
+Protocol.MsgBlock = {
+	fromProto: function(dataView) {
+		var result = {};
+		result.pos = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalInt(offset, dataView);
+		result.pos.x = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.pos.y = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.pos.z = proto.value;
+		offset += proto.read;
+		result.type = dataView.getUint8(offset);
+		return result;
+	}
+};
+
+Protocol.MsgChat = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.displayName = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalString(offset, dataView);
+		result.message = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgDebugRay = {
+	fromProto: function(dataView) {
+		var result = {};
+		var proto = Protocol.unmarshalVec3(1, dataView);
+		result.pos = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgNtpSync = {
+	fromProto: function(dataView) {
+		var result = {};
+		var proto = Protocol.unmarshalFloat64(1, dataView);
+		result.serverTime = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgInventoryState = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalInt(offset, dataView);
+		var itemLength = proto.value;
+		offset += proto.read;
+		result.items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
+		return result;
+	}
+};
+
+Protocol.MsgScoreboardAdd = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.name = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.score = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgScoreboardSet = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.name = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.score = proto.value;
+		return result;
+	}
+};
+
+Protocol.MsgScoreboardRemove = {
+	fromProto: function(dataView) {
+		var result = {};
+		var offset = 1;
+		var proto = Protocol.unmarshalString(offset, dataView);
+		result.name = proto.value;
+		return result;
+	}
 };
 
 return Protocol;

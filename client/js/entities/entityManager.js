@@ -8,9 +8,6 @@ var EntityBar = require("meshes/entityBar");
 var PlayerMesh = require("meshes/playerMesh");
 var WorldItemMesh = require("meshes/worldItemMesh");
 
-var EntityKindPlayer = "player";
-var EntityKindWorldItem = "worldItem";
-
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
@@ -32,55 +29,35 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	function stateToHistoryState(kind, state) {
-		var result = { time: null, data: null };
-		if (kind === EntityKindPlayer || kind == EntityKindWorldItem) {
-			result.time = state.entityState.lastUpdated;
-			result.data = state;
-		} else {
-			return null;
-		}
-		return result;
-	}
-
-	function unmarshalState(offset, dataView, kind) {
-		var stateResult;
-		if (kind === EntityKindPlayer) {
-			stateResult = Protocol.unmarshalBioticState(offset, dataView);
-		} else if (kind === EntityKindWorldItem) {
-			stateResult = Protocol.unmarshalWorldItemState(offset, dataView);
-		}
-		return stateResult;
+	function stateToHistoryState(state) {
+		return {
+			time: state.entityState.lastUpdated,
+			data: state
+		};
 	}
 
 	conn.on(Protocol.MSG_ENTITY_CREATE, function(dataView) {
-		var offset = 1;
-		var idResult = Protocol.unmarshalString(offset, dataView);
-		var id = idResult.value;
-		offset += idResult.read;
-		var kindResult = Protocol.unmarshalString(offset, dataView);
-		var kind = kindResult.value;
-		offset += kindResult.read;
+		var result = Protocol.MsgEntityCreate.fromProto(dataView);
+		var id = result.id;
+		var kind = result.kind;
+		var state = result.state;
 
 		if (controllers[id]) {
 			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
 
-		var stateResult = unmarshalState(offset, dataView, kind);
-		console.log("OnCreate", stateResult);
 		var entity;
-		if (kind === EntityKindPlayer) {
-			entity = new Biotic(stateResult.value);
+		if (kind === Protocol.EntityKindPlayer) {
+			entity = new Biotic(state);
 			entity.add(new PlayerMesh());
-		} else if (kind === EntityKindWorldItem) {
-			entity = new WorldItem(stateResult.value);
+		} else if (kind === Protocol.EntityKindWorldItem) {
+			entity = new WorldItem(state);
 			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
 		}
-		offset += stateResult.read;
 		entity.addTo(scene);
 
-		var initialState = stateToHistoryState(kind, stateResult.value);
+		var initialState = stateToHistoryState(state);
 		if (initialState == null) {
 			console.warn("Got entity create message for unrecognized entity kind", kind);
 			return;
@@ -101,25 +78,22 @@ function EntityManager(scene, conn, world, clock) {
 	});
 
 	conn.on(Protocol.MSG_ENTITY_STATE, function(dataView) {
-		var offset = 1;
-		var idResult = Protocol.unmarshalString(offset, dataView);
-		var id = idResult.value;
-		offset += idResult.read;
+		var result = Protocol.MsgEntityState.fromProto(dataView);
+		var id = result.id;
+		var state = result.state;
+
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
-		var kindResult = Protocol.unmarshalString(offset, dataView);
-		var kind = kindResult.value;
-		offset += kindResult.read;
-		var stateResult = unmarshalState(offset, dataView, kind);
-		controller.message(stateToHistoryState(kind, stateResult.value));
+
+		controller.message(stateToHistoryState(state));
 	});
 
 	conn.on(Protocol.MSG_ENTITY_REMOVE, function(dataView) {
-		var idResult = Protocol.unmarshalString(1, dataView);
-		var id = idResult.value;
+		var result = Protocol.MsgEntityRemove.fromProto(dataView);
+		var id = result.id;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);
@@ -148,11 +122,6 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 }
-
-EntityManager.createPlayerEntity = function(offset, dataView) {
-	var result = Protocol.unmarshalBioticState(offset, dataView);
-	return { value: new Biotic(result.value), read: result.read }
-};
 
 return EntityManager;
 });

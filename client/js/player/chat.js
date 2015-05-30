@@ -12,15 +12,11 @@ return function Chat(controls, conn, container) {
 	var chat = document.getElementById("chat");
 
 	conn.on(Protocol.MSG_CHAT, function(dataView) {
-		var offset = 1;
-		displayNameResult = Protocol.unmarshalString(offset, dataView);
-		offset += displayNameResult.read;
-		messageResult = Protocol.unmarshalString(offset, dataView);
-		offset += messageResult.value;
+		var result = Protocol.MsgChat.fromProto(dataView);
 
 		var message = document.createElement('div');
 		message.className = "message";
-		message.innerText = displayNameResult.value + ": " + messageResult.value;
+		message.innerText = result.displayName + ": " + result.message;
 		addTween(message);
 
 		var wrapper = document.createElement("div");

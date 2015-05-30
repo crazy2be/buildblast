@@ -192,7 +192,7 @@ type MsgChunk struct {
 }
 
 func (msg *MsgChunk) ToProto() []byte {
-	buf := make([]byte, 0, 1+30+3*8+32*32*32)
+	buf := make([]byte, 0, 1+30+3*8+coords.BlocksPerChunk)
 	buf = append(buf, byte(MSG_CHUNK))
 	buf = append(buf, msg.CCPos.ToProto()...)
 	buf = append(buf, msg.Size.ToProto()...)

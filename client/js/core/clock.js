@@ -59,8 +59,8 @@ return function Clock(conn) {
 		// We want to apply the initial offset right away
 		appliedOffset = offset;
 		conn.on(Protocol.MSG_NTP_SYNC, function(dataView) {
-			var serverTimeResult = Protocol.unmarshalFloat64(1, dataView);
-			var serverTime = serverTimeResult.value;
+			var result = Protocol.MsgNtpSync.fromProto(dataView);
+			var serverTime = result.serverTime;
 			offset = calcOffset(clientTime, serverTime, serverTime, now());
 
 			// Re-sync in 5 seconds
