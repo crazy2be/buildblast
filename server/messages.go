@@ -13,7 +13,7 @@ import (
 type MessageId byte
 
 const (
-	MSG_HANDSHAKE_REPLY = iota
+	MSG_HANDSHAKE_REPLY = MessageId(iota)
 	MSG_HANDSHAKE_ERROR
 	MSG_ENTITY_CREATE
 	MSG_ENTITY_STATE
@@ -105,7 +105,7 @@ type MsgHandshakeReply struct {
 
 func (msg *MsgHandshakeReply) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_HANDSHAKE_REPLY)
+	buf = append(buf, byte(MSG_HANDSHAKE_REPLY))
 	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
 	buf = append(buf, proto.MarshalString(msg.ClientID)...)
 	buf = append(buf, msg.PlayerEntityInfo.ToProto()...)
@@ -122,13 +122,13 @@ type MsgHandshakeError struct {
 
 func (msg *MsgHandshakeError) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_HANDSHAKE_ERROR)
+	buf = append(buf, byte(MSG_HANDSHAKE_ERROR))
 	buf = append(buf, proto.MarshalString(msg.Message)...)
 	return buf
 }
 
 func (msg *MsgHandshakeError) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgHandshakeError")
 }
 
 type MsgEntityCreate struct {
@@ -139,7 +139,7 @@ type MsgEntityCreate struct {
 
 func (msg *MsgEntityCreate) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_ENTITY_CREATE)
+	buf = append(buf, byte(MSG_ENTITY_CREATE))
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
 	buf = append(buf, msg.State.ToProto()...)
@@ -147,7 +147,7 @@ func (msg *MsgEntityCreate) ToProto() []byte {
 }
 
 func (msg *MsgEntityCreate) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgEntityCreate")
 }
 
 type MsgEntityState struct {
@@ -158,7 +158,7 @@ type MsgEntityState struct {
 
 func (msg *MsgEntityState) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_ENTITY_STATE)
+	buf = append(buf, byte(MSG_ENTITY_STATE))
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
 	buf = append(buf, msg.State.ToProto()...)
@@ -166,7 +166,7 @@ func (msg *MsgEntityState) ToProto() []byte {
 }
 
 func (msg *MsgEntityState) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgEntityState")
 }
 
 type MsgEntityRemove struct {
@@ -175,13 +175,13 @@ type MsgEntityRemove struct {
 
 func (msg *MsgEntityRemove) ToProto() []byte {
 	buf := make([]byte, 0, 64)
-	buf = append(buf, MSG_ENTITY_REMOVE)
+	buf = append(buf, byte(MSG_ENTITY_REMOVE))
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
 	return buf
 }
 
 func (msg *MsgEntityRemove) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgEntityRemove")
 }
 
 type MsgChunk struct {
@@ -192,7 +192,7 @@ type MsgChunk struct {
 
 func (msg *MsgChunk) ToProto() []byte {
 	buf := make([]byte, 0, 1+3*30+3*8+32*32*32)
-	buf = append(buf, MSG_CHUNK)
+	buf = append(buf, byte(MSG_CHUNK))
 	buf = append(buf, msg.CCPos.ToProto()...)
 	buf = append(buf, msg.Size.ToProto()...)
 	buf = append(buf, msg.Data...)
@@ -200,7 +200,7 @@ func (msg *MsgChunk) ToProto() []byte {
 }
 
 func (msg *MsgChunk) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgEntityChunk")
 }
 
 type MsgBlock struct {
@@ -210,7 +210,7 @@ type MsgBlock struct {
 
 func (msg *MsgBlock) ToProto() []byte {
 	buf := make([]byte, 0, 32)
-	buf = append(buf, MSG_BLOCK)
+	buf = append(buf, byte(MSG_BLOCK))
 	buf = append(buf, msg.Pos.ToProto()...)
 	buf = append(buf, byte(msg.Type))
 	return buf
@@ -228,7 +228,7 @@ type MsgControlsState struct {
 
 func (msg *MsgControlsState) ToProto() []byte {
 	buf := make([]byte, 0, 34)
-	buf = append(buf, MSG_CONTROLS_STATE)
+	buf = append(buf, byte(MSG_CONTROLS_STATE))
 	buf = append(buf, msg.Controls.ToProto()...)
 	return buf
 }
@@ -245,14 +245,14 @@ type MsgChat struct {
 
 func (msg *MsgChat) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_CHAT)
+	buf = append(buf, byte(MSG_CHAT))
 	buf = append(buf, proto.MarshalString(msg.DisplayName)...)
 	buf = append(buf, proto.MarshalString(msg.Message)...)
 	return buf
 }
 
 func (msg *MsgChat) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgChat")
 }
 
 type MsgDebugRay struct {
@@ -261,13 +261,13 @@ type MsgDebugRay struct {
 
 func (msg *MsgDebugRay) ToProto() []byte {
 	buf := make([]byte, 0, 31)
-	buf = append(buf, MSG_DEBUG_RAY)
+	buf = append(buf, byte(MSG_DEBUG_RAY))
 	buf = append(buf, msg.Pos.ToProto()...)
 	return buf
 }
 
 func (msg *MsgDebugRay) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgDebugRay")
 }
 
 type MsgNtpSync struct {
@@ -276,13 +276,15 @@ type MsgNtpSync struct {
 
 func (msg *MsgNtpSync) ToProto() []byte {
 	buf := make([]byte, 0, 3*8+1)
-	buf = append(buf, MSG_NTP_SYNC)
+	buf = append(buf, byte(MSG_NTP_SYNC))
 	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
 	return buf
 }
 
 func (msg *MsgNtpSync) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	// Client doesn't send any values.
+	// Return 1 for the msg id byte.
+	return 1, nil
 }
 
 type MsgInventoryState struct {
@@ -294,7 +296,7 @@ type MsgInventoryState struct {
 
 func (msg *MsgInventoryState) ToProto() []byte {
 	buf := make([]byte, 0, 1024)
-	buf = append(buf, MSG_INVENTORY_STATE)
+	buf = append(buf, byte(MSG_INVENTORY_STATE))
 	buf = append(buf, proto.MarshalString(msg.Items)...)
 	buf = append(buf, proto.MarshalInt(msg.ItemLeft)...)
 	buf = append(buf, proto.MarshalInt(msg.ItemRight)...)
@@ -302,7 +304,7 @@ func (msg *MsgInventoryState) ToProto() []byte {
 }
 
 func (msg *MsgInventoryState) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgInventoryState")
 }
 
 type MsgInventoryMove struct {
@@ -312,14 +314,14 @@ type MsgInventoryMove struct {
 
 func (msg *MsgInventoryMove) ToProto() []byte {
 	buf := make([]byte, 0, 21)
-	buf = append(buf, MSG_INVENTORY_MOVE)
+	buf = append(buf, byte(MSG_INVENTORY_MOVE))
 	buf = append(buf, proto.MarshalInt(msg.From)...)
 	buf = append(buf, proto.MarshalInt(msg.To)...)
 	return buf
 }
 
 func (msg *MsgInventoryMove) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgInventoryMove")
 }
 
 type MsgScoreboardAdd struct {
@@ -329,14 +331,14 @@ type MsgScoreboardAdd struct {
 
 func (msg *MsgScoreboardAdd) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_SCOREBOARD_ADD)
+	buf = append(buf, byte(MSG_SCOREBOARD_ADD))
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	buf = append(buf, proto.MarshalInt(msg.Score)...)
 	return buf
 }
 
 func (msg *MsgScoreboardAdd) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgScoreboardAdd")
 }
 
 type MsgScoreboardSet struct {
@@ -346,14 +348,14 @@ type MsgScoreboardSet struct {
 
 func (msg *MsgScoreboardSet) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_SCOREBOARD_SET)
+	buf = append(buf, byte(MSG_SCOREBOARD_SET))
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	buf = append(buf, proto.MarshalInt(msg.Score)...)
 	return buf
 }
 
 func (msg *MsgScoreboardSet) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgScoreboardSet")
 }
 
 type MsgScoreboardRemove struct {
@@ -362,13 +364,13 @@ type MsgScoreboardRemove struct {
 
 func (msg *MsgScoreboardRemove) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, MSG_SCOREBOARD_REMOVE)
+	buf = append(buf, byte(MSG_SCOREBOARD_REMOVE))
 	buf = append(buf, proto.MarshalString(msg.Name)...)
 	return buf
 }
 
 func (msg *MsgScoreboardRemove) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgScoreboardRemove")
 }
 
 type Message interface {
