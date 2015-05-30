@@ -253,7 +253,10 @@ func (msg *MsgChat) ToProto() []byte {
 }
 
 func (msg *MsgChat) FromProto(buf []byte) (int, error) {
-	panic("FromProto not implemented: MsgChat")
+	var read int
+	// Client doesn't send the Display name
+	msg.Message, read = proto.UnmarshalString(buf[1:])
+	return read + 1, nil
 }
 
 type MsgDebugRay struct {

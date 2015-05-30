@@ -42,7 +42,7 @@ return function Scoreboard(controls, conn, container) {
 		dirty = true;
 	});
 
-	conn.on('scoreboard-remove', function(dataView) {
+	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(dataView) {
 		var offset = 1;
 		var nameResult = Protocol.unmarshalString(offset, dataView);
 		var name = nameResult.value;
