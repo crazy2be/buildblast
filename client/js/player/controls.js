@@ -58,7 +58,7 @@ return function Controls(elm) {
 		swapRight:     1 << 8,
 		toggleBag:     1 << 9,
 		scoreBoard:    1 << 10,
-		chat:          1 << 11,
+		chat:          1 << 11
 	};
 
 	var ActionMappingsBase = {
@@ -113,6 +113,12 @@ return function Controls(elm) {
 		lat: -1/2 * Math.PI,
 		lon: 1/2 * Math.PI,
 
+		activateLeft: function() {
+			return (this.controlFlags & ActionMasks.activateLeft) > 0;
+		},
+		activateRight: function() {
+			return (this.controlFlags & ActionMasks.activateRight) > 0;
+		},
 		swapLeft: function() {
 			return (this.controlFlags & ActionMasks.swapLeft) > 0;
 		},

@@ -10,16 +10,25 @@ import (
 	"buildblast/lib/vmath"
 )
 
+const (
+	forward = 1 << iota
+	left
+	right
+	back
+	jump
+	activateLeft
+	activateRight
+	swapLeft
+	swapRight
+	toggleBag
+	scoreBoard
+	chat
+)
+
 type ControlState struct {
-	Forward       bool
-	Left          bool
-	Right         bool
-	Back          bool
-	Jump          bool
-	ActivateLeft  bool
-	ActivateRight bool
-	Lat           float64
-	Lon           float64
+	controlFlags int
+	Lat          float64
+	Lon          float64
 
 	// JavaScript performance.now() timestamp.
 	// TimeStamp is when it was sent, ViewTimestamp is
@@ -29,49 +38,41 @@ type ControlState struct {
 	ViewTimestamp float64
 }
 
+func (cs *ControlState) Forward() bool {
+	return cs.controlFlags&forward > 0
+}
+
+func (cs *ControlState) Left() bool {
+	return cs.controlFlags&left > 0
+}
+
+func (cs *ControlState) Right() bool {
+	return cs.controlFlags&right > 0
+}
+
+func (cs *ControlState) Back() bool {
+	return cs.controlFlags&back > 0
+}
+
+func (cs *ControlState) Jump() bool {
+	return cs.controlFlags&jump > 0
+}
+
+func (cs *ControlState) ActivateLeft() bool {
+	return cs.controlFlags&activateLeft > 0
+}
+
+func (cs *ControlState) ActivateRight() bool {
+	return cs.controlFlags&activateRight > 0
+}
+
 func (cs *ControlState) ToProto() []byte {
-	buf := make([]byte, 0, 33)
-	// DOIT: Convert this to a bit field internally
-	flags := byte(0)
-	if cs.Forward {
-		flags |= 1 << 0
-	}
-	if cs.Left {
-		flags |= 1 << 1
-	}
-	if cs.Right {
-		flags |= 1 << 2
-	}
-	if cs.Back {
-		flags |= 1 << 3
-	}
-	if cs.Jump {
-		flags |= 1 << 4
-	}
-	if cs.ActivateLeft {
-		flags |= 1 << 5
-	}
-	if cs.ActivateRight {
-		flags |= 1 << 6
-	}
-	buf = append(buf, flags)
-	buf = append(buf, proto.MarshalFloat64(cs.Lat)...)
-	buf = append(buf, proto.MarshalFloat64(cs.Lon)...)
-	buf = append(buf, proto.MarshalFloat64(cs.Timestamp)...)
-	buf = append(buf, proto.MarshalFloat64(cs.ViewTimestamp)...)
-	return buf
+	panic("ToProto not implemented: ControlState")
 }
 
 func (cs *ControlState) FromProto(buf []byte) (int, error) {
 	value, read := proto.UnmarshalInt(buf)
-	flags := int(value)
-	cs.Forward = flags&(1<<0) > 0
-	cs.Left = flags&(1<<1) > 0
-	cs.Right = flags&(1<<2) > 0
-	cs.Back = flags&(1<<3) > 0
-	cs.Jump = flags&(1<<4) > 0
-	cs.ActivateLeft = flags&(1<<5) > 0
-	cs.ActivateRight = flags&(1<<6) > 0
+	cs.controlFlags = int(value)
 	cs.Lat, _ = proto.UnmarshalFloat64(buf[read+0*8 : read+1*8])
 	cs.Lon, _ = proto.UnmarshalFloat64(buf[read+1*8 : read+2*8])
 	cs.Timestamp, _ = proto.UnmarshalFloat64(buf[read+2*8 : read+3*8])
@@ -276,16 +277,16 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	body.Vel.Y += dt * -9.81
 
 	fw := 0.0
-	if controls.Forward {
+	if controls.Forward() {
 		fw = 1 * dt * 10
-	} else if controls.Back {
+	} else if controls.Back() {
 		fw = -1 * dt * 10
 	}
 
 	rt := 0.0
-	if controls.Right {
+	if controls.Right() {
 		rt = 1 * dt * 10
-	} else if controls.Left {
+	} else if controls.Left() {
 		rt = -1 * dt * 10
 	}
 
@@ -304,7 +305,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	if move.Y == 0 {
 		body.Vel.Y = 0
-		if controls.Jump {
+		if controls.Jump() {
 			body.Vel.Y = 6
 		} else {
 			body.Vel.Y = 0
@@ -332,15 +333,15 @@ func (p *Player) updateLook(controls ControlState) {
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {
-	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
-	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
+	shootingLeft := controls.ActivateLeft() && p.inventory.LeftItem().Shootable()
+	shootingRight := controls.ActivateRight() && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
 		return nil
 	}
 
 	// They were holding it down last frame
-	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
-	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
+	shootingLeftLast := p.controls.ActivateLeft() && p.inventory.LeftItem().Shootable()
+	shootingRightLast := p.controls.ActivateRight() && p.inventory.RightItem().Shootable()
 	// TODO: I'm pretty sure this logic isn't quite correct.
 	// We want to prevent "machine gunning" your opponents by simply
 	// holding the trigger. But if you're holding left (say), and

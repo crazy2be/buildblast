@@ -229,7 +229,7 @@ function Inventory(world, camera, conn, controls) {
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
 			invModel.update(playerPosition, controls.lat, controls.lon);
 
-			if (controls[activateTrigger]) {
+			if (controls[activateTrigger]()) {
 				activateStack(isLeft ? leftStack() : rightStack());
 			}
 

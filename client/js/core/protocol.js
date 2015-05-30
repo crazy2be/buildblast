@@ -322,7 +322,7 @@ Protocol.MsgControlsState =  {
 		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
 		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
-		buf = Protocol.append(buf, Protocol.marshalInt(controls.controlFlags))
+		buf = Protocol.append(buf, Protocol.marshalInt(controls.controlFlags));
 		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lat));
 		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lon));
 		buf = Protocol.append(buf, Protocol.marshalFloat64(time));
