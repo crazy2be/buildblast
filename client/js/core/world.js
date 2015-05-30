@@ -125,8 +125,9 @@ return function World(scene, conn, clientID, clock) {
 	};
 
 	self.changeBlock = function(wcX, wcY, wcZ, newType) {
-		conn.queue(Protocol.MsgBlock.toProto(wcX, wcY, wcZ, newType));
-		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
+		var msgDataView = Protocol.MsgBlock.toProto(wcX, wcY, wcZ, newType);
+		conn.queue(msgDataView);
+		chunkManager.queueBlockChange(msgDataView);
 	}
 }
 });

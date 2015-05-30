@@ -16,20 +16,10 @@ return function ChunkManager(scene, clientID) {
 		return chunks[common.ccStr(cc)];
 	};
 
-	self.queueBlockChange = function (wcX, wcY, wcZ, newType) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_BLOCK);
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcX)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcY)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcZ)));
-		var temp = new ArrayBuffer(1);
-		dataView = new DataView(temp);
-		dataView.setUint8(0, newType);
-		buf = Protocol.append(buf, temp);
+	self.queueBlockChange = function (msgDataView) {
 		geometryWorker.postMessage({
 			'kind': 'block-change',
-			'dataView': new DataView(buf)
+			'dataView': msgDataView
 		});
 	};
 

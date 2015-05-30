@@ -78,14 +78,14 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 		chat.update(clock.dt());
 		scoreBoard.update(clock.dt());
 
-		var controls = controls.sample();
-		conn.queue(Protocol.MsgControlsState.toProto(controls, clock.time(), clock.entityTime()));
+		var c = controls.sample();
+		conn.queue(Protocol.MsgControlsState.toProto(c, clock.time(), clock.entityTime()));
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();
 
 		if (localStorage.thirdPerson) {
-			var target = calcTarget(camPos, controls.lat, controls.lon);
+			var target = calcTarget(camPos, c.lat, c.lon);
 			var look = target.clone().sub(camPos);
 			look.setLength(3);
 			camPos.sub(look);
@@ -93,8 +93,8 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
-		doLook(camera, camPos, controls);
-		inventory.update(pos(), controls);
+		doLook(camera, camPos, c);
+		inventory.update(pos(), c);
 
 		updatePositionText(pos(), pos().dy);
 		updateHealthBar(playerEntity.health());
