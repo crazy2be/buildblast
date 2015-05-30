@@ -52,7 +52,7 @@ conn:
 	}
 	if c.player.NeedsInventoryUpdate() {
 		c.Send(&MsgInventoryState{
-			Items: c.player.Inventory().ItemsToString(),
+			Items: c.player.Inventory().ItemsToByteArray(),
 		})
 		c.player.ClientInventoryUpdated()
 	}
@@ -80,7 +80,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		c.player.Inventory().MoveItems(m.From, m.To)
 
 		c.Send(&MsgInventoryState{
-			Items: c.player.Inventory().ItemsToString(),
+			Items: c.player.Inventory().ItemsToByteArray(),
 		})
 
 	default:
@@ -120,7 +120,7 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 	}
 
 	c.Send(&MsgInventoryState{
-		Items: c.player.Inventory().ItemsToString(),
+		Items: c.player.Inventory().ItemsToByteArray(),
 	})
 }
 
@@ -159,7 +159,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 
 	c.player = p
 	c.Send(&MsgInventoryState{
-		Items: c.player.Inventory().ItemsToString(),
+		Items: c.player.Inventory().ItemsToByteArray(),
 	})
 }
 

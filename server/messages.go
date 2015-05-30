@@ -192,7 +192,7 @@ type MsgChunk struct {
 }
 
 func (msg *MsgChunk) ToProto() []byte {
-	buf := make([]byte, 0, 1+3*30+3*8+32*32*32)
+	buf := make([]byte, 0, 1+30+3*8+32*32*32)
 	buf = append(buf, byte(MSG_CHUNK))
 	buf = append(buf, msg.CCPos.ToProto()...)
 	buf = append(buf, msg.Size.ToProto()...)
@@ -293,7 +293,7 @@ func (msg *MsgNtpSync) FromProto(buf []byte) (int, error) {
 
 type MsgInventoryState struct {
 	// This is a byte array encoded to a string, see ItemsToString() in items.go
-	Items     string
+	Items     []byte
 	ItemLeft  int
 	ItemRight int
 }
@@ -301,7 +301,8 @@ type MsgInventoryState struct {
 func (msg *MsgInventoryState) ToProto() []byte {
 	buf := make([]byte, 0, 1024)
 	buf = append(buf, byte(MSG_INVENTORY_STATE))
-	buf = append(buf, proto.MarshalString(msg.Items)...)
+	buf = append(buf, proto.MarshalInt(len(msg.Items))...)
+	buf = append(buf, msg.Items...)
 	buf = append(buf, proto.MarshalInt(msg.ItemLeft)...)
 	buf = append(buf, proto.MarshalInt(msg.ItemRight)...)
 	return buf
@@ -311,7 +312,7 @@ func (msg *MsgInventoryState) FromProto(buf []byte) (int, error) {
 	var value int64
 	var read int
 	offset := 1
-	// Client doesn't send the string
+	// Client doesn't send the item list
 	value, read = proto.UnmarshalInt(buf[offset:])
 	msg.ItemLeft = int(value)
 	offset += read

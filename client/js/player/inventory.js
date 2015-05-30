@@ -48,19 +48,10 @@ function Inventory(world, camera, conn, controls) {
 
 	conn.on(Protocol.MSG_INVENTORY_STATE, function (dataView) {
 		var offset = 1;
-		itemStringResult = Protocol.unmarshalString(offset, dataView);
-		offset += itemStringResult.read;
-		var items = new Uint8Array(itemStringResult.value.length);
-		for (var i = 0; i < items.length; i++) {
-			// 35: # charater. Control charaters
-			// are not allowed in JSON strings, and
-			// we want to avoid '"', which requires
-			// escaping.
-			items[i] = itemStringResult.value.charCodeAt(i) - 35;
-		}
-
-		var oldLeft = leftStack();
-		var oldRight = rightStack();
+		var result = Protocol.unmarshalInt(offset, dataView);
+		var itemLength = result.value;
+		offset += result.read;
+		var items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
 
 		slots = [];
 		for (var i = 0; i < items.length; i += 2) {
