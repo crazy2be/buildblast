@@ -48,7 +48,7 @@ return function Scoreboard(controls, conn, container) {
 
 	var wasVisible = false;
 	self.update = function () {
-		var visible = controls.sample().scoreBoard;
+		var visible = controls.sample().scoreBoard();
 		if (visible !== wasVisible) {
 			scoreboard.style.display = visible ? 'table' : 'none';
 			wasVisible = visible;

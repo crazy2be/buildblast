@@ -186,16 +186,16 @@ function Inventory(world, camera, conn, controls) {
 	self.update = function (playerPosition, controlState) {
 		if (slots.length === 0) return;
 		var p = playerPosition;
-		var c = controlState;
+		var controls = controlState;
 
 		var leftWasDown = updateSide(true);
 		var rightWasDown = updateSide(false);
 
-		if (!toggleBagWasDown && c.toggleBag) {
+		if (!toggleBagWasDown && controls.toggleBag()) {
 			bagIsShowing = !bagIsShowing;
 			updateBagVisibility();
 		}
-		toggleBagWasDown = c.toggleBag;
+		toggleBagWasDown = controls.toggleBag();
 
 		swapLeftWasDown = leftWasDown;
 		swapRightWasDown = rightWasDown;
@@ -215,7 +215,7 @@ function Inventory(world, camera, conn, controls) {
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
 
-			var swapDown = c[swapTrigger];
+			var swapDown = controls[swapTrigger]();
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
@@ -227,9 +227,9 @@ function Inventory(world, camera, conn, controls) {
 			}
 
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
-			invModel.update(playerPosition, c.lat, c.lon);
+			invModel.update(playerPosition, controls.lat, controls.lon);
 
-			if (c[activateTrigger]) {
+			if (controls[activateTrigger]) {
 				activateStack(isLeft ? leftStack() : rightStack());
 			}
 

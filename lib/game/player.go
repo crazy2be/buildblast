@@ -63,7 +63,8 @@ func (cs *ControlState) ToProto() []byte {
 }
 
 func (cs *ControlState) FromProto(buf []byte) (int, error) {
-	flags := buf[0]
+	value, read := proto.UnmarshalInt(buf)
+	flags := int(value)
 	cs.Forward = flags&(1<<0) > 0
 	cs.Left = flags&(1<<1) > 0
 	cs.Right = flags&(1<<2) > 0
@@ -71,11 +72,11 @@ func (cs *ControlState) FromProto(buf []byte) (int, error) {
 	cs.Jump = flags&(1<<4) > 0
 	cs.ActivateLeft = flags&(1<<5) > 0
 	cs.ActivateRight = flags&(1<<6) > 0
-	cs.Lat, _ = proto.UnmarshalFloat64(buf[1+0*8 : 1+1*8])
-	cs.Lon, _ = proto.UnmarshalFloat64(buf[1+1*8 : 1+2*8])
-	cs.Timestamp, _ = proto.UnmarshalFloat64(buf[1+2*8 : 1+3*8])
-	cs.ViewTimestamp, _ = proto.UnmarshalFloat64(buf[1+3*8 : 1+4*8])
-	return 33, nil
+	cs.Lat, _ = proto.UnmarshalFloat64(buf[read+0*8 : read+1*8])
+	cs.Lon, _ = proto.UnmarshalFloat64(buf[read+1*8 : read+2*8])
+	cs.Timestamp, _ = proto.UnmarshalFloat64(buf[read+2*8 : read+3*8])
+	cs.ViewTimestamp, _ = proto.UnmarshalFloat64(buf[read+3*8 : read+4*8])
+	return read + 32, nil
 }
 
 const (

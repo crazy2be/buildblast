@@ -319,18 +319,10 @@ Protocol.MsgBlock = {
 
 Protocol.MsgControlsState =  {
 	toProto: function(controls, time, entityTime) {
-		var flags = 0;
-		flags |= (controls.forward ? 1 : 0)       << 0;
-		flags |= (controls.left ? 1 : 0)          << 1;
-		flags |= (controls.right ? 1 : 0)         << 2;
-		flags |= (controls.back ? 1 : 0)          << 3;
-		flags |= (controls.jump ? 1 : 0)          << 4;
-		flags |= (controls.activateLeft ? 1 : 0)  << 5;
-		flags |= (controls.activateRight ? 1 : 0) << 6;
-		var buf = new ArrayBuffer(2);
+		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
 		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
-		dataView.setUint8(1, flags);
+		buf = Protocol.append(buf, Protocol.marshalInt(controls.controlFlags))
 		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lat));
 		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lon));
 		buf = Protocol.append(buf, Protocol.marshalFloat64(time));
