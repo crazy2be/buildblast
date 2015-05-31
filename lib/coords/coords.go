@@ -31,13 +31,11 @@ func (wc World) Vec3() vmath.Vec3 {
 }
 
 func (wc World) Chunk() Chunk {
-	block := wc.Block()
-	return block.Chunk()
+	return wc.Block().Chunk()
 }
 
 func (wc World) Offset() Offset {
-	block := wc.Block()
-	return block.Offset()
+	return wc.Block().Offset()
 }
 
 func (wc World) Block() Block {
