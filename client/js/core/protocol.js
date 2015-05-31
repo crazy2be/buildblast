@@ -12,22 +12,70 @@ var WorldItemState = require("entities/model/worldItemState");
 var Biotic = require("entities/biotic");
 
 var Protocol = {
-	MSG_HANDSHAKE_REPLY:    0,
-	MSG_HANDSHAKE_ERROR:    1,
-	MSG_ENTITY_CREATE:      2,
-	MSG_ENTITY_STATE:       3,
-	MSG_ENTITY_REMOVE:      4,
-	MSG_CHUNK:              5,
-	MSG_BLOCK:              6,
-	MSG_CONTROLS_STATE:     7,
-	MSG_CHAT:               8,
-	MSG_DEBUG_RAY:          9,
-	MSG_NTP_SYNC:          10,
-	MSG_INVENTORY_STATE:   11,
-	MSG_INVENTORY_MOVE:    12,
-	MSG_SCOREBOARD_ADD:    13,
-	MSG_SCOREBOARD_SET:    14,
-	MSG_SCOREBOARD_REMOVE: 15
+	MSG_HANDSHAKE_REPLY:    0, // CLIENT <--- SERVER
+	MSG_HANDSHAKE_ERROR:    1, // CLIENT <--- SERVER
+	MSG_ENTITY_CREATE:      2, // CLIENT <--- SERVER
+	MSG_ENTITY_STATE:       3, // CLIENT <--- SERVER
+	MSG_ENTITY_REMOVE:      4, // CLIENT <--- SERVER
+	MSG_CHUNK:              5, // CLIENT <--- SERVER
+	MSG_BLOCK:              6, // CLIENT <--> SERVER
+	MSG_CONTROLS_STATE:     7, // CLIENT ---> SERVER
+	MSG_CHAT_SEND:          8, // CLIENT ---> SERVER
+	MSG_CHAT_BROADCAST:     9, // CLIENT <--- SERVER
+	MSG_DEBUG_RAY:         10, // CLIENT <--- SERVER
+	MSG_NTP_SYNC_REQUEST:  11, // CLIENT ---> SERVER
+	MSG_NTP_SYNC_REPLY:    12, // CLIENT <--- SERVER
+	MSG_INVENTORY_STATE:   13, // CLIENT <--- SERVER
+	MSG_INVENTORY_SELECT:  14, // CLIENT ---> SERVER
+	MSG_INVENTORY_MOVE:    15, // CLIENT ---> SERVER
+	MSG_SCOREBOARD_ADD:    16, // CLIENT <--- SERVER
+	MSG_SCOREBOARD_SET:    17, // CLIENT <--- SERVER
+	MSG_SCOREBOARD_REMOVE: 18  // CLIENT <--- SERVER
+};
+
+Protocol.idToType = function(id) {
+	switch (id) {
+		case Protocol.MSG_HANDSHAKE_REPLY:
+			return Protocol.MsgHandshakeReply;
+		case Protocol.MSG_HANDSHAKE_ERROR:
+			return Protocol.MsgHandshakeError;
+		case Protocol.MSG_ENTITY_CREATE:
+			return Protocol.MsgEntityCreate;
+		case Protocol.MSG_ENTITY_STATE:
+			return Protocol.MsgEntityState;
+		case Protocol.MSG_ENTITY_REMOVE:
+			return Protocol.MsgEntityRemove;
+		case Protocol.MSG_CHUNK:
+			return Protocol.MsgChunk;
+		case Protocol.MSG_BLOCK:
+			return Protocol.MsgBlock;
+		case Protocol.MSG_CONTROLS_STATE:
+			return Protocol.MsgControlsState;
+		case Protocol.MSG_CHAT_SEND:
+			return Protocol.MsgChatSend;
+		case Protocol.MSG_CHAT_BROADCAST:
+			return Protocol.MsgChatBroadcast;
+		case Protocol.MSG_DEBUG_RAY:
+			return Protocol.MsgDebugRay;
+		case Protocol.MSG_NTP_SYNC_REQUEST:
+			return Protocol.MsgNtpSyncRequest;
+		case Protocol.MSG_NTP_SYNC_REPLY:
+			return Protocol.MsgNtpSyncReply;
+		case Protocol.MSG_INVENTORY_STATE:
+			return Protocol.MsgInventoryState;
+		case Protocol.MSG_INVENTORY_SELECT:
+			return Protocol.MsgInventorySelect;
+		case Protocol.MSG_INVENTORY_MOVE:
+			return Protocol.MsgInventoryMove;
+		case Protocol.MSG_SCOREBOARD_ADD:
+			return Protocol.MsgScoreboardAdd;
+		case Protocol.MSG_SCOREBOARD_SET:
+			return Protocol.MsgScoreboardSet;
+		case Protocol.MSG_SCOREBOARD_REMOVE:
+			return Protocol.MsgScoreboardRemove;
+		default:
+			console.error("Unknown id", id);
+	}
 };
 
 Protocol.EntityKindPlayer = "player";
@@ -331,14 +379,17 @@ Protocol.MsgControlsState =  {
 	}
 };
 
-Protocol.MsgChat = {
+Protocol.MsgChatSend = {
 	toProto: function(text) {
 		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_CHAT);
+		dataView.setUint8(0, Protocol.MSG_CHAT_SEND);
 		buf = Protocol.append(buf, Protocol.marshalString(text));
 		return new DataView(buf);
-	},
+	}
+};
+
+Protocol.MsgChatBroadcast = {
 	fromProto: function(dataView) {
 		var result = {};
 		var offset = 1;
@@ -360,13 +411,16 @@ Protocol.MsgDebugRay = {
 	}
 };
 
-Protocol.MsgNtpSync = {
+Protocol.MsgNtpSyncRequest = {
 	toProto: function() {
 		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_NTP_SYNC);
+		dataView.setUint8(0, Protocol.MSG_NTP_SYNC_REQUEST);
 		return dataView;
-	},
+	}
+};
+
+Protocol.MsgNtpSyncReply = {
 	fromProto: function(dataView) {
 		var result = {};
 		var proto = Protocol.unmarshalFloat64(1, dataView);
@@ -376,14 +430,6 @@ Protocol.MsgNtpSync = {
 };
 
 Protocol.MsgInventoryState = {
-	toProto: function(equippedLeft, equippedRight) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_INVENTORY_STATE);
-		buf = Protocol.append(buf, Protocol.marshalInt(equippedLeft));
-		buf = Protocol.append(buf, Protocol.marshalInt(equippedRight));
-		return new DataView(buf);
-	},
 	fromProto: function(dataView) {
 		var result = {};
 		var offset = 1;
@@ -392,6 +438,17 @@ Protocol.MsgInventoryState = {
 		offset += proto.read;
 		result.items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
 		return result;
+	}
+};
+
+Protocol.MsgInventorySelect = {
+	toProto: function(equippedLeft, equippedRight) {
+		var buf = new ArrayBuffer(1);
+		var dataView = new DataView(buf);
+		dataView.setUint8(0, Protocol.MSG_INVENTORY_SELECT);
+		buf = Protocol.append(buf, Protocol.marshalInt(equippedLeft));
+		buf = Protocol.append(buf, Protocol.marshalInt(equippedRight));
+		return new DataView(buf);
 	}
 };
 

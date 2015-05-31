@@ -46,8 +46,7 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(true);
 	updateHtmlEquipChanged(false);
 
-	conn.on(Protocol.MSG_INVENTORY_STATE, function (dataView) {
-		var result = Protocol.MsgInventoryState.fromProto(dataView);
+	conn.on(Protocol.MSG_INVENTORY_STATE, function (result) {
 		var items = result.items;
 
 		slots = [];
@@ -220,7 +219,7 @@ function Inventory(world, camera, conn, controls) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
 				updateModels();
-				conn.queue(Protocol.MsgInventoryState.toProto(
+				conn.queue(Protocol.MsgInventorySelect.toProto(
 						getEquippedSlot(true, leftIsPrimary),
 						getEquippedSlot(false, rightIsPrimary)));
 				updateHtmlEquipChanged(isLeft);

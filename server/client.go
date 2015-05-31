@@ -68,11 +68,11 @@ func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
 		m := m.(*MsgControlsState)
 		c.handleControlState(g, w, m)
 
-	case *MsgChat:
-		g.Chat(c.name, m.(*MsgChat).Message)
+	case *MsgChatSend:
+		g.Chat(c.name, m.(*MsgChatSend).Message)
 
-	case *MsgInventoryState:
-		m := m.(*MsgInventoryState)
+	case *MsgInventorySelect:
+		m := m.(*MsgInventorySelect)
 		c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
 
 	case *MsgInventoryMove:

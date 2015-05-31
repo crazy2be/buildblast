@@ -58,8 +58,7 @@ return function Clock(conn) {
 		offset = calcOffset(clientTime, serverTime, serverTime, now());
 		// We want to apply the initial offset right away
 		appliedOffset = offset;
-		conn.on(Protocol.MSG_NTP_SYNC, function(dataView) {
-			var result = Protocol.MsgNtpSync.fromProto(dataView);
+		conn.on(Protocol.MSG_NTP_SYNC_REPLY, function(result) {
 			var serverTime = result.serverTime;
 			offset = calcOffset(clientTime, serverTime, serverTime, now());
 
@@ -72,7 +71,7 @@ return function Clock(conn) {
 	var clientTime = now();
 	function startSync() {
 		clientTime = now();
-		conn.queue(Protocol.MsgNtpSync.toProto());
+		conn.queue(Protocol.MsgNtpSyncRequest.toProto());
 	}
 
 	// http://en.wikipedia.org/wiki/Network_Time_Protocol

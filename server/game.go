@@ -115,7 +115,7 @@ func (g *Game) Announce(message string) {
 
 func (g *Game) Chat(user string, message string) {
 	log.Println("[CHAT]", user+":", message)
-	g.Broadcast(&MsgChat{
+	g.Broadcast(&MsgChatBroadcast{
 		DisplayName: user,
 		Message:     message,
 	})

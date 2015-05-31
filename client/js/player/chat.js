@@ -11,9 +11,7 @@ return function Chat(controls, conn, container) {
 	var focused = false;
 	var chat = document.getElementById("chat");
 
-	conn.on(Protocol.MSG_CHAT, function(dataView) {
-		var result = Protocol.MsgChat.fromProto(dataView);
-
+	conn.on(Protocol.MSG_CHAT_BROADCAST, function(result) {
 		var message = document.createElement('div');
 		message.className = "message";
 		message.innerText = result.displayName + ": " + result.message;
@@ -59,7 +57,7 @@ return function Chat(controls, conn, container) {
 
 		var text = $.trim($input.val());
 		if (text !== '') {
-			conn.queue(Protocol.MsgChat.toProto(text));
+			conn.queue(Protocol.MsgChatSend.toProto(text));
 		}
 
 		$input.val("").blur();

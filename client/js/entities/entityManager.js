@@ -36,8 +36,7 @@ function EntityManager(scene, conn, world, clock) {
 		};
 	}
 
-	conn.on(Protocol.MSG_ENTITY_CREATE, function(dataView) {
-		var result = Protocol.MsgEntityCreate.fromProto(dataView);
+	conn.on(Protocol.MSG_ENTITY_CREATE, function(result) {
 		var id = result.id;
 		var kind = result.kind;
 		var state = result.state;
@@ -77,8 +76,7 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on(Protocol.MSG_ENTITY_STATE, function(dataView) {
-		var result = Protocol.MsgEntityState.fromProto(dataView);
+	conn.on(Protocol.MSG_ENTITY_STATE, function(result) {
 		var id = result.id;
 		var state = result.state;
 
@@ -91,8 +89,7 @@ function EntityManager(scene, conn, world, clock) {
 		controller.message(stateToHistoryState(state));
 	});
 
-	conn.on(Protocol.MSG_ENTITY_REMOVE, function(dataView) {
-		var result = Protocol.MsgEntityRemove.fromProto(dataView);
+	conn.on(Protocol.MSG_ENTITY_REMOVE, function(result) {
 		var id = result.id;
 		var controller = controllers[id];
 		if (!controller) {

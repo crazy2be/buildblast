@@ -14,22 +14,25 @@ import (
 type MessageId byte
 
 const (
-	MSG_HANDSHAKE_REPLY = MessageId(iota)
-	MSG_HANDSHAKE_ERROR
-	MSG_ENTITY_CREATE
-	MSG_ENTITY_STATE
-	MSG_ENTITY_REMOVE
-	MSG_CHUNK
-	MSG_BLOCK
-	MSG_CONTROLS_STATE
-	MSG_CHAT
-	MSG_DEBUG_RAY
-	MSG_NTP_SYNC
-	MSG_INVENTORY_STATE
-	MSG_INVENTORY_MOVE
-	MSG_SCOREBOARD_ADD
-	MSG_SCOREBOARD_SET
-	MSG_SCOREBOARD_REMOVE
+	MSG_HANDSHAKE_REPLY   = MessageId(iota) // CLIENT <--- SERVER
+	MSG_HANDSHAKE_ERROR                     // CLIENT <--- SERVER
+	MSG_ENTITY_CREATE                       // CLIENT <--- SERVER
+	MSG_ENTITY_STATE                        // CLIENT <--- SERVER
+	MSG_ENTITY_REMOVE                       // CLIENT <--- SERVER
+	MSG_CHUNK                               // CLIENT <--- SERVER
+	MSG_BLOCK                               // CLIENT <--> SERVER
+	MSG_CONTROLS_STATE                      // CLIENT ---> SERVER
+	MSG_CHAT_SEND                           // CLIENT ---> SERVER
+	MSG_CHAT_BROADCAST                      // CLIENT <--- SERVER
+	MSG_DEBUG_RAY                           // CLIENT <--- SERVER
+	MSG_NTP_SYNC_REQUEST                    // CLIENT ---> SERVER
+	MSG_NTP_SYNC_REPLY                      // CLIENT <--- SERVER
+	MSG_INVENTORY_STATE                     // CLIENT <--- SERVER
+	MSG_INVENTORY_SELECT                    // CLIENT ---> SERVER
+	MSG_INVENTORY_MOVE                      // CLIENT ---> SERVER
+	MSG_SCOREBOARD_ADD                      // CLIENT <--- SERVER
+	MSG_SCOREBOARD_SET                      // CLIENT <--- SERVER
+	MSG_SCOREBOARD_REMOVE                   // CLIENT <--- SERVER
 )
 
 func idToType(id MessageId) Message {
@@ -44,16 +47,28 @@ func idToType(id MessageId) Message {
 		return &MsgBlock{}
 	case MSG_CONTROLS_STATE:
 		return &MsgControlsState{}
-	case MSG_CHAT:
-		return &MsgChat{}
+	case MSG_CHAT_SEND:
+		return &MsgChatSend{}
+	case MSG_CHAT_BROADCAST:
+		return &MsgChatBroadcast{}
 	case MSG_DEBUG_RAY:
 		return &MsgDebugRay{}
-	case MSG_NTP_SYNC:
-		return &MsgNtpSync{}
+	case MSG_NTP_SYNC_REQUEST:
+		return &MsgNtpSyncRequest{}
+	case MSG_NTP_SYNC_REPLY:
+		return &MsgNtpSyncReply{}
 	case MSG_INVENTORY_STATE:
 		return &MsgInventoryState{}
+	case MSG_INVENTORY_SELECT:
+		return &MsgInventorySelect{}
 	case MSG_INVENTORY_MOVE:
 		return &MsgInventoryMove{}
+	case MSG_SCOREBOARD_ADD:
+		return &MsgScoreboardAdd{}
+	case MSG_SCOREBOARD_SET:
+		return &MsgScoreboardSet{}
+	case MSG_SCOREBOARD_REMOVE:
+		return &MsgScoreboardRemove{}
 	}
 	panic(fmt.Sprintf("Unknown message recieved from client: %d", id))
 }
@@ -76,14 +91,20 @@ func typeToId(m Message) MessageId {
 		return MSG_BLOCK
 	case *MsgControlsState:
 		return MSG_CONTROLS_STATE
-	case *MsgChat:
-		return MSG_CHAT
+	case *MsgChatSend:
+		return MSG_CHAT_SEND
+	case *MsgChatBroadcast:
+		return MSG_CHAT_BROADCAST
 	case *MsgDebugRay:
 		return MSG_DEBUG_RAY
-	case *MsgNtpSync:
-		return MSG_NTP_SYNC
+	case *MsgNtpSyncRequest:
+		return MSG_NTP_SYNC_REQUEST
+	case *MsgNtpSyncReply:
+		return MSG_NTP_SYNC_REPLY
 	case *MsgInventoryState:
 		return MSG_INVENTORY_STATE
+	case *MsgInventorySelect:
+		return MSG_INVENTORY_SELECT
 	case *MsgInventoryMove:
 		return MSG_INVENTORY_MOVE
 	case *MsgScoreboardAdd:
@@ -114,7 +135,7 @@ func (msg *MsgHandshakeReply) ToProto() []byte {
 }
 
 func (msg *MsgHandshakeReply) FromProto(buf []byte) (int, error) {
-	return len(buf), nil
+	panic("FromProto not implemented: MsgHandshakeReply")
 }
 
 type MsgHandshakeError struct {
@@ -228,10 +249,7 @@ type MsgControlsState struct {
 }
 
 func (msg *MsgControlsState) ToProto() []byte {
-	buf := make([]byte, 0, 34)
-	buf = append(buf, byte(MSG_CONTROLS_STATE))
-	buf = append(buf, msg.Controls.ToProto()...)
-	return buf
+	panic("ToProto not implemented: MsgControlState")
 }
 
 func (msg *MsgControlsState) FromProto(buf []byte) (int, error) {
@@ -239,24 +257,35 @@ func (msg *MsgControlsState) FromProto(buf []byte) (int, error) {
 	return read + 1, err
 }
 
-type MsgChat struct {
+type MsgChatSend struct {
+	Message string
+}
+
+func (msg *MsgChatSend) ToProto() []byte {
+	panic("ToProto not implemented: MsgChatSend")
+}
+
+func (msg *MsgChatSend) FromProto(buf []byte) (int, error) {
+	var read int
+	msg.Message, read = proto.UnmarshalString(buf[1:])
+	return read + 1, nil
+}
+
+type MsgChatBroadcast struct {
 	DisplayName string
 	Message     string
 }
 
-func (msg *MsgChat) ToProto() []byte {
+func (msg *MsgChatBroadcast) ToProto() []byte {
 	buf := make([]byte, 0, 256)
-	buf = append(buf, byte(MSG_CHAT))
+	buf = append(buf, byte(MSG_CHAT_BROADCAST))
 	buf = append(buf, proto.MarshalString(msg.DisplayName)...)
 	buf = append(buf, proto.MarshalString(msg.Message)...)
 	return buf
 }
 
-func (msg *MsgChat) FromProto(buf []byte) (int, error) {
-	var read int
-	// Client doesn't send the Display name
-	msg.Message, read = proto.UnmarshalString(buf[1:])
-	return read + 1, nil
+func (msg *MsgChatBroadcast) FromProto(buf []byte) (int, error) {
+	panic("FromProto not implemented: MsgChatBroadcast")
 }
 
 type MsgDebugRay struct {
@@ -274,21 +303,31 @@ func (msg *MsgDebugRay) FromProto(buf []byte) (int, error) {
 	panic("FromProto not implemented: MsgDebugRay")
 }
 
-type MsgNtpSync struct {
+type MsgNtpSyncRequest struct {
+	// No fields
+}
+
+func (msg *MsgNtpSyncRequest) ToProto() []byte {
+	panic("ToProto not implemented: MsgNtpSyncRequest")
+}
+
+func (msg *MsgNtpSyncRequest) FromProto(buf []byte) (int, error) {
+	return 1, nil
+}
+
+type MsgNtpSyncReply struct {
 	ServerTime float64
 }
 
-func (msg *MsgNtpSync) ToProto() []byte {
+func (msg *MsgNtpSyncReply) ToProto() []byte {
 	buf := make([]byte, 0, 3*8+1)
-	buf = append(buf, byte(MSG_NTP_SYNC))
+	buf = append(buf, byte(MSG_NTP_SYNC_REPLY))
 	buf = append(buf, proto.MarshalFloat64(msg.ServerTime)...)
 	return buf
 }
 
-func (msg *MsgNtpSync) FromProto(buf []byte) (int, error) {
-	// Client doesn't send any values.
-	// Return 1 for the msg id byte.
-	return 1, nil
+func (msg *MsgNtpSyncReply) FromProto(buf []byte) (int, error) {
+	panic("FromProto not implemented: MsgNtpSyncReply")
 }
 
 type MsgInventoryState struct {
@@ -309,6 +348,19 @@ func (msg *MsgInventoryState) ToProto() []byte {
 }
 
 func (msg *MsgInventoryState) FromProto(buf []byte) (int, error) {
+	panic("FromProto not implemented: MsgInventoryState")
+}
+
+type MsgInventorySelect struct {
+	ItemLeft  int
+	ItemRight int
+}
+
+func (msg *MsgInventorySelect) ToProto() []byte {
+	panic("ToProto not implemented: MsgInventorySelect")
+}
+
+func (msg *MsgInventorySelect) FromProto(buf []byte) (int, error) {
 	var value int64
 	var read int
 	offset := 1
@@ -320,7 +372,6 @@ func (msg *MsgInventoryState) FromProto(buf []byte) (int, error) {
 	msg.ItemRight = int(value)
 	offset += read
 	return read, nil
-
 }
 
 type MsgInventoryMove struct {
@@ -329,11 +380,7 @@ type MsgInventoryMove struct {
 }
 
 func (msg *MsgInventoryMove) ToProto() []byte {
-	buf := make([]byte, 0, 21)
-	buf = append(buf, byte(MSG_INVENTORY_MOVE))
-	buf = append(buf, proto.MarshalInt(msg.From)...)
-	buf = append(buf, proto.MarshalInt(msg.To)...)
-	return buf
+	panic("ToProto not implemented: MsgInventoryMove")
 }
 
 func (msg *MsgInventoryMove) FromProto(buf []byte) (int, error) {

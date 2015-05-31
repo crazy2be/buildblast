@@ -8,8 +8,7 @@ return function Scoreboard(controls, conn, container) {
 	var scores = {};
 	var dirty = false;
 
-	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(dataView) {
-		var result = Protocol.MsgScoreboardAdd.fromProto(dataView);
+	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(result) {
 		var name = result.name;
 		var score = result.score;
 
@@ -21,8 +20,7 @@ return function Scoreboard(controls, conn, container) {
 		dirty = true;
 	});
 
-	conn.on(Protocol.MSG_SCOREBOARD_SET, function handleSet(dataView) {
-		var result = Protocol.MsgScoreboardSet.fromProto(dataView);
+	conn.on(Protocol.MSG_SCOREBOARD_SET, function(result) {
 		var name = result.name;
 		var score = result.score;
 
@@ -34,8 +32,7 @@ return function Scoreboard(controls, conn, container) {
 		dirty = true;
 	});
 
-	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(dataView) {
-		var result = Protocol.MsgScoreboardRemove.fromProto(dataView);
+	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(result) {
 		var name = result.name;
 
 		if (scores[name] === undefined) {

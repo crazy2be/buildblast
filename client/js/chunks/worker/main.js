@@ -1,7 +1,6 @@
 define(function(require) {
 
 var common = require("chunks/chunkCommon");
-var CHUNK = common.CHUNK;
 
 var simpleMesher = require("./mesher");
 
@@ -35,7 +34,7 @@ parent.onmessage = function (e) {
 	if (e.data.kind === 'start-conn') {
 		initConn(e.data.payload);
 	} else if (e.data.kind === 'block-change') {
-		processBlockChange(e.data.dataView);
+		processBlockChange(Protocol.MsgBlock.fromProto(e.data.dataView));
 	} else {
 		throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
 	}
@@ -49,8 +48,7 @@ function initConn(payload) {
 
 var manager = new WorkerChunkManager();
 
-function processChunk(dataView) {
-	var result = Protocol.MsgChunk.fromProto(dataView);
+function processChunk(result) {
 	var cc = result.cc;
 	var blocks = result.blocks;
 
@@ -64,8 +62,7 @@ function processChunk(dataView) {
 	manager.refreshNeighbouring(cc);
 }
 
-function processBlockChange(dataView) {
-	var result = Protocol.MsgBlock.fromProto(dataView);
+function processBlockChange(result) {
 	var x = result.pos.x;
 	var y = result.pos.y;
 	var z = result.pos.z;

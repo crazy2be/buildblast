@@ -44,18 +44,16 @@ function main () {
 			Models.init(callback);
 		},
 		function (callback) {
-			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(dataView) {
+			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(result) {
 				console.log("Got handshake reply");
-				var result = Protocol.MsgHandshakeReply.fromProto(dataView);
 				clock.init(result.serverTime);
 				clientID = result.clientID;
 				playerEntity = result.playerEntity;
 				conn.setImmediate(false);
 				callback();
 			});
-			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (dataView) {
+			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (result) {
 				console.log("Got handshake error");
-				var result = Protocol.MsgHandshakeError.fromProto(dataView);
 				throw result.Message;
 			});
 		}

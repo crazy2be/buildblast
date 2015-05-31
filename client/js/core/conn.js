@@ -1,4 +1,7 @@
-define(function () {
+define(function(require) {
+
+var Protocol = require("core/protocol");
+
 function Conn(uri) {
 	var self = this;
 	var WS_OPEN = 1;
@@ -37,9 +40,10 @@ function Conn(uri) {
 			console.warn("Recieved server message of unknown id:", id, "with data", dataView);
 			return;
 		}
+		var message = Protocol.idToType(id).fromProto(dataView);
 		var h = handlers[id];
 		for (var i = 0; i < h.length; h++) {
-			h[i](dataView);
+			h[i](message);
 		}
 	}
 
