@@ -163,7 +163,7 @@ func (msg *MsgEntityCreate) ToProto() []byte {
 	buf := make([]byte, 0, 256)
 	buf = append(buf, byte(MSG_ENTITY_CREATE))
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
-	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
+	buf = append(buf, byte(msg.Kind))
 	buf = append(buf, msg.State.ToProto()...)
 	return buf
 }
@@ -182,7 +182,7 @@ func (msg *MsgEntityState) ToProto() []byte {
 	buf := make([]byte, 0, 256)
 	buf = append(buf, byte(MSG_ENTITY_STATE))
 	buf = append(buf, proto.MarshalString(string(msg.ID))...)
-	buf = append(buf, proto.MarshalString(string(msg.Kind))...)
+	buf = append(buf, byte(msg.Kind))
 	buf = append(buf, msg.State.ToProto()...)
 	return buf
 }

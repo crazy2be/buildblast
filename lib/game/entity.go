@@ -9,11 +9,11 @@ import (
 // Should be an int someday...
 type EntityId string
 
-type EntityKind string
+type EntityKind byte
 
 const (
-	EntityKindPlayer    = EntityKind("player")
-	EntityKindWorldItem = EntityKind("worldItem")
+	EntityKindPlayer = EntityKind(iota)
+	EntityKindWorldItem
 )
 
 type Entity interface {

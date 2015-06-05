@@ -78,8 +78,8 @@ Protocol.idToType = function(id) {
 	}
 };
 
-Protocol.EntityKindPlayer = "player";
-Protocol.EntityKindWorldItem = "worldItem";
+Protocol.EntityKindPlayer    = 0;
+Protocol.EntityKindWorldItem = 1;
 
 Protocol.append = function(a, b) {
 	var result = new Uint8Array(a.byteLength + b.byteLength);
@@ -267,9 +267,8 @@ Protocol.MsgEntityCreate = {
 		var proto = Protocol.unmarshalString(offset, dataView);
 		result.id = proto.value;
 		offset += proto.read;
-		proto = Protocol.unmarshalString(offset, dataView);
-		result.kind = proto.value;
-		offset += proto.read;
+		result.kind = dataView.getUint8(offset);
+		offset += 1;
 		proto = Protocol.unmarshalState(offset, dataView, result.kind);
 		result.state = proto.value;
 		return result;
@@ -283,9 +282,8 @@ Protocol.MsgEntityState = {
 		var proto = Protocol.unmarshalString(offset, dataView);
 		result.id = proto.value;
 		offset += proto.read;
-		proto = Protocol.unmarshalString(offset, dataView);
-		result.kind = proto.value;
-		offset += proto.read;
+		result.kind = dataView.getUint8(offset);
+		offset += 1;
 		proto = Protocol.unmarshalState(offset, dataView, result.kind);
 		result.state = proto.value;
 		return result;
