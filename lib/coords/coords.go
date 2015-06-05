@@ -3,16 +3,10 @@ package coords
 import (
 	"math"
 
-	"buildblast/lib/proto"
 	"buildblast/lib/vmath"
 )
 
 type Direction vmath.Vec3
-
-func (d Direction) ToProto() []byte {
-	vec3 := d.Vec3()
-	return vec3.ToProto()
-}
 
 func (d Direction) Vec3() vmath.Vec3 {
 	return vmath.Vec3(d)
@@ -20,11 +14,6 @@ func (d Direction) Vec3() vmath.Vec3 {
 
 // World represents a position in the 3d world.
 type World vmath.Vec3
-
-func (wc World) ToProto() []byte {
-	vec3 := wc.Vec3()
-	return vec3.ToProto()
-}
 
 func (wc World) Vec3() vmath.Vec3 {
 	return vmath.Vec3(wc)
@@ -56,30 +45,6 @@ type Block struct {
 	X int
 	Y int
 	Z int
-}
-
-func (bc Block) ToProto() []byte {
-	buf := make([]byte, 0, 30)
-	buf = append(buf, proto.MarshalInt(bc.X)...)
-	buf = append(buf, proto.MarshalInt(bc.Y)...)
-	buf = append(buf, proto.MarshalInt(bc.Z)...)
-	return buf
-}
-
-func (bc *Block) FromProto(buf []byte) (int, error) {
-	offset := 0
-	var value int64
-	var read int
-	value, read = proto.UnmarshalInt(buf)
-	bc.X = int(value)
-	offset += read
-	value, read = proto.UnmarshalInt(buf[offset:])
-	bc.Y = int(value)
-	offset += read
-	value, read = proto.UnmarshalInt(buf[offset:])
-	bc.Z = int(value)
-	offset += read
-	return offset, nil
 }
 
 func (bc Block) Float64() (float64, float64, float64) {
@@ -133,14 +98,6 @@ type Chunk struct {
 	Z int
 }
 
-func (cc Chunk) ToProto() []byte {
-	buf := make([]byte, 0, 30)
-	buf = append(buf, proto.MarshalInt(cc.X)...)
-	buf = append(buf, proto.MarshalInt(cc.Y)...)
-	buf = append(buf, proto.MarshalInt(cc.Z)...)
-	return buf
-}
-
 // returns the bottom left block in this chunk
 func (cc Chunk) Origin() Block {
 	return Block{
@@ -171,14 +128,6 @@ type Offset struct {
 	X int
 	Y int
 	Z int
-}
-
-func (oc Offset) ToProto() []byte {
-	buf := make([]byte, 0, 30)
-	buf = append(buf, proto.MarshalInt(oc.X)...)
-	buf = append(buf, proto.MarshalInt(oc.Y)...)
-	buf = append(buf, proto.MarshalInt(oc.Z)...)
-	return buf
 }
 
 // Given an integer 0 <= index < BlocksPerChunk, returns the offset

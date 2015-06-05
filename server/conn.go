@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 
+	"buildblast/lib/proto"
+
 	"code.google.com/p/go.net/websocket"
 )
 
@@ -17,7 +19,7 @@ func NewConn(ws *websocket.Conn) *Conn {
 	return c
 }
 
-func (c *Conn) Send(m Message) error {
+func (c *Conn) Send(m proto.Message) error {
 	data := m.ToProto()
 	err := websocket.Message.Send(c.ws, data)
 	if err != nil {
@@ -26,7 +28,7 @@ func (c *Conn) Send(m Message) error {
 	return nil
 }
 
-func (c *Conn) Recv() (Message, error) {
+func (c *Conn) Recv() (proto.Message, error) {
 	var data []byte
 	err := websocket.Message.Receive(c.ws, &data)
 	if err != nil {
@@ -35,7 +37,7 @@ func (c *Conn) Recv() (Message, error) {
 		}
 		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
 	}
-	m := idToType(MessageId(data[0]))
+	m := proto.IdToType(proto.MessageId(data[0]))
 	_, err = m.FromProto(data)
 	return m, err
 }

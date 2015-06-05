@@ -6,7 +6,6 @@ import (
 
 	"buildblast/lib/coords"
 	"buildblast/lib/physics"
-	"buildblast/lib/proto"
 	"buildblast/lib/vmath"
 )
 
@@ -64,20 +63,6 @@ func (cs *ControlState) ActivateLeft() bool {
 
 func (cs *ControlState) ActivateRight() bool {
 	return cs.controlFlags&activateRight > 0
-}
-
-func (cs *ControlState) ToProto() []byte {
-	panic("ToProto not implemented: ControlState")
-}
-
-func (cs *ControlState) FromProto(buf []byte) (int, error) {
-	value, read := proto.UnmarshalInt(buf)
-	cs.controlFlags = int(value)
-	cs.Lat, _ = proto.UnmarshalFloat64(buf[read+0*8 : read+1*8])
-	cs.Lon, _ = proto.UnmarshalFloat64(buf[read+1*8 : read+2*8])
-	cs.Timestamp, _ = proto.UnmarshalFloat64(buf[read+2*8 : read+3*8])
-	cs.ViewTimestamp, _ = proto.UnmarshalFloat64(buf[read+3*8 : read+4*8])
-	return read + 32, nil
 }
 
 const (

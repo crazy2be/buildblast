@@ -26,17 +26,6 @@ type WorldItemState struct {
 	ItemKind    Item
 }
 
-func (wis *WorldItemState) ToProto() []byte {
-	buf := make([]byte, 0, 256)
-	buf = append(buf, wis.EntityState.ToProto()...)
-	buf = append(buf, byte(wis.ItemKind))
-	return buf
-}
-
-func (wis *WorldItemState) FromProto(buf []byte) (int, error) {
-	return 0, nil
-}
-
 var globalWorldItemId uint64
 
 func NewWorldItem(kind Item, pos coords.World) *WorldItem {
