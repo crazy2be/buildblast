@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"buildblast/lib/proto"
 )
 
 // ClientConn is a generic, non-blocking, lossy over lag

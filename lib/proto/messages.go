@@ -34,7 +34,7 @@ const (
 	MSG_SCOREBOARD_REMOVE                   // CLIENT <--- SERVER
 )
 
-func IdToType(id MessageId) Message {
+func idToType(id MessageId) Message {
 	switch id {
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
@@ -72,7 +72,7 @@ func IdToType(id MessageId) Message {
 	panic(fmt.Sprintf("Unknown message recieved from client: %d", id))
 }
 
-func TypeToId(m Message) MessageId {
+func typeToId(m Message) MessageId {
 	switch m.(type) {
 	case *MsgHandshakeReply:
 		return MSG_HANDSHAKE_REPLY
@@ -114,6 +114,33 @@ func TypeToId(m Message) MessageId {
 		return MSG_SCOREBOARD_REMOVE
 	}
 	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
+}
+
+func typeIsMsg(m Message) bool {
+	switch m.(type) {
+	case *MsgHandshakeReply:
+	case *MsgHandshakeError:
+	case *MsgEntityCreate:
+	case *MsgEntityState:
+	case *MsgEntityRemove:
+	case *MsgChunk:
+	case *MsgBlock:
+	case *MsgControlsState:
+	case *MsgChatSend:
+	case *MsgChatBroadcast:
+	case *MsgDebugRay:
+	case *MsgNtpSyncRequest:
+	case *MsgNtpSyncReply:
+	case *MsgInventoryState:
+	case *MsgInventorySelect:
+	case *MsgInventoryMove:
+	case *MsgScoreboardAdd:
+	case *MsgScoreboardSet:
+	case *MsgScoreboardRemove:
+	default:
+		return false
+	}
+	return true;
 }
 
 type MsgHandshakeReply struct {
