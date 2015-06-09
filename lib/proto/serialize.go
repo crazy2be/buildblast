@@ -1,14 +1,9 @@
 package proto
 
 import (
-	"reflect"
+	"encoding/hex"
 	"fmt"
-
-	"buildblast/lib/game"
-	"buildblast/lib/coords"
-	"buildblast/lib/vmath"
-	"buildblast/lib/mapgen"
-	"buildblast/lib/physics"
+	"reflect"
 )
 
 const (
@@ -19,10 +14,12 @@ func SerializeMessage(msg Message) []byte {
 	buf := make([]byte, 0, bufferSize)
 	buf = append(buf, byte(typeToId(msg)))
 	msgValue := reflect.ValueOf(msg)
-	return serializeFields(buf, msgValue)
+	buf = serializeFields(buf, msgValue)
+	return buf
 }
 
 func serializeFields(buf []byte, v reflect.Value) []byte {
+	// Follow any references to the actual struct objects.
 	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
 		v = v.Elem()
 	}
@@ -40,43 +37,83 @@ func serializeFields(buf []byte, v reflect.Value) []byte {
 }
 
 func serializeField(buf []byte, v reflect.Value) []byte {
-	switch val := v.Interface().(type) {
-	case byte:
-		return append(buf, val)
-	case game.EntityKind:
-		return append(buf, byte(val))
-	case mapgen.Block:
-		return append(buf, byte(val))
-	case game.Item:
-		return append(buf, byte(val))
-	case []byte:
-		buf = append(buf, marshalInt(len(val))...)
-		return append(buf, val...)
-	case int:
-		return append(buf, marshalInt(val)...)
-	case float64:
-		return append(buf, marshalFloat64(val)...)
-	case string:
-		return append(buf, marshalString(val)...)
-	case game.EntityId:
-		return append(buf, marshalString(string(val))...)
-	case bool:
+	switch v.Kind() {
+	case reflect.Uint8:
+		return append(buf, byte(v.Uint()))
+	case reflect.Slice:
+		switch val := v.Interface().(type) {
+		case []byte:
+			buf = append(buf, marshalInt(len(val))...)
+			return append(buf, val...)
+		default:
+			panic(fmt.Sprintf("I don't support serializing this slice: %s\n",
+				reflect.TypeOf(v.Interface())))
+		}
+	case reflect.Int:
+		return append(buf, marshalInt(int(v.Int()))...)
+	case reflect.Float64:
+		return append(buf, marshalFloat64(v.Float())...)
+	case reflect.String:
+		return append(buf, marshalString(v.String())...)
+	case reflect.Bool:
 		byteVal := byte(0)
-		if val {
+		if v.Bool() {
 			byteVal = 1
 		} else {
 			byteVal = 0
 		}
 		return append(buf, byteVal)
-	case coords.World, coords.Chunk, coords.Offset, coords.Block, coords.Direction, vmath.Vec3,
-			physics.Body, game.EntityState, game.Health, *game.BioticState:
+	case reflect.Ptr, reflect.Interface, reflect.Struct:
 		return append(buf, serializeFields(buf, v)...)
 	default:
-		panic(fmt.Sprintf("I don't know how to serialize this: %s, %s", val, reflect.TypeOf(val)))
+		panic(fmt.Sprintf("I don't know how to serialize this: %s, %s, %s\n",
+			v.Kind(),
+			reflect.TypeOf(v.Interface()),
+			v.Interface()))
 	}
 }
 
-func DeserializeMessage(buf []byte) (Message, error) {
-	buf = nil
-	return nil, nil
+func DeserializeMessage(buf []byte) Message {
+	msg := idToMessage(MessageId(buf[0]))
+	msgValue := reflect.ValueOf(msg)
+	deserializeFields(buf[1:], msgValue)
+	return msg
+}
+
+func deserializeFields(buf []byte, v reflect.Value) []byte {
+	// Follow any references to the actual struct objects.
+	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	for i := 0; i < v.NumField(); i++ {
+		buf = deserializeField(buf, v.Field(i))
+	}
+	return buf
+}
+
+func deserializeField(buf []byte, v reflect.Value) []byte {
+	switch v.Kind() {
+	case reflect.Uint8:
+		v.SetBytes(buf[0:1])
+		return buf[1:]
+	case reflect.Int:
+		value, read := unmarshalInt(buf)
+		v.SetInt(value)
+		return buf[read:]
+	case reflect.Float64:
+		value, read := unmarshalFloat64(buf)
+		v.SetFloat(value)
+		return buf[read:]
+	case reflect.String:
+		value, read := unmarshalString(buf)
+		v.SetString(value)
+		return buf[read:]
+	case reflect.Struct:
+		return deserializeFields(buf, v)
+	default:
+		panic(fmt.Sprintf("I don't know how to deserialize this: %s, %s, %s\n",
+			v.Kind(),
+			reflect.TypeOf(v.Interface()),
+			v.Interface()))
+	}
 }

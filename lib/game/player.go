@@ -25,7 +25,7 @@ const (
 )
 
 type ControlState struct {
-	controlFlags int
+	ControlFlags int
 	Lat          float64
 	Lon          float64
 
@@ -38,31 +38,31 @@ type ControlState struct {
 }
 
 func (cs *ControlState) Forward() bool {
-	return cs.controlFlags&forward > 0
+	return cs.ControlFlags&forward > 0
 }
 
 func (cs *ControlState) Left() bool {
-	return cs.controlFlags&left > 0
+	return cs.ControlFlags&left > 0
 }
 
 func (cs *ControlState) Right() bool {
-	return cs.controlFlags&right > 0
+	return cs.ControlFlags&right > 0
 }
 
 func (cs *ControlState) Back() bool {
-	return cs.controlFlags&back > 0
+	return cs.ControlFlags&back > 0
 }
 
 func (cs *ControlState) Jump() bool {
-	return cs.controlFlags&jump > 0
+	return cs.ControlFlags&jump > 0
 }
 
 func (cs *ControlState) ActivateLeft() bool {
-	return cs.controlFlags&activateLeft > 0
+	return cs.ControlFlags&activateLeft > 0
 }
 
 func (cs *ControlState) ActivateRight() bool {
-	return cs.controlFlags&activateRight > 0
+	return cs.ControlFlags&activateRight > 0
 }
 
 const (

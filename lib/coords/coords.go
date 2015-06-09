@@ -38,6 +38,12 @@ func (wc World) Block() Block {
 	}
 }
 
+type Size struct {
+	X int
+	Y int
+	Z int
+}
+
 // Block represents the coordinates of any block in the world. It represents
 // the same units as World, but without any precision (because blocks can only
 // exist at integer boundries).
@@ -177,7 +183,7 @@ const (
 	BlocksPerChunk = ChunkWidth * ChunkHeight * ChunkDepth
 )
 
-var ChunkSize vmath.Vec3 = vmath.Vec3{
+var ChunkSize Size = Size{
 	X: ChunkWidth,
 	Y: ChunkHeight,
 	Z: ChunkDepth,

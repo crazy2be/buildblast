@@ -37,7 +37,7 @@ func (c *Conn) Recv() (proto.Message, error) {
 		}
 		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
 	}
-	return proto.DeserializeMessage(data)
+	return proto.DeserializeMessage(data), err
 }
 
 func (c *Conn) Close() error {

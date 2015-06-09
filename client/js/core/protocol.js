@@ -313,20 +313,30 @@ Protocol.MsgChunk = {
 		proto = Protocol.unmarshalInt(offset, dataView);
 		result.cc.z = proto.value;
 		offset += proto.read;
-
-		proto = Protocol.unmarshalVec3(offset, dataView);
-		result.size = proto.value;
+		result.size = {};
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.size.x = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.size.y = proto.value;
+		offset += proto.read;
+		proto = Protocol.unmarshalInt(offset, dataView);
+		result.size.z = proto.value;
 		offset += proto.read;
 		if (result.size.x != CHUNK.WIDTH ||
 			result.size.y != CHUNK.HEIGHT ||
 			result.size.z != CHUNK.DEPTH
 		) {
-			throw "Got chunk of size which does not match our expected chunk size!";
+			throw "Got chunk of size which does not match our expected chunk size!"
+					+ JSON.stringify(result)
 		}
 
 		// Blocks are Block Types (see block.js)
+		proto = Protocol.unmarshalInt(offset, dataView);
+		var numBlocks = proto.value;
+		offset += proto.read;
 		result.blocks = new Uint8Array(dataView.buffer.slice(offset,
-				offset + dataView.byteOffset + dataView.byteLength));
+				offset + numBlocks));
 		return result;
 	}
 };
