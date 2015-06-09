@@ -20,7 +20,7 @@ func NewConn(ws *websocket.Conn) *Conn {
 }
 
 func (c *Conn) Send(m proto.Message) error {
-	data := m.ToProto()
+	data := proto.SerializeMessage(m)
 	err := websocket.Message.Send(c.ws, data)
 	if err != nil {
 		return fmt.Errorf("Sending websocket binary data: %s", err)
@@ -37,9 +37,7 @@ func (c *Conn) Recv() (proto.Message, error) {
 		}
 		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
 	}
-	m := proto.IdToType(proto.MessageId(data[0]))
-	_, err = m.FromProto(data)
-	return m, err
+	return proto.DeserializeMessage(data)
 }
 
 func (c *Conn) Close() error {

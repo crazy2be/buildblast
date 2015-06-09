@@ -10,6 +10,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
+	"buildblast/lib/proto"
 )
 
 var globalGame *Game
@@ -74,7 +75,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	// isn't yet created at the handshake stage.
 	info := makePlayerEntityCreatedMessage(game.EntityId(name), &game.BioticState{})
 
-	conn.Send(&MsgHandshakeReply{
+	conn.Send(&proto.MsgHandshakeReply{
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
 		ClientID:         name,
 		PlayerEntityInfo: *info,
