@@ -123,30 +123,29 @@ func typeToId(m Message) MessageId {
 
 func typeIsMsg(m Message) bool {
 	switch m.(type) {
-	// In case you don't know, all of these statements implicitly break and return true.
-	case *MsgHandshakeReply:
-	case *MsgHandshakeError:
-	case *MsgEntityCreate:
-	case *MsgEntityState:
-	case *MsgEntityRemove:
-	case *MsgChunk:
-	case *MsgBlock:
-	case *MsgControlsState:
-	case *MsgChatSend:
-	case *MsgChatBroadcast:
-	case *MsgDebugRay:
-	case *MsgNtpSyncRequest:
-	case *MsgNtpSyncReply:
-	case *MsgInventoryState:
-	case *MsgInventorySelect:
-	case *MsgInventoryMove:
-	case *MsgScoreboardAdd:
-	case *MsgScoreboardSet:
-	case *MsgScoreboardRemove:
+	case *MsgHandshakeReply,
+		*MsgHandshakeError,
+		*MsgEntityCreate,
+		*MsgEntityState,
+		*MsgEntityRemove,
+		*MsgChunk,
+		*MsgBlock,
+		*MsgControlsState,
+		*MsgChatSend,
+		*MsgChatBroadcast,
+		*MsgDebugRay,
+		*MsgNtpSyncRequest,
+		*MsgNtpSyncReply,
+		*MsgInventoryState,
+		*MsgInventorySelect,
+		*MsgInventoryMove,
+		*MsgScoreboardAdd,
+		*MsgScoreboardSet,
+		*MsgScoreboardRemove:
+		return true
 	default:
 		return false
 	}
-	return true
 }
 
 type MsgHandshakeReply struct {
