@@ -1,7 +1,6 @@
 package proto
 
 import (
-	"encoding/hex"
 	"fmt"
 	"reflect"
 )
@@ -14,8 +13,7 @@ func SerializeMessage(msg Message) []byte {
 	buf := make([]byte, 0, bufferSize)
 	buf = append(buf, byte(typeToId(msg)))
 	msgValue := reflect.ValueOf(msg)
-	buf = serializeFields(buf, msgValue)
-	return buf
+	return serializeFields(buf, msgValue)
 }
 
 func serializeFields(buf []byte, v reflect.Value) []byte {
@@ -64,7 +62,7 @@ func serializeField(buf []byte, v reflect.Value) []byte {
 		}
 		return append(buf, byteVal)
 	case reflect.Ptr, reflect.Interface, reflect.Struct:
-		return append(buf, serializeFields(buf, v)...)
+		return serializeFields(buf, v)
 	default:
 		panic(fmt.Sprintf("I don't know how to serialize this: %s, %s, %s\n",
 			v.Kind(),
@@ -82,7 +80,7 @@ func DeserializeMessage(buf []byte) Message {
 
 func deserializeFields(buf []byte, v reflect.Value) []byte {
 	// Follow any references to the actual struct objects.
-	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+	for (v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface) && v.Elem().IsValid() {
 		v = v.Elem()
 	}
 	for i := 0; i < v.NumField(); i++ {
@@ -94,8 +92,18 @@ func deserializeFields(buf []byte, v reflect.Value) []byte {
 func deserializeField(buf []byte, v reflect.Value) []byte {
 	switch v.Kind() {
 	case reflect.Uint8:
-		v.SetBytes(buf[0:1])
+		v.SetUint(uint64(buf[0]))
 		return buf[1:]
+	case reflect.Slice:
+		switch val := v.Addr().Interface().(type) {
+		case *[]byte:
+			length, read := unmarshalInt(buf)
+			*val = buf[:length]
+			return buf[int(length) + read:]
+		default:
+			panic(fmt.Sprintf("I don't support deserializing this slice: %s\n",
+				reflect.TypeOf(v.Interface())))
+		}
 	case reflect.Int:
 		value, read := unmarshalInt(buf)
 		v.SetInt(value)
@@ -108,7 +116,7 @@ func deserializeField(buf []byte, v reflect.Value) []byte {
 		value, read := unmarshalString(buf)
 		v.SetString(value)
 		return buf[read:]
-	case reflect.Struct:
+	case reflect.Struct, reflect.Interface:
 		return deserializeFields(buf, v)
 	default:
 		panic(fmt.Sprintf("I don't know how to deserialize this: %s, %s, %s\n",
@@ -116,4 +124,15 @@ func deserializeField(buf []byte, v reflect.Value) []byte {
 			reflect.TypeOf(v.Interface()),
 			v.Interface()))
 	}
+}
+
+func printBuf(buf []byte) {
+	for _, b := range buf {
+		var i byte
+		for i = 7; i < 8; i-- {
+			fmt.Printf("%d", (b >> i) & 1)
+		}
+		fmt.Printf(" ")
+	}
+	fmt.Println()
 }

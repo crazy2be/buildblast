@@ -35,12 +35,18 @@ const (
 
 func idToMessage(id MessageId) Message {
 	switch id {
+	case MSG_HANDSHAKE_REPLY:
+		return &MsgHandshakeReply{}
+	case MSG_HANDSHAKE_ERROR:
+		return &MsgHandshakeError{}
 	case MSG_ENTITY_CREATE:
 		return &MsgEntityCreate{}
 	case MSG_ENTITY_STATE:
 		return &MsgEntityState{}
 	case MSG_ENTITY_REMOVE:
 		return &MsgEntityRemove{}
+	case MSG_CHUNK:
+		return &MsgChunk{}
 	case MSG_BLOCK:
 		return &MsgBlock{}
 	case MSG_CONTROLS_STATE:
@@ -68,7 +74,7 @@ func idToMessage(id MessageId) Message {
 	case MSG_SCOREBOARD_REMOVE:
 		return &MsgScoreboardRemove{}
 	}
-	panic(fmt.Sprintf("Unknown message recieved from client: %d", id))
+	panic(fmt.Sprintf("Unknown message recieved from client: %d, %s", id, reflect.TypeOf(id)))
 }
 
 func typeToId(m Message) MessageId {
@@ -117,6 +123,7 @@ func typeToId(m Message) MessageId {
 
 func typeIsMsg(m Message) bool {
 	switch m.(type) {
+	// In case you don't know, all of these statements implicitly break and return true.
 	case *MsgHandshakeReply:
 	case *MsgHandshakeError:
 	case *MsgEntityCreate:
