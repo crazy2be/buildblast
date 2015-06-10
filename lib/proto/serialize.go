@@ -99,7 +99,7 @@ func deserializeField(buf []byte, v reflect.Value) []byte {
 		case *[]byte:
 			length, read := unmarshalInt(buf)
 			*val = buf[:length]
-			return buf[int(length) + read:]
+			return buf[int(length)+read:]
 		default:
 			panic(fmt.Sprintf("I don't support deserializing this slice: %s\n",
 				reflect.TypeOf(v.Interface())))
@@ -130,7 +130,7 @@ func printBuf(buf []byte) {
 	for _, b := range buf {
 		var i byte
 		for i = 7; i < 8; i-- {
-			fmt.Printf("%d", (b >> i) & 1)
+			fmt.Printf("%d", (b>>i)&1)
 		}
 		fmt.Printf(" ")
 	}
