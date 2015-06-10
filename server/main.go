@@ -36,7 +36,8 @@ func doProfile() {
 }
 
 func main() {
-	// 	setupPrompt()
+	// setupPrompt()
+	setupSigInt() // Print newline on SIG_INT
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
 	clientAssets := flag.String("client", ".", "Sets the location of the client assets that will be served")
 	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
