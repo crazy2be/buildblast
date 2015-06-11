@@ -11,6 +11,9 @@ var BioticState = require("entities/model/bioticState");
 var WorldItemState = require("entities/model/worldItemState");
 var Biotic = require("entities/biotic");
 
+var PROTO_MESSAGES = require("proto");
+console.log(PROTO_MESSAGES);
+
 var Protocol = {
 	MSG_HANDSHAKE_REPLY:    0, // CLIENT <--- SERVER
 	MSG_HANDSHAKE_ERROR:    1, // CLIENT <--- SERVER
@@ -35,46 +38,46 @@ var Protocol = {
 
 Protocol.idToType = function(id) {
 	switch (id) {
-		case Protocol.MSG_HANDSHAKE_REPLY:
-			return Protocol.MsgHandshakeReply;
-		case Protocol.MSG_HANDSHAKE_ERROR:
-			return Protocol.MsgHandshakeError;
-		case Protocol.MSG_ENTITY_CREATE:
-			return Protocol.MsgEntityCreate;
-		case Protocol.MSG_ENTITY_STATE:
-			return Protocol.MsgEntityState;
-		case Protocol.MSG_ENTITY_REMOVE:
-			return Protocol.MsgEntityRemove;
-		case Protocol.MSG_CHUNK:
-			return Protocol.MsgChunk;
-		case Protocol.MSG_BLOCK:
-			return Protocol.MsgBlock;
-		case Protocol.MSG_CONTROLS_STATE:
-			return Protocol.MsgControlsState;
-		case Protocol.MSG_CHAT_SEND:
-			return Protocol.MsgChatSend;
-		case Protocol.MSG_CHAT_BROADCAST:
-			return Protocol.MsgChatBroadcast;
-		case Protocol.MSG_DEBUG_RAY:
-			return Protocol.MsgDebugRay;
-		case Protocol.MSG_NTP_SYNC_REQUEST:
-			return Protocol.MsgNtpSyncRequest;
-		case Protocol.MSG_NTP_SYNC_REPLY:
-			return Protocol.MsgNtpSyncReply;
-		case Protocol.MSG_INVENTORY_STATE:
-			return Protocol.MsgInventoryState;
-		case Protocol.MSG_INVENTORY_SELECT:
-			return Protocol.MsgInventorySelect;
-		case Protocol.MSG_INVENTORY_MOVE:
-			return Protocol.MsgInventoryMove;
-		case Protocol.MSG_SCOREBOARD_ADD:
-			return Protocol.MsgScoreboardAdd;
-		case Protocol.MSG_SCOREBOARD_SET:
-			return Protocol.MsgScoreboardSet;
-		case Protocol.MSG_SCOREBOARD_REMOVE:
-			return Protocol.MsgScoreboardRemove;
-		default:
-			console.error("Unknown id", id);
+	case Protocol.MSG_HANDSHAKE_REPLY:
+		return Protocol.MsgHandshakeReply;
+	case Protocol.MSG_HANDSHAKE_ERROR:
+		return Protocol.MsgHandshakeError;
+	case Protocol.MSG_ENTITY_CREATE:
+		return Protocol.MsgEntityCreate;
+	case Protocol.MSG_ENTITY_STATE:
+		return Protocol.MsgEntityState;
+	case Protocol.MSG_ENTITY_REMOVE:
+		return Protocol.MsgEntityRemove;
+	case Protocol.MSG_CHUNK:
+		return Protocol.MsgChunk;
+	case Protocol.MSG_BLOCK:
+		return Protocol.MsgBlock;
+	case Protocol.MSG_CONTROLS_STATE:
+		return Protocol.MsgControlsState;
+	case Protocol.MSG_CHAT_SEND:
+		return Protocol.MsgChatSend;
+	case Protocol.MSG_CHAT_BROADCAST:
+		return Protocol.MsgChatBroadcast;
+	case Protocol.MSG_DEBUG_RAY:
+		return Protocol.MsgDebugRay;
+	case Protocol.MSG_NTP_SYNC_REQUEST:
+		return Protocol.MsgNtpSyncRequest;
+	case Protocol.MSG_NTP_SYNC_REPLY:
+		return Protocol.MsgNtpSyncReply;
+	case Protocol.MSG_INVENTORY_STATE:
+		return Protocol.MsgInventoryState;
+	case Protocol.MSG_INVENTORY_SELECT:
+		return Protocol.MsgInventorySelect;
+	case Protocol.MSG_INVENTORY_MOVE:
+		return Protocol.MsgInventoryMove;
+	case Protocol.MSG_SCOREBOARD_ADD:
+		return Protocol.MsgScoreboardAdd;
+	case Protocol.MSG_SCOREBOARD_SET:
+		return Protocol.MsgScoreboardSet;
+	case Protocol.MSG_SCOREBOARD_REMOVE:
+		return Protocol.MsgScoreboardRemove;
+	default:
+		console.error("Unknown id", id);
 	}
 };
 
@@ -234,7 +237,7 @@ Protocol.unmarshalState = function(offset, dataView, kind) {
 		result = Protocol.unmarshalWorldItemState(offset, dataView);
 	}
 	return result;
-}
+};
 
 Protocol.MsgHandshakeReply = {
 	fromProto: function(dataView) {

@@ -31,6 +31,7 @@ const (
 	MSG_SCOREBOARD_ADD                      // CLIENT <--- SERVER
 	MSG_SCOREBOARD_SET                      // CLIENT <--- SERVER
 	MSG_SCOREBOARD_REMOVE                   // CLIENT <--- SERVER
+	TOTAL_MESSAGES        = int(iota)
 )
 
 func idToMessage(id MessageId) Message {
