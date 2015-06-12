@@ -11,8 +11,8 @@ var BioticState = require("entities/model/bioticState");
 var WorldItemState = require("entities/model/worldItemState");
 var Biotic = require("entities/biotic");
 
-var PROTO_MESSAGES = require("proto");
-console.log(PROTO_MESSAGES);
+var PROTO = require("proto");
+console.log(PROTO);
 
 var Protocol = {
 	MSG_HANDSHAKE_REPLY:    0, // CLIENT <--- SERVER
@@ -148,7 +148,6 @@ Protocol.unmarshalFloat64 = function(offset, dataView) {
 Protocol.marshalString = function(s) {
 	var utf8 = unescape(encodeURIComponent(s));
 	var result = Protocol.marshalInt(utf8.length);
-	console.log(result.length, utf8.length);
 
 	var buf = new ArrayBuffer(utf8.length);
 	var bufView = new Uint8Array(buf);
@@ -168,6 +167,14 @@ Protocol.unmarshalString = function(offset, dataView) {
 				new Uint8Array(
 					dataView.buffer.slice(offset + returned.read, offset + returned.read + returned.value))),
 			 read: returned.value + returned.read }
+};
+
+Protocol.unmarshalByteArray = function(offset, dataView) {
+	var sizeResult = Protocol.unmarshalInt(offset, dataView);
+	var arrayLength = sizeResult.value;
+	offset += sizeResult.read;
+	var array = new Uint8Array(dataView.buffer.slice(offset, offset + arrayLength));
+	return { value: array, read: sizeResult.read + arrayLength }
 };
 
 Protocol.unmarshalVec3 = function(offset, dataView) {
@@ -237,6 +244,57 @@ Protocol.unmarshalState = function(offset, dataView, kind) {
 		result = Protocol.unmarshalWorldItemState(offset, dataView);
 	}
 	return result;
+};
+
+Protocol.unmarshalMessage = function(offset, dataView) {
+	var fields = PROTO.messages[dataView.getUint8(offset)];
+	offset++;
+	var type = Protocol.unmarshalFields(offset, dataView, fields);
+	return { value: type.value, read: type.read + 1 };
+};
+
+Protocol.unmarshalFields = function(offset, dataView, fields) {
+	var result = {};
+	var totalRead = 0;
+	var fieldData;
+	for (var i = 0; i < fields.length; i++) {
+		fieldData = Protocol.unmarshalField(offset, dataView, fields[i]);
+		result[fields[i].name] = fieldData.value;
+		offset += fieldData.read;
+		totalRead += fieldData.read;
+	}
+
+	return { value: result, read: totalRead };
+};
+
+Protocol.unmarshalField = function(offset, dataView, field) {
+	function retVal(val, off) {
+		return { value: val, read: off };
+	}
+
+	switch (field.type) {
+		case 0:
+			throw "I don't know how to unmarshal this unknown field";
+		case 1: // byte
+			return retVal(dataView.getUint8(offset), 1);
+		case 2: // slice
+			return Protocol.unmarshalByteArray(offset, dataView);
+		case 3: // int
+			return Protocol.unmarshalInt(offset, dataView);
+		case 4: // float
+			return Protocol.unmarshalFloat64(offset, dataView);
+		case 5: // string
+			return Protocol.unmarshalString(offset, dataView);
+		case 6: // bool
+			return retVal(dataView.getUint8(offset) === 1, 1);
+		case 7: // interface (TODO)
+			throw "Interface not implemented";
+		case 8:
+			var inner = Protocol.unmarshalFields(offset, dataView, field.fields);
+			return retVal(inner.value, inner.read);
+		case 9: // message
+			return Protocol.unmarshalMessage(offset, dataView);
+	}
 };
 
 Protocol.MsgHandshakeReply = {
@@ -359,20 +417,7 @@ Protocol.MsgBlock = {
 		return new DataView(buf);
 	},
 	fromProto: function(dataView) {
-		var result = {};
-		result.pos = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalInt(offset, dataView);
-		result.pos.x = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.pos.y = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.pos.z = proto.value;
-		offset += proto.read;
-		result.type = dataView.getUint8(offset);
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 

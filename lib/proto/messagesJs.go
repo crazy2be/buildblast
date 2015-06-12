@@ -1,11 +1,13 @@
 package proto
 
 import (
-	"buildblast/lib/coords"
+	"buildblast/lib/game"
 	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -17,18 +19,34 @@ const (
 	type_string
 	type_bool
 	type_interface
+	type_struct
 	type_struct_message
-	type_struct_vec_int
-	type_struct_vec_float64
 )
 
+const (
+	kind_biotic = iota
+	kind_world_item
+	total_kinds
+)
+
+func firstCharLower(s string) string {
+	if s == "" {
+		return ""
+	}
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToLower(r)) + s[n:]
+}
+
+
+// DOIT: Remove all the newlines once we know what we're doing.
 func GenerateJs() string {
 	var js bytes.Buffer
 
-	js.WriteString("define(function(require){ return {\n")
+	js.WriteString("define(function(require){\n")
+	js.WriteString("return {\n")
 
 	// Go through each message and write the type info
-	js.WriteString(`"messages":[`)
+	js.WriteString(`"messages": [`)
 	js.WriteString("\n")
 	for i := 0; i < TOTAL_MESSAGES; i++ {
 		if i != 0 {
@@ -38,7 +56,28 @@ func GenerateJs() string {
 	}
 	js.WriteString("]")
 
-	js.WriteString("}; });")
+	// Write the type info for the interface types
+	js.WriteString(`,"kinds": [`)
+	for i := 0; i < total_kinds; i++ {
+		if i != 0 {
+			js.WriteString(",\n")
+		}
+		var kind interface{}
+		switch i {
+		case kind_biotic:
+			kind = &game.BioticState{}
+		case kind_world_item:
+			kind = &game.WorldItemState{}
+		default:
+			panic("I don't know how to deal with this kind: " + strconv.Itoa(i))
+		}
+		structToJs(&js, kind)
+	}
+	js.WriteString("]")
+
+	js.WriteString("}")
+
+	js.WriteString("});")
 
 	return js.String()
 }
@@ -58,7 +97,7 @@ func structToJs(js *bytes.Buffer, obj interface{}) {
 		}
 		field := objValue.Field(i)
 		js.WriteString(`{"name":"`)
-		js.WriteString(objValue.Type().Field(i).Name)
+		js.WriteString(firstCharLower(objValue.Type().Field(i).Name))
 		js.WriteString(`","type":`)
 		var fieldType int
 		switch field.Kind() {
@@ -75,19 +114,10 @@ func structToJs(js *bytes.Buffer, obj interface{}) {
 		case reflect.Bool:
 			fieldType = type_bool
 		case reflect.Struct:
-			if typeIsMsg(field.Addr().Interface()) {
+			if field.CanAddr() && typeIsMsg(field.Addr().Interface()) {
 				fieldType = type_struct_message
 			} else {
-				switch field.Interface().(type) {
-				case coords.Size, coords.Chunk, coords.Block:
-					fieldType = type_struct_vec_int
-				case coords.World:
-					fieldType = type_struct_vec_float64
-				default:
-					// Mainly used with MsgControlsState. They client never has to decode this
-					// message, and uses non-generated code to encode it.
-					fieldType = type_unknown
-				}
+				fieldType = type_struct
 			}
 		case reflect.Interface:
 			fieldType = type_interface
@@ -95,6 +125,10 @@ func structToJs(js *bytes.Buffer, obj interface{}) {
 			panic(fmt.Sprintf("I don't know how to jsify this: %s\n", field.Kind()))
 		}
 		js.WriteString(strconv.Itoa(fieldType))
+		if fieldType == type_struct {
+			js.WriteString(`,"fields":`)
+			structToJs(js, field.Interface())
+		}
 		js.WriteString("}\n")
 	}
 	js.WriteString(`]`)
