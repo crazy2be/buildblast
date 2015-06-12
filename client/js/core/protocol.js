@@ -351,37 +351,13 @@ Protocol.MsgEntityState = {
 
 Protocol.MsgEntityRemove = {
 	fromProto: function(dataView) {
-		var result = {};
-		var proto = Protocol.unmarshalString(1, dataView);
-		result.id = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
 Protocol.MsgChunk = {
 	fromProto: function(dataView) {
-		var result = {};
-		result.cc = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalInt(offset, dataView);
-		result.cc.x = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.cc.y = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.cc.z = proto.value;
-		offset += proto.read;
-		result.size = {};
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.size.x = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.size.y = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.size.z = proto.value;
-		offset += proto.read;
+		var result = Protocol.unmarshalMessage(0, dataView).value;
 		if (result.size.x != CHUNK.WIDTH ||
 			result.size.y != CHUNK.HEIGHT ||
 			result.size.z != CHUNK.DEPTH
@@ -389,13 +365,6 @@ Protocol.MsgChunk = {
 			throw "Got chunk of size which does not match our expected chunk size!"
 					+ JSON.stringify(result)
 		}
-
-		// Blocks are Block Types (see block.js)
-		proto = Protocol.unmarshalInt(offset, dataView);
-		var numBlocks = proto.value;
-		offset += proto.read;
-		result.blocks = new Uint8Array(dataView.buffer.slice(offset,
-				offset + numBlocks));
 		return result;
 	}
 };

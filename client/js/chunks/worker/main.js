@@ -49,7 +49,7 @@ function initConn(payload) {
 var manager = new WorkerChunkManager();
 
 function processChunk(result) {
-	var cc = result.cc;
+	var cc = result.cpos;
 	var blocks = result.blocks;
 
 	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
