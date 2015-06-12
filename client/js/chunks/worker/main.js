@@ -49,6 +49,13 @@ function initConn(payload) {
 var manager = new WorkerChunkManager();
 
 function processChunk(result) {
+	if (result.size.x != common.CHUNK.WIDTH ||
+		result.size.y != common.CHUNK.HEIGHT ||
+		result.size.z != common.CHUNK.DEPTH
+	) {
+		throw "Got chunk of size which does not match our expected chunk size!"
+				+ JSON.stringify(result)
+	}
 	var cc = result.cpos;
 	var blocks = result.blocks;
 

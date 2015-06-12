@@ -357,15 +357,7 @@ Protocol.MsgEntityRemove = {
 
 Protocol.MsgChunk = {
 	fromProto: function(dataView) {
-		var result = Protocol.unmarshalMessage(0, dataView).value;
-		if (result.size.x != CHUNK.WIDTH ||
-			result.size.y != CHUNK.HEIGHT ||
-			result.size.z != CHUNK.DEPTH
-		) {
-			throw "Got chunk of size which does not match our expected chunk size!"
-					+ JSON.stringify(result)
-		}
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -414,23 +406,13 @@ Protocol.MsgChatSend = {
 
 Protocol.MsgChatBroadcast = {
 	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.displayName = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalString(offset, dataView);
-		result.message = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
 Protocol.MsgDebugRay = {
 	fromProto: function(dataView) {
-		var result = {};
-		var proto = Protocol.unmarshalVec3(1, dataView);
-		result.pos = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -445,22 +427,13 @@ Protocol.MsgNtpSyncRequest = {
 
 Protocol.MsgNtpSyncReply = {
 	fromProto: function(dataView) {
-		var result = {};
-		var proto = Protocol.unmarshalFloat64(1, dataView);
-		result.serverTime = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
 Protocol.MsgInventoryState = {
 	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalInt(offset, dataView);
-		var itemLength = proto.value;
-		offset += proto.read;
-		result.items = new Uint8Array(dataView.buffer.slice(offset, offset + itemLength));
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -488,37 +461,19 @@ Protocol.MsgInventoryMove = {
 
 Protocol.MsgScoreboardAdd = {
 	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.name = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.score = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
 Protocol.MsgScoreboardSet = {
 	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.name = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalInt(offset, dataView);
-		result.score = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
 Protocol.MsgScoreboardRemove = {
 	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.name = proto.value;
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 

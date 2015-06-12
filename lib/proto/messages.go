@@ -215,9 +215,7 @@ type MsgNtpSyncReply struct {
 }
 
 type MsgInventoryState struct {
-	Items     []byte
-	ItemLeft  int
-	ItemRight int
+	Items []byte
 }
 
 type MsgInventorySelect struct {
