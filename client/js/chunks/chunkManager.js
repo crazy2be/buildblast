@@ -6,7 +6,7 @@ var common = require("./chunkCommon");
 var Conn = require("core/conn");
 var Protocol = require("core/protocol");
 
-return function ChunkManager(scene, clientID) {
+return function ChunkManager(scene, clientId) {
 	var self = this;
 
 	var chunks = {};
@@ -36,7 +36,7 @@ return function ChunkManager(scene, clientID) {
 		var kind = e.data.kind;
 		var payload = e.data.payload;
 		if (kind === 'booted') {
-			startChunkConn(clientID);
+			startChunkConn(clientId);
 		} else if (kind === 'chunk') {
 			processChunk(payload);
 		} else if (kind === 'log') {

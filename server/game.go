@@ -54,7 +54,7 @@ func NewGame(world *game.World) *Game {
 // Thread safe, blocking
 // Returns a client with the given ID. If there is no client with the given
 // id, creates a new client with the given ID, and adds it to the game.
-func (g *Game) clientWithID(id string) (client *Client, isNew bool) {
+func (g *Game) clientWithId(id string) (client *Client, isNew bool) {
 	g.clientRequests <- id
 	resp := <-g.clientResponses
 	return resp.client, resp.isNew

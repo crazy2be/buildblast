@@ -7,10 +7,10 @@ var Protocol = require("core/protocol");
 
 var common = require("chunks/chunkCommon");
 
-return function World(scene, conn, clientID, clock) {
+return function World(scene, conn, clientId, clock) {
 	var self = this;
 
-	var chunkManager = new ChunkManager(scene, clientID);
+	var chunkManager = new ChunkManager(scene, clientId);
 	var entityManager = new EntityManager(scene, conn, self, clock);
 
 	self.setPlayer = entityManager.setPlayer;

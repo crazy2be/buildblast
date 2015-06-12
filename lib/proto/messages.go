@@ -151,7 +151,7 @@ func typeIsMsg(m Message) bool {
 
 type MsgHandshakeReply struct {
 	ServerTime       float64
-	ClientID         string
+	ClientId         string
 	PlayerEntityInfo MsgEntityCreate
 	// DOIT: These are not used for some reason
 	Authenticated bool
@@ -163,19 +163,19 @@ type MsgHandshakeError struct {
 }
 
 type MsgEntityCreate struct {
-	ID    game.EntityId
+	Id    game.EntityId
 	Kind  game.EntityKind
 	State interface{}
 }
 
 type MsgEntityState struct {
-	ID    game.EntityId
+	Id    game.EntityId
 	Kind  game.EntityKind
 	State interface{}
 }
 
 type MsgEntityRemove struct {
-	ID game.EntityId
+	Id game.EntityId
 }
 
 type MsgChunk struct {

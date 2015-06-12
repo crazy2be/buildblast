@@ -305,7 +305,7 @@ Protocol.MsgHandshakeReply = {
 		result.serverTime = proto.value;
 		offset += proto.read;
 		proto = Protocol.unmarshalString(offset, dataView);
-		result.clientID = proto.value;
+		result.clientId = proto.value;
 		offset += proto.read;
 		proto = Protocol.unmarshalPlayerEntity(offset, dataView);
 		result.playerEntity = proto.value;
@@ -315,9 +315,7 @@ Protocol.MsgHandshakeReply = {
 
 Protocol.MsgHandshakeError = {
 	fromProto: function(dataView) {
-		var result = {};
-		result.Message = Protocol.unmarshalString(1, dataView);
-		return result;
+		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 

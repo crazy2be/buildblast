@@ -36,7 +36,7 @@ function main () {
 	//Connect to server and shake our hands.
 	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
-	var clientID;
+	var clientId;
 	var playerEntity;
 
 	async.parallel([
@@ -47,14 +47,14 @@ function main () {
 			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(result) {
 				console.log("Got handshake reply");
 				clock.init(result.serverTime);
-				clientID = result.clientID;
+				clientId = result.clientId;
 				playerEntity = result.playerEntity;
 				conn.setImmediate(false);
 				callback();
 			});
 			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (result) {
 				console.log("Got handshake error");
-				throw result.Message;
+				throw result.message;
 			});
 		}
 	], function (err, results) {
@@ -76,13 +76,13 @@ function main () {
 		var ambientLight = new THREE.AmbientLight(0xffffff);
 		scene.add(ambientLight);
 
-		var world = new World(scene, conn, clientID, clock);
+		var world = new World(scene, conn, clientId, clock);
 		var controls = new Controls(container);
 
 		var playerController = makePlayerController(world);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity,
 				playerController);
-		world.setPlayer(clientID, playerEntity, playerController);
+		world.setPlayer(clientId, playerEntity, playerController);
 
 		window.testExposure.playerUI = playerUI;
 		window.testExposure.world = world;
