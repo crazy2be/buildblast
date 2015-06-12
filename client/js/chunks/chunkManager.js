@@ -48,7 +48,7 @@ return function ChunkManager(scene, clientId) {
 	geometryWorker.onerror = fatalError;
 
 	function processChunk(payload) {
-		var cc = payload.ccpos;
+		var cc = payload.cpos;
 
 		var chunk = self.chunk(cc);
 		if (chunk) {

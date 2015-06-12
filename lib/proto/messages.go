@@ -179,7 +179,7 @@ type MsgEntityRemove struct {
 }
 
 type MsgChunk struct {
-	CCPos coords.Chunk
+	Cpos coords.Chunk
 	Size  coords.Size
 	Data  []byte
 }

@@ -19,7 +19,7 @@ function sendChunk() {
 		kind: 'chunk',
 		payload: {
 			blocks: chunk.blocks,
-			ccpos: chunk.cc,
+			cpos: chunk.cc,
 			geometry: res.geometry,
 		}
 	}, res.transferables);
