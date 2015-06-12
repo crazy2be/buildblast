@@ -37,7 +37,6 @@ func firstCharLower(s string) string {
 	return string(unicode.ToLower(r)) + s[n:]
 }
 
-
 // DOIT: Remove all the newlines once we know what we're doing.
 func GenerateJs() string {
 	var js bytes.Buffer

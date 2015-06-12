@@ -272,8 +272,8 @@ func (c *Client) internalRunChunks(conn *Conn) {
 			if chunk != nil {
 				m := &proto.MsgChunk{
 					Cpos: cc,
-					Size:  coords.ChunkSize,
-					Data:  chunk.ToByteArray(),
+					Size: coords.ChunkSize,
+					Data: chunk.ToByteArray(),
 				}
 				conn.Send(m)
 			}

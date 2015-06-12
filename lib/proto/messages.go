@@ -180,8 +180,8 @@ type MsgEntityRemove struct {
 
 type MsgChunk struct {
 	Cpos coords.Chunk
-	Size  coords.Size
-	Data  []byte
+	Size coords.Size
+	Data []byte
 }
 
 type MsgBlock struct {
