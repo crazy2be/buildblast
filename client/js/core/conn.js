@@ -13,7 +13,10 @@ function Conn(uri) {
 	ws.binaryType = "arraybuffer";
 
 	var messageQueue = [];
-	self.queue = function (dataView) {
+	self.queue = function(message, data) {
+		self.queueMessage(Protocol.marshalMessage(message, data));
+	};
+	self.queueMessage = function (dataView) {
 		if (ws.readyState === WS_OPEN) {
 			ws.send(dataView);
 		} else {

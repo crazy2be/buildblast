@@ -123,7 +123,7 @@ function Inventory(world, camera, conn, controls) {
 				var fromText = $fromSpan.text();
 				$fromSpan.text($toSpan.text());
 				$toSpan.text(fromText);
-				conn.queue(Protocol.MsgInventoryMove.toProto(from, to));
+				conn.queue(Protocol.MSG_INVENTORY_MOVE, [parseInt(from), parseInt(to)]);
 			},
 		});
 	}
@@ -219,9 +219,9 @@ function Inventory(world, camera, conn, controls) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
 				updateModels();
-				conn.queue(Protocol.MsgInventorySelect.toProto(
+				conn.queue(Protocol.MSG_INVENTORY_SELECT, [
 						getEquippedSlot(true, leftIsPrimary),
-						getEquippedSlot(false, rightIsPrimary)));
+						getEquippedSlot(false, rightIsPrimary)]);
 				updateHtmlEquipChanged(isLeft);
 			}
 

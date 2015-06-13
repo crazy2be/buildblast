@@ -79,7 +79,8 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 		scoreBoard.update(clock.dt());
 
 		var c = controls.sample();
-		conn.queue(Protocol.MsgControlsState.toProto(c, clock.time(), clock.entityTime()));
+		conn.queue(Protocol.MSG_CONTROLS_STATE, [c.controlFlags, c.lat, c.lon, clock.time(),
+				clock.entityTime()]);
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();

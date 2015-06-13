@@ -71,7 +71,7 @@ return function Clock(conn) {
 	var clientTime = now();
 	function startSync() {
 		clientTime = now();
-		conn.queue(Protocol.MsgNtpSyncRequest.toProto());
+		conn.queue(Protocol.MSG_NTP_SYNC_REQUEST, []);
 	}
 
 	// http://en.wikipedia.org/wiki/Network_Time_Protocol

@@ -31,51 +31,6 @@ var Protocol = {
 	MSG_SCOREBOARD_REMOVE: 18  // CLIENT <--- SERVER
 };
 
-Protocol.idToType = function(id) {
-	switch (id) {
-	case Protocol.MSG_HANDSHAKE_REPLY:
-		return Protocol.MsgHandshakeReply;
-	case Protocol.MSG_HANDSHAKE_ERROR:
-		return Protocol.MsgHandshakeError;
-	case Protocol.MSG_ENTITY_CREATE:
-		return Protocol.MsgEntityCreate;
-	case Protocol.MSG_ENTITY_STATE:
-		return Protocol.MsgEntityState;
-	case Protocol.MSG_ENTITY_REMOVE:
-		return Protocol.MsgEntityRemove;
-	case Protocol.MSG_CHUNK:
-		return Protocol.MsgChunk;
-	case Protocol.MSG_BLOCK:
-		return Protocol.MsgBlock;
-	case Protocol.MSG_CONTROLS_STATE:
-		return Protocol.MsgControlsState;
-	case Protocol.MSG_CHAT_SEND:
-		return Protocol.MsgChatSend;
-	case Protocol.MSG_CHAT_BROADCAST:
-		return Protocol.MsgChatBroadcast;
-	case Protocol.MSG_DEBUG_RAY:
-		return Protocol.MsgDebugRay;
-	case Protocol.MSG_NTP_SYNC_REQUEST:
-		return Protocol.MsgNtpSyncRequest;
-	case Protocol.MSG_NTP_SYNC_REPLY:
-		return Protocol.MsgNtpSyncReply;
-	case Protocol.MSG_INVENTORY_STATE:
-		return Protocol.MsgInventoryState;
-	case Protocol.MSG_INVENTORY_SELECT:
-		return Protocol.MsgInventorySelect;
-	case Protocol.MSG_INVENTORY_MOVE:
-		return Protocol.MsgInventoryMove;
-	case Protocol.MSG_SCOREBOARD_ADD:
-		return Protocol.MsgScoreboardAdd;
-	case Protocol.MSG_SCOREBOARD_SET:
-		return Protocol.MsgScoreboardSet;
-	case Protocol.MSG_SCOREBOARD_REMOVE:
-		return Protocol.MsgScoreboardRemove;
-	default:
-		console.error("Unknown id", id);
-	}
-};
-
 Protocol.EntityKindPlayer    = 0;
 Protocol.EntityKindBiotic    = 1;
 Protocol.EntityKindWorldItem = 2;
@@ -255,8 +210,8 @@ Protocol.unmarshalField = function(offset, dataView, result, field) {
 			var struct = Protocol.unmarshalFields(offset, dataView, PROTO.kinds[result.kind]);
 			result.state = struct.value;
 			Protocol.parseState(result);
-			return retVal(result.state, struct.read+1);
-		case 8:
+			return retVal(result.state, struct.read + 1);
+		case 8: // struct
 			inner = Protocol.unmarshalFields(offset, dataView, field.fields);
 			return retVal(inner.value, inner.read);
 		case 9: // message
@@ -264,74 +219,49 @@ Protocol.unmarshalField = function(offset, dataView, result, field) {
 	}
 };
 
-Protocol.MsgBlock = {
-	toProto: function(wcX, wcY, wcZ, newType) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_BLOCK);
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcX)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcY)));
-		buf = Protocol.append(buf, Protocol.marshalInt(Math.floor(wcZ)));
-		var temp = new ArrayBuffer(1);
-		dataView = new DataView(temp);
-		dataView.setUint8(0, newType);
-		buf = Protocol.append(buf, temp);
-		return new DataView(buf);
+Protocol.marshalMessage = function(message, data) {
+	var fields = PROTO.messages[message];
+	var buf = new ArrayBuffer(1);
+	var dataView = new DataView(buf);
+	dataView.setUint8(0, message);
+	if (fields.length > 0) {
+		buf = Protocol.append(buf, Protocol.marshalFields(fields, data, 0).buf);
 	}
+	return new DataView(buf);
 };
 
-Protocol.MsgControlsState =  {
-	toProto: function(controls, time, entityTime) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_CONTROLS_STATE);
-		buf = Protocol.append(buf, Protocol.marshalInt(controls.controlFlags));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lat));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(controls.lon));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(time));
-		buf = Protocol.append(buf, Protocol.marshalFloat64(entityTime));
-		return new DataView(buf);
+Protocol.marshalFields = function(fields, data, consumed) {
+	var result = { buf: null, consumed: consumed };
+	for (var i = 0; i < fields.length; i++) {
+		var temp = Protocol.marshalField(fields[i], data, result.consumed);
+		result.buf = (i === 0 ? temp.buf : Protocol.append(result.buf, temp.buf));
+		result.consumed = temp.consumed;
 	}
+	return result;
 };
 
-Protocol.MsgChatSend = {
-	toProto: function(text) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_CHAT_SEND);
-		buf = Protocol.append(buf, Protocol.marshalString(text));
-		return new DataView(buf);
-	}
-};
-
-Protocol.MsgNtpSyncRequest = {
-	toProto: function() {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_NTP_SYNC_REQUEST);
-		return dataView;
-	}
-};
-
-Protocol.MsgInventorySelect = {
-	toProto: function(equippedLeft, equippedRight) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_INVENTORY_SELECT);
-		buf = Protocol.append(buf, Protocol.marshalInt(equippedLeft));
-		buf = Protocol.append(buf, Protocol.marshalInt(equippedRight));
-		return new DataView(buf);
-	}
-};
-
-Protocol.MsgInventoryMove = {
-	toProto: function(from, to) {
-		var buf = new ArrayBuffer(1);
-		var dataView = new DataView(buf);
-		dataView.setUint8(0, Protocol.MSG_INVENTORY_MOVE);
-		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(from)));
-		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(to)));
-		return new DataView(buf);
+Protocol.marshalField = function(field, data, consumed) {
+	var result = { buf: null, consumed: consumed + 1 };
+	var value = data[consumed];
+	switch (field.type) {
+		case 1: // byte
+			result.buf = new ArrayBuffer(1);
+			var temp = new DataView(result.buf);
+			temp.setUint8(0, value);
+			return result;
+		case 3: // int
+			result.buf = Protocol.marshalInt(Math.floor(value));
+			return result;
+		case 4: // float
+			result.buf = Protocol.marshalFloat64(value);
+			return result;
+		case 5: // string
+			result.buf = Protocol.marshalString(value);
+			return result;
+		case 8: // struct
+			return Protocol.marshalFields(field.fields, data, consumed);
+		default:
+			throw "Field not supported for marshalling " + field.type;
 	}
 };
 

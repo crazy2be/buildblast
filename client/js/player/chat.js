@@ -57,7 +57,7 @@ return function Chat(controls, conn, container) {
 
 		var text = $.trim($input.val());
 		if (text !== '') {
-			conn.queue(Protocol.MsgChatSend.toProto(text));
+			conn.queue(Protocol.MSG_CHAT_SEND, [text]);
 		}
 
 		$input.val("").blur();
