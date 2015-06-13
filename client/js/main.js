@@ -13,6 +13,7 @@ var Protocol = require("core/protocol");
 
 var PlayerUI = require("player/playerUI");
 var EntityManager = require("entities/entityManager");
+var Biotic = require("entities/biotic");
 
 var PerfChart = require("perf/chart");
 var movement = require("player/movement");
@@ -48,7 +49,7 @@ function main () {
 				console.log("Got handshake reply");
 				clock.init(result.serverTime);
 				clientId = result.clientId;
-				playerEntity = result.playerEntity;
+				playerEntity = new Biotic(result.playerEntityInfo.state);
 				conn.setImmediate(false);
 				callback();
 			});

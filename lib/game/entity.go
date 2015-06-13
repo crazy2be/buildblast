@@ -12,6 +12,7 @@ type EntityKind byte
 
 const (
 	EntityKindPlayer = EntityKind(iota)
+	EntityKindBiotic
 	EntityKindWorldItem
 )
 

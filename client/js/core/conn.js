@@ -40,7 +40,7 @@ function Conn(uri) {
 			console.warn("Recieved server message of unknown id:", id, "with data", dataView);
 			return;
 		}
-		var message = Protocol.idToType(id).fromProto(dataView);
+		var message = Protocol.unmarshalMessage(0, dataView).value;
 		var h = handlers[id];
 		for (var i = 0; i < h.length; h++) {
 			h[i](message);

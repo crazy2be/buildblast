@@ -24,7 +24,8 @@ const (
 )
 
 const (
-	kind_biotic = iota
+	kind_player = iota
+	kind_biotic
 	kind_world_item
 	total_kinds
 )
@@ -63,6 +64,8 @@ func GenerateJs() string {
 		}
 		var kind interface{}
 		switch i {
+		case kind_player:
+			kind = &game.BioticState{}
 		case kind_biotic:
 			kind = &game.BioticState{}
 		case kind_world_item:

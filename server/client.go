@@ -195,7 +195,7 @@ func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
 func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
 	c.SendLossy(&proto.MsgEntityState{
 		Id:    id,
-		Kind:  game.EntityKindPlayer,
+		Kind:  game.EntityKindBiotic,
 		State: biotic.State(),
 	})
 }

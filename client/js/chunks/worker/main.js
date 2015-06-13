@@ -34,7 +34,7 @@ parent.onmessage = function (e) {
 	if (e.data.kind === 'start-conn') {
 		initConn(e.data.payload);
 	} else if (e.data.kind === 'block-change') {
-		processBlockChange(Protocol.MsgBlock.fromProto(e.data.dataView));
+		processBlockChange(Protocol.unmarshalMessage(0, e.data.dataView).value);
 	} else {
 		throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
 	}

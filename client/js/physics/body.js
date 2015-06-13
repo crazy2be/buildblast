@@ -19,11 +19,11 @@ return function Body(pos, vel, dir, halfExtents, centerOffset) {
 	};
 
 	self.lerp = function(other, frac) {
-		this.pos.lerp(other.pos, frac);
-		this.vel.lerp(other.vel, frac);
-		this.dir.lerp(other.dir, frac);
-		this.halfExtents.lerp(other.halfExtents, frac);
-		this.centerOffset.lerp(other.centerOffset, frac);
+		self.pos.lerp(other.pos, frac);
+		self.vel.lerp(other.vel, frac);
+		self.dir.lerp(other.dir, frac);
+		self.halfExtents.lerp(other.halfExtents, frac);
+		self.centerOffset.lerp(other.centerOffset, frac);
 	}
 }
 

@@ -1,18 +1,13 @@
 define(function(require){
 
 var THREE = require("THREE");
-var common = require("chunks/chunkCommon");
-var CHUNK = common.CHUNK;
+var PROTO = require("proto");
 
 var Body = require("physics/body");
 var EntityState = require("entities/model/entityState");
 var Health = require("entities/model/health");
 var BioticState = require("entities/model/bioticState");
 var WorldItemState = require("entities/model/worldItemState");
-var Biotic = require("entities/biotic");
-
-var PROTO = require("proto");
-console.log(PROTO);
 
 var Protocol = {
 	MSG_HANDSHAKE_REPLY:    0, // CLIENT <--- SERVER
@@ -82,7 +77,8 @@ Protocol.idToType = function(id) {
 };
 
 Protocol.EntityKindPlayer    = 0;
-Protocol.EntityKindWorldItem = 1;
+Protocol.EntityKindBiotic    = 1;
+Protocol.EntityKindWorldItem = 2;
 
 Protocol.append = function(a, b) {
 	var result = new Uint8Array(a.byteLength + b.byteLength);
@@ -177,73 +173,40 @@ Protocol.unmarshalByteArray = function(offset, dataView) {
 	return { value: array, read: sizeResult.read + arrayLength }
 };
 
-Protocol.unmarshalVec3 = function(offset, dataView) {
-	return { value: new THREE.Vector3(dataView.getFloat64(offset),
-	                                  dataView.getFloat64(offset + 8),
-									  dataView.getFloat64(offset + 16)),
-			 read: 24 }
-};
-
-Protocol.unmarshalBody = function(offset, dataView) {
-	var posResult = Protocol.unmarshalVec3(offset, dataView);
-	offset += posResult.read;
-	var velResult = Protocol.unmarshalVec3(offset, dataView);
-	offset += velResult.read;
-	var dirResult = Protocol.unmarshalVec3(offset, dataView);
-	offset += dirResult.read;
-	var halfExtentsResult = Protocol.unmarshalVec3(offset, dataView);
-	offset += halfExtentsResult.read;
-	var centerOffsetResult = Protocol.unmarshalVec3(offset, dataView);
-	return { value: new Body(posResult.value, velResult.value, dirResult.value,
-							 halfExtentsResult.value, centerOffsetResult.value),
-	         read: posResult.read + velResult.read + dirResult.read + halfExtentsResult.read
-	               + centerOffsetResult.read }
-};
-
-Protocol.unmarshalEntityState = function(offset, dataView) {
-	var entityIdResult = Protocol.unmarshalString(offset, dataView);
-	offset += entityIdResult.read;
-	var bodyResult = Protocol.unmarshalBody(offset, dataView);
-	offset += bodyResult.read;
-	var lastUpdatedResult = Protocol.unmarshalFloat64(offset, dataView);
-	return { value: new EntityState(entityIdResult.value, bodyResult.value, lastUpdatedResult.value),
-		     read: entityIdResult.read + bodyResult.read + lastUpdatedResult.read }
-};
-
-Protocol.unmarshalHealth = function(offset, dataView) {
-	var result = Protocol.unmarshalInt(offset, dataView);
-	return { value: new Health(result.value), read: result.read }
-};
-
-Protocol.unmarshalBioticState = function(offset, dataView) {
-	var entityStateResult = Protocol.unmarshalEntityState(offset, dataView);
-	offset += entityStateResult.read;
-	var healthResult = Protocol.unmarshalHealth(offset, dataView);
-	return { value: new BioticState(entityStateResult.value, healthResult.value),
-			 read: entityStateResult.read + healthResult.read }
-};
-
-Protocol.unmarshalWorldItemState = function(offset, dataView) {
-	var entityResult = Protocol.unmarshalEntityState(offset, dataView);
-	offset += entityResult.read;
-	return { value: new WorldItemState(entityResult.value, dataView.getUint8(offset)),
-	         read: entityResult.read + 1 }
-};
-
-Protocol.unmarshalPlayerEntity = function(offset, dataView) {
-	var result = Protocol.unmarshalBioticState(offset, dataView);
-	return { value: new Biotic(result.value), read: result.read }
-};
-
-
-Protocol.unmarshalState = function(offset, dataView, kind) {
-	var result;
-	if (kind === Protocol.EntityKindPlayer) {
-		result = Protocol.unmarshalBioticState(offset, dataView);
-	} else if (kind === Protocol.EntityKindWorldItem) {
-		result = Protocol.unmarshalWorldItemState(offset, dataView);
+Protocol.parseState = function(result) {
+	var entityState = Protocol.parseEntityState(result.state.entityState);
+	var health;
+	var state;
+	if (result.kind === Protocol.EntityKindPlayer || result.kind === Protocol.EntityKindBiotic) {
+		health = Protocol.parseHealth(result.state.health);
+		state = new BioticState(entityState, health);
+	} else if (result.kind == Protocol.EntityKindWorldItem) {
+		state = new WorldItemState(entityState, result.state.itemKind);
 	}
-	return result;
+
+	result.state = state;
+};
+
+Protocol.parseEntityState = function(result) {
+	var body = Protocol.parseBody(result.body);
+	return new EntityState(result.entityId, body, result.lastUpdated)
+};
+
+Protocol.parseBody = function(result) {
+	var pos = Protocol.parseVec3Float(result.pos);
+	var vel = Protocol.parseVec3Float(result.vel);
+	var dir = Protocol.parseVec3Float(result.dir);
+	var halfExtents = Protocol.parseVec3Float(result.halfExtents);
+	var centerOffset = Protocol.parseVec3Float(result.centerOffset);
+	return new Body(pos, vel, dir, halfExtents, centerOffset);
+};
+
+Protocol.parseVec3Float = function(result) {
+	return new THREE.Vector3(result.x, result.y, result.z);
+};
+
+Protocol.parseHealth = function(result) {
+	new Health(result.life)
 };
 
 Protocol.unmarshalMessage = function(offset, dataView) {
@@ -258,7 +221,7 @@ Protocol.unmarshalFields = function(offset, dataView, fields) {
 	var totalRead = 0;
 	var fieldData;
 	for (var i = 0; i < fields.length; i++) {
-		fieldData = Protocol.unmarshalField(offset, dataView, fields[i]);
+		fieldData = Protocol.unmarshalField(offset, dataView, result, fields[i]);
 		result[fields[i].name] = fieldData.value;
 		offset += fieldData.read;
 		totalRead += fieldData.read;
@@ -267,11 +230,12 @@ Protocol.unmarshalFields = function(offset, dataView, fields) {
 	return { value: result, read: totalRead };
 };
 
-Protocol.unmarshalField = function(offset, dataView, field) {
+Protocol.unmarshalField = function(offset, dataView, result, field) {
 	function retVal(val, off) {
 		return { value: val, read: off };
 	}
 
+	var inner;
 	switch (field.type) {
 		case 0:
 			throw "I don't know how to unmarshal this unknown field";
@@ -287,77 +251,16 @@ Protocol.unmarshalField = function(offset, dataView, field) {
 			return Protocol.unmarshalString(offset, dataView);
 		case 6: // bool
 			return retVal(dataView.getUint8(offset) === 1, 1);
-		case 7: // interface (TODO)
-			throw "Interface not implemented";
+		case 7: // interface
+			var struct = Protocol.unmarshalFields(offset, dataView, PROTO.kinds[result.kind]);
+			result.state = struct.value;
+			Protocol.parseState(result);
+			return retVal(result.state, struct.read+1);
 		case 8:
-			var inner = Protocol.unmarshalFields(offset, dataView, field.fields);
+			inner = Protocol.unmarshalFields(offset, dataView, field.fields);
 			return retVal(inner.value, inner.read);
 		case 9: // message
 			return Protocol.unmarshalMessage(offset, dataView);
-	}
-};
-
-Protocol.MsgHandshakeReply = {
-	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalFloat64(offset, dataView);
-		result.serverTime = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalString(offset, dataView);
-		result.clientId = proto.value;
-		offset += proto.read;
-		proto = Protocol.unmarshalPlayerEntity(offset, dataView);
-		result.playerEntity = proto.value;
-		return result;
-	}
-};
-
-Protocol.MsgHandshakeError = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgEntityCreate = {
-	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.id = proto.value;
-		offset += proto.read;
-		result.kind = dataView.getUint8(offset);
-		offset += 1;
-		proto = Protocol.unmarshalState(offset, dataView, result.kind);
-		result.state = proto.value;
-		return result;
-	}
-};
-
-Protocol.MsgEntityState = {
-	fromProto: function(dataView) {
-		var result = {};
-		var offset = 1;
-		var proto = Protocol.unmarshalString(offset, dataView);
-		result.id = proto.value;
-		offset += proto.read;
-		result.kind = dataView.getUint8(offset);
-		offset += 1;
-		proto = Protocol.unmarshalState(offset, dataView, result.kind);
-		result.state = proto.value;
-		return result;
-	}
-};
-
-Protocol.MsgEntityRemove = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgChunk = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -374,9 +277,6 @@ Protocol.MsgBlock = {
 		dataView.setUint8(0, newType);
 		buf = Protocol.append(buf, temp);
 		return new DataView(buf);
-	},
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -404,36 +304,12 @@ Protocol.MsgChatSend = {
 	}
 };
 
-Protocol.MsgChatBroadcast = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgDebugRay = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
 Protocol.MsgNtpSyncRequest = {
 	toProto: function() {
 		var buf = new ArrayBuffer(1);
 		var dataView = new DataView(buf);
 		dataView.setUint8(0, Protocol.MSG_NTP_SYNC_REQUEST);
 		return dataView;
-	}
-};
-
-Protocol.MsgNtpSyncReply = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgInventoryState = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
@@ -456,24 +332,6 @@ Protocol.MsgInventoryMove = {
 		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(from)));
 		buf = Protocol.append(buf, Protocol.marshalInt(parseInt(to)));
 		return new DataView(buf);
-	}
-};
-
-Protocol.MsgScoreboardAdd = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgScoreboardSet = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
-	}
-};
-
-Protocol.MsgScoreboardRemove = {
-	fromProto: function(dataView) {
-		return Protocol.unmarshalMessage(0, dataView).value;
 	}
 };
 
