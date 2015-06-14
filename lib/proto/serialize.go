@@ -11,7 +11,7 @@ const (
 
 func SerializeMessage(msg Message) []byte {
 	buf := make([]byte, 0, bufferSize)
-	buf = append(buf, byte(typeToId(msg)))
+	buf = append(buf, byte(messageToId(msg)))
 	msgValue := reflect.ValueOf(msg)
 	return serializeFields(buf, msgValue)
 }

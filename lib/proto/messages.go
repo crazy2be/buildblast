@@ -78,7 +78,7 @@ func idToMessage(id MessageId) Message {
 	panic(fmt.Sprintf("Unknown message recieved from client: %d, %s", id, reflect.TypeOf(id)))
 }
 
-func typeToId(m Message) MessageId {
+func messageToId(m Message) MessageId {
 	switch m.(type) {
 	case *MsgHandshakeReply:
 		return MSG_HANDSHAKE_REPLY
