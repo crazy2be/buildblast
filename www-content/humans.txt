@@ -8,7 +8,7 @@
     Likes:   Ruffles Potato Chips
 
 /* SITE */
-    Last update:2012/02/04
+    Last update:2015-06-19
     Language: English
     Doctype:HTML5
     IDE: Intellij IDEA 14, Kate, Blender, Pixelmator, MacVim 
