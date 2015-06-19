@@ -36,10 +36,10 @@ function EntityManager(scene, conn, world, clock) {
 		};
 	}
 
-	conn.on(Protocol.MSG_ENTITY_CREATE, function(result) {
-		var id = result.id;
-		var kind = result.kind;
-		var state = result.state;
+	conn.on(Protocol.MSG_ENTITY_CREATE, function(msg) {
+		var id = msg.id;
+		var kind = msg.kind;
+		var state = msg.state;
 
 		if (controllers[id]) {
 			console.warn("Got an entity create message for entity which already exists!", id);
@@ -76,9 +76,9 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on(Protocol.MSG_ENTITY_STATE, function(result) {
-		var id = result.id;
-		var state = result.state;
+	conn.on(Protocol.MSG_ENTITY_STATE, function(msg) {
+		var id = msg.id;
+		var state = msg.state;
 
 		var controller = controllers[id];
 		if (!controller) {
@@ -89,8 +89,8 @@ function EntityManager(scene, conn, world, clock) {
 		controller.message(stateToHistoryState(state));
 	});
 
-	conn.on(Protocol.MSG_ENTITY_REMOVE, function(result) {
-		var id = result.id;
+	conn.on(Protocol.MSG_ENTITY_REMOVE, function(msg) {
+		var id = msg.id;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);

@@ -11,15 +11,15 @@ return function Chat(controls, conn, container) {
 	var focused = false;
 	var chat = document.getElementById("chat");
 
-	conn.on(Protocol.MSG_CHAT_BROADCAST, function(result) {
-		var message = document.createElement('div');
-		message.className = "message";
-		message.innerText = result.displayName + ": " + result.message;
-		addTween(message);
+	conn.on(Protocol.MSG_CHAT_BROADCAST, function(msg) {
+		var msgDiv = document.createElement('div');
+		msgDiv.className = "message";
+		msgDiv.innerText = msg.displayName + ": " + msg.message;
+		addTween(msgDiv);
 
 		var wrapper = document.createElement("div");
 		wrapper.className = "message-wrapper";
-		wrapper.appendChild(message);
+		wrapper.appendChild(msgDiv);
 
 		var messages = chat.querySelector(".messages");
 		messages.appendChild(wrapper);

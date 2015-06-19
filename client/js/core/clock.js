@@ -58,8 +58,8 @@ return function Clock(conn) {
 		offset = calcOffset(clientTime, serverTime, serverTime, now());
 		// We want to apply the initial offset right away
 		appliedOffset = offset;
-		conn.on(Protocol.MSG_NTP_SYNC_REPLY, function(result) {
-			var serverTime = result.serverTime;
+		conn.on(Protocol.MSG_NTP_SYNC_REPLY, function(msg) {
+			var serverTime = msg.serverTime;
 			offset = calcOffset(clientTime, serverTime, serverTime, now());
 
 			// Re-sync in 5 seconds

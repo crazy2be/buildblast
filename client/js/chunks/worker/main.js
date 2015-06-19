@@ -48,16 +48,16 @@ function initConn(payload) {
 
 var manager = new WorkerChunkManager();
 
-function processChunk(result) {
-	if (result.size.x != common.CHUNK.WIDTH ||
-		result.size.y != common.CHUNK.HEIGHT ||
-		result.size.z != common.CHUNK.DEPTH
-	) {
+function processChunk(msg) {
+	if (msg.size.x != common.CHUNK.WIDTH ||
+		msg.size.y != common.CHUNK.HEIGHT ||
+		msg.size.z != common.CHUNK.DEPTH)
+	{
 		throw "Got chunk of size which does not match our expected chunk size!"
-				+ JSON.stringify(result)
+				+ JSON.stringify(msg)
 	}
-	var cc = result.cpos;
-	var blocks = result.blocks;
+	var cc = msg.cpos;
+	var blocks = msg.blocks;
 
 	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
 	//into indices in this array.
@@ -69,11 +69,11 @@ function processChunk(result) {
 	manager.refreshNeighbouring(cc);
 }
 
-function processBlockChange(result) {
-	var x = result.pos.x;
-	var y = result.pos.y;
-	var z = result.pos.z;
-	var type = result.type;
+function processBlockChange(msg) {
+	var x = msg.pos.x;
+	var y = msg.pos.y;
+	var z = msg.pos.z;
+	var type = msg.type;
 	var coords = common.worldToChunk(x, y, z);
 	var cc = coords.c;
 	var oc = coords.o;
