@@ -1,4 +1,7 @@
-define(function () {
+define(function(require) {
+
+var Protocol = require("core/protocol");
+
 function Conn(uri) {
 	var self = this;
 	var WS_OPEN = 1;
@@ -7,41 +10,43 @@ function Conn(uri) {
 		throw "URI required, but not provided to Conn constructor.";
 	}
 	var ws = new WebSocket(uri);
+	ws.binaryType = "arraybuffer";
 
 	var messageQueue = [];
-	self.queue = function (kind, payload) {
-		var obj = { kind: kind, payload: payload };
+	self.queue = function(message, data) {
+		self.queueMessage(Protocol.marshalMessage(message, data));
+	};
+	self.queueMessage = function (dataView) {
 		if (ws.readyState === WS_OPEN) {
-			ws.send(JSON.stringify(obj));
+			ws.send(dataView);
 		} else {
-			messageQueue.push(obj);
+			messageQueue.push(dataView);
 		}
 	};
 
 	ws.onopen = function () {
 		for (var i = 0; i < messageQueue.length; i++) {
-			ws.send(JSON.stringify(messageQueue[i]));
+			ws.send(messageQueue[i]);
 		}
 		messageQueue = [];
 	};
 
-
 	var handlers = {};
-	self.on = function (kind, cb) {
-		handlers[kind] = handlers[kind] || [];
-		handlers[kind].push(cb);
+	self.on = function (id, cb) {
+		handlers[id] = handlers[id] || [];
+		handlers[id].push(cb);
 	};
 
-	function handleMessage(data) {
-		var o = JSON.parse(data);
-		var kind = o.Kind;
-		if (!handlers[kind]) {
-			console.warn("Recieved server message of unknown type:", kind, "with data", data);
+	function handleMessage(dataView) {
+		var id = dataView.getUint8(0);
+		if (!handlers[id]) {
+			console.warn("Recieved server message of unknown id:", id, "with data", dataView);
 			return;
 		}
-		var h = handlers[kind];
+		var message = Protocol.unmarshalMessage(0, dataView).value;
+		var h = handlers[id];
 		for (var i = 0; i < h.length; h++) {
-			h[i](o.Payload);
+			h[i](message);
 		}
 	}
 
@@ -63,12 +68,11 @@ function Conn(uri) {
 
 	ws.onmessage = function (ev) {
 		if (immediate) {
-			handleMessage(ev.data);
+			handleMessage(new DataView(ev.data));
 		} else {
-			incomingQueue.push(ev.data);
+			incomingQueue.push(new DataView(ev.data));
 		}
 	};
-
 
 	ws.onerror = function (ev) {
 		throw new Error("Alas, it seems I have errd. Forgive me master!", ev);
@@ -90,7 +94,7 @@ Conn.socketURI = function (path) {
 	}
 
 	return uri;
-}
+};
 
 return Conn;
 });

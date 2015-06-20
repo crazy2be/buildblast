@@ -2,6 +2,8 @@ define(function(require) {
 
 var $ = require("jquery");
 
+var Protocol = require("core/protocol");
+
 return function Chat(controls, conn, container) {
 	var self = this;
 
@@ -9,7 +11,20 @@ return function Chat(controls, conn, container) {
 	var focused = false;
 	var chat = document.getElementById("chat");
 
-	conn.on('chat', processChat);
+	conn.on(Protocol.MSG_CHAT_BROADCAST, function(msg) {
+		var msgDiv = document.createElement('div');
+		msgDiv.className = "message";
+		msgDiv.innerText = msg.displayName + ": " + msg.message;
+		addTween(msgDiv);
+
+		var wrapper = document.createElement("div");
+		wrapper.className = "message-wrapper";
+		wrapper.appendChild(msgDiv);
+
+		var messages = chat.querySelector(".messages");
+		messages.appendChild(wrapper);
+		messages.scrollTop = messages.scrollHeight;
+	});
 
 	var $input = $("#chat .input");
 	$input.on('keydown', keydown);
@@ -20,7 +35,7 @@ return function Chat(controls, conn, container) {
 	self.update = function (dt) {
 		updateTweens(dt);
 
-		if (!controls.sample().chat) return;
+		if (!controls.sample().chat()) return;
 
 		if (focused) return;
 
@@ -42,9 +57,7 @@ return function Chat(controls, conn, container) {
 
 		var text = $.trim($input.val());
 		if (text !== '') {
-			conn.queue('chat', {
-				Message: $input.val(),
-			});
+			conn.queue(Protocol.MSG_CHAT_SEND, [text]);
 		}
 
 		$input.val("").blur();
@@ -59,21 +72,6 @@ return function Chat(controls, conn, container) {
 	function blur(event) {
 		chat.classList.remove('active');
 		focused = false;
-	}
-
-	function processChat(payload) {
-		var message = document.createElement('div');
-		message.className = "message";
-		message.innerText = payload.DisplayName + ": " + payload.Message;
-		addTween(message);
-
-		var wrapper = document.createElement("div");
-		wrapper.className = "message-wrapper";
-		wrapper.appendChild(message);
-
-		var messages = chat.querySelector(".messages");
-		messages.appendChild(wrapper);
-		messages.scrollTop = messages.scrollHeight;
 	}
 
 	var tweens = [];

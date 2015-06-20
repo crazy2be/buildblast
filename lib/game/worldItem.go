@@ -45,8 +45,8 @@ func NewWorldItem(kind Item, pos coords.World) *WorldItem {
 	}
 }
 
-func (wi *WorldItem) State() WorldItemState {
-	return wi.worldItemState
+func (wi *WorldItem) State() *WorldItemState {
+	return &wi.worldItemState
 }
 
 // Entity interface

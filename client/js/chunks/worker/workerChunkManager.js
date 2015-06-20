@@ -45,7 +45,7 @@ return function WorkerChunkManager() {
 		function r(ccX, ccY, ccZ) {
 			var chunk = self.get({ x: ccX, y: ccY, z: ccZ });
 			if (chunk) chunk.changed = true;
-		};
+		}
 		r(ccX + 1, ccY, ccZ);
 		r(ccX - 1, ccY, ccZ);
 		r(ccX, ccY + 1, ccZ);

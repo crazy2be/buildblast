@@ -10,6 +10,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 
 	"buildblast/lib/game"
+	"buildblast/lib/proto"
 )
 
 var globalGame *Game
@@ -60,7 +61,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 	var client *Client
 	for {
 		var isNew bool
-		client, isNew = globalGame.clientWithID(name)
+		client, isNew = globalGame.clientWithId(name)
 		if isNew {
 			break
 		}
@@ -72,11 +73,11 @@ func mainSocketHandler(ws *websocket.Conn) {
 	// actual initial state as part of the handshake,
 	// but it's currently impossible since the entity
 	// isn't yet created at the handshake stage.
-	info := makePlayerEntityCreatedMessage(game.EntityId(name), game.BioticState{})
+	info := makePlayerEntityCreatedMessage(game.EntityId(name), &game.BioticState{})
 
-	conn.Send(&MsgHandshakeReply{
+	conn.Send(&proto.MsgHandshakeReply{
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
-		ClientID:         name,
+		ClientId:         name,
 		PlayerEntityInfo: *info,
 		Authenticated:    authed,
 		AuthMessage:      authMessage,
@@ -88,7 +89,7 @@ func mainSocketHandler(ws *websocket.Conn) {
 func chunkSocketHandler(ws *websocket.Conn) {
 	name := getClientName(ws.Config())
 
-	client, isNew := globalGame.clientWithID(name)
+	client, isNew := globalGame.clientWithId(name)
 	if isNew {
 		log.Println("Warning: Attempt to connect to chunk socket for client '" + name + "' who is not connected on main socket!")
 		globalGame.Disconnect(name, "invalid connection")

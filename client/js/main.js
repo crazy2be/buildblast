@@ -9,9 +9,11 @@ var FeatureTester = require("featureTester");
 var Models = require("models");
 
 var World = require("core/world");
+var Protocol = require("core/protocol");
 
 var PlayerUI = require("player/playerUI");
 var EntityManager = require("entities/entityManager");
+var Biotic = require("entities/biotic");
 
 var PerfChart = require("perf/chart");
 var movement = require("player/movement");
@@ -35,7 +37,7 @@ function main () {
 	//Connect to server and shake our hands.
 	var conn = new Conn(Conn.socketURI("main"));
 	var clock = new Clock(conn);
-	var clientID;
+	var clientId;
 	var playerEntity;
 
 	async.parallel([
@@ -43,16 +45,17 @@ function main () {
 			Models.init(callback);
 		},
 		function (callback) {
-			conn.on('handshake-reply', function (payload) {
-				console.log("Got handshake reply:", payload);
-				clock.init(payload.ServerTime);
-				clientID = payload.ClientID;
-				playerEntity = EntityManager.createPlayerEntity(payload.PlayerEntityInfo)
+			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(msg) {
+				console.log("Got handshake reply");
+				clock.init(msg.serverTime);
+				clientId = msg.clientId;
+				playerEntity = new Biotic(msg.playerEntityInfo.state);
 				conn.setImmediate(false);
 				callback();
 			});
-			conn.on('handshake-error', function (payload) {
-				throw payload.Message;
+			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (msg) {
+				console.log("Got handshake error");
+				throw msg.message;
 			});
 		}
 	], function (err, results) {
@@ -74,13 +77,13 @@ function main () {
 		var ambientLight = new THREE.AmbientLight(0xffffff);
 		scene.add(ambientLight);
 
-		var world = new World(scene, conn, clientID, clock);
+		var world = new World(scene, conn, clientId, clock);
 		var controls = new Controls(container);
 
 		var playerController = makePlayerController(world);
 		var playerUI = new PlayerUI(world, conn, clock, container, controls, playerEntity,
 				playerController);
-		world.setPlayer(clientID, playerEntity, playerController);
+		world.setPlayer(clientId, playerEntity, playerController);
 
 		window.testExposure.playerUI = playerUI;
 		window.testExposure.world = world;

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"buildblast/lib/game"
+	"buildblast/lib/proto"
 )
 
 const (
@@ -53,7 +54,7 @@ func NewGame(world *game.World) *Game {
 // Thread safe, blocking
 // Returns a client with the given ID. If there is no client with the given
 // id, creates a new client with the given ID, and adds it to the game.
-func (g *Game) clientWithID(id string) (client *Client, isNew bool) {
+func (g *Game) clientWithId(id string) (client *Client, isNew bool) {
 	g.clientRequests <- id
 	resp := <-g.clientResponses
 	return resp.client, resp.isNew
@@ -115,19 +116,19 @@ func (g *Game) Announce(message string) {
 
 func (g *Game) Chat(user string, message string) {
 	log.Println("[CHAT]", user+":", message)
-	g.Broadcast(&MsgChat{
+	g.Broadcast(&proto.MsgChatBroadcast{
 		DisplayName: user,
 		Message:     message,
 	})
 }
 
-func (g *Game) Broadcast(m Message) {
+func (g *Game) Broadcast(m proto.Message) {
 	for _, c := range g.clients {
 		c.Send(m)
 	}
 }
 
-func (g *Game) BroadcastLossy(m Message) {
+func (g *Game) BroadcastLossy(m proto.Message) {
 	for _, c := range g.clients {
 		c.SendLossy(m)
 	}
@@ -151,7 +152,7 @@ func (g *Game) Tick(dt int64) {
 }
 
 func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {
-	g.Broadcast(&MsgScoreboardAdd{
+	g.Broadcast(&proto.MsgScoreboardAdd{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
@@ -165,18 +166,18 @@ func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
 	g.BioticDamaged(id, biotic)
 	g.scores[killer]++
 	g.scores[string(id)]--
-	g.Broadcast(&MsgScoreboardSet{
+	g.Broadcast(&proto.MsgScoreboardSet{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
-	g.Broadcast(&MsgScoreboardSet{
+	g.Broadcast(&proto.MsgScoreboardSet{
 		Name:  killer,
 		Score: g.scores[killer],
 	})
 }
 
 func (g *Game) BioticRemoved(id game.EntityId) {
-	g.Broadcast(&MsgScoreboardRemove{
+	g.Broadcast(&proto.MsgScoreboardRemove{
 		Name: string(id),
 	})
 }

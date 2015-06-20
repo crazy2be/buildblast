@@ -3,13 +3,14 @@ define(function(require) {
 var ChunkManager = require("chunks/chunkManager");
 var EntityManager = require("entities/entityManager");
 var Block = require("chunks/block");
+var Protocol = require("core/protocol");
 
 var common = require("chunks/chunkCommon");
 
-return function World(scene, conn, clientID, clock) {
+return function World(scene, conn, clientId, clock) {
 	var self = this;
 
-	var chunkManager = new ChunkManager(scene, clientID);
+	var chunkManager = new ChunkManager(scene, clientId);
 	var entityManager = new EntityManager(scene, conn, self, clock);
 
 	self.setPlayer = entityManager.setPlayer;
@@ -17,12 +18,9 @@ return function World(scene, conn, clientID, clock) {
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
-	conn.on('debug-ray', processRay);
-
-	function processRay(payload) {
-		var pos = new THREE.Vector3(payload.Pos.X, payload.Pos.Y, payload.Pos.Z);
-		self.addSmallCube(pos);
-	}
+	conn.on(Protocol.MSG_DEBUG_RAY, function(msg) {
+		self.addSmallCube(msg.pos);
+	});
 
 	self.update = function (dt, playerPos) {
 		entityManager.update(dt, playerPos);
@@ -126,15 +124,9 @@ return function World(scene, conn, clientID, clock) {
 	};
 
 	self.changeBlock = function(wcX, wcY, wcZ, newType) {
-		conn.queue('block', {
-			Pos: {
-				X: Math.floor(wcX),
-				Y: Math.floor(wcY),
-				Z: Math.floor(wcZ)
-			},
-			Type: newType
-		});
-		chunkManager.queueBlockChange(wcX, wcY, wcZ, newType);
+		var msgDataView = Protocol.marshalMessage(Protocol.MSG_BLOCK, [wcX, wcY, wcZ, newType]);
+		conn.queueMessage(msgDataView);
+		chunkManager.queueBlockChange(msgDataView);
 	}
 }
 });

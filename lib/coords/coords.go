@@ -1,8 +1,9 @@
 package coords
 
 import (
-	"buildblast/lib/vmath"
 	"math"
+
+	"buildblast/lib/vmath"
 )
 
 type Direction vmath.Vec3
@@ -35,6 +36,12 @@ func (wc World) Block() Block {
 		Y: floor(wc.Y),
 		Z: floor(wc.Z),
 	}
+}
+
+type Size struct {
+	X int
+	Y int
+	Z int
 }
 
 // Block represents the coordinates of any block in the world. It represents
@@ -176,7 +183,7 @@ const (
 	BlocksPerChunk = ChunkWidth * ChunkHeight * ChunkDepth
 )
 
-var ChunkSize vmath.Vec3 = vmath.Vec3{
+var ChunkSize Size = Size{
 	X: ChunkWidth,
 	Y: ChunkHeight,
 	Z: ChunkDepth,

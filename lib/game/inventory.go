@@ -1,9 +1,5 @@
 package game
 
-import (
-	"fmt"
-)
-
 type Inventory struct {
 	slots     []Stack
 	itemLeft  int
@@ -119,23 +115,11 @@ func (inv *Inventory) lowerStack(i int) {
 	inv.slots[i].item = ITEM_NIL
 }
 
-func (inv *Inventory) ItemsToString() string {
+func (inv *Inventory) ItemsToByteArray() []byte {
 	data := make([]byte, len(inv.slots)*2)
 	for i := 0; i < len(data); i += 2 {
-		data[i] = toStringByte(byte(inv.slots[i/2].item))
-		data[i+1] = toStringByte(byte(inv.slots[i/2].num))
+		data[i] = byte(inv.slots[i/2].item)
+		data[i+1] = byte(inv.slots[i/2].num)
 	}
-	return string(data)
-}
-
-func toStringByte(val byte) byte {
-	// 35: # charater. Control charaters
-	// are not allowed in JSON strings, and
-	// we want to avoid '"', which requires
-	// escaping.
-	value := val + 35
-	if value >= 127 || value < 35 {
-		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
-	}
-	return value
+	return data
 }

@@ -9,19 +9,60 @@ import (
 	"buildblast/lib/vmath"
 )
 
-type ControlState struct {
-	Forward       bool
-	Left          bool
-	Right         bool
-	Back          bool
-	Jump          bool
-	ActivateLeft  bool
-	ActivateRight bool
-	Lat           float64
-	Lon           float64
+const (
+	forward = 1 << iota
+	left
+	right
+	back
+	jump
+	activateLeft
+	activateRight
+	swapLeft
+	swapRight
+	toggleBag
+	scoreBoard
+	chat
+)
 
+type ControlState struct {
+	ControlFlags int
+	Lat          float64
+	Lon          float64
+
+	// JavaScript performance.now() timestamp.
+	// TimeStamp is when it was sent, ViewTimestamp is
+	// what time the client was displaying when it was sent
+	// (with lag induction they may differ).
 	Timestamp     float64 // In ms
 	ViewTimestamp float64
+}
+
+func (cs *ControlState) Forward() bool {
+	return cs.ControlFlags&forward > 0
+}
+
+func (cs *ControlState) Left() bool {
+	return cs.ControlFlags&left > 0
+}
+
+func (cs *ControlState) Right() bool {
+	return cs.ControlFlags&right > 0
+}
+
+func (cs *ControlState) Back() bool {
+	return cs.ControlFlags&back > 0
+}
+
+func (cs *ControlState) Jump() bool {
+	return cs.ControlFlags&jump > 0
+}
+
+func (cs *ControlState) ActivateLeft() bool {
+	return cs.ControlFlags&activateLeft > 0
+}
+
+func (cs *ControlState) ActivateRight() bool {
+	return cs.ControlFlags&activateRight > 0
 }
 
 const (
@@ -128,8 +169,8 @@ func (p *Player) Respawn(pos coords.World) {
 
 // Biotic interface
 
-func (p *Player) State() BioticState {
-	return BioticState{
+func (p *Player) State() *BioticState {
+	return &BioticState{
 		EntityState: EntityState{
 			EntityId:    p.EntityId(),
 			Body:        p.Body(),
@@ -221,16 +262,16 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 	body.Vel.Y += dt * -9.81
 
 	fw := 0.0
-	if controls.Forward {
+	if controls.Forward() {
 		fw = 1 * dt * 10
-	} else if controls.Back {
+	} else if controls.Back() {
 		fw = -1 * dt * 10
 	}
 
 	rt := 0.0
-	if controls.Right {
+	if controls.Right() {
 		rt = 1 * dt * 10
-	} else if controls.Left {
+	} else if controls.Left() {
 		rt = -1 * dt * 10
 	}
 
@@ -249,7 +290,7 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 
 	if move.Y == 0 {
 		body.Vel.Y = 0
-		if controls.Jump {
+		if controls.Jump() {
 			body.Vel.Y = 6
 		} else {
 			body.Vel.Y = 0
@@ -277,15 +318,15 @@ func (p *Player) updateLook(controls ControlState) {
 }
 
 func (p *Player) simulateBlaster(controls ControlState) *coords.World {
-	shootingLeft := controls.ActivateLeft && p.inventory.LeftItem().Shootable()
-	shootingRight := controls.ActivateRight && p.inventory.RightItem().Shootable()
+	shootingLeft := controls.ActivateLeft() && p.inventory.LeftItem().Shootable()
+	shootingRight := controls.ActivateRight() && p.inventory.RightItem().Shootable()
 	if !shootingLeft && !shootingRight {
 		return nil
 	}
 
 	// They were holding it down last frame
-	shootingLeftLast := p.controls.ActivateLeft && p.inventory.LeftItem().Shootable()
-	shootingRightLast := p.controls.ActivateRight && p.inventory.RightItem().Shootable()
+	shootingLeftLast := p.controls.ActivateLeft() && p.inventory.LeftItem().Shootable()
+	shootingRightLast := p.controls.ActivateRight() && p.inventory.RightItem().Shootable()
 	// TODO: I'm pretty sure this logic isn't quite correct.
 	// We want to prevent "machine gunning" your opponents by simply
 	// holding the trigger. But if you're holding left (say), and

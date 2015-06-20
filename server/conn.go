@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+
+	"buildblast/lib/proto"
 
 	"code.google.com/p/go.net/websocket"
 )
@@ -19,45 +19,25 @@ func NewConn(ws *websocket.Conn) *Conn {
 	return c
 }
 
-func (c *Conn) Send(m Message) error {
-	var err error
-
-	cm := new(ClientMessage)
-	cm.Kind = typeToKind(m)
-
-	//Payload(json.RawMessage) implements Marshaler and Unmarshaler,
-	//so it will NOT be serialized twice.
-	cm.Payload, err = json.Marshal(m)
+func (c *Conn) Send(m proto.Message) error {
+	data := proto.SerializeMessage(m)
+	err := websocket.Message.Send(c.ws, data)
 	if err != nil {
-		return fmt.Errorf("marshalling websocket message: %s", err)
+		return fmt.Errorf("Sending websocket binary data: %s", err)
 	}
-
-	err = websocket.JSON.Send(c.ws, cm)
-	if err != nil {
-		return fmt.Errorf("sending websocket message: %s", err)
-	}
-
 	return nil
 }
 
-func (c *Conn) Recv() (Message, error) {
-	cm := new(ClientMessage)
-	err := websocket.JSON.Receive(c.ws, cm)
+func (c *Conn) Recv() (proto.Message, error) {
+	var data []byte
+	err := websocket.Message.Receive(c.ws, &data)
 	if err != nil {
 		if err == io.EOF {
 			return nil, err
 		}
-		return nil, fmt.Errorf("reading websocket message: %s", err)
+		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
 	}
-
-	m := kindToType(cm.Kind)
-	err = json.Unmarshal(cm.Payload, &m)
-	if err != nil {
-		log.Println(cm.Payload)
-		return nil, fmt.Errorf("unmarshalling websocket message of kind %s: %s (value: %s)", cm.Kind, err, string(cm.Payload))
-	}
-
-	return m, nil
+	return proto.DeserializeMessage(data), err
 }
 
 func (c *Conn) Close() error {

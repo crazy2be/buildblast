@@ -1,4 +1,7 @@
-define(function () {
+define(function(require) {
+
+var Protocol = require("core/protocol");
+
 return function Clock(conn) {
 	var self = this;
 
@@ -55,14 +58,20 @@ return function Clock(conn) {
 		offset = calcOffset(clientTime, serverTime, serverTime, now());
 		// We want to apply the initial offset right away
 		appliedOffset = offset;
-		conn.on('ntp-sync', proccessSync);
+		conn.on(Protocol.MSG_NTP_SYNC_REPLY, function(msg) {
+			var serverTime = msg.serverTime;
+			offset = calcOffset(clientTime, serverTime, serverTime, now());
+
+			// Re-sync in 5 seconds
+			setTimeout(startSync, 5000);
+		});
 		startSync();
 	};
 
 	var clientTime = now();
 	function startSync() {
 		clientTime = now();
-		conn.queue('ntp-sync', {});
+		conn.queue(Protocol.MSG_NTP_SYNC_REQUEST, []);
 	}
 
 	// http://en.wikipedia.org/wiki/Network_Time_Protocol
@@ -71,14 +80,6 @@ return function Clock(conn) {
 		console.log("Syncronized time with server. We were off by ", offset - newOffset, "ms.");
 		console.log("Round trip connection based ping is", t3 - t0, "ms");
 		return newOffset;
-	}
-
-	function proccessSync(payload) {
-		var serverTime = payload.ServerTime;
-		offset = calcOffset(clientTime, serverTime, serverTime, now());
-
-		// Re-sync in 5 seconds
-		setTimeout(startSync, 5000);
 	}
 
 	function now() {

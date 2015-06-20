@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen/maps"
 	"buildblast/lib/persist"
+	"buildblast/lib/proto"
 )
 
 func doProfile() {
@@ -36,7 +38,8 @@ func doProfile() {
 }
 
 func main() {
-	// 	setupPrompt()
+	// setupPrompt()
+	setupSigInt() // Print newline on SIG_INT
 	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
 	clientAssets := flag.String("client", ".", "Sets the location of the client assets that will be served")
 	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
@@ -63,6 +66,14 @@ func main() {
 
 	// Uncomment this to run a quick profile.
 	// 	go doProfile()
+
+	// Generate our protocol and make it available for clients to download
+	protoJs := proto.GenerateJs()
+	http.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
+		headers := w.Header()
+		headers["Content-Type"] = []string{"application/javascript; charset=utf-8"}
+		fmt.Fprint(w, protoJs)
+	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r, *clientAssets)

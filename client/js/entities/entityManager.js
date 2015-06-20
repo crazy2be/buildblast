@@ -8,9 +8,6 @@ var EntityBar = require("meshes/entityBar");
 var PlayerMesh = require("meshes/playerMesh");
 var WorldItemMesh = require("meshes/worldItemMesh");
 
-var EntityKindPlayer = "player";
-var EntityKindWorldItem = "worldItem";
-
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
@@ -32,47 +29,38 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	function payloadToHistoryState(payload) {
-		var kind = payload.Kind;
-		var result = { time: null, data: null };
-		if (kind === EntityKindPlayer) {
-			var bioticState = Protocol.parseBioticState(payload.State);
-			result.time = bioticState.entityState.lastUpdated;
-			result.data = bioticState;
-		} else if (kind === EntityKindWorldItem) {
-			var worldItemState = Protocol.parseWorldItemState(payload.State);
-			result.time = worldItemState.entityState.lastUpdated;
-			result.data = worldItemState;
-		} else {
-			return null;
-		}
-		return result;
+	function stateToHistoryState(state) {
+		return {
+			time: state.entityState.lastUpdated,
+			data: state
+		};
 	}
 
-	conn.on('entity-create', function(payload) {
-		var id = payload.ID;
-		var kind = payload.Kind;
+	conn.on(Protocol.MSG_ENTITY_CREATE, function(msg) {
+		var id = msg.id;
+		var kind = msg.kind;
+		var state = msg.state;
 
 		if (controllers[id]) {
 			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
 
-		var initialState = payloadToHistoryState(payload);
+		var entity;
+		if (kind === Protocol.EntityKindPlayer) {
+			entity = new Biotic(state);
+			entity.add(new PlayerMesh());
+		} else if (kind === Protocol.EntityKindWorldItem) {
+			entity = new WorldItem(state);
+			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
+		}
+		entity.addTo(scene);
+
+		var initialState = stateToHistoryState(state);
 		if (initialState == null) {
 			console.warn("Got entity create message for unrecognized entity kind", kind);
 			return;
 		}
-
-		var entity;
-		if (kind === EntityKindPlayer) {
-			entity = new Biotic(initialState.data);
-			entity.add(new PlayerMesh());
-		} else if (kind === EntityKindWorldItem) {
-			entity = new WorldItem(initialState.data);
-			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
-		}
-		entity.addTo(scene);
 
 		var controller = new EntityLagInducer(entity, initialState);
 
@@ -88,18 +76,21 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on('entity-state', function (payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_STATE, function(msg) {
+		var id = msg.id;
+		var state = msg.state;
+
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
-		controller.message(payloadToHistoryState(payload));
+
+		controller.message(stateToHistoryState(state));
 	});
 
-	conn.on('entity-remove', function(payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_REMOVE, function(msg) {
+		var id = msg.id;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);
@@ -128,10 +119,6 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 }
-
-EntityManager.createPlayerEntity = function(payload) {
-	return new Biotic(Protocol.parseBioticState(payload.State));
-};
 
 return EntityManager;
 });

@@ -21,11 +21,17 @@ importScripts("/lib/require.js");
 requirejs.config({
 	baseUrl: '/js/',
 	paths: {
-		async: '../lib/async',
+		THREE: '../lib/three',
+		async: '../lib/async'
 	},
+	shim: {
+		THREE: {
+			exports: 'THREE'
+		}
+	}
 });
 
-require(["chunks/worker/main", "math"], function (main, math) {
+require(["chunks/worker/main", "math", "THREE"], function (main, math, THREE) {
 	// Make all the math convenience functions global, so you can
 	// do abs(a) rather than Math.abs(a).
 	merge(self, math);
