@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"crypto/tls"
-	"net/http"
+	"encoding/json"
 	"errors"
+	"net/http"
 
 	"code.google.com/p/go.net/websocket"
 )

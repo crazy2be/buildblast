@@ -8,8 +8,12 @@ type Index struct{}
 
 func (i Index) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err error
-	c.ParseFlashes()
-	c.SaveSession()
+	flashes := c.cj.ParseFlashes()
+	c.cj.SaveSession()
+
+	for k, v := range flashes {
+		c.pageVals[k] = v
+	}
 
 	c.pageVals["title"] = "BuildBlast - Home"
 	err = templates["header"].Execute(w, c.pageVals)

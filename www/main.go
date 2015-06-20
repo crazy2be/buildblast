@@ -2,15 +2,15 @@ package main
 
 import (
 	"encoding/hex"
-	"net/http"
-	"runtime"
 	"flag"
 	"log"
+	"net/http"
+	"runtime"
 
-	"github.com/gorilla/sessions"
 	"github.com/gorilla/mux"
 
-	"buildblast/www/database"
+	"buildblast/shared/db"
+	sutil "buildblast/shared/util"
 	"buildblast/www/pages"
 	"buildblast/www/util"
 )
@@ -53,8 +53,7 @@ func main() {
 		"/logout":  pages.Logout{},
 	}
 
-	db := database.NewDatabase(*dbPass)
-	cookieStore := sessions.NewCookieStore([]byte(*authKey), encryptionKey)
+	db := db.NewDatabase(*dbPass)
 	mailer := util.NewMailer(*mailPass)
 
 	r := mux.NewRouter()
@@ -65,7 +64,9 @@ func main() {
 			return
 		}
 
-		context := pages.NewContext(db, cookieStore, mailer, w, r)
+		cj := sutil.NewCookieJar(w, r, []byte(*authKey), encryptionKey)
+		context := pages.NewContext(db, cj, mailer, w, r)
+
 		context.Authenticate()
 		processor.Process(context, w, r)
 	})

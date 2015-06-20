@@ -2,58 +2,45 @@ package pages
 
 import (
 	"html/template"
-	"net/http"
-	"time"
-	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/gorilla/sessions"
-
-	"buildblast/www/database"
+	"buildblast/shared/db"
+	sutil "buildblast/shared/util"
 	"buildblast/www/util"
 )
 
 var templates map[string]*template.Template
 
-var templatePaths = map[string]string {
+var templatePaths = map[string]string{
 	"header": "templates/components/header.html",
 	"footer": "templates/components/footer.html",
-	"index": "templates/index.html",
-}
-
-var flashKeys = []string {
-	"invalid_login",
-	"username_taken",
-	"email_taken",
-	"signup_username",
-	"signup_email",
-	"show_login",
-	"show_signup",
+	"index":  "templates/index.html",
 }
 
 func init() {
 	templates = make(map[string]*template.Template)
-	util.ParseTemplates(templates, templatePaths)
+	sutil.ParseTemplates(templates, templatePaths)
 }
 
 type Context struct {
-	db             *database.Database
-	cookieStore    *sessions.CookieStore
-	mailer         *util.Mailer
-	pageVals       map[string]interface{} // Map passed to all templates for rendering
-	w              http.ResponseWriter
-	r              *http.Request
-	authenticated  bool
-	accountSession database.AccountSession
-	account        database.Account
+	db            *db.Database
+	cj            *sutil.CookieJar
+	mailer        *util.Mailer
+	pageVals      map[string]interface{} // Map passed to all templates for rendering
+	authenticated bool
+	account       db.Account
+	accountSession db.AccountSession
+	w             http.ResponseWriter
+	r             *http.Request
 }
 
-func NewContext(db *database.Database, cookieStore *sessions.CookieStore, mailer *util.Mailer,
+func NewContext(db *db.Database, cj *sutil.CookieJar, mailer *util.Mailer,
 	w http.ResponseWriter, r *http.Request) *Context {
 
 	c := new(Context)
 	c.db = db
-	c.cookieStore = cookieStore
+	c.cj = cj
 	c.mailer = mailer
 	c.pageVals = make(map[string]interface{})
 	c.w = w
@@ -61,99 +48,17 @@ func NewContext(db *database.Database, cookieStore *sessions.CookieStore, mailer
 	return c
 }
 
+func (c *Context) Redirect(path string, status int) {
+	c.cj.SaveSession()
+	http.Redirect(c.w, c.r, path, status)
+}
+
 func (c *Context) Authenticate() {
-	c.authenticated = false
-
-	sessionKey := c.GetSessionKey()
-	accountSession, err := c.db.GetAccountSession(sessionKey)
-	if err != nil {
-		// Session not valid. Remove it.
-		c.ClearSessionKey()
-		return
+	c.account, c.accountSession, c.authenticated = c.cj.Authenticate(c.db)
+	if c.authenticated {
+		c.pageVals["authenticated"] = true
+		c.pageVals["username"] = c.account.Username
 	}
-
-	if accountSession.LoginTime.Before(time.Now().Add(-time.Hour * 24 * 7)) {
-		// Session expires every 7 days
-		tx := c.db.BeginTransaction()
-		err = c.db.DeleteAccountSession(tx, sessionKey)
-		if err != nil {
-			fmt.Println("Couldn't delete account session")
-		}
-		c.db.CommitTransaction(tx)
-		c.ClearSessionKey()
-		return
-	}
-
-	// Valid login.
-	c.accountSession = accountSession
-	c.account, err = c.db.GetAccount(c.accountSession.AccountId)
-	if err != nil {
-		fmt.Println("Couldn't find account for account session. Something is wrong.", err)
-		c.ClearSessionKey()
-		return
-	}
-
-	c.authenticated = true
-	c.pageVals["authenticated"] = true
-	c.pageVals["username"] = c.account.Username
-}
-
-func (c *Context) SetSessionKey(key string) {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.Values["sessionKey"] = key
-}
-
-func (c *Context) ClearSessionKey() {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.Values["sessionKey"] = ""
-}
-
-func (c *Context) GetSessionKey() string {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	sessionKey := session.Values["sessionKey"]
-	if sessionKey == nil {
-		return ""
-	}
-	return session.Values["sessionKey"].(string)
-}
-
-func (c *Context) SetIsInvalidLogin() {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.AddFlash("true", "invalid_login")
-	session.AddFlash("true", "show_login")
-}
-
-func (c *Context) SetUsernameTaken() {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.AddFlash("true", "username_taken")
-	session.AddFlash("true", "show_signup")
-}
-
-func (c *Context) SetEmailTaken() {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.AddFlash("true", "email_taken")
-	session.AddFlash("true", "show_signup")
-}
-
-func (c *Context) SetSignupFormVals(username string, email string) {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	session.AddFlash(username, "signup_username")
-	session.AddFlash(email, "signup_email")
-}
-
-func (c *Context) ParseFlashes() {
-	session, _ := c.cookieStore.Get(c.r, "default-session")
-	for _, flashKey := range flashKeys {
-		value := session.Flashes(flashKey)
-		if value != nil {
-			c.pageVals[flashKey] = value[0]
-		}
-	}
-}
-
-// This should be called before writing the response, as it needs to set the cookies in the header.
-func (c *Context) SaveSession() {
-	sessions.Save(c.r, c.w)
 }
 
 func (c *Context) SendConfirmationEmail(email string) error {
@@ -162,7 +67,7 @@ func (c *Context) SendConfirmationEmail(email string) error {
 		return err
 	}
 
-	keyString, err := util.GenerateHashKey()
+	keyString, err := sutil.GenerateHashKey()
 	if err != nil {
 		return err
 	}

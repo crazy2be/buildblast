@@ -1,8 +1,8 @@
-package database
+package db
 
 import (
-	"time"
 	"log"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

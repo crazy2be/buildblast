@@ -1,16 +1,17 @@
 package util
 
 import (
+	"bytes"
 	"encoding/base64"
+	"fmt"
 	"html/template"
 	"net/smtp"
-	"bytes"
-	"fmt"
 
-	"buildblast/www/database"
+	"buildblast/shared/db"
+	"buildblast/shared/util"
 )
 
-var emailTemplates = map[string]string {
+var emailTemplates = map[string]string{
 	"confirmEmail": "templates/emails/confirmEmail.html",
 }
 
@@ -18,7 +19,7 @@ var templates map[string]*template.Template
 
 func init() {
 	templates = make(map[string]*template.Template)
-	ParseTemplates(templates, emailTemplates)
+	util.ParseTemplates(templates, emailTemplates)
 }
 
 type Mailer struct {
@@ -39,12 +40,12 @@ func NewMailer(mailPass string) *Mailer {
 
 func createHeader(to string, subject string) string {
 	header := map[string]string{
-		"Return-Path": "mailer.buildblast.com",
-		"From": "mailer.buildblast.com",
-		"To": to,
-		"Subject": subject,
-		"MIME-Version": "1.0",
-		"Content-Type": "text/html; charset=\"utf-8\"",
+		"Return-Path":               "mailer.buildblast.com",
+		"From":                      "mailer.buildblast.com",
+		"To":                        to,
+		"Subject":                   subject,
+		"MIME-Version":              "1.0",
+		"Content-Type":              "text/html; charset=\"utf-8\"",
 		"Content-Transfer-Encoding": "base64",
 	}
 
@@ -56,7 +57,7 @@ func createHeader(to string, subject string) string {
 	return result
 }
 
-func (m Mailer) sendEmail(account database.Account, subject string, template string, templateVars map[string]interface{}) {
+func (m Mailer) sendEmail(account db.Account, subject string, template string, templateVars map[string]interface{}) {
 	body := new(bytes.Buffer)
 	err := templates[template].Execute(body, templateVars)
 	if err != nil {
@@ -77,11 +78,9 @@ func (m Mailer) sendEmail(account database.Account, subject string, template str
 	}
 }
 
-func (m Mailer) SendConfirmationEmail(account database.Account, key string) {
+func (m Mailer) SendConfirmationEmail(account db.Account, key string) {
 	m.sendEmail(account, "BuildBlast email confirmation", "confirmEmail", map[string]interface{}{
 		"username":         account.Username,
 		"confirmationLink": "https://www.buildblast.com/confirm-email/" + key,
 	})
 }
-
-

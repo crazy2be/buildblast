@@ -1,8 +1,8 @@
 package util
 
 import (
-	"encoding/hex"
 	"crypto/rand"
+	"encoding/hex"
 )
 
 func GenerateHashKey() (string, error) {

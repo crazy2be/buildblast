@@ -1,12 +1,12 @@
 package pages
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"buildblast/www/util"
+	"buildblast/shared/util"
 )
 
 type Login struct{}
@@ -23,8 +23,7 @@ func (i Login) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.authenticated {
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
@@ -37,17 +36,15 @@ func (i Login) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		c.SetIsInvalidLogin()
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.cj.SetIsInvalidLogin()
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(passwordPlain))
 	if err != nil {
-		c.SetIsInvalidLogin()
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.cj.SetIsInvalidLogin()
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
@@ -55,10 +52,8 @@ func (i Login) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	tx := c.db.BeginTransaction()
 	c.db.CreateAccountSession(tx, keyString, account)
 	c.db.CommitTransaction(tx)
-	c.SetSessionKey(keyString)
+	c.cj.SetSessionKey(keyString)
 
 	fmt.Printf("Login success for user %s!\n", account.Username)
-
-	c.SaveSession()
-	http.Redirect(w, r, "/", 303)
+	c.Redirect("/", http.StatusSeeOther)
 }

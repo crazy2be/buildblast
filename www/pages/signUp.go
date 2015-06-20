@@ -1,10 +1,10 @@
 package pages
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"time"
-	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -52,20 +52,19 @@ func (i SignUp) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	_, err := c.db.GetAccountByUsername(username)
 	if err == nil {
-		c.SetUsernameTaken()
+		c.cj.SetUsernameTaken()
 		invalid = true
 	}
 
 	_, err = c.db.GetAccountByEmail(email)
 	if err == nil {
-		c.SetEmailTaken()
+		c.cj.SetEmailTaken()
 		invalid = true
 	}
 
 	if invalid {
-		c.SetSignupFormVals(username, email)
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.cj.SetSignupFormVals(username, email)
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
@@ -75,8 +74,7 @@ func (i SignUp) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	fmt.Println("BCrypt took:", elapsed)
 	if err != nil {
 		fmt.Println("Couldn't hash password...", err)
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
@@ -84,8 +82,7 @@ func (i SignUp) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = c.db.CreateAccount(tx, username, email, string(password))
 	if err != nil {
 		fmt.Println("Could not create account:", err)
-		c.SaveSession()
-		http.Redirect(w, r, "/", 303)
+		c.Redirect("/", http.StatusSeeOther)
 		return
 	}
 
@@ -94,7 +91,5 @@ func (i SignUp) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Couldn't send confirmation email:", err)
 	}
-
-	c.SaveSession()
-	http.Redirect(w, r, "/", 303)
+	c.Redirect("/", http.StatusSeeOther)
 }
