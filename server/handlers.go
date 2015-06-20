@@ -7,13 +7,19 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/proto"
+	"buildblast/shared/util"
 )
 
 var globalGame *Game
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 func handler(w http.ResponseWriter, r *http.Request, clientLoc string) {
 	// Workaround for Quentin's system configuration.
@@ -27,32 +33,29 @@ func handler(w http.ResponseWriter, r *http.Request, clientLoc string) {
 	http.ServeFile(w, r, clientLoc+r.URL.Path)
 }
 
-func getClientName(config *websocket.Config) string {
-	path := config.Location.Path
-	bits := strings.Split(path, "/")
+func getClientName(r *http.Request) string {
+	bits := strings.Split(r.URL.Path, "/")
 	if len(bits) < 4 {
 		return ""
 	}
 	return bits[3]
 }
 
-func mainSocketHandler(ws *websocket.Conn) {
-	conn := NewConn(ws)
+func mainSocketHandler(w http.ResponseWriter, r *http.Request) {
+	cj := util.NewCookieJar(w, r, config.CookieKeyPairs...)
+	account, _, authenticated := cj.Authenticate(dbc)
+	cj.SaveSession()
 
-	authResponse, authErr := Authenticate(ws)
-	var authMessage string
-	authed := authErr == nil
-
-	if authed {
-		authMessage = "Welcome " + authResponse.Name + "!"
-	} else {
-		log.Println(authErr)
-		authMessage = authErr.Message
+	wsConn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Couldn't upgrade websocket:", err)
 	}
 
+	conn := NewConn(wsConn)
+
 	var baseName string
-	if authed {
-		baseName = authResponse.Name
+	if authenticated {
+		baseName = account.Username
 	} else {
 		baseName = "guest"
 	}
@@ -80,15 +83,18 @@ func mainSocketHandler(ws *websocket.Conn) {
 		ServerTime:       float64(time.Now().UnixNano()) / 1e6,
 		ClientId:         name,
 		PlayerEntityInfo: *info,
-		Authenticated:    authed,
-		AuthMessage:      authMessage,
 	})
 
 	client.Run(conn)
 }
 
-func chunkSocketHandler(ws *websocket.Conn) {
-	name := getClientName(ws.Config())
+func chunkSocketHandler(w http.ResponseWriter, r *http.Request) {
+	name := getClientName(r)
+
+	wsConn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Couldn't upgrade websocket:", err)
+	}
 
 	client, isNew := globalGame.clientWithId(name)
 	if isNew {
@@ -96,5 +102,5 @@ func chunkSocketHandler(ws *websocket.Conn) {
 		globalGame.Disconnect(name, "invalid connection")
 		return
 	}
-	client.RunChunks(NewConn(ws))
+	client.RunChunks(NewConn(wsConn))
 }

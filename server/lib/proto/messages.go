@@ -66,9 +66,6 @@ type MsgHandshakeReply struct {
 	ServerTime       float64
 	ClientId         string
 	PlayerEntityInfo MsgEntityCreate
-	// DOIT: These are not used for some reason
-	Authenticated bool
-	AuthMessage   string
 }
 
 type MsgHandshakeError struct {

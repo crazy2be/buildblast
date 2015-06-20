@@ -10,12 +10,13 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/mux"
 
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/mapgen/maps"
 	"buildblast/server/lib/persist"
 	"buildblast/server/lib/proto"
+	"buildblast/shared/db"
 	"buildblast/shared/util"
 )
 
@@ -38,14 +39,19 @@ func doProfile() {
 	}()
 }
 
+var config *util.ServerConfig
+var dbc *db.Database
+
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// setupPrompt()
 	setupSigInt() // Print newline on SIG_INT
 	configPath := flag.String("config", "server_config.json", "Path to server config")
 	flag.Parse()
-	config := util.LoadServerConfig(*configPath)
+	config = util.LoadServerConfig(*configPath)
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	dbc = db.NewDatabase(config.DbPass)
 
 	// Set up the world
 	var world *game.World
@@ -68,17 +74,19 @@ func main() {
 
 	// Generate our protocol and make it available for clients to download
 	protoJs := proto.GenerateJs()
-	http.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
+	r := mux.NewRouter()
+	r.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
 		headers := w.Header()
 		headers["Content-Type"] = []string{"application/javascript; charset=utf-8"}
 		fmt.Fprint(w, protoJs)
 	})
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r.PathPrefix("/sockets/main/").HandlerFunc(mainSocketHandler)
+	r.PathPrefix("/sockets/chunk/").HandlerFunc(chunkSocketHandler)
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handler(w, r, config.ClientAssets)
 	})
-	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
-	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
+
+	http.Handle("/", r)
 
 	err := http.ListenAndServe(config.Host+":"+config.ServerPort, nil)
 	if err != nil {

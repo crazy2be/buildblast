@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/websocket"
 
 	"buildblast/server/lib/proto"
 )
@@ -21,21 +21,20 @@ func NewConn(ws *websocket.Conn) *Conn {
 
 func (c *Conn) Send(m proto.Message) error {
 	data := proto.SerializeMessage(m)
-	err := websocket.Message.Send(c.ws, data)
+	err := c.ws.WriteMessage(websocket.BinaryMessage, data)
 	if err != nil {
-		return fmt.Errorf("Sending websocket binary data: %s", err)
+		return fmt.Errorf("Coudn't write data to websocket: %v", err)
 	}
 	return nil
 }
 
 func (c *Conn) Recv() (proto.Message, error) {
-	var data []byte
-	err := websocket.Message.Receive(c.ws, &data)
+	_, data, err := c.ws.ReadMessage()
 	if err != nil {
 		if err == io.EOF {
 			return nil, err
 		}
-		return nil, fmt.Errorf("Reading websocket binary data: %s", err)
+		return nil, fmt.Errorf("Reading websocket binary data: %v", err)
 	}
 	return proto.DeserializeMessage(data), err
 }
