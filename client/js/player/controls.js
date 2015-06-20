@@ -46,6 +46,21 @@ return function Controls(elm) {
 		Right: 2,
 	};
 
+	var ActionMasks = {
+		forward:       1 << 0,
+		left:          1 << 1,
+		right:         1 << 2,
+		back:          1 << 3,
+		jump:          1 << 4,
+		activateLeft:  1 << 5,
+		activateRight: 1 << 6,
+		swapLeft:      1 << 7,
+		swapRight:     1 << 8,
+		toggleBag:     1 << 9,
+		scoreBoard:    1 << 10,
+		chat:          1 << 11
+	};
+
 	var ActionMappingsBase = {
 		forward: [Keys.Up],
 		left: [Keys.Left],
@@ -94,9 +109,31 @@ return function Controls(elm) {
 	var self = this;
 
 	var actions = {
+		controlFlags: 0,
 		lat: -1/2 * Math.PI,
 		lon: 1/2 * Math.PI,
-		// Actions are added here as keys are pressed
+
+		activateLeft: function() {
+			return (this.controlFlags & ActionMasks.activateLeft) > 0;
+		},
+		activateRight: function() {
+			return (this.controlFlags & ActionMasks.activateRight) > 0;
+		},
+		swapLeft: function() {
+			return (this.controlFlags & ActionMasks.swapLeft) > 0;
+		},
+		swapRight: function() {
+			return (this.controlFlags & ActionMasks.swapRight) > 0;
+		},
+		toggleBag: function() {
+			return (this.controlFlags & ActionMasks.toggleBag) > 0;
+		},
+		scoreBoard: function() {
+			return (this.controlFlags & ActionMasks.scoreBoard) > 0;
+		},
+		chat: function() {
+			return (this.controlFlags & ActionMasks.chat) > 0;
+		}
 	};
 
 	self.sample = function() {
@@ -128,14 +165,14 @@ return function Controls(elm) {
 	function actionStart(trigger) {
 		var action = findAction(trigger);
 		if (!action) return false;
-		actions[action] = true;
+		actions.controlFlags |= ActionMasks[action];
 		return true;
 	}
 
 	function actionEnd(trigger) {
 		var action = findAction(trigger);
 		if (!action) return false;
-		actions[action] = false;
+		actions.controlFlags &= ~ActionMasks[action];
 		return true;
 	}
 

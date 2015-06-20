@@ -16,12 +16,18 @@ type ChunkListener interface {
 	ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk)
 }
 
-type EntityListener interface {
-	EntityCreated(id EntityID, entity Entity)
-	EntityUpdated(id EntityID, entity Entity)
-	EntityDamaged(id EntityID, entity Entity)
-	EntityDied(id EntityID, entity Entity, killer string)
-	EntityRemoved(id EntityID)
+type BioticListener interface {
+	BioticCreated(id EntityId, biotic Biotic)
+	BioticUpdated(id EntityId, biotic Biotic)
+	BioticDamaged(id EntityId, biotic Biotic)
+	BioticDied(id EntityId, biotic Biotic, killer string)
+	BioticRemoved(id EntityId)
+}
+
+type WorldItemListener interface {
+	WorldItemAdded(id EntityId, worldItem *WorldItem)
+	WorldItemUpdated(id EntityId, worldItem *WorldItem)
+	WorldItemRemoved(id EntityId)
 }
 
 // genericListenerContainer is essentially a convenience wrapper to
@@ -110,14 +116,22 @@ func (w *World) RemoveChunkListener(listener ChunkListener) {
 	w.chunkListeners.Remove(listener)
 }
 
-func (w *World) AddEntityListener(listener EntityListener) {
-	w.entityListeners.Add(listener)
+func (w *World) AddBioticListener(listener BioticListener) {
+	w.bioticListeners.Add(listener)
 }
 
-func (w *World) RemoveEntityListener(listener EntityListener) {
-	w.entityListeners.Remove(listener)
+func (w *World) RemoveBioticListener(listener BioticListener) {
+	w.bioticListeners.Remove(listener)
 }
 
-func (w *World) FireEntityUpdated(id EntityID, entity Entity) {
-	w.entityListeners.FireEvent("EntityUpdated", id, entity)
+func (w *World) FireBioticUpdated(id EntityId, biotic Biotic) {
+	w.bioticListeners.FireEvent("BioticUpdated", id, biotic)
+}
+
+func (w *World) AddWorldItemListener(listener WorldItemListener) {
+	w.worldItemListeners.Add(listener)
+}
+
+func (w *World) RemoveWorldItemListener(listener WorldItemListener) {
+	w.worldItemListeners.Remove(listener)
 }

@@ -5,37 +5,74 @@ import (
 	"buildblast/lib/physics"
 )
 
-//Interface currently implemented by Player (not to say anything cannot
-//implement it, but for now it is just implemented by player).
-type Entity interface {
-	Pos() coords.World
-	Look() coords.Direction
-	Health() int
-	Vy() float64
-	LastUpdated() float64
-	State() EntityState
+// Should be an int someday...
+type EntityId string
 
-	Tick(w *World)
-	Damage(amount int)
-	Dead() bool
-	Respawn(pos coords.World)
+type EntityKind byte
+
+const (
+	EntityKindPlayer = EntityKind(iota)
+	EntityKindBiotic
+	EntityKindWorldItem
+)
+
+type Entity interface {
+	EntityId() EntityId
+	Body() physics.Body
+	LastUpdated() float64
+	Wpos() coords.World
 	BoxAt(t float64) *physics.Box
-	ID() EntityID
 }
 
 type EntityState struct {
-	Pos       coords.World
-	Look      coords.Direction
-	Health    int
-	Vy        float64
-	Timestamp float64
+	EntityId    EntityId
+	Body        physics.Body
+	LastUpdated float64
 }
 
-// Should be an int someday...
-type EntityID string
+func (es *EntityState) Wpos() coords.World {
+	return coords.World(es.Body.Pos)
+}
 
-type EntityKind string
+func (es *EntityState) Look() coords.Direction {
+	return coords.Direction(es.Body.Dir)
+}
 
-const (
-	EntityKindPlayer = EntityKind("player")
-)
+type Damageable interface {
+	Life() int
+	Dead() bool
+
+	Damage(amount int)
+}
+
+type Health struct {
+	Life int
+}
+
+type Possessor interface {
+	Inventory() *Inventory
+	Give(item Item) bool
+	Take(item Item) bool
+
+	// Do items in the world gravitate towards this?
+	Collects() bool
+	// If Collects return true, then Body must return a value
+	Body() physics.Body
+}
+
+type Respawnable interface {
+	Respawn(pos coords.World)
+}
+
+type Biotic interface {
+	Entity
+	Damageable
+	Respawnable
+
+	State() *BioticState
+}
+
+type BioticState struct {
+	EntityState EntityState
+	Health      Health
+}

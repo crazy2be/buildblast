@@ -1,6 +1,8 @@
 define(function (require) {
-var EntityState = require("./entityState");
 
+var BioticState = require("./model/bioticState");
+
+// This is only valid for BioticStates
 function PredictionBuffer(predictor) {
 	var self = this;
 	var times = [];
@@ -8,7 +10,7 @@ function PredictionBuffer(predictor) {
 	var controlStates = [];
 	var confirmed = {
 		time: 0,
-		state: new EntityState(),
+		state: new BioticState()
 	};
 	var len = 0;
 	var maxLen = 100;
@@ -69,7 +71,6 @@ function PredictionBuffer(predictor) {
 		predictions.splice(0, i);
 		controlStates.splice(0, i);
 		len -= i;
-
 		if (!predicted.prettyCloseTo(state)) {
 			// Oh crap, the server disagreed with us :(
 			// We could maybe adjust the player's state/position gradually if

@@ -9,6 +9,16 @@ import (
 	"github.com/sbinet/liner"
 )
 
+func setupSigInt() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		fmt.Println()
+		os.Exit(0)
+	}()
+}
+
 func setupPrompt() {
 	quit := make(chan bool)
 

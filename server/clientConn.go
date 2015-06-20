@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"buildblast/lib/proto"
 )
 
 // ClientConn is a generic, non-blocking, lossy over lag
@@ -15,10 +17,10 @@ import (
 type ClientConn struct {
 	name string
 
-	sendQueue      chan Message
-	sendLossyQueue chan Message
+	sendQueue      chan proto.Message
+	sendLossyQueue chan proto.Message
 
-	recvQueue chan Message
+	recvQueue chan proto.Message
 
 	closeQueue chan bool
 
@@ -29,10 +31,10 @@ func NewClientConn(name string) *ClientConn {
 	c := new(ClientConn)
 	c.name = name
 
-	c.sendQueue = make(chan Message, 200)
-	c.sendLossyQueue = make(chan Message, 5)
+	c.sendQueue = make(chan proto.Message, 200)
+	c.sendLossyQueue = make(chan proto.Message, 5)
 
-	c.recvQueue = make(chan Message, 100)
+	c.recvQueue = make(chan proto.Message, 100)
 
 	c.closeQueue = make(chan bool, 1)
 
@@ -52,7 +54,7 @@ func (c *ClientConn) Run(conn *Conn) {
 
 func (c *ClientConn) runSend(conn *Conn) {
 	for {
-		var m Message
+		var m proto.Message
 		select {
 		case m = <-c.sendQueue:
 		case m = <-c.sendLossyQueue:
@@ -72,9 +74,10 @@ func (c *ClientConn) runRecv(conn *Conn) {
 			c.Error(err)
 			return
 		}
-		if mntp, ok := m.(*MsgNtpSync); ok {
-			mntp.ServerTime = float64(time.Now().UnixNano()) / 1e6
-			c.Send(mntp)
+		if _, ok := m.(*proto.MsgNtpSyncRequest); ok {
+			c.Send(&proto.MsgNtpSyncReply{
+				ServerTime: float64(time.Now().UnixNano()) / 1e6,
+			})
 			continue
 		}
 		c.recvQueue <- m
@@ -89,7 +92,7 @@ func (c *ClientConn) runClose(conn *Conn) {
 // Send will queue a message to be sent to a client. If there is
 // an error transmitting the message, an error will be sent back
 // on the Errors channel.
-func (c *ClientConn) Send(m Message) {
+func (c *ClientConn) Send(m proto.Message) {
 	select {
 	case c.sendQueue <- m:
 	default:
@@ -100,7 +103,7 @@ func (c *ClientConn) Send(m Message) {
 // SendLossy will try to queue a message to be sent to a client,
 // but if it cannot, it will simply do nothing. The message's failure
 // to send will not result in an error.
-func (c *ClientConn) SendLossy(m Message) {
+func (c *ClientConn) SendLossy(m proto.Message) {
 	select {
 	case c.sendLossyQueue <- m:
 	default:

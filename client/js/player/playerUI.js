@@ -9,6 +9,8 @@ var Inventory = require("player/inventory");
 
 var PerfChart = require("perf/chart");
 
+var Protocol = require("core/protocol");
+
 return function PlayerUI(world, conn, clock, container, controls, playerEntity, playerController) {
 	var self = this;
 
@@ -77,13 +79,8 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 		scoreBoard.update(clock.dt());
 
 		var c = controls.sample();
-
-		var controlState = {
-			Controls: c,
-			Timestamp: clock.time(),
-			ViewTimestamp: clock.entityTime()
-		};
-		conn.queue('controls-state', controlState);
+		conn.queue(Protocol.MSG_CONTROLS_STATE, [c.controlFlags, c.lat, c.lon, clock.time(),
+				clock.entityTime()]);
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();

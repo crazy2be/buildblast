@@ -9,7 +9,7 @@ requirejs.config({
 		jquery: '../lib/jquery.min',
 		jqueryui: '../lib/jquery-ui.min',
 		jqueryWaitImgs: '../lib/jquery.waitforimages.min',
-		async: '../lib/async',
+		async: '../lib/async'
 	},
 	shim: {
 		THREE: {
@@ -30,14 +30,16 @@ requirejs.config({
 	}
 });
 
-require(["main", "settings", "math", "fatalError", "debug", "THREE"], function(main, __loadSettingsScheme, math, fatalError, debug, THREE) {
+require(["main", "settings", "math", "fatalError", "debug", "THREE"],
+		function(main, __loadSettingsScheme, math, fatalError, debug, THREE)
+{
 	THREE.DVector3 = debug.DVector3;
 
 	window.onerror = function (msg, url, lineno) {
 		fatalError({
 			message: msg,
 			filename: url,
-			lineno: lineno,
+			lineno: lineno
 		});
 	};
 

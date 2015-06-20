@@ -1,6 +1,6 @@
 define(function(require) {
+
 var common = require("chunks/chunkCommon");
-var CHUNK = common.CHUNK;
 
 var simpleMesher = require("./mesher");
 
@@ -9,6 +9,7 @@ var ChunkGeometry = require("./chunkGeometry");
 var WorkerChunkManager = require("./workerChunkManager");
 
 var Conn = require("core/conn");
+var Protocol = require("core/protocol");
 
 function sendChunk() {
 	var chunk = manager.top();
@@ -18,7 +19,7 @@ function sendChunk() {
 		kind: 'chunk',
 		payload: {
 			blocks: chunk.blocks,
-			ccpos: chunk.cc,
+			cpos: chunk.cc,
 			geometry: res.geometry,
 		}
 	}, res.transferables);
@@ -33,7 +34,7 @@ parent.onmessage = function (e) {
 	if (e.data.kind === 'start-conn') {
 		initConn(e.data.payload);
 	} else if (e.data.kind === 'block-change') {
-		processBlockChange(e.data.payload);
+		processBlockChange(Protocol.unmarshalMessage(0, e.data.dataView).value);
 	} else {
 		throw 'Warning: Unknown message recieved from parent!' + JSON.stringify(e.data);
 	}
@@ -41,40 +42,25 @@ parent.onmessage = function (e) {
 
 function initConn(payload) {
 	var conn = new Conn(payload.uri);
-	conn.on('chunk', processChunk);
-	conn.on('block', processBlockChange);
+	conn.on(Protocol.MSG_CHUNK, processChunk);
+	conn.on(Protocol.MSG_BLOCK, processBlockChange);
 }
 
 var manager = new WorkerChunkManager();
 
-function processChunk(payload) {
-	var size = payload.Size;
-	if (size.X != CHUNK.WIDTH ||
-		size.Y != CHUNK.HEIGHT ||
-		size.Z != CHUNK.DEPTH
-	) {
-		throw "Got chunk of size which does not match our expected chunk size!";
+function processChunk(msg) {
+	if (msg.size.x != common.CHUNK.WIDTH ||
+		msg.size.y != common.CHUNK.HEIGHT ||
+		msg.size.z != common.CHUNK.DEPTH)
+	{
+		throw "Got chunk of size which does not match our expected chunk size!"
+				+ JSON.stringify(msg)
 	}
+	var cc = msg.cpos;
+	var blocks = msg.blocks;
 
-	var cc = {
-		x: payload.CCPos.X,
-		y: payload.CCPos.Y,
-		z: payload.CCPos.Z,
-	};
-	var data = payload.Data;
-
-	//Blocks are Block Types (see block.js)
 	//ChunkGeometry.block and .setBlock know how to transform 3D vertices
 	//into indices in this array.
-	var blocks = new Uint8Array(data.length);
-	for (var i = 0; i < blocks.length; i++) {
-		// 35: # charater. Control charaters
-		// are not allowed in JSON strings, and
-		// we want to avoid '"', which requires
-		// escaping.
-		blocks[i] = data.charCodeAt(i) - 35;
-	}
-
 	var chunk = manager.get(cc);
 	if (chunk) throw "Got chunk data twice! Server bug! Ignoring message..." + JSON.stringify(cc);
 
@@ -83,10 +69,11 @@ function processChunk(payload) {
 	manager.refreshNeighbouring(cc);
 }
 
-function processBlockChange(payload) {
-	var pos = payload.Pos;
-	var type = payload.Type;
-	var x = pos.X, y = pos.Y, z = pos.Z;
+function processBlockChange(msg) {
+	var x = msg.pos.x;
+	var y = msg.pos.y;
+	var z = msg.pos.z;
+	var type = msg.type;
 	var coords = common.worldToChunk(x, y, z);
 	var cc = coords.c;
 	var oc = coords.o;

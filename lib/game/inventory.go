@@ -1,9 +1,5 @@
 package game
 
-import (
-	"fmt"
-)
-
 type Inventory struct {
 	slots     []Stack
 	itemLeft  int
@@ -76,7 +72,7 @@ func (inv *Inventory) findItemOfKind(item Item) int {
 	return -1
 }
 
-// Adds an item to the inventory. Returns true if the addition was sucessful,
+// Adds an item to the inventory. Returns true if the addition was successful,
 // false if there is no room remaining in the inventory.
 func (inv *Inventory) AddItem(item Item) bool {
 	for i := len(inv.slots) - 1; i >= 0; i-- {
@@ -95,7 +91,7 @@ func (inv *Inventory) AddItem(item Item) bool {
 }
 
 // Removes an item from the inventory. Returns true if the removal was
-// sucessful, false if the given item does not exist in the inventory.
+// successful, false if the given item does not exist in the inventory.
 func (inv *Inventory) RemoveItem(item Item) bool {
 	if item == ITEM_NIL {
 		return false
@@ -119,23 +115,11 @@ func (inv *Inventory) lowerStack(i int) {
 	inv.slots[i].item = ITEM_NIL
 }
 
-func (inv *Inventory) ItemsToString() string {
+func (inv *Inventory) ItemsToByteArray() []byte {
 	data := make([]byte, len(inv.slots)*2)
 	for i := 0; i < len(data); i += 2 {
-		data[i] = toStringByte(byte(inv.slots[i/2].item))
-		data[i+1] = toStringByte(byte(inv.slots[i/2].num))
+		data[i] = byte(inv.slots[i/2].item)
+		data[i+1] = byte(inv.slots[i/2].num)
 	}
-	return string(data)
-}
-
-func toStringByte(val byte) byte {
-	// 35: # charater. Control charaters
-	// are not allowed in JSON strings, and
-	// we want to avoid '"', which requires
-	// escaping.
-	value := val + 35
-	if value >= 127 || value < 35 {
-		panic(fmt.Sprintf("Attempted to encode out of range value of '%d' to item data. (It might work but we need to test it)", value))
-	}
-	return value
+	return data
 }

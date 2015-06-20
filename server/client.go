@@ -10,6 +10,7 @@ import (
 	"buildblast/lib/coords"
 	"buildblast/lib/game"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/proto"
 )
 
 type Client struct {
@@ -19,7 +20,7 @@ type Client struct {
 
 	// Send the client the right chunks.
 	cm             *ChunkManager
-	blockSendQueue chan *MsgBlock
+	blockSendQueue chan *proto.MsgBlock
 	chunksOnce     sync.Once
 
 	player *game.Player
@@ -32,12 +33,13 @@ func NewClient(name string) *Client {
 	c.name = name
 
 	c.cm = NewChunkManager()
-	c.blockSendQueue = make(chan *MsgBlock, 10)
+	c.blockSendQueue = make(chan *proto.MsgBlock, 10)
 
 	return c
 }
 
 func (c *Client) Tick(g *Game, w *game.World) {
+conn:
 	for {
 		select {
 		case m := <-c.conn.recvQueue:
@@ -46,44 +48,48 @@ func (c *Client) Tick(g *Game, w *game.World) {
 			g.disconnect(c.name, e.Error())
 			return
 		default:
-			return
+			break conn
 		}
+	}
+	if c.player.NeedsInventoryUpdate() {
+		c.Send(&proto.MsgInventoryState{
+			Items: c.player.Inventory().ItemsToByteArray(),
+		})
+		c.player.ClientInventoryUpdated()
 	}
 }
 
-func (c *Client) handleMessage(g *Game, w *game.World, m Message) {
+func (c *Client) handleMessage(g *Game, w *game.World, m proto.Message) {
 	switch m.(type) {
-	case *MsgBlock:
-		m := m.(*MsgBlock)
+	case *proto.MsgBlock:
+		m := m.(*proto.MsgBlock)
 		c.handleBlock(g, w, m)
 
-	case *MsgControlsState:
-		m := m.(*MsgControlsState)
-		m.Controls.Timestamp = m.Timestamp
-		m.Controls.ViewTimestamp = m.ViewTimestamp
+	case *proto.MsgControlsState:
+		m := m.(*proto.MsgControlsState)
 		c.handleControlState(g, w, m)
 
-	case *MsgChat:
-		g.Chat(c.name, m.(*MsgChat).Message)
+	case *proto.MsgChatSend:
+		g.Chat(c.name, m.(*proto.MsgChatSend).Message)
 
-	case *MsgInventoryState:
-		m := m.(*MsgInventoryState)
+	case *proto.MsgInventorySelect:
+		m := m.(*proto.MsgInventorySelect)
 		c.player.Inventory().SetActiveItems(m.ItemLeft, m.ItemRight)
 
-	case *MsgInventoryMove:
-		m := m.(*MsgInventoryMove)
+	case *proto.MsgInventoryMove:
+		m := m.(*proto.MsgInventoryMove)
 		c.player.Inventory().MoveItems(m.From, m.To)
 
-		c.Send(&MsgInventoryState{
-			Items: c.player.Inventory().ItemsToString(),
+		c.Send(&proto.MsgInventoryState{
+			Items: c.player.Inventory().ItemsToByteArray(),
 		})
 
 	default:
-		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s", reflect.TypeOf(m)))
+		c.conn.Error(fmt.Errorf("unknown message recieved from client: %s, %s", reflect.TypeOf(m), m))
 	}
 }
 
-func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
+func (c *Client) handleBlock(g *Game, w *game.World, m *proto.MsgBlock) {
 	// Eventually we should simulate block placement/removal entirely
 	// on the server side, but for now, this works fairly well.
 	inv := c.player.Inventory()
@@ -110,22 +116,22 @@ func (c *Client) handleBlock(g *Game, w *game.World, m *MsgBlock) {
 		}
 		// Removing a block
 		item := game.ItemFromBlock(curBlock)
-		inv.AddItem(item)
+		w.AddEntity(game.NewWorldItem(item, m.Pos.Center()))
 		w.ChangeBlock(m.Pos, mapgen.BLOCK_AIR)
 	}
 
-	c.Send(&MsgInventoryState{
-		Items: c.player.Inventory().ItemsToString(),
+	c.Send(&proto.MsgInventoryState{
+		Items: c.player.Inventory().ItemsToByteArray(),
 	})
 }
 
-func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState) {
+func (c *Client) handleControlState(g *Game, w *game.World, m *proto.MsgControlsState) {
 	hitPos := c.player.ClientTick(m.Controls)
 
-	c.cm.QueueChunksNearby(w, c.player.Pos())
+	c.cm.QueueChunksNearby(w, c.player.Wpos())
 
 	if hitPos != nil {
-		g.Broadcast(&MsgDebugRay{
+		g.Broadcast(&proto.MsgDebugRay{
 			Pos: *hitPos,
 		})
 	}
@@ -134,37 +140,43 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *MsgControlsState)
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for id, e := range w.Entities() {
-		c.EntityCreated(id, e)
-		c.Send(&MsgScoreboardAdd{
+	for id, b := range w.Biotics() {
+		c.BioticCreated(id, b)
+		c.Send(&proto.MsgScoreboardAdd{
 			Name:  string(id),
 			Score: g.scores[string(id)],
 		})
 	}
 
+	for id, wi := range w.WorldItems() {
+		c.WorldItemAdded(id, wi)
+	}
+
 	w.AddEntity(p)
 
 	w.AddBlockListener(c)
-	w.AddEntityListener(c)
+	w.AddBioticListener(c)
+	w.AddWorldItemListener(c)
 
 	c.player = p
-	c.Send(&MsgInventoryState{
-		Items: c.player.Inventory().ItemsToString(),
+	c.Send(&proto.MsgInventoryState{
+		Items: c.player.Inventory().ItemsToByteArray(),
 	})
 }
 
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
-	w.RemoveEntityListener(c)
+	w.RemoveBioticListener(c)
+	w.RemoveWorldItemListener(c)
 	c.conn.Close()
 }
 
-func (c *Client) Send(m Message) {
+func (c *Client) Send(m proto.Message) {
 	c.conn.Send(m)
 }
 
-func (c *Client) SendLossy(m Message) {
+func (c *Client) SendLossy(m proto.Message) {
 	c.conn.SendLossy(m)
 }
 
@@ -176,33 +188,56 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
-func (c *Client) EntityCreated(id game.EntityID, entity game.Entity) {
-	c.Send(makePlayerEntityCreatedMessage(id, entity.State()))
+func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
+	c.Send(makePlayerEntityCreatedMessage(id, biotic.State()))
 }
 
-func (c *Client) EntityUpdated(id game.EntityID, entity game.Entity) {
-	c.SendLossy(&MsgEntityState{
-		ID:    id,
-		State: entity.State(),
+func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
+	c.SendLossy(&proto.MsgEntityState{
+		Id:    id,
+		Kind:  game.EntityKindBiotic,
+		State: biotic.State(),
 	})
 }
 
-func (c *Client) EntityDamaged(id game.EntityID, entity game.Entity) {
-	c.EntityUpdated(id, entity)
+func (c *Client) BioticDamaged(id game.EntityId, biotic game.Biotic) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) EntityDied(id game.EntityID, entity game.Entity, killer string) {
-	c.EntityUpdated(id, entity)
+func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) EntityRemoved(id game.EntityID) {
-	c.Send(&MsgEntityRemove{
-		ID: id,
+func (c *Client) BioticRemoved(id game.EntityId) {
+	c.Send(&proto.MsgEntityRemove{
+		Id: id,
+	})
+}
+
+func (c *Client) WorldItemAdded(id game.EntityId, worldItem *game.WorldItem) {
+	c.Send(&proto.MsgEntityCreate{
+		Id:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemUpdated(id game.EntityId, worldItem *game.WorldItem) {
+	c.Send(&proto.MsgEntityState{
+		Id:    id,
+		Kind:  game.EntityKindWorldItem,
+		State: worldItem.State(),
+	})
+}
+
+func (c *Client) WorldItemRemoved(id game.EntityId) {
+	c.Send(&proto.MsgEntityRemove{
+		Id: id,
 	})
 }
 
 func (c *Client) sendBlockChanged(bc coords.Block, b mapgen.Block) {
-	m := &MsgBlock{
+	m := &proto.MsgBlock{
 		Pos:  bc,
 		Type: b,
 	}
@@ -235,10 +270,10 @@ func (c *Client) internalRunChunks(conn *Conn) {
 		default:
 			cc, chunk := c.cm.Top()
 			if chunk != nil {
-				m := &MsgChunk{
-					CCPos: cc,
-					Size:  coords.ChunkSize,
-					Data:  chunk.Flatten(),
+				m := &proto.MsgChunk{
+					Cpos:   cc,
+					Size:   coords.ChunkSize,
+					Blocks: chunk.ToByteArray(),
 				}
 				conn.Send(m)
 			}
@@ -247,12 +282,10 @@ func (c *Client) internalRunChunks(conn *Conn) {
 	}
 }
 
-func makePlayerEntityCreatedMessage(id game.EntityID, state game.EntityState) *MsgEntityCreate {
-	return &MsgEntityCreate{
-		ID:           id,
-		Kind:         game.EntityKindPlayer,
-		HalfExtents:  game.PlayerHalfExtents,
-		CenterOffset: game.PlayerCenterOffset,
-		InitialState: state,
+func makePlayerEntityCreatedMessage(id game.EntityId, state *game.BioticState) *proto.MsgEntityCreate {
+	return &proto.MsgEntityCreate{
+		Id:    id,
+		Kind:  game.EntityKindPlayer,
+		State: state,
 	}
 }

@@ -1,18 +1,18 @@
 define(function (require) {
-var Entity = require("./entity");
-var EntityState = require("./entityState");
-var EntityLagInducer = require("./entityLagInducer");
-var EntityBar = require("./UIViews/entityBar");
-var PlayerMesh = require("./UIViews/playerMesh");
 
-var EntityKindPlayer = "player";
+var Protocol = require("core/protocol");
+var Biotic = require("./biotic");
+var WorldItem = require("./worldItem");
+var EntityLagInducer = require("./entityLagInducer");
+var EntityBar = require("meshes/entityBar");
+var PlayerMesh = require("meshes/playerMesh");
+var WorldItemMesh = require("meshes/worldItemMesh");
 
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
 
-	//The network controls the entities, these
-	//	are just data, and inside the data are the views (which are isolated).
-	//They are in a sense, ViewModels :D
+	// The network controls the entities, these are just data, and inside the data are the
+	// views (which are isolated). They are in a sense, ViewModels :D
 	var controllers = {};
 
 	var _playerId = null;
@@ -29,16 +29,39 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	};
 
-	conn.on('entity-create', function (payload) {
-		var id = payload.ID;
+	function stateToHistoryState(state) {
+		return {
+			time: state.entityState.lastUpdated,
+			data: state
+		};
+	}
+
+	conn.on(Protocol.MSG_ENTITY_CREATE, function(msg) {
+		var id = msg.id;
+		var kind = msg.kind;
+		var state = msg.state;
+
 		if (controllers[id]) {
-			console.warn("Got entity-create message for entity which already exists!", id);
+			console.warn("Got an entity create message for entity which already exists!", id);
 			return;
 		}
-		var entity = EntityManager.makeEntity(payload);
+
+		var entity;
+		if (kind === Protocol.EntityKindPlayer) {
+			entity = new Biotic(state);
+			entity.add(new PlayerMesh());
+		} else if (kind === Protocol.EntityKindWorldItem) {
+			entity = new WorldItem(state);
+			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));
+		}
 		entity.addTo(scene);
 
-		var initialState = protocolToLocal(payload.InitialState);
+		var initialState = stateToHistoryState(state);
+		if (initialState == null) {
+			console.warn("Got entity create message for unrecognized entity kind", kind);
+			return;
+		}
+
 		var controller = new EntityLagInducer(entity, initialState);
 
 		controllers[id] = controller;
@@ -53,19 +76,21 @@ function EntityManager(scene, conn, world, clock) {
 		}
 	});
 
-	conn.on('entity-state', function (payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_STATE, function(msg) {
+		var id = msg.id;
+		var state = msg.state;
+
 		var controller = controllers[id];
 		if (!controller) {
-			console.warn("Got entity-pos message for entity which does not exist!", id);
+			console.warn("Got biotic state message for biotic which does not exist!", id);
 			return;
 		}
 
-		controller.message(protocolToLocal(payload.State));
+		controller.message(stateToHistoryState(state));
 	});
 
-	conn.on('entity-remove', function (payload) {
-		var id = payload.ID;
+	conn.on(Protocol.MSG_ENTITY_REMOVE, function(msg) {
+		var id = msg.id;
 		var controller = controllers[id];
 		if (!controller) {
 			console.warn("Got entity-remove message for entity which does not exist: ", id);
@@ -93,34 +118,6 @@ function EntityManager(scene, conn, world, clock) {
 			controller.update(clock, camera);
 		}
 	};
-}
-
-EntityManager.makeEntity = function (payload) {
-	var id = payload.ID;
-	var halfExtents = vecFromNet(payload.HalfExtents);
-	var centerOffset = vecFromNet(payload.CenterOffset);
-	var entity = new Entity(id, halfExtents, centerOffset);
-	if (payload.Kind === EntityKindPlayer) {
-		entity.add(new PlayerMesh());
-	} else {
-		console.warn("Got entity-create message for unrecognized entity kind", payload.Kind);
-	}
-	return entity;
-};
-
-function protocolToLocal(payload) {
-	return {
-		time: payload.Timestamp,
-		data: new EntityState(
-			vecFromNet(payload.Pos),
-			vecFromNet(payload.Look),
-			payload.Health,
-			payload.Vy),
-	};
-}
-
-function vecFromNet(obj) {
-	return new THREE.Vector3(obj.X || 0, obj.Y || 0, obj.Z || 0);
 }
 
 return EntityManager;

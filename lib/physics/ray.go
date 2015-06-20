@@ -3,6 +3,7 @@ package physics
 import (
 	"buildblast/lib/coords"
 	"buildblast/lib/mapgen"
+	"buildblast/lib/vmath"
 )
 
 const (
@@ -11,22 +12,22 @@ const (
 )
 
 type Ray struct {
-	pos coords.World
-	dir coords.Direction
+	pos vmath.Vec3
+	dir vmath.Vec3
 }
 
-func NewRay(pos coords.World, direction coords.Direction) *Ray {
+func NewRay(pos vmath.Vec3, dir vmath.Vec3) *Ray {
 	ray := &Ray{
 		pos: pos,
-		dir: direction,
+		dir: dir,
 	}
 	return ray
 }
 
-func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coords.World, int) {
+func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*vmath.Vec3, int) {
 	pos := ray.pos
 	for dist := 0.0; dist < RAY_MAX_DIST; dist += RAY_PRECISION {
-		pos = pos.Move(ray.dir, RAY_PRECISION)
+		pos.Translate(&ray.dir, RAY_PRECISION)
 
 		for i, v := range boxes {
 			if v == nil {
@@ -38,7 +39,8 @@ func (ray *Ray) FindAnyIntersect(blocks mapgen.BlockSource, boxes []*Box) (*coor
 			return &pos, i
 		}
 
-		if blocks.Block(pos.Block()).Solid() {
+		wc := coords.World(pos)
+		if blocks.Block(wc.Block()).Solid() {
 			return &pos, -1
 		}
 	}

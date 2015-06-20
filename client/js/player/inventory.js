@@ -3,6 +3,8 @@ define(function(require) {
 var Stack = require("player/stack");
 var Item = require("player/item");
 
+var Protocol = require("core/protocol");
+
 var $ = require("jquery");
 var jqueryUi = require("jqueryui");
 var jqueryWaitImgs = require("jqueryWaitImgs");
@@ -44,18 +46,8 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(true);
 	updateHtmlEquipChanged(false);
 
-	conn.on('inventory-state', function (payload) {
-		var items = new Uint8Array(payload.Items.length);
-		for (var i = 0; i < items.length; i++) {
-			// 35: # charater. Control charaters
-			// are not allowed in JSON strings, and
-			// we want to avoid '"', which requires
-			// escaping.
-			items[i] = payload.Items.charCodeAt(i) - 35;
-		}
-
-		var oldLeft = leftStack();
-		var oldRight = rightStack();
+	conn.on(Protocol.MSG_INVENTORY_STATE, function (ms) {
+		var items = ms.items;
 
 		slots = [];
 		for (var i = 0; i < items.length; i += 2) {
@@ -131,11 +123,7 @@ function Inventory(world, camera, conn, controls) {
 				var fromText = $fromSpan.text();
 				$fromSpan.text($toSpan.text());
 				$toSpan.text(fromText);
-
-				conn.queue('inventory-move', {
-					From: parseInt(from),
-					To: parseInt(to),
-				});
+				conn.queue(Protocol.MSG_INVENTORY_MOVE, [parseInt(from), parseInt(to)]);
 			},
 		});
 	}
@@ -194,19 +182,18 @@ function Inventory(world, camera, conn, controls) {
 	var toggleBagWasDown = false;
 	var leftInventoryModel = new InventoryModel(world, null, 1);
 	var rightInventoryModel = new InventoryModel(world, null, -1);
-	self.update = function (playerPosition, controlState) {
+	self.update = function (playerPosition, controls) {
 		if (slots.length === 0) return;
 		var p = playerPosition;
-		var c = controlState;
 
 		var leftWasDown = updateSide(true);
 		var rightWasDown = updateSide(false);
 
-		if (!toggleBagWasDown && c.toggleBag) {
+		if (!toggleBagWasDown && controls.toggleBag()) {
 			bagIsShowing = !bagIsShowing;
 			updateBagVisibility();
 		}
-		toggleBagWasDown = c.toggleBag;
+		toggleBagWasDown = controls.toggleBag();
 
 		swapLeftWasDown = leftWasDown;
 		swapRightWasDown = rightWasDown;
@@ -226,27 +213,26 @@ function Inventory(world, camera, conn, controls) {
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
 
-			var swapDown = c[swapTrigger];
+			var swapDown = controls[swapTrigger]();
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
 				updateModels();
-				conn.queue('inventory-state', {
-					ItemLeft: getEquippedSlot(true, leftIsPrimary),
-					ItemRight: getEquippedSlot(false, rightIsPrimary),
-				});
+				conn.queue(Protocol.MSG_INVENTORY_SELECT, [
+						getEquippedSlot(true, leftIsPrimary),
+						getEquippedSlot(false, rightIsPrimary)]);
 				updateHtmlEquipChanged(isLeft);
 			}
 
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
-			invModel.update(playerPosition, c.lat, c.lon);
+			invModel.update(playerPosition, controls.lat, controls.lon);
 
-			if (c[activateTrigger]) {
+			if (controls[activateTrigger]()) {
 				activateStack(isLeft ? leftStack() : rightStack());
 			}
 
 			return swapDown;
-		};
+		}
 	};
 }
 
@@ -259,7 +245,7 @@ function InventoryModel(world, model, leftward) {
 		positionItem(playerPos, lat, lon);
 		postitionPerspective();
 		addJitter();
-	}
+	};
 
 	self.setModel = function (newModel) {
 		if (model !== null) {
@@ -269,7 +255,7 @@ function InventoryModel(world, model, leftward) {
 		newModel.scale.set(1/16, 1/16, 1/16);
 		world.addToScene(newModel);
 		model = newModel;
-	}
+	};
 
 	function pointItem(lat, lon) {
 		var p = model.position;
