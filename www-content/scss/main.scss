@@ -4,5 +4,35 @@
 
 body {
     background: #bfd1e5;
-    text-shadow: #FFF 0 0 1px;
+
+    .main {
+        margin: 2em;
+    }
+}
+
+$gradient: linear-gradient(45deg, pink, skyblue);
+$gradient2: linear-gradient(45deg, #2ecc71, dodgerblue);
+
+.playButtonContainer {
+    background: black;
+    width: 8em;
+}
+
+.playButton {
+    color: transparent;
+    font-size: 2em;
+    padding: 5px;
+    letter-spacing: 5px;
+    border: 4px solid transparent;
+    border-image: $gradient 1;
+    background: $gradient;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.4s ease;
+
+    &:hover {
+        background: $gradient2;
+        border-image: $gradient2 1;
+        -webkit-background-clip: text;
+    }
 }
