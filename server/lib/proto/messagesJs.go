@@ -49,7 +49,7 @@ func GenerateJs() string {
 	// Go through each message and write the type info
 	js.WriteString(`"messages": [`)
 	js.WriteString("\n")
-	for i := 0; i < TOTAL_MESSAGES; i++ {
+	for i := 0; i < len(MESSAGES); i++ {
 		if i != 0 {
 			js.WriteString(",\n")
 		}

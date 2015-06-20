@@ -18,8 +18,8 @@ return function World(scene, conn, clientId, clock) {
 	window.testExposure.chunkManager = chunkManager;
 	window.testExposure.entityManager = entityManager;
 
-	conn.on(Protocol.MSG_DEBUG_RAY, function(result) {
-		self.addSmallCube(result.pos);
+	conn.on(Protocol.MSG_DEBUG_RAY, function(msg) {
+		self.addSmallCube(msg.pos);
 	});
 
 	self.update = function (dt, playerPos) {

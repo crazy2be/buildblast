@@ -45,17 +45,17 @@ function main () {
 			Models.init(callback);
 		},
 		function (callback) {
-			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(result) {
+			conn.on(Protocol.MSG_HANDSHAKE_REPLY, function(msg) {
 				console.log("Got handshake reply");
-				clock.init(result.serverTime);
-				clientId = result.clientId;
-				playerEntity = new Biotic(result.playerEntityInfo.state);
+				clock.init(msg.serverTime);
+				clientId = msg.clientId;
+				playerEntity = new Biotic(msg.playerEntityInfo.state);
 				conn.setImmediate(false);
 				callback();
 			});
-			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (result) {
+			conn.on(Protocol.MSG_HANDSHAKE_ERROR, function (msg) {
 				console.log("Got handshake error");
-				throw result.message;
+				throw msg.message;
 			});
 		}
 	], function (err, results) {

@@ -71,7 +71,7 @@ func main() {
 	protoJs := proto.GenerateJs()
 	http.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
 		headers := w.Header()
-		headers["Content-Type"] = []string{"application/javascript"}
+		headers["Content-Type"] = []string{"application/javascript; charset=utf-8"}
 		fmt.Fprint(w, protoJs)
 	})
 

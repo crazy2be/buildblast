@@ -46,8 +46,8 @@ function Inventory(world, camera, conn, controls) {
 	updateHtmlEquipChanged(true);
 	updateHtmlEquipChanged(false);
 
-	conn.on(Protocol.MSG_INVENTORY_STATE, function (result) {
-		var items = result.items;
+	conn.on(Protocol.MSG_INVENTORY_STATE, function (ms) {
+		var items = ms.items;
 
 		slots = [];
 		for (var i = 0; i < items.length; i += 2) {
@@ -182,10 +182,9 @@ function Inventory(world, camera, conn, controls) {
 	var toggleBagWasDown = false;
 	var leftInventoryModel = new InventoryModel(world, null, 1);
 	var rightInventoryModel = new InventoryModel(world, null, -1);
-	self.update = function (playerPosition, controlState) {
+	self.update = function (playerPosition, controls) {
 		if (slots.length === 0) return;
 		var p = playerPosition;
-		var controls = controlState;
 
 		var leftWasDown = updateSide(true);
 		var rightWasDown = updateSide(false);

@@ -8,9 +8,9 @@ return function Scoreboard(controls, conn, container) {
 	var scores = {};
 	var dirty = false;
 
-	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(result) {
-		var name = result.name;
-		var score = result.score;
+	conn.on(Protocol.MSG_SCOREBOARD_ADD, function(msg) {
+		var name = msg.name;
+		var score = msg.score;
 
 		if (scores[name] !== undefined) {
 			console.error("Server Error: Got scoreboard-add message for entity which is already on the scoreboard.");
@@ -20,9 +20,9 @@ return function Scoreboard(controls, conn, container) {
 		dirty = true;
 	});
 
-	conn.on(Protocol.MSG_SCOREBOARD_SET, function(result) {
-		var name = result.name;
-		var score = result.score;
+	conn.on(Protocol.MSG_SCOREBOARD_SET, function(msg) {
+		var name = msg.name;
+		var score = msg.score;
 
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-set message for entity which is not on the scoreboard.");
@@ -32,8 +32,8 @@ return function Scoreboard(controls, conn, container) {
 		dirty = true;
 	});
 
-	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(result) {
-		var name = result.name;
+	conn.on(Protocol.MSG_SCOREBOARD_REMOVE, function(msg) {
+		var name = msg.name;
 
 		if (scores[name] === undefined) {
 			console.error("Server error: got scoreboard-remove message for entity which is not on the scoreboard.");

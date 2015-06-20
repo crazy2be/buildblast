@@ -192,30 +192,32 @@ Protocol.unmarshalField = function(offset, dataView, result, field) {
 
 	var inner;
 	switch (field.type) {
-		case 0:
-			throw "I don't know how to unmarshal this unknown field";
-		case 1: // byte
-			return retVal(dataView.getUint8(offset), 1);
-		case 2: // slice
-			return Protocol.unmarshalByteArray(offset, dataView);
-		case 3: // int
-			return Protocol.unmarshalInt(offset, dataView);
-		case 4: // float
-			return Protocol.unmarshalFloat64(offset, dataView);
-		case 5: // string
-			return Protocol.unmarshalString(offset, dataView);
-		case 6: // bool
-			return retVal(dataView.getUint8(offset) === 1, 1);
-		case 7: // interface
-			var struct = Protocol.unmarshalFields(offset, dataView, PROTO.kinds[result.kind]);
-			result.state = struct.value;
-			Protocol.parseState(result);
-			return retVal(result.state, struct.read + 1);
-		case 8: // struct
-			inner = Protocol.unmarshalFields(offset, dataView, field.fields);
-			return retVal(inner.value, inner.read);
-		case 9: // message
-			return Protocol.unmarshalMessage(offset, dataView);
+	case 0:
+		throw "I don't know how to unmarshal this unknown field " + field;
+	case 1: // byte
+		return retVal(dataView.getUint8(offset), 1);
+	case 2: // slice
+		return Protocol.unmarshalByteArray(offset, dataView);
+	case 3: // int
+		return Protocol.unmarshalInt(offset, dataView);
+	case 4: // float
+		return Protocol.unmarshalFloat64(offset, dataView);
+	case 5: // string
+		return Protocol.unmarshalString(offset, dataView);
+	case 6: // bool
+		return retVal(dataView.getUint8(offset) === 1, 1);
+	case 7: // interface
+		var struct = Protocol.unmarshalFields(offset, dataView, PROTO.kinds[result.kind]);
+		result.state = struct.value;
+		Protocol.parseState(result);
+		return retVal(result.state, struct.read + 1);
+	case 8: // struct
+		inner = Protocol.unmarshalFields(offset, dataView, field.fields);
+		return retVal(inner.value, inner.read);
+	case 9: // message
+		return Protocol.unmarshalMessage(offset, dataView);
+	default:
+		throw "I don't know how to marshal this field " + field
 	}
 };
 
@@ -225,7 +227,11 @@ Protocol.marshalMessage = function(message, data) {
 	var dataView = new DataView(buf);
 	dataView.setUint8(0, message);
 	if (fields.length > 0) {
-		buf = Protocol.append(buf, Protocol.marshalFields(fields, data, 0).buf);
+		var marshalled = Protocol.marshalFields(fields, data, 0);
+		if (marshalled.consumed != data.length) {
+			throw "Data array must match number of message fields."
+		}
+		buf = Protocol.append(buf, marshalled.buf);
 	}
 	return new DataView(buf);
 };
@@ -244,24 +250,24 @@ Protocol.marshalField = function(field, data, consumed) {
 	var result = { buf: null, consumed: consumed + 1 };
 	var value = data[consumed];
 	switch (field.type) {
-		case 1: // byte
-			result.buf = new ArrayBuffer(1);
-			var temp = new DataView(result.buf);
-			temp.setUint8(0, value);
-			return result;
-		case 3: // int
-			result.buf = Protocol.marshalInt(Math.floor(value));
-			return result;
-		case 4: // float
-			result.buf = Protocol.marshalFloat64(value);
-			return result;
-		case 5: // string
-			result.buf = Protocol.marshalString(value);
-			return result;
-		case 8: // struct
-			return Protocol.marshalFields(field.fields, data, consumed);
-		default:
-			throw "Field not supported for marshalling " + field.type;
+	case 1: // byte
+		result.buf = new ArrayBuffer(1);
+		var temp = new DataView(result.buf);
+		temp.setUint8(0, value);
+		return result;
+	case 3: // int
+		result.buf = Protocol.marshalInt(Math.floor(value));
+		return result;
+	case 4: // float
+		result.buf = Protocol.marshalFloat64(value);
+		return result;
+	case 5: // string
+		result.buf = Protocol.marshalString(value);
+		return result;
+	case 8: // struct
+		return Protocol.marshalFields(field.fields, data, consumed);
+	default:
+		throw "Field not supported for marshalling " + field.type;
 	}
 };
 
