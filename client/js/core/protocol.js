@@ -223,12 +223,15 @@ Protocol.unmarshalField = function(offset, dataView, result, field) {
 
 Protocol.marshalMessage = function(message, data) {
 	var fields = PROTO.messages[message];
-	assert(fields.length === data.length);
 	var buf = new ArrayBuffer(1);
 	var dataView = new DataView(buf);
 	dataView.setUint8(0, message);
 	if (fields.length > 0) {
-		buf = Protocol.append(buf, Protocol.marshalFields(fields, data, 0).buf);
+		var marshalled = Protocol.marshalFields(fields, data, 0);
+		if (marshalled.consumed != data.length) {
+			throw "Data array must match number of message fields."
+		}
+		buf = Protocol.append(buf, marshalled.buf);
 	}
 	return new DataView(buf);
 };

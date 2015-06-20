@@ -11,142 +11,55 @@ import (
 
 type MessageId byte
 
-const (
-	MSG_HANDSHAKE_REPLY   = MessageId(iota) // CLIENT <--- SERVER
-	MSG_HANDSHAKE_ERROR                     // CLIENT <--- SERVER
-	MSG_ENTITY_CREATE                       // CLIENT <--- SERVER
-	MSG_ENTITY_STATE                        // CLIENT <--- SERVER
-	MSG_ENTITY_REMOVE                       // CLIENT <--- SERVER
-	MSG_CHUNK                               // CLIENT <--- SERVER
-	MSG_BLOCK                               // CLIENT <--> SERVER
-	MSG_CONTROLS_STATE                      // CLIENT ---> SERVER
-	MSG_CHAT_SEND                           // CLIENT ---> SERVER
-	MSG_CHAT_BROADCAST                      // CLIENT <--- SERVER
-	MSG_DEBUG_RAY                           // CLIENT <--- SERVER
-	MSG_NTP_SYNC_REQUEST                    // CLIENT ---> SERVER
-	MSG_NTP_SYNC_REPLY                      // CLIENT <--- SERVER
-	MSG_INVENTORY_STATE                     // CLIENT <--- SERVER
-	MSG_INVENTORY_SELECT                    // CLIENT ---> SERVER
-	MSG_INVENTORY_MOVE                      // CLIENT ---> SERVER
-	MSG_SCOREBOARD_ADD                      // CLIENT <--- SERVER
-	MSG_SCOREBOARD_SET                      // CLIENT <--- SERVER
-	MSG_SCOREBOARD_REMOVE                   // CLIENT <--- SERVER
-	TOTAL_MESSAGES        = int(iota)
-)
+var MESSAGES = []reflect.Type{
+	reflect.TypeOf(&MsgHandshakeReply{}),   // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgHandshakeError{}),   // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgEntityCreate{}),     // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgEntityState{}),      // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgEntityRemove{}),     // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgChunk{}),            // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgBlock{}),            // CLIENT <--> SERVER
+	reflect.TypeOf(&MsgControlsState{}),    // CLIENT ---> SERVER
+	reflect.TypeOf(&MsgChatSend{}),         // CLIENT ---> SERVER
+	reflect.TypeOf(&MsgChatBroadcast{}),    // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgDebugRay{}),         // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgNtpSyncRequest{}),   // CLIENT ---> SERVER
+	reflect.TypeOf(&MsgNtpSyncReply{}),     // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgInventoryState{}),   // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgInventorySelect{}),  // CLIENT ---> SERVER
+	reflect.TypeOf(&MsgInventoryMove{}),    // CLIENT ---> SERVER
+	reflect.TypeOf(&MsgScoreboardAdd{}),    // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgScoreboardSet{}),    // CLIENT <--- SERVER
+	reflect.TypeOf(&MsgScoreboardRemove{}), // CLIENT <--- SERVER
+}
+
+var MESSAGE_TO_ID map[reflect.Type]MessageId
+
+func init() {
+	MESSAGE_TO_ID = make(map[reflect.Type]MessageId)
+	for i, value := range MESSAGES {
+		MESSAGE_TO_ID[value] = MessageId(i)
+	}
+}
 
 func idToMessage(id MessageId) Message {
-	switch id {
-	case MSG_HANDSHAKE_REPLY:
-		return &MsgHandshakeReply{}
-	case MSG_HANDSHAKE_ERROR:
-		return &MsgHandshakeError{}
-	case MSG_ENTITY_CREATE:
-		return &MsgEntityCreate{}
-	case MSG_ENTITY_STATE:
-		return &MsgEntityState{}
-	case MSG_ENTITY_REMOVE:
-		return &MsgEntityRemove{}
-	case MSG_CHUNK:
-		return &MsgChunk{}
-	case MSG_BLOCK:
-		return &MsgBlock{}
-	case MSG_CONTROLS_STATE:
-		return &MsgControlsState{}
-	case MSG_CHAT_SEND:
-		return &MsgChatSend{}
-	case MSG_CHAT_BROADCAST:
-		return &MsgChatBroadcast{}
-	case MSG_DEBUG_RAY:
-		return &MsgDebugRay{}
-	case MSG_NTP_SYNC_REQUEST:
-		return &MsgNtpSyncRequest{}
-	case MSG_NTP_SYNC_REPLY:
-		return &MsgNtpSyncReply{}
-	case MSG_INVENTORY_STATE:
-		return &MsgInventoryState{}
-	case MSG_INVENTORY_SELECT:
-		return &MsgInventorySelect{}
-	case MSG_INVENTORY_MOVE:
-		return &MsgInventoryMove{}
-	case MSG_SCOREBOARD_ADD:
-		return &MsgScoreboardAdd{}
-	case MSG_SCOREBOARD_SET:
-		return &MsgScoreboardSet{}
-	case MSG_SCOREBOARD_REMOVE:
-		return &MsgScoreboardRemove{}
+	if int(id) >= len(MESSAGES) {
+		panic(fmt.Sprintf("Unknown message recieved from client: %d", id))
 	}
-	panic(fmt.Sprintf("Unknown message recieved from client: %d, %s", id, reflect.TypeOf(id)))
+	return reflect.New(MESSAGES[id].Elem()).Interface()
 }
 
 func messageToId(m Message) MessageId {
-	switch m.(type) {
-	case *MsgHandshakeReply:
-		return MSG_HANDSHAKE_REPLY
-	case *MsgHandshakeError:
-		return MSG_HANDSHAKE_ERROR
-	case *MsgEntityCreate:
-		return MSG_ENTITY_CREATE
-	case *MsgEntityState:
-		return MSG_ENTITY_STATE
-	case *MsgEntityRemove:
-		return MSG_ENTITY_REMOVE
-	case *MsgChunk:
-		return MSG_CHUNK
-	case *MsgBlock:
-		return MSG_BLOCK
-	case *MsgControlsState:
-		return MSG_CONTROLS_STATE
-	case *MsgChatSend:
-		return MSG_CHAT_SEND
-	case *MsgChatBroadcast:
-		return MSG_CHAT_BROADCAST
-	case *MsgDebugRay:
-		return MSG_DEBUG_RAY
-	case *MsgNtpSyncRequest:
-		return MSG_NTP_SYNC_REQUEST
-	case *MsgNtpSyncReply:
-		return MSG_NTP_SYNC_REPLY
-	case *MsgInventoryState:
-		return MSG_INVENTORY_STATE
-	case *MsgInventorySelect:
-		return MSG_INVENTORY_SELECT
-	case *MsgInventoryMove:
-		return MSG_INVENTORY_MOVE
-	case *MsgScoreboardAdd:
-		return MSG_SCOREBOARD_ADD
-	case *MsgScoreboardSet:
-		return MSG_SCOREBOARD_SET
-	case *MsgScoreboardRemove:
-		return MSG_SCOREBOARD_REMOVE
+	result, ok := MESSAGE_TO_ID[reflect.TypeOf(m)]
+	if !ok {
+		panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
 	}
-	panic("Attempted to send unknown message to client: " + reflect.TypeOf(m).String())
+	return result
 }
 
 func typeIsMsg(m Message) bool {
-	switch m.(type) {
-	case *MsgHandshakeReply,
-		*MsgHandshakeError,
-		*MsgEntityCreate,
-		*MsgEntityState,
-		*MsgEntityRemove,
-		*MsgChunk,
-		*MsgBlock,
-		*MsgControlsState,
-		*MsgChatSend,
-		*MsgChatBroadcast,
-		*MsgDebugRay,
-		*MsgNtpSyncRequest,
-		*MsgNtpSyncReply,
-		*MsgInventoryState,
-		*MsgInventorySelect,
-		*MsgInventoryMove,
-		*MsgScoreboardAdd,
-		*MsgScoreboardSet,
-		*MsgScoreboardRemove:
-		return true
-	default:
-		return false
-	}
+	_, ok := MESSAGE_TO_ID[reflect.TypeOf(m)]
+	return ok
 }
 
 type MsgHandshakeReply struct {
