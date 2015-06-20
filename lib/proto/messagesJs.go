@@ -52,9 +52,7 @@ func GenerateJs() string {
 		if i != 0 {
 			js.WriteString(",\n")
 		}
-		temp := idToMessage(MessageId(i))
-		fmt.Println("Message:", temp)
-		structToJs(&js, temp)
+		structToJs(&js, idToMessage(MessageId(i)))
 	}
 	js.WriteString("]")
 
