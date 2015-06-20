@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"buildblast/lib/game"
-	"buildblast/lib/proto"
+	"buildblast/server/lib/game"
+	"buildblast/server/lib/proto"
 )
 
 const (

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 
-	"buildblast/lib/proto"
-
 	"code.google.com/p/go.net/websocket"
+
+	"buildblast/server/lib/proto"
 )
 
 type Conn struct {

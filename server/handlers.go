@@ -9,8 +9,8 @@ import (
 
 	"code.google.com/p/go.net/websocket"
 
-	"buildblast/lib/game"
-	"buildblast/lib/proto"
+	"buildblast/server/lib/game"
+	"buildblast/server/lib/proto"
 )
 
 var globalGame *Game
