@@ -116,7 +116,6 @@ func structToJs(js *bytes.Buffer, obj interface{}) {
 		case reflect.Bool:
 			fieldType = type_bool
 		case reflect.Struct:
-			fmt.Println(objValue.Type().Field(i).Name, "is addr?", field.CanAddr())
 			if field.CanAddr() && typeIsMsg(field.Addr().Interface()) {
 				fieldType = type_struct_message
 			} else {
