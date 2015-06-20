@@ -22,8 +22,7 @@ requirejs.config({
 	baseUrl: '/js/',
 	paths: {
 		THREE: '../lib/three',
-		async: '../lib/async',
-		proto: "empty:"
+		async: '../lib/async'
 	},
 	shim: {
 		THREE: {
