@@ -9,7 +9,8 @@ requirejs.config({
 		jquery: '../lib/jquery.min',
 		jqueryui: '../lib/jquery-ui.min',
 		jqueryWaitImgs: '../lib/jquery.waitforimages.min',
-		async: '../lib/async'
+		async: '../lib/async',
+		proto: "empty:"
 	},
 	shim: {
 		THREE: {
