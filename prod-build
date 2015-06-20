@@ -8,12 +8,20 @@ fi
 
 export GOPATH="`pwd`/../../"
 
-if [ ! -e "$GOPATH/src" ]; then
+if [ -z "$GOPATH/src" ]; then
 	echo "WARN: Probably misconfigured GOPATH"
 	echo "(no src/ directory found at GOPATH root)"
 	echo "Your buildblast repository must be at <anything>/src/buildblast/"
 	echo "as this is a requirement of the go compiler toolchain."
 	echo "if <anything> == GOPATH, then the go tools will work as well."
+fi
+
+if [ -z "$1" ]; then
+	echo "Using default production folder: $HOME/buildblast-production"
+	export BUILDBLAST_LOCATION="$HOME/buildblast-production"
+else
+	echo "Using production folder: $1"
+	export BUILDBLAST_LOCATION="$1"
 fi
 
 export GOBIN="`pwd`/bin"
@@ -22,8 +30,13 @@ mkdir -p "$GOBIN"
 echo "Compiling server..."
 go get buildblast/server
 
-echo "Compiling server manager..."
-go get buildblast/server-manager
+echo "Compiling www..."
+go get buildblast/www
+
+cd www-content
+echo "Compiling SCSS..."
+compass compile
+cd ..
 
 if [ -n "$BUILDBLAST_FAST" ]; then
 	echo "Using fast mode, skipping client build."
@@ -36,24 +49,20 @@ else
 	export BUILDBLAST_CLIENT="client-build"
 fi
 
-if [ ! -e "$1" ]; then
-	echo "Using default production folder: $HOME/buildblast-production"
-	export BUILDBLAST_LOCATION="$HOME/buildblast-production"
-else
-	echo "Using production folder: $1"
-	export BUILDBLAST_LOCATION="$1"
-fi
-
 echo "Removing old production folder, keep in clean boys."
 rm -rf "$BUILDBLAST_LOCATION/*"
 mkdir -p "$BUILDBLAST_LOCATION"
 
-echo "Copying executables to production folder"
+echo "Copying executables and configuration to production folder"
 cp bin/server "$BUILDBLAST_LOCATION"
-cp bin/server-manager "$BUILDBLAST_LOCATION"
+cp bin/www "$BUILDBLAST_LOCATION"
+cp server_config.json "$BUILDBLAST_LOCATION"
 
 echo "Copying new client"
 cp -r "$BUILDBLAST_CLIENT" "$BUILDBLAST_LOCATION/client"
 
-echo "Server manager is ready to be started!"
+echo "Copying web resources"
+cp -r www-content "$BUILDBLAST_LOCATION"
+
+echo "Server is ready to be started!"
 exit 0
