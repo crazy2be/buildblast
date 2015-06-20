@@ -24,15 +24,15 @@ func init() {
 }
 
 type Context struct {
-	db            *db.Database
-	cj            *sutil.CookieJar
-	mailer        *util.Mailer
-	pageVals      map[string]interface{} // Map passed to all templates for rendering
-	authenticated bool
-	account       db.Account
+	db             *db.Database
+	cj             *sutil.CookieJar
+	mailer         *util.Mailer
+	pageVals       map[string]interface{} // Map passed to all templates for rendering
+	authenticated  bool
+	account        db.Account
 	accountSession db.AccountSession
-	w             http.ResponseWriter
-	r             *http.Request
+	w              http.ResponseWriter
+	r              *http.Request
 }
 
 func NewContext(db *db.Database, cj *sutil.CookieJar, mailer *util.Mailer,

@@ -22,7 +22,7 @@ func handler(w http.ResponseWriter, r *http.Request, clientLoc string) {
 	if strings.HasSuffix(r.URL.Path, ".css") {
 		w.Header().Set("Content-Type", "text/css")
 	}
-	 w.Header().Add("Cache-Control", "max-age=300, public, must-revalidate, proxy-revalidate")
+	w.Header().Add("Cache-Control", "max-age=300, public, must-revalidate, proxy-revalidate")
 
 	http.ServeFile(w, r, clientLoc+r.URL.Path)
 }

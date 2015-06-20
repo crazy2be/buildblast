@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"log"
 	"net/http"
@@ -18,33 +17,9 @@ import (
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	dbPass := flag.String("dbpass", "", "REQUIRED: The password for accessing the buildblast database")
-	authKey := flag.String("authkey", "", "REQUIRED: The key for authenticating the cookie store")
-	encKey := flag.String("enckey", "", "REQUIRED: The key for encrypting the cookie store. Must be 16, 24, or 32 byte hex")
-	mailPass := flag.String("mailpass", "", "REQUIRED: The password for authenticating with smtp")
+	configPath := flag.String("config", "server_config.json", "Path to server config")
 	flag.Parse()
-
-	if *dbPass == "" {
-		log.Fatalln("Database password is required")
-	}
-
-	if *authKey == "" {
-		log.Fatalln("Cookie authentication key is required")
-	}
-
-	if *encKey == "" {
-		log.Fatalln("Cookie encoding key is required")
-	}
-
-	if *mailPass == "" {
-		log.Fatalln("Mail password is required")
-	}
-
-	encryptionKey, err := hex.DecodeString(*encKey)
-	keylen := len(encryptionKey)
-	if err != nil && !(keylen == 16 || keylen == 24 || keylen == 32) {
-		log.Fatalln("Encryption key must be a 16, 24 or 32 byte hex string")
-	}
+	config := sutil.LoadServerConfig(*configPath)
 
 	processors := map[string]pages.Processor{
 		"/":        pages.Index{},
@@ -53,8 +28,8 @@ func main() {
 		"/logout":  pages.Logout{},
 	}
 
-	db := db.NewDatabase(*dbPass)
-	mailer := util.NewMailer(*mailPass)
+	db := db.NewDatabase(config.DbPass)
+	mailer := util.NewMailer(config.MailPass)
 
 	r := mux.NewRouter()
 	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +39,7 @@ func main() {
 			return
 		}
 
-		cj := sutil.NewCookieJar(w, r, []byte(*authKey), encryptionKey)
+		cj := sutil.NewCookieJar(w, r, config.CookieKeyPairs...)
 		context := pages.NewContext(db, cj, mailer, w, r)
 
 		context.Authenticate()
@@ -73,8 +48,8 @@ func main() {
 
 	http.Handle("/", r)
 
-	err = http.ListenAndServe(":8081", nil)
+	err := http.ListenAndServe(config.Host+":"+config.WwwPort, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe:", err)
+		log.Fatalln("ListenAndServe:", err)
 	}
 }

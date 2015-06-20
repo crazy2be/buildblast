@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"buildblast/shared/db"
 	"github.com/gorilla/sessions"
+
+	"buildblast/shared/db"
 )
 
 const (

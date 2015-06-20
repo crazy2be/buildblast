@@ -16,6 +16,7 @@ import (
 	"buildblast/server/lib/mapgen/maps"
 	"buildblast/server/lib/persist"
 	"buildblast/server/lib/proto"
+	"buildblast/shared/util"
 )
 
 func doProfile() {
@@ -40,20 +41,18 @@ func doProfile() {
 func main() {
 	// setupPrompt()
 	setupSigInt() // Print newline on SIG_INT
-	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
-	clientAssets := flag.String("client", ".", "Sets the location of the client assets that will be served")
-	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
-	persistEnabled := flag.Bool("persist", true, "Turn on experimental persist support? May cause lag or poor server performance.")
+	configPath := flag.String("config", "server_config.json", "Path to server config")
 	flag.Parse()
+	config := util.LoadServerConfig(*configPath)
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Set up the world
 	var world *game.World
 	generator := maps.NewSimplexHills(time.Now().Unix())
-	if *persistEnabled {
-		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
-		persister := persist.New(*worldBaseDir, generator)
+	if config.PersistEnabled {
+		log.Println("Running with persist ENABLED. Loading world from", config.WorldBaseDir)
+		persister := persist.New(config.WorldBaseDir, generator)
 		world = game.NewWorld(persister.MapGenerator())
 		persister.ListenForChanges(world)
 	} else {
@@ -76,12 +75,12 @@ func main() {
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, *clientAssets)
+		handler(w, r, config.ClientAssets)
 	})
 	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
 	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(*host, nil)
+	err := http.ListenAndServe(config.Host+":"+config.ServerPort, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
