@@ -88,6 +88,15 @@ func (db Database) CreateAccount(tx *sqlx.Tx, username string, email string, pas
 	return err
 }
 
+func (db Database) UpdateAccountEmailConfirmed(tx *sqlx.Tx, account Account) error {
+	stmt, err := tx.Preparex("UPDATE account SET email_confirmed = TRUE where id = $1")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(account.Id)
+	return err
+}
+
 type AccountSession struct {
 	Key        string
 	AccountId  int64     `db:"account_id"`

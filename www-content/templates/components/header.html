@@ -28,7 +28,7 @@
     </ul>
 </nav>
 
-<!-- modal content -->
+<!-- login modal content -->
 <div id="loginModal" class="reveal-modal" data-reveal aria-labelledby="login or sign up"
      aria-hidden="true" role="dialog">
     <div class="row">
@@ -75,7 +75,7 @@
     <a class="close-reveal-modal" aria-label="Close">&#215;</a>
 </div>
 
-<!-- modal content -->
+<!-- signup modal content -->
 <div id="signupModal" class="register-panel reveal-modal small" data-reveal
      aria-labelledby="register" aria-hidden="true" role="dialog">
     <p class="welcome">Create an Account with BuildBlast</p>
@@ -120,4 +120,14 @@
             Login here &raquo</a>
         </p>
     <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+
+<!-- Notification content -->
+<div class="row notifications">
+  <div class="small-6 columns small-centered">
+    <div data-alert class="alert-box success" style="{{if not .email_confirmed}}display: none{{end}}">
+      <i class="fi-check"></i> Your email has been confirmed! You account is now safe from deletion.
+      <a href="#" class="close">&CircleTimes;</a>
+    </div>
+  </div>
 </div>

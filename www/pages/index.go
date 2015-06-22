@@ -21,4 +21,5 @@ func (i Index) Process(c *Context, w http.ResponseWriter, r *http.Request) {
 	err = templates["index"].Execute(w, c.pageVals)
 	templateExecuteErr(err)
 	err = templates["footer"].Execute(w, c.pageVals)
+	templateExecuteErr(err)
 }

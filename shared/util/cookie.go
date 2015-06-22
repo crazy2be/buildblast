@@ -22,6 +22,7 @@ var FLASH_KEYS = []string{
 	"signup_email",
 	"show_login",
 	"show_signup",
+	"email_confirmed",
 }
 
 type CookieJar struct {
@@ -141,6 +142,10 @@ func (cj CookieJar) SetUsernameTaken() {
 func (cj CookieJar) SetEmailTaken() {
 	cj.setBoolFlash("email_taken")
 	cj.setBoolFlash("show_signup")
+}
+
+func (cj CookieJar) SetEmailConfirmed() {
+	cj.setBoolFlash("email_confirmed")
 }
 
 func (cj CookieJar) SetSignupFormVals(username string, email string) {
