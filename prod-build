@@ -50,7 +50,7 @@ else
 fi
 
 echo "Removing old production folder, keep in clean boys."
-rm -rf "$BUILDBLAST_LOCATION/*"
+rm -rf "$BUILDBLAST_LOCATION"
 mkdir -p "$BUILDBLAST_LOCATION"
 
 echo "Copying executables and configuration to production folder"
