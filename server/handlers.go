@@ -12,6 +12,7 @@ import (
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/proto"
 	"buildblast/shared/util"
+	"buildblast/shared/db"
 )
 
 var globalGame *Game
@@ -45,9 +46,13 @@ func getClientName(r *http.Request) string {
 }
 
 func mainSocketHandler(w http.ResponseWriter, r *http.Request) {
-	cj := util.NewCookieJar(w, r, config.CookieKeyPairs...)
-	account, _, authenticated := cj.Authenticate(dbc)
-	cj.SaveSession()
+	var account db.Account
+	authenticated := false
+	if dbc != nil {
+		cj := util.NewCookieJar(w, r, config.CookieKeyPairs...)
+		account, _, authenticated = cj.Authenticate(dbc)
+		cj.SaveSession()
+	}
 
 	wsConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

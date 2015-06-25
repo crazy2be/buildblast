@@ -17,5 +17,6 @@ code.google.com
 *.iml
 *.DS_Store
 client-build
-client/world/
+client/world
 server_config.json
+world

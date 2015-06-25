@@ -16,11 +16,26 @@ Installation
 	cd $GOPATH/src
 	git clone git@github.com:crazy2be/buildblast.git buildblast
 
-To play,
+To play, copy the `server_config.template.json` to `server_config.json` and enter the following:
+```
+{
+    "host": "localhost",
+    "port": 8080,
+    "client_assets": ".",
+    "persist_enabled": true,
+    "world_base_dir": "../world/",
 
-	cd buildblast
-	./runserver
-	google-chrome http://localhost:8080
+    "db_pass": "",
+    "mail_pass": "",
+    "cookie_key_pairs": [
+        "",
+        ""
+    ]
+}
+```
+
+	./runserver --config="../server_config.json"
+	google-chrome http://localhost:8081
 
 To run the www server and enable authentication:
 
@@ -44,7 +59,26 @@ Linux:
 - `sudo -u postgres createdb -p 5566 --encoding=unicode --owner buildblast buildblast`
 - Go to /src/buildblast/db/
   - `./execsql schema-000.sql (etc… for each schema in order)`
-	
+  
+Copy the `server_config.template.json` to `server_config.json` and enter the following:
+```
+{
+    "host": "localhost",
+    "port": 8080,
+    "client_assets": "./client",
+    "persist_enabled": true,
+    "world_base_dir": "~/buildblast-world/",
+
+    "db_pass": "<ENTER PASSWORD>",
+    "mail_pass": "",
+    "cookie_key_pairs": [
+        "<ENTER A GENERATED AUTH KEY, 64 CHAR HEX STRING>",
+        "<ENTER A GENERATED ENCR KEY, 64 CHAR HEX STRING>"
+    ]
+}
+```
+
+Note: Confirmation emails will not work, since it's set to use the buildblast.com domain accounts.
 
 <!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. (Kevin feels it's okay to be agressive though.) -->
 Development

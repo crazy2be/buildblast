@@ -1,7 +1,7 @@
 package db
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -22,7 +22,8 @@ func NewDatabase(password string) *Database {
 			"port=5566 "+
 			"sslmode=disable")
 	if err != nil {
-		log.Fatal("Could not connect to database", err)
+		fmt.Println("Could not connect to database:", err)
+		return nil
 	}
 	return db
 }
@@ -30,16 +31,18 @@ func NewDatabase(password string) *Database {
 func (db Database) BeginTransaction() *sqlx.Tx {
 	tx, err := db.connection.Beginx()
 	if err != nil {
-		log.Fatalln("Could not create database transaction.")
+		fmt.Println("Could not create database transaction:", err)
+		return nil
 	}
 	return tx
 }
 
-func (db Database) CommitTransaction(tx *sqlx.Tx) {
+func (db Database) CommitTransaction(tx *sqlx.Tx) error {
 	err := tx.Commit()
 	if err != nil {
-		log.Fatalln("Could not commit database transaction.")
+		fmt.Println("Could not commit database transaction:", err)
 	}
+	return err
 }
 
 type SystemConfig struct {

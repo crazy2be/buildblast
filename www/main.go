@@ -34,6 +34,9 @@ func main() {
 	config = sutil.LoadServerConfig(*configPath)
 
 	dbc = db.NewDatabase(config.DbPass)
+	if dbc == nil {
+		log.Fatalln("Could not create Database object, which is required.")
+	}
 	mailer = util.NewMailer(config.MailPass)
 
 	r := mux.NewRouter()
