@@ -57,7 +57,7 @@ Linux:
 - `sudo -u postgres createuser -S -D -R -l -P -E -e -h localhost -p 5566 buildblast`
   - (It will ask to create a password, generate one. The password it asks for afterwards is for the postgres user created above)
 - `sudo -u postgres createdb -p 5566 --encoding=unicode --owner buildblast buildblast`
-- Go to /src/buildblast/db/
+- Go to `/src/buildblast/db/`
   - `./execsql schema-000.sql (etc… for each schema in order)`
   
 Copy the `server_config.template.json` to `server_config.json` and enter the following:
