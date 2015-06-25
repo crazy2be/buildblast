@@ -78,6 +78,12 @@ Copy the `server_config.template.json` to `server_config.json` and enter the fol
 }
 ```
 
+- `./prod-build`
+- `cd ~/buildblast-production/`
+- Start both servers (different terminal sessions)
+  - `./server`
+  - `cd www-content && ../www --config="../server_config.json"`
+
 Note: Confirmation emails will not work, since it's set to use the buildblast.com domain accounts.
 
 <!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. (Kevin feels it's okay to be agressive though.) -->
