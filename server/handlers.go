@@ -11,8 +11,8 @@ import (
 
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/proto"
-	"buildblast/shared/util"
 	"buildblast/shared/db"
+	"buildblast/shared/util"
 )
 
 var globalGame *Game
@@ -21,8 +21,8 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-        return true
-    },
+		return true
+	},
 }
 
 func handler(w http.ResponseWriter, r *http.Request, clientLoc string) {
