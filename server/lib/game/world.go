@@ -7,6 +7,7 @@ import (
 	"buildblast/server/lib/coords"
 	"buildblast/server/lib/mapgen"
 	"buildblast/server/lib/physics"
+	"fmt"
 )
 
 type World struct {
@@ -15,6 +16,7 @@ type World struct {
 	spawns         []coords.World
 	chunkGenerator *ChunkGenerator
 
+	players    []*Player
 	biotics    []Biotic
 	possessors []Possessor
 	worldItems []*WorldItem
@@ -22,6 +24,7 @@ type World struct {
 	blockListeners     genericListenerContainer
 	chunkListeners     genericListenerContainer
 	bioticListeners    genericListenerContainer
+	playerListeners    genericListenerContainer
 	worldItemListeners genericListenerContainer
 }
 
@@ -35,20 +38,21 @@ func NewWorld(generator mapgen.Generator) *World {
 	w.chunkGenerator.QueueChunksNearby(coords.Origin)
 	go w.chunkGenerator.Run()
 
+	w.players = make([]*Player, 0)
 	w.biotics = make([]Biotic, 0)
 	w.possessors = make([]Possessor, 0)
 	w.worldItems = make([]*WorldItem, 0)
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
-	w.bioticListeners = makeGenericListenerContainer()
+	w.playerListeners = makeGenericListenerContainer()
 	w.worldItemListeners = makeGenericListenerContainer()
 	return w
 }
 
 func (w *World) Tick(dt int64) {
 	w.generationTick()
-	for _, s := range w.biotics {
+	for _, s := range w.players {
 		w.chunkGenerator.QueueChunksNearby(s.Wpos())
 	}
 
@@ -126,6 +130,8 @@ func (w *World) ChangeBlock(bc coords.Block, newBlock mapgen.Block) {
 
 func (w *World) AddEntity(e Entity) {
 	switch e.(type) {
+	case *Player:
+		w.addPlayer(e.(*Player))
 	case Biotic:
 		w.addBiotic(e.(Biotic))
 	case *WorldItem:
@@ -138,6 +144,8 @@ func (w *World) AddEntity(e Entity) {
 
 func (w *World) RemoveEntity(e Entity) {
 	switch e.(type) {
+	case *Player:
+		w.removePlayer(e.(*Player))
 	case Biotic:
 		w.removeBiotic(e.(Biotic))
 	case *WorldItem:
@@ -148,40 +156,58 @@ func (w *World) RemoveEntity(e Entity) {
 	}
 }
 
-func (w *World) addBiotic(s Biotic) {
-	w.biotics = append(w.biotics, s)
+func (w *World) addPlayer(s *Player) {
+	w.players = append(w.players, s)
 	s.Respawn(w.findSpawn())
 
-	w.bioticListeners.FireEvent("BioticCreated", s.EntityId(), s)
+	w.playerListeners.FireEvent("PlayerCreated", s.EntityId(), s)
 }
 
-func (w *World) removeBiotic(s Biotic) {
-	for i, biotic := range w.biotics {
-		if biotic == s {
-			w.biotics[i] = w.biotics[len(w.biotics)-1]
-			w.biotics = w.biotics[:len(w.biotics)-1]
+func (w *World) removePlayer(s *Player) {
+	for i, player := range w.players {
+		if player == s {
+			w.players[i] = w.players[len(w.players)-1]
+			w.players = w.players[:len(w.players)-1]
 
-			w.bioticListeners.FireEvent("BioticRemoved", s.EntityId())
+			w.playerListeners.FireEvent("PlayerRemoved", s.EntityId())
 		}
+	}
+}
+
+func (w *World) addBiotic(b Biotic) {
+	fmt.Println("World.addBiotic not implemented")
+}
+
+func (w *World) removeBiotic(b Biotic) {
+	fmt.Println("World.removeBiotic not implemented")
+}
+
+func (w *World) DamagePlayer(damager string, amount int, s *Player) {
+	s.Damage(amount)
+	if s.Dead() {
+		s.Respawn(w.findSpawn())
+		w.playerListeners.FireEvent("PlayerDied", s.EntityId(), s, damager)
+	} else {
+		// Should we fire Damaged events if they
+		// end up dying? I dunno. Currently we don't.
+		w.playerListeners.FireEvent("PlayerDamaged", s.EntityId(), s)
 	}
 }
 
 func (w *World) DamageBiotic(damager string, amount int, s Biotic) {
 	s.Damage(amount)
 	if s.Dead() {
+		// DOIT: This should respawn probably...
 		s.Respawn(w.findSpawn())
-		w.bioticListeners.FireEvent("BioticDied", s.EntityId(), s, damager)
 	} else {
-		// Should we fire Damaged events if they
-		// end up dying? I dunno. Currently we don't.
 		w.bioticListeners.FireEvent("BioticDamaged", s.EntityId(), s)
 	}
 }
 
-func (w *World) Biotics() map[EntityId]Biotic {
-	result := make(map[EntityId]Biotic, len(w.biotics))
-	for _, biotic := range w.biotics {
-		result[biotic.EntityId()] = biotic
+func (w *World) Players() map[EntityId]*Player {
+	result := make(map[EntityId]*Player, len(w.players))
+	for _, player := range w.players {
+		result[player.EntityId()] = player
 	}
 	return result
 }

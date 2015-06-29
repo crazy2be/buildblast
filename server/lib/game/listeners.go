@@ -16,11 +16,19 @@ type ChunkListener interface {
 	ChunkGenerated(cc coords.Chunk, data *mapgen.Chunk)
 }
 
+type PlayerListener interface {
+	PlayerCreated(id EntityId, player *Player)
+	PlayerUpdated(id EntityId, player *Player)
+	PlayerDamaged(id EntityId, player *Player)
+	PlayerDied(id EntityId, player *Player, killer string)
+	PlayerRemoved(id EntityId)
+}
+
 type BioticListener interface {
 	BioticCreated(id EntityId, biotic Biotic)
 	BioticUpdated(id EntityId, biotic Biotic)
 	BioticDamaged(id EntityId, biotic Biotic)
-	BioticDied(id EntityId, biotic Biotic, killer string)
+	BioticDied(id EntityId, biotic Biotic)
 	BioticRemoved(id EntityId)
 }
 
@@ -116,6 +124,14 @@ func (w *World) RemoveChunkListener(listener ChunkListener) {
 	w.chunkListeners.Remove(listener)
 }
 
+func (w *World) AddPlayerListener(listener PlayerListener) {
+	w.playerListeners.Add(listener)
+}
+
+func (w *World) RemovePlayerListener(listener PlayerListener) {
+	w.playerListeners.Remove(listener)
+}
+
 func (w *World) AddBioticListener(listener BioticListener) {
 	w.bioticListeners.Add(listener)
 }
@@ -124,8 +140,8 @@ func (w *World) RemoveBioticListener(listener BioticListener) {
 	w.bioticListeners.Remove(listener)
 }
 
-func (w *World) FireBioticUpdated(id EntityId, biotic Biotic) {
-	w.bioticListeners.FireEvent("BioticUpdated", id, biotic)
+func (w *World) FirePlayerUpdated(id EntityId, player *Player) {
+	w.bioticListeners.FireEvent("BioticUpdated", id, player)
 }
 
 func (w *World) AddWorldItemListener(listener WorldItemListener) {

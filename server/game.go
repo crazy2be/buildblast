@@ -151,19 +151,19 @@ func (g *Game) Tick(dt int64) {
 	}
 }
 
-func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {
+func (g *Game) PlayerCreated(id game.EntityId, player *game.Player) {
 	g.Broadcast(&proto.MsgScoreboardAdd{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 }
 
-func (g *Game) BioticUpdated(id game.EntityId, biotic game.Biotic) {}
-func (g *Game) BioticDamaged(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) PlayerUpdated(id game.EntityId, player *game.Player) {}
+func (g *Game) PlayerDamaged(id game.EntityId, player *game.Player) {}
 
-func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+func (g *Game) PlayerDied(id game.EntityId, player *game.Player, killer string) {
 	g.Announce(killer + " killed " + string(id))
-	g.BioticDamaged(id, biotic)
+	g.BioticDamaged(id, player)
 	g.scores[killer]++
 	g.scores[string(id)]--
 	g.Broadcast(&proto.MsgScoreboardSet{
@@ -176,8 +176,14 @@ func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
 	})
 }
 
-func (g *Game) BioticRemoved(id game.EntityId) {
+func (g *Game) PlayerRemoved(id game.EntityId) {
 	g.Broadcast(&proto.MsgScoreboardRemove{
 		Name: string(id),
 	})
 }
+
+func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticUpdated(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticDamaged(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic)    {}
+func (g *Game) BioticRemoved(id game.EntityId)                     {}

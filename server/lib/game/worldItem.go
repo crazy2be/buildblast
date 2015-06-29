@@ -85,7 +85,7 @@ func (wi *WorldItem) Tick(dt int64, w *World) (bool, bool) {
 
 	var closestBody *physics.Body
 	var closestDist float64
-	for _, b := range w.Biotics() {
+	for _, b := range w.Players() {
 		bioticBody := b.Body()
 		dist := body.Pos.DistBetween(&bioticBody.Pos)
 		if dist < 10.0 {

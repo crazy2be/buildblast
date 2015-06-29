@@ -252,7 +252,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.controls = controls
 	p.history.Add(controls.Timestamp, p.Body())
 
-	p.world.FireBioticUpdated(p.EntityId(), p)
+	p.world.FirePlayerUpdated(p.EntityId(), p)
 
 	return hitPos
 }
@@ -341,7 +341,10 @@ func (p *Player) simulateBlaster(controls ControlState) *coords.World {
 	ray := physics.NewRay(p.Body().Pos, p.Body().Dir)
 	// We let the user shoot in the past, but they always move in the present.
 	hitPos, hitBiotic := p.world.FindFirstIntersect(p, controls.ViewTimestamp, ray)
-	if hitBiotic != nil {
+	hitPlayer, ok := hitBiotic.(*Player)
+	if ok {
+		p.world.DamagePlayer(p.name, 40, hitPlayer)
+	} else if hitBiotic != nil {
 		p.world.DamageBiotic(p.name, 40, hitBiotic)
 	}
 	return hitPos
