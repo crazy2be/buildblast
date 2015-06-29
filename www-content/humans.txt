@@ -1,0 +1,19 @@
+/* humanstxt.org */
+
+/* TEAM */
+    Operations Manager and Unicorn Developer
+    Name:    Kevin Nash
+    Contact: kieve10@hotmail.com
+    From:    Canada, Ontario, Waterloo
+    Likes:   Ruffles Potato Chips
+
+/* SITE */
+    Last update:2015-06-19
+    Language: English
+    Doctype:HTML5
+    IDE: Intellij IDEA 14, Kate, Blender, Pixelmator, MacVim 
+
+/* SITE */
+    Standards: HTML5, CSS3
+    Components: jQuery, Foundation, THREE.js
+    Software: Git, Golang, SCSS

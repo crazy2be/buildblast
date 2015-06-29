@@ -1,0 +1,133 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{.title}}</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundicons/3.0.0/foundation-icons.css">
+    <link rel="stylesheet" href="css/main.css"/>
+    <script src="js/lib/modernizr.js"></script>
+</head>
+<body>
+<!-- Create the navigation header -->
+<nav class="menu">
+    <a href="/"><h1 class="name"><!-- DOIT: Logo -->BuildBlast</h1></a>
+    <ul class="inline-list">
+        <li class="active"><a href="/">Home</a></li>
+        <li><a href="https://play.buildblast.com/">Play</a></li>
+    </ul>
+    <ul class="inline-list account-action">
+    {{if .authenticated}}
+        <li><span>Welcome {{.username}}!</span></li>
+        <li><a href="/logout">Logout</a></li>
+    {{else}}
+        <li><a href="#" data-reveal-id="loginModal">Login</a></li>
+        <li><a class="signup" href="#" data-reveal-id="signupModal">Signup</a></li>
+    {{end}}
+    </ul>
+</nav>
+
+<!-- login modal content -->
+<div id="loginModal" class="reveal-modal" data-reveal aria-labelledby="login or sign up"
+     aria-hidden="true" role="dialog">
+    <div class="row">
+        <div class="large-6 columns auth-plain">
+            <div class="signup-panel left-solid">
+                <p class="welcome">Registered Users</p>
+                <form id="loginForm" action="/login" method="POST" data-abide>
+                    <div class="row collapse">
+                        <div class="small-2  columns">
+                            <span class="prefix"><i class="fi-torso-female"></i></span>
+                        </div>
+                        <div class="small-10  columns">
+                            <input type="text" name="userOrEmail" placeholder="username or email" patern="anything" required>
+                            <small class="error">Username or email is required.</small>
+                        </div>
+                    </div>
+                    <div class="row collapse">
+                        <div class="small-2 columns ">
+                            <span class="prefix"><i class="fi-lock"></i></span>
+                        </div>
+                        <div class="small-10 columns ">
+                            <input type="password" name="password" placeholder="password" pattern="anything" required>
+                            <small class="error">Password is required.</small>
+                        </div>
+                    </div>
+                </form>
+                <small class="error" style="{{if not .invalid_login}}display: none{{end}}">
+                    Invalid username/email and password combination. Please try again.
+                </small>
+                <a href="#" id="loginButton" class="button">Log In</a>
+            </div>
+        </div>
+
+        <div class="large-6 columns auth-plain">
+            <div class="signup-panel newusers">
+                <p class="welcome"> New User?</p>
+
+                <p>Create an account to reserve your name in game and save your character. That way,
+                   when you come back you can start right where you left off.</p><br>
+                <a href="#" data-reveal-id="signupModal" class="button ">Sign Up</a><br>
+            </div>
+        </div>
+    </div>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+
+<!-- signup modal content -->
+<div id="signupModal" class="register-panel reveal-modal small" data-reveal
+     aria-labelledby="register" aria-hidden="true" role="dialog">
+    <p class="welcome">Create an Account with BuildBlast</p>
+        <form id="signUpForm" action="/sign-up" method="POST" data-abide>
+            <div class="row collapse">
+                <div class="small-2  columns">
+                    <span class="prefix"><i class="fi-torso-female"></i></span>
+                </div>
+                <div class="small-10  columns">
+                    <input type="text" name="username" placeholder="username" pattern="username" value="{{.signup_username}}" required>
+                    <small class="error">Username is not valid.</small>
+                    <div class="error" style="{{if not .username_taken}}display: none{{end}}">
+                        <small class="error">Username is taken.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row collapse">
+                <div class="small-2 columns">
+                    <span class="prefix"><i class="fi-mail"></i></span>
+                </div>
+                <div class="small-10  columns">
+                    <input type="email" name="email" placeholder="email" pattern="email" value="{{.signup_email}}" required>
+                    <small class="error">Email is not valid.</small>
+                    <div class="error" style="{{if not .email_taken}}display: none{{end}}">
+                        <small class="error">Email is taken.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="row collapse">
+                <div class="small-2 columns ">
+                    <span class="prefix"><i class="fi-lock"></i></span>
+                </div>
+                <div class="small-10 columns ">
+                    <input type="password" name="password" placeholder="password" pattern="password" required>
+                    <small class="error">Password is not valid.</small>
+                </div>
+            </div>
+        </form>
+        <a href="#" id="signUpButton" class="button">Sign Up!</a>
+
+        <p>Already have an account? <a href="#" data-reveal-id="loginModal">
+            Login here &raquo</a>
+        </p>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+
+<!-- Notification content -->
+<div class="row notifications">
+  <div class="small-6 columns small-centered">
+    <div data-alert class="alert-box success" style="{{if not .email_confirmed}}display: none{{end}}">
+      <i class="fi-check"></i> Your email has been confirmed! You account is now safe from deletion.
+      <a href="#" class="close">&CircleTimes;</a>
+    </div>
+  </div>
+</div>

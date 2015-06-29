@@ -10,12 +10,14 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"code.google.com/p/go.net/websocket"
+	"github.com/gorilla/mux"
 
-	"buildblast/lib/game"
-	"buildblast/lib/mapgen/maps"
-	"buildblast/lib/persist"
-	"buildblast/lib/proto"
+	"buildblast/server/lib/game"
+	"buildblast/server/lib/mapgen/maps"
+	"buildblast/server/lib/persist"
+	"buildblast/server/lib/proto"
+	"buildblast/shared/db"
+	"buildblast/shared/util"
 )
 
 func doProfile() {
@@ -37,23 +39,26 @@ func doProfile() {
 	}()
 }
 
+var config *util.ServerConfig
+var dbc *db.Database
+
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// setupPrompt()
 	setupSigInt() // Print newline on SIG_INT
-	host := flag.String("host", ":8080", "Sets the host the server listens on for both http requests and websocket connections. Ex: \":8080\", \"localhost\", \"foobar.com\"")
-	clientAssets := flag.String("client", ".", "Sets the location of the client assets that will be served")
-	worldBaseDir := flag.String("world", "world/", "Sets the base folder used to store the world data.")
-	persistEnabled := flag.Bool("persist", true, "Turn on experimental persist support? May cause lag or poor server performance.")
+	configPath := flag.String("config", "server_config.json", "Path to server config")
 	flag.Parse()
+	config = util.LoadServerConfig(*configPath)
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	dbc = db.NewDatabase(config.DbPass)
 
 	// Set up the world
 	var world *game.World
 	generator := maps.NewSimplexHills(time.Now().Unix())
-	if *persistEnabled {
-		log.Println("Running with persist ENABLED. Loading world from", *worldBaseDir)
-		persister := persist.New(*worldBaseDir, generator)
+	if config.PersistEnabled {
+		log.Println("Running with persist ENABLED. Loading world from", config.WorldBaseDir)
+		persister := persist.New(config.WorldBaseDir, generator)
 		world = game.NewWorld(persister.MapGenerator())
 		persister.ListenForChanges(world)
 	} else {
@@ -69,19 +74,21 @@ func main() {
 
 	// Generate our protocol and make it available for clients to download
 	protoJs := proto.GenerateJs()
-	http.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
+	r := mux.NewRouter()
+	r.HandleFunc("/js/proto.js", func(w http.ResponseWriter, r *http.Request) {
 		headers := w.Header()
 		headers["Content-Type"] = []string{"application/javascript; charset=utf-8"}
 		fmt.Fprint(w, protoJs)
 	})
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, *clientAssets)
+	r.PathPrefix("/sockets/main/").HandlerFunc(mainSocketHandler)
+	r.PathPrefix("/sockets/chunk/").HandlerFunc(chunkSocketHandler)
+	r.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, config.ClientAssets)
 	})
-	http.Handle("/sockets/main/", websocket.Handler(mainSocketHandler))
-	http.Handle("/sockets/chunk/", websocket.Handler(chunkSocketHandler))
 
-	err := http.ListenAndServe(*host, nil)
+	http.Handle("/", r)
+
+	err := http.ListenAndServe(config.Host+":"+config.ServerPort, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}

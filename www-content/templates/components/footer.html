@@ -1,0 +1,15 @@
+<script src="js/lib/jquery.min.js"></script>
+<script src="js/lib/foundation.min.js"></script>
+<script src="js/main.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        if ("{{if .show_login}}true{{else}}false{{end}}" == "true") {
+            $('#loginModal').foundation('reveal', 'open')
+        }
+        if ("{{if .show_signup}}true{{else}}false{{end}}" == "true") {
+            $('#signupModal').foundation('reveal', 'open')
+        }
+    });
+</script>
+</body>
+</html>

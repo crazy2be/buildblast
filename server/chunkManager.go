@@ -4,9 +4,9 @@ import (
 	"log"
 	"sync"
 
-	"buildblast/lib/coords"
-	"buildblast/lib/game"
-	"buildblast/lib/mapgen"
+	"buildblast/server/lib/coords"
+	"buildblast/server/lib/game"
+	"buildblast/server/lib/mapgen"
 )
 
 // Manages the chunks loaded, displayed, etc for a

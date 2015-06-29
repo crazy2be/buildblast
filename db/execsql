@@ -1,0 +1,36 @@
+#!/bin/bash
+
+if (( $# < 1 )); then
+	echo "Usage: $0 <sqlfile> [sqlfile] ..."
+	echo "Where: <sqlfile> is the name of a file of SQL commands to run"
+	exit 1
+fi
+
+USERNAME=buildblast
+DBNAME=buildblast
+HOSTNAME=localhost
+PORT=5566
+
+while getopts ":h:" OPTION; do
+	case $OPTION in
+		h)
+			HOSTNAME=$OPTARG
+			;;
+		p)
+			PORT=$OPTARG
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 1
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument." >&2
+			exit 1
+			;;
+	esac
+done
+shift $(( $OPTIND -1 ))
+
+for file; do
+	psql -U $USERNAME -d $DBNAME -h $HOSTNAME -p $PORT -f "$file" || exit 1
+done

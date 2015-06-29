@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"buildblast/lib/proto"
+	"buildblast/server/lib/proto"
 )
 
 // ClientConn is a generic, non-blocking, lossy over lag

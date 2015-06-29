@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"buildblast/lib/coords"
-	"buildblast/lib/game"
-	"buildblast/lib/mapgen"
-	"buildblast/lib/proto"
+	"buildblast/server/lib/coords"
+	"buildblast/server/lib/game"
+	"buildblast/server/lib/mapgen"
+	"buildblast/server/lib/proto"
 )
 
 type Client struct {
