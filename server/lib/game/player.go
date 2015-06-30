@@ -145,7 +145,7 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 }
 
 func (p *Player) Tick(dt int64, w *World) bool {
-	return false;
+	return false
 }
 
 // Damageable interface
@@ -250,7 +250,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.updateLook(controls)
 
 	hitPos := p.simulateBlaster(controls)
-	if (hitPos != nil) {
+	if hitPos != nil {
 		slime := NewSlime(p.world)
 		slime.Respawn(*hitPos)
 		p.world.AddEntity(slime)

@@ -32,7 +32,7 @@ func NewSlime(world *World) *Slime {
 			EntityState: EntityState{
 				EntityId: EntityId("slime" + strconv.FormatUint(globalSlimeId, 10)),
 				Body: physics.Body{
-					HalfExtents:  SlimeHalfExtents,
+					HalfExtents: SlimeHalfExtents,
 				},
 			},
 			Health: Health{

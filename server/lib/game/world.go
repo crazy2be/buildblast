@@ -233,7 +233,7 @@ func (w *World) Players() map[EntityId]*Player {
 
 func (w *World) Biotics() map[EntityId]Biotic {
 	result := make(map[EntityId]Biotic, len(w.biotics))
-	for _, biotic := range w.players {
+	for _, biotic := range w.biotics {
 		result[biotic.EntityId()] = biotic
 	}
 	return result
