@@ -152,6 +152,10 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		c.WorldItemAdded(id, wi)
 	}
 
+	for id, b := range w.Biotics() {
+		c.BioticCreated(id, b)
+	}
+
 	w.AddEntity(p)
 
 	w.AddBlockListener(c)
@@ -217,7 +221,11 @@ func (c *Client) PlayerRemoved(id game.EntityId) {
 }
 
 func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
-	fmt.Println("Client.BioticCreated not implemented.")
+	c.Send(&proto.MsgEntityCreate{
+		Id:    id,
+		Kind:  game.EntityKindBiotic,
+		State: biotic.State(),
+	})
 }
 
 func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {

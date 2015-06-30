@@ -19,6 +19,7 @@ type WorldItem struct {
 	worldItemState WorldItemState
 	history        *HistoryBuffer
 	lastUpdated    float64
+	pickedUp       bool
 }
 
 type WorldItemState struct {
@@ -75,10 +76,7 @@ func (wi *WorldItem) BoxAt(t float64) *physics.Box {
 	return wi.history.BodyAt(t).Box()
 }
 
-// End Entity interface
-
-// Returns "updated" and "pickedUp", in that order
-func (wi *WorldItem) Tick(dt int64, w *World) (bool, bool) {
+func (wi *WorldItem) Tick(dt int64, w *World) bool {
 	body := wi.Body()
 	// These have really low gravity
 	body.Vel.Y += float64(dt) / 1000 * -0.2
@@ -132,7 +130,7 @@ func (wi *WorldItem) Tick(dt int64, w *World) (bool, bool) {
 	wi.lastUpdated = float64(time.Now().UnixNano()) / 1e6
 	wi.history.Add(wi.LastUpdated(), wi.Body())
 
-	pickedUp := false
+	wi.pickedUp = false
 	for _, possessor := range w.possessors {
 		if !possessor.Collects() {
 			continue
@@ -141,10 +139,10 @@ func (wi *WorldItem) Tick(dt int64, w *World) (bool, bool) {
 		wiBody := wi.Body()
 		if pBody.Box().Collides(wiBody.Box()) {
 			possessor.Give(wi.State().ItemKind)
-			pickedUp = true
+			wi.pickedUp = true
 			break
 		}
 	}
 
-	return updated, pickedUp
+	return updated
 }

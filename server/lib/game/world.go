@@ -7,7 +7,6 @@ import (
 	"buildblast/server/lib/coords"
 	"buildblast/server/lib/mapgen"
 	"buildblast/server/lib/physics"
-	"fmt"
 )
 
 type World struct {
@@ -50,17 +49,29 @@ func NewWorld(generator mapgen.Generator) *World {
 	return w
 }
 
+type Simulator interface {
+	Tick(dt int64, w *World) bool // Returns true if updated
+}
+
 func (w *World) Tick(dt int64) {
 	w.generationTick()
 	for _, s := range w.players {
 		w.chunkGenerator.QueueChunksNearby(s.Wpos())
 	}
 
+	for i, b := range w.biotics {
+		updated := b.Tick(dt, w)
+		if updated {
+			w.biotics[i] = b
+			w.bioticListeners.FireEvent("BioticUpdated", b.EntityId(), b)
+		}
+	}
+
 	// Check the world item collisions.
 	removedWorldItems := make([]*WorldItem, len(w.worldItems))
 	for i, wi := range w.worldItems {
-		updated, pickedUp := wi.Tick(dt, w)
-		if pickedUp {
+		updated := wi.Tick(dt, w)
+		if wi.pickedUp {
 			removedWorldItems = append(removedWorldItems, wi)
 		} else if updated {
 			w.worldItems[i] = wi
@@ -175,11 +186,19 @@ func (w *World) removePlayer(s *Player) {
 }
 
 func (w *World) addBiotic(b Biotic) {
-	fmt.Println("World.addBiotic not implemented")
+	w.biotics = append(w.biotics, b)
+	w.bioticListeners.FireEvent("BioticCreated", b.EntityId(), b)
 }
 
 func (w *World) removeBiotic(b Biotic) {
-	fmt.Println("World.removeBiotic not implemented")
+	for i, biotic := range w.biotics {
+		if biotic == b {
+			w.biotics[i] = w.biotics[len(w.biotics)-1]
+			w.biotics = w.biotics[:len(w.biotics)-1]
+
+			w.bioticListeners.FireEvent("BioticRemoved", b.EntityId())
+		}
+	}
 }
 
 func (w *World) DamagePlayer(damager string, amount int, s *Player) {
@@ -208,6 +227,14 @@ func (w *World) Players() map[EntityId]*Player {
 	result := make(map[EntityId]*Player, len(w.players))
 	for _, player := range w.players {
 		result[player.EntityId()] = player
+	}
+	return result
+}
+
+func (w *World) Biotics() map[EntityId]Biotic {
+	result := make(map[EntityId]Biotic, len(w.biotics))
+	for _, biotic := range w.players {
+		result[biotic.EntityId()] = biotic
 	}
 	return result
 }

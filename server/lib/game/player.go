@@ -144,6 +144,10 @@ func (p *Player) BoxAt(t float64) *physics.Box {
 	return p.history.BodyAt(t).Box()
 }
 
+func (p *Player) Tick(dt int64, w *World) bool {
+	return false;
+}
+
 // Damageable interface
 
 func (p *Player) Life() int {
@@ -246,6 +250,11 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.updateLook(controls)
 
 	hitPos := p.simulateBlaster(controls)
+	if (hitPos != nil) {
+		slime := NewSlime(p.world)
+		slime.Respawn(*hitPos)
+		p.world.AddEntity(slime)
+	}
 	p.simulateMovement(dt, controls)
 
 	//We simulate shooting based on ViewTimestamp, so this might be partially inaccurate.
