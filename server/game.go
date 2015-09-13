@@ -6,6 +6,8 @@ import (
 
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/proto"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -111,15 +113,39 @@ func (g *Game) disconnect(id, reason string) {
 }
 
 func (g *Game) Announce(message string) {
-	g.Chat("SERVER", message)
+	g.Chat(nil, message)
 }
 
-func (g *Game) Chat(user string, message string) {
-	log.Println("[CHAT]", user+":", message)
-	g.Broadcast(&proto.MsgChatBroadcast{
-		DisplayName: user,
-		Message:     message,
-	})
+func (g *Game) Chat(c *Client, message string) {
+	if strings.HasPrefix(message, "./") {
+		command := message[2:]
+		log.Println("[CHAT_COMMAND]", c.name+":", command)
+		switch command {
+		case "togBlastSlimes":
+			c.player.BlastSlimes = !c.player.BlastSlimes
+			c.Send(&proto.MsgChatBroadcast{
+				DisplayName: "SERVER",
+				Message:     "blastSlimes = " + strconv.FormatBool(c.player.BlastSlimes),
+			})
+		default:
+			c.Send(&proto.MsgChatBroadcast{
+				DisplayName: "SERVER",
+				Message:     "Unknown command.",
+			})
+		}
+	} else {
+		var name string
+		if c == nil {
+			name = "SERVER"
+		} else {
+			name = c.name
+		}
+		log.Println("[CHAT]", name+":", message)
+		g.Broadcast(&proto.MsgChatBroadcast{
+			DisplayName: name,
+			Message:     message,
+		})
+	}
 }
 
 func (g *Game) Broadcast(m proto.Message) {

@@ -70,7 +70,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m proto.Message) {
 		c.handleControlState(g, w, m)
 
 	case *proto.MsgChatSend:
-		g.Chat(c.name, m.(*proto.MsgChatSend).Message)
+		g.Chat(c, m.(*proto.MsgChatSend).Message)
 
 	case *proto.MsgInventorySelect:
 		m := m.(*proto.MsgInventorySelect)

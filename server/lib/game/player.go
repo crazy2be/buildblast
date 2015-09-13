@@ -93,6 +93,9 @@ type Player struct {
 
 	inventory *Inventory
 	invDirty  bool
+
+	// Debug flags
+	BlastSlimes bool
 }
 
 func NewPlayer(world *World, name string) *Player {
@@ -250,7 +253,7 @@ func (p *Player) ClientTick(controls ControlState) *coords.World {
 	p.updateLook(controls)
 
 	hitPos := p.simulateBlaster(controls)
-	if hitPos != nil {
+	if hitPos != nil && p.BlastSlimes {
 		slime := NewSlime(p.world)
 		slime.Respawn(*hitPos)
 		p.world.AddEntity(slime)
