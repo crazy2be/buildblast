@@ -92,7 +92,7 @@ Item.realInit = function () {
 		block('ruby', Block.RUBY, 12),
 		block('diamond', Block.DIAMOND, 13),
 		block('poudretteite', Block.POUDRETTEITE, 14),
-		block('glass', Block.GLASS, 15),
+		block('glass', Block.GLASS, 15)
 	];
 
 	function throttle(func) {

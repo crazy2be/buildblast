@@ -216,8 +216,7 @@ func (w *World) DamagePlayer(damager string, amount int, s *Player) {
 func (w *World) DamageBiotic(damager string, amount int, s Biotic) {
 	s.Damage(amount)
 	if s.Dead() {
-		// DOIT: This should respawn probably...
-		s.Respawn(w.findSpawn())
+		w.removeBiotic(s)
 	} else {
 		w.bioticListeners.FireEvent("BioticDamaged", s.EntityId(), s)
 	}
