@@ -85,7 +85,6 @@ func (s *Slime) Tick(dt int64, w *World) bool {
 	if move.Z == 0 {
 		body.Vel.Z = 0
 	}
-	body.Vel = move
 	body.Pos.Add(&move)
 	s.bioticState.EntityState.Body = body
 	s.lastUpdated = float64(time.Now().UnixNano()) / 1e6
