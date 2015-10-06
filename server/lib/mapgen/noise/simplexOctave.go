@@ -101,9 +101,7 @@ func NewSimplexOctave(seed int64) *SimplexOctave {
 	for i := 0; i < SWAP_ITERATIONS; i++ {
 		a := randGen.Intn(256)
 		b := randGen.Intn(256)
-		temp := perlin[a]
-		perlin[a] = perlin[b]
-		perlin[b] = temp
+		perlin[a], perlin[b] = perlin[b], perlin[a]
 	}
 
 	for i := 0; i < 512; i++ {

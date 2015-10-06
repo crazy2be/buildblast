@@ -12,7 +12,7 @@ type SimplexHills struct {
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
-	sh.simplexNoise = noise.NewSimplex(4, 0.4, seed)
+	sh.simplexNoise = noise.NewSimplex(4, 0.8, seed)
 	return sh
 }
 
