@@ -52,6 +52,7 @@ func mainSocketHandler(w http.ResponseWriter, r *http.Request) {
 		cj := util.NewCookieJar(w, r, config.CookieKeyPairs...)
 		account, _, authenticated = cj.Authenticate(dbc)
 		cj.SaveSession()
+		fmt.Println("Authentication: ", authenticated, "(ID: ", account.Id, ") User: "+account.Username)
 	}
 
 	wsConn, err := upgrader.Upgrade(w, r, nil)
