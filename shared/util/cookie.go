@@ -37,17 +37,15 @@ func NewCookieJar(w http.ResponseWriter, r *http.Request, config *ServerConfig) 
 	cj := new(CookieJar)
 	if cookieStore == nil {
 		cookieStore = sessions.NewCookieStore(config.CookieKeyPairs...)
+		cookieStore.Options.Domain = config.CookieDomain
+		cookieStore.Options.MaxAge = 86400 * 7 // 1 Week
+		cookieStore.Options.HttpOnly = false
+		cookieStore.Options.Secure = config.CookieSecure
 	}
 	var err error
 	cj.session, err = cookieStore.Get(r, SESSION_NAME)
 	if err != nil {
 		fmt.Println("Error reading session store:", err)
-	}
-	if cj.session.IsNew {
-		cj.session.Options.Domain = config.CookieDomain
-		cj.session.Options.MaxAge = 86400 * 7 // 1 Week
-		cj.session.Options.HttpOnly = false
-		cj.session.Options.Secure = config.CookieSecure
 	}
 	cj.w = w
 	cj.r = r
