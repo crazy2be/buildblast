@@ -26,17 +26,20 @@ var FLASH_KEYS = []string{
 }
 
 type CookieJar struct {
-	store   *sessions.CookieStore
 	session *sessions.Session
 	r       *http.Request
 	w       http.ResponseWriter
 }
 
+var cookieStore *sessions.CookieStore
+
 func NewCookieJar(w http.ResponseWriter, r *http.Request, config *ServerConfig) *CookieJar {
 	cj := new(CookieJar)
-	cj.store = sessions.NewCookieStore(config.CookieKeyPairs...)
+	if cookieStore == nil {
+		cookieStore = sessions.NewCookieStore(config.CookieKeyPairs...)
+	}
 	var err error
-	cj.session, err = cj.store.Get(r, SESSION_NAME)
+	cj.session, err = cookieStore.Get(r, SESSION_NAME)
 	if err != nil {
 		fmt.Println("Error reading session store:", err)
 	}
