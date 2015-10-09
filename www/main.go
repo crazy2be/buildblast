@@ -62,7 +62,7 @@ func main() {
 }
 
 func handle(processor pages.Processor, w http.ResponseWriter, r *http.Request) {
-	cj := sutil.NewCookieJar(w, r, config.CookieKeyPairs...)
+	cj := sutil.NewCookieJar(w, r, config)
 	context := pages.NewContext(dbc, cj, mailer, w, r)
 
 	context.Authenticate()

@@ -49,7 +49,7 @@ func mainSocketHandler(w http.ResponseWriter, r *http.Request) {
 	var account db.Account
 	authenticated := false
 	if dbc != nil {
-		cj := util.NewCookieJar(w, r, config.CookieKeyPairs...)
+		cj := util.NewCookieJar(w, r, config)
 		account, _, authenticated = cj.Authenticate(dbc)
 		cj.SaveSession()
 		fmt.Println("Authentication: ", authenticated, "(ID: ", account.Id, ") User: "+account.Username)
