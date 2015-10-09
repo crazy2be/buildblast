@@ -35,7 +35,11 @@ type CookieJar struct {
 func NewCookieJar(w http.ResponseWriter, r *http.Request, config *ServerConfig) *CookieJar {
 	cj := new(CookieJar)
 	cj.store = sessions.NewCookieStore(config.CookieKeyPairs...)
-	cj.session, _ = cj.store.Get(r, SESSION_NAME)
+	var err error
+	cj.session, err = cj.store.Get(r, SESSION_NAME)
+	if err != nil {
+		fmt.Println("Error reading session store:", err)
+	}
 	if cj.session.IsNew {
 		cj.session.Options.Domain = config.CookieDomain
 		cj.session.Options.MaxAge = 86400 * 7 // 1 Week
