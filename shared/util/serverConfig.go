@@ -17,6 +17,8 @@ type ServerConfig struct {
 	WorldBaseDir   string
 	DbPass         string
 	MailPass       string
+	CookieDomain   string
+	CookieSecure   bool
 	CookieKeyPairs [][]byte
 }
 
@@ -28,6 +30,8 @@ type serverConfigJson struct {
 	WorldBaseDir   string   `json:"world_base_dir"`
 	DbPass         string   `json:"db_pass"`
 	MailPass       string   `json:"mail_pass"`
+	CookieDomain   string   `json:"cookie_domain"`
+	CookieSecure   bool     `json:"cookie_secure"`
 	CookieKeyPairs []string `json:"cookie_key_pairs"`
 }
 
@@ -54,6 +58,8 @@ func LoadServerConfig(path string) *ServerConfig {
 	serverConfig.DbPass = configJson.DbPass
 	serverConfig.MailPass = configJson.MailPass
 
+	serverConfig.CookieDomain = configJson.CookieDomain
+	serverConfig.CookieSecure = configJson.CookieSecure
 	serverConfig.CookieKeyPairs = make([][]byte, 2)
 	for i, v := range configJson.CookieKeyPairs {
 		byteKey, err := hex.DecodeString(v)

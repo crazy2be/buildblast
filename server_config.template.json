@@ -7,6 +7,9 @@
 
     "db_pass": "password",
     "mail_pass": "password",
+
+    "cookie_domain": "domain",
+    "cookie_secure": true,
     "cookie_key_pairs": [
         "authentication key",
         "encoding key"
