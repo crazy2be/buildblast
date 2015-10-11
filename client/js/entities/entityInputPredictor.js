@@ -72,7 +72,6 @@ function PredictionBuffer(predictor) {
 		controlStates.splice(0, i);
 		len -= i;
 		if (!predicted.prettyCloseTo(state)) {
-			console.log("------------------------------")
 			// Oh crap, the server disagreed with us :(
 			// We could maybe adjust the player's state/position gradually if
 			// it's just off by a little bit, but hopefully this disagreement
