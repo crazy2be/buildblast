@@ -30,7 +30,7 @@ return function BioticState(entityState, health) {
 		return closeVec(self.entityState.body.pos, other.entityState.body.pos)
 			&& closeVec(self.entityState.body.dir, other.entityState.body.dir)
 			&& closeVec(self.entityState.body.vel, other.entityState.body.vel)
-			&& close(self.health.life, other.health.life);;
+			&& close(self.health.life, other.health.life);
 	};
 }
 
