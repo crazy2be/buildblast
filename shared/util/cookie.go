@@ -26,14 +26,27 @@ var FLASH_KEYS = []string{
 }
 
 type CookieJar struct {
-	cookieStore *sessions.CookieStore
-	r           *http.Request
-	w           http.ResponseWriter
+	session *sessions.Session
+	r       *http.Request
+	w       http.ResponseWriter
 }
 
-func NewCookieJar(w http.ResponseWriter, r *http.Request, keypairs ...[]byte) *CookieJar {
+var cookieStore *sessions.CookieStore
+
+func NewCookieJar(w http.ResponseWriter, r *http.Request, config *ServerConfig) *CookieJar {
 	cj := new(CookieJar)
-	cj.cookieStore = sessions.NewCookieStore(keypairs...)
+	if cookieStore == nil {
+		cookieStore = sessions.NewCookieStore(config.CookieKeyPairs...)
+		cookieStore.Options.Domain = config.CookieDomain
+		cookieStore.Options.MaxAge = 86400 * 7 // 1 Week
+		cookieStore.Options.HttpOnly = false
+		cookieStore.Options.Secure = config.CookieSecure
+	}
+	var err error
+	cj.session, err = cookieStore.Get(r, SESSION_NAME)
+	if err != nil {
+		fmt.Println("Error reading session store:", err)
+	}
 	cj.w = w
 	cj.r = r
 	return cj
@@ -75,28 +88,28 @@ func (cj *CookieJar) Authenticate(dbc *db.Database) (db.Account, db.AccountSessi
 
 // This should be called before writing the response, as it needs to set the cookies in the header.
 func (cj *CookieJar) SaveSession() {
-	sessions.Save(cj.r, cj.w)
+	err := sessions.Save(cj.r, cj.w)
+	if err != nil {
+		fmt.Println("Error saving cookies:", err)
+	}
 }
 
 func (cj CookieJar) getCookie(name string) string {
-	session, _ := cj.cookieStore.Get(cj.r, SESSION_NAME)
-	sessionKey := session.Values[name]
+	sessionKey := cj.session.Values[name]
 	if sessionKey == nil {
 		return ""
 	}
-	return session.Values[name].(string)
+	return cj.session.Values[name].(string)
 }
 
 func (cj CookieJar) setCookie(name, value string) {
-	session, _ := cj.cookieStore.Get(cj.r, SESSION_NAME)
-	session.Values[name] = value
+	cj.session.Values[name] = value
 }
 
 func (cj CookieJar) ParseFlashes() map[string]string {
-	session, _ := cj.cookieStore.Get(cj.r, SESSION_NAME)
 	result := make(map[string]string)
 	for _, flashKey := range FLASH_KEYS {
-		value := session.Flashes(flashKey)
+		value := cj.session.Flashes(flashKey)
 		if value != nil {
 			result[flashKey] = value[0].(string)
 		}
@@ -105,8 +118,7 @@ func (cj CookieJar) ParseFlashes() map[string]string {
 }
 
 func (cj CookieJar) setFlash(key, value string) {
-	session, _ := cj.cookieStore.Get(cj.r, SESSION_NAME)
-	session.AddFlash(value, key)
+	cj.session.AddFlash(value, key)
 }
 
 func (cj CookieJar) setBoolFlash(key string) {
