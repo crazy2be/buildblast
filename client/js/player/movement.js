@@ -52,7 +52,7 @@ function simulate(collides, state, c, dt) /* newState */ {
 	var sin = Math.sin;
 	var cos = Math.cos;
 
-	newState.look = new THREE.Vector3(
+	newState.entityState.body.dir = new THREE.Vector3(
 		sin(c.lat) * cos(c.lon),
 		cos(c.lat),
 		sin(c.lat) * sin(c.lon)
