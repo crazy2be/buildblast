@@ -113,6 +113,21 @@ return function Controls(elm) {
 		lat: -1/2 * Math.PI,
 		lon: 1/2 * Math.PI,
 
+		forward: function() {
+			return (this.controlFlags & ActionMasks.forward) > 0;
+		},
+		back: function() {
+			return (this.controlFlags & ActionMasks.back) > 0;
+		},
+		left: function() {
+			return (this.controlFlags & ActionMasks.left) > 0;
+		},
+		right: function() {
+			return (this.controlFlags & ActionMasks.right) > 0;
+		},
+		jump: function() {
+			return (this.controlFlags & ActionMasks.jump) > 0;
+		},
 		activateLeft: function() {
 			return (this.controlFlags & ActionMasks.activateLeft) > 0;
 		},
@@ -172,12 +187,7 @@ return function Controls(elm) {
 	function actionEnd(trigger) {
 		var action = findAction(trigger);
 		if (!action) return false;
-		function dec2bin(dec){
-			return (dec >>> 0).toString(2);
-		}
-		console.log("Before", dec2bin(actions.controlFlags));
 		actions.controlFlags &= ~ActionMasks[action];
-		console.log("After", dec2bin(actions.controlFlags));
 		return true;
 	}
 

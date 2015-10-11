@@ -72,14 +72,6 @@ function PredictionBuffer(predictor) {
 		controlStates.splice(0, i);
 		len -= i;
 		if (!predicted.prettyCloseTo(state)) {
-			console.log(predicted.health.life,
-					predicted.entityState.body.pos,
-					predicted.entityState.body.dir,
-					predicted.entityState.body.vel);
-			console.log(state.health.life,
-					state.entityState.body.pos,
-					state.entityState.body.dir,
-					state.entityState.body.vel);
 			console.log("------------------------------")
 			// Oh crap, the server disagreed with us :(
 			// We could maybe adjust the player's state/position gradually if
