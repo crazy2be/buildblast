@@ -52,7 +52,7 @@ function simulate(collides, state, c, dt) /* newState */ {
 	var sin = Math.sin;
 	var cos = Math.cos;
 
-	newState.look = new THREE.Vector3(
+	newState.entityState.body.dir = new THREE.Vector3(
 		sin(c.lat) * cos(c.lon),
 		cos(c.lat),
 		sin(c.lat) * sin(c.lon)
@@ -60,8 +60,8 @@ function simulate(collides, state, c, dt) /* newState */ {
 
 	newState.entityState.body.vel.y += dt * -9.81;
 
-	var fw = c.forward ? 1 : c.back ? -1 : 0;
-	var rt = c.right   ? 1 : c.left ? -1 : 0;
+	var fw = c.forward() ? 1 : c.back() ? -1 : 0;
+	var rt = c.right()   ? 1 : c.left() ? -1 : 0;
 	fw *= 10 * dt;
 	rt *= 10 * dt;
 	var delta = {
@@ -73,7 +73,7 @@ function simulate(collides, state, c, dt) /* newState */ {
 	delta = attemptMove(newState.entityState.body, delta, collides);
 
 	if (delta.y === 0) {
-		newState.entityState.body.vel.y = c.jump ? 6 : 0;
+		newState.entityState.body.vel.y = c.jump() ? 6 : 0;
 	}
 
 	return newState;

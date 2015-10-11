@@ -9,6 +9,8 @@ if go version; then
 		echo "Your buildblast repository must be at <anything>/src/buildblast/"
 		echo "as this is a requirement of the go compiler toolchain."
 		echo "if <anything> == GOPATH, then the go tools will work as well."
+		echo "Note that you do not have to manually set your GOPATH, we can"
+		echo "do that for you."
 	fi
 
 	export GOBIN="`pwd`/bin"

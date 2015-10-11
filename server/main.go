@@ -47,7 +47,7 @@ func main() {
 
 	// setupPrompt()
 	setupSigInt() // Print newline on SIG_INT
-	configPath := flag.String("config", "server_config.json", "Path to server config")
+	configPath := flag.String("config", "server_config.default.json", "Path to server config")
 	flag.Parse()
 	config = util.LoadServerConfig(*configPath)
 
@@ -88,7 +88,9 @@ func main() {
 
 	http.Handle("/", r)
 
-	err := http.ListenAndServe(config.Host+":"+config.ServerPort, nil)
+	addr := config.Host + ":" + config.ServerPort
+	log.Println("Starting game server on", addr)
+	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}

@@ -292,8 +292,6 @@ func (p *Player) simulateMovement(dt float64, controls ControlState) {
 		body.Vel.Y = 0
 		if controls.Jump() {
 			body.Vel.Y = 6
-		} else {
-			body.Vel.Y = 0
 		}
 	}
 
