@@ -9,7 +9,7 @@ type Simplex struct {
 	seed        int64
 	persistence float64
 
-	oct  []*SimplexOctave
+	oct  []*OpenSimplexOctave
 	freq []float64
 	amp  []float64
 }
@@ -20,13 +20,13 @@ func NewSimplex(numOctaves int, persistence float64, seed int64) *Simplex {
 	sn.seed = seed
 	sn.persistence = persistence
 
-	sn.oct = make([]*SimplexOctave, numOctaves)
+	sn.oct = make([]*OpenSimplexOctave, numOctaves)
 	sn.freq = make([]float64, numOctaves)
 	sn.amp = make([]float64, numOctaves)
 
 	randGen := rand.New(rand.NewSource(seed))
 	for i := 0; i < numOctaves; i++ {
-		sn.oct[i] = NewSimplexOctave(randGen.Int63())
+		sn.oct[i] = NewOpenSimplexOctaveWithSeed(randGen.Int63())
 		sn.freq[i] = math.Pow(2, float64(i))
 		sn.amp[i] = math.Pow(persistence, float64(numOctaves-i))
 	}

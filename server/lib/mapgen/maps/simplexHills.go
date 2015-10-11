@@ -12,12 +12,12 @@ type SimplexHills struct {
 
 func NewSimplexHills(seed int64) *SimplexHills {
 	sh := new(SimplexHills)
-	sh.simplexNoise = noise.NewSimplex(10, 0.4, seed)
+	sh.simplexNoise = noise.NewSimplex(4, 0.8, seed)
 	return sh
 }
 
 func (sh *SimplexHills) heightAt(x, z float64) float64 {
-	height := sh.simplexNoise.Noise2(x, z)
+	height := sh.simplexNoise.Noise2(x/128, z/128)
 	return height*50 + float64(coords.ChunkHeight)/2
 }
 
