@@ -111,30 +111,15 @@ return function Controls(elm) {
 	var actions = {
 		controlFlags: 0,
 		lat: -1/2 * Math.PI,
-		lon: 1/2 * Math.PI,
-
-		activateLeft: function() {
-			return (this.controlFlags & ActionMasks.activateLeft) > 0;
-		},
-		activateRight: function() {
-			return (this.controlFlags & ActionMasks.activateRight) > 0;
-		},
-		swapLeft: function() {
-			return (this.controlFlags & ActionMasks.swapLeft) > 0;
-		},
-		swapRight: function() {
-			return (this.controlFlags & ActionMasks.swapRight) > 0;
-		},
-		toggleBag: function() {
-			return (this.controlFlags & ActionMasks.toggleBag) > 0;
-		},
-		scoreBoard: function() {
-			return (this.controlFlags & ActionMasks.scoreBoard) > 0;
-		},
-		chat: function() {
-			return (this.controlFlags & ActionMasks.chat) > 0;
-		}
+		lon: 1/2 * Math.PI
 	};
+	for (var action in ActionMasks) {
+		actions[action] = function(action) {
+			return function () {
+				return (this.controlFlags & ActionMasks[action]) > 0;
+			}
+		}(action);
+    };
 
 	self.sample = function() {
 		return clone(actions);

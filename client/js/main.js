@@ -68,8 +68,7 @@ function main () {
 			return box.collides(world);
 		}
 		var predictor = movement.simulate.bind(null, collides);
-		var controller = new EntityInputPredictor(playerEntity, predictor);
-		return controller;
+		return new EntityInputPredictor(playerEntity, predictor);
 	}
 
 	function startGame() {
