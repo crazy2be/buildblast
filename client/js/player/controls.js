@@ -172,7 +172,12 @@ return function Controls(elm) {
 	function actionEnd(trigger) {
 		var action = findAction(trigger);
 		if (!action) return false;
+		function dec2bin(dec){
+			return (dec >>> 0).toString(2);
+		}
+		console.log("Before", dec2bin(actions.controlFlags));
 		actions.controlFlags &= ~ActionMasks[action];
+		console.log("After", dec2bin(actions.controlFlags));
 		return true;
 	}
 
