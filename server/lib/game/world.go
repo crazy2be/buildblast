@@ -44,6 +44,7 @@ func NewWorld(generator mapgen.Generator) *World {
 
 	w.blockListeners = makeGenericListenerContainer()
 	w.chunkListeners = makeGenericListenerContainer()
+	w.bioticListeners = makeGenericListenerContainer()
 	w.playerListeners = makeGenericListenerContainer()
 	w.worldItemListeners = makeGenericListenerContainer()
 	return w
