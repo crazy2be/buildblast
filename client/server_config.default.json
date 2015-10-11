@@ -1,0 +1,19 @@
+{
+    "host": "localhost",
+    "//port_comment": [
+        "Web uses this port, server uses port+1",
+        "(TODO: seperate config for these two ports)"],
+    "port": 8080,
+    "client_assets": ".",
+    "persist_enabled": true,
+    "world_base_dir": "world/",
+
+    "db_pass": "",
+    "mail_pass": "",
+
+    "cookie_domain": "",
+    "cookie_secure": false,
+    "//cookie_key_pairs_comment": [
+        "authentication key",
+        "encoding key"]
+}
