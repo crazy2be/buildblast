@@ -51,7 +51,7 @@ function Arm(offset) {
 	var thick = (0.870 - 0.818)*scale
 	var unscaledLength = 0.186 + 0.146 + 0.108;
 	var length = unscaledLength*scale;
-	var geometry = new THREE.CubeGeometry(thick, length, thick);
+	var geometry = new THREE.BoxGeometry(thick, length, thick);
 	var innerMesh = new THREE.Mesh(geometry, material);
 	// Move the pivot
 	innerMesh.position.y = -length / 2;
@@ -110,7 +110,7 @@ function Body() {
 		color: 0x0000ff,
 		wireframe: true
 	});
-	var geometry = new THREE.CubeGeometry(0.259*scale, 0.818*scale, 0.107*scale);
+	var geometry = new THREE.BoxGeometry(0.259*scale, 0.818*scale, 0.107*scale);
 	var mesh = new THREE.Mesh(geometry, material);
 	mesh.position.y = 0.818*scale / 2;
 
@@ -132,7 +132,7 @@ function Head() {
 	});
 
 	var s = 0.130 * scale;
-	var geometry = new THREE.CubeGeometry(s, s, s);
+	var geometry = new THREE.BoxGeometry(s, s, s);
 	geometry.faces[0].materialIndex = 0;
 	geometry.faces[1].materialIndex = 0;
 	geometry.faces[2].materialIndex = 0;

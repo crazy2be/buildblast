@@ -15,17 +15,20 @@ var ATLAS_MATERIAL =  new THREE.MeshBasicMaterial({
 // takes a chunk/geometry result, NOT a THREE.Geometry
 return function Mesh(geometryResult) {
 	if (typeof geometryResult.attributes !== 'object' ||
-		!Array.isArray(geometryResult.offsets)) {
+		!Array.isArray(geometryResult.drawcalls)) {
 			throw "Expected chunks/geometryResult.";
 	}
 
+	var attrs = geometryResult.attributes;
+
 	var threeGeometry = new THREE.BufferGeometry();
-	threeGeometry.attributes = geometryResult.attributes;
-	threeGeometry.offsets = geometryResult.offsets;
+	threeGeometry.setIndex(new THREE.BufferAttribute(attrs.index.array, attrs.index.itemSize));
+	threeGeometry.addAttribute('position',
+		new THREE.BufferAttribute(attrs.position.array, attrs.position.itemSize));
+	threeGeometry.addAttribute('uv', new THREE.BufferAttribute(attrs.uv.array, attrs.uv.itemSize));
+	threeGeometry.drawcalls = geometryResult.drawcalls;
 
-	var mesh = new THREE.Mesh(threeGeometry, ATLAS_MATERIAL);
-
-	return mesh;
+	return new THREE.Mesh(threeGeometry, ATLAS_MATERIAL);
 };
 
 });

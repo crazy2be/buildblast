@@ -12,10 +12,8 @@ var World = require("core/world");
 var Protocol = require("core/protocol");
 
 var PlayerUI = require("player/playerUI");
-var EntityManager = require("entities/entityManager");
 var Biotic = require("entities/biotic");
 
-var PerfChart = require("perf/chart");
 var movement = require("player/movement");
 var EntityInputPredictor = require("entities/entityInputPredictor");
 
@@ -73,7 +71,7 @@ function main () {
 
 	function startGame() {
 		var scene = new THREE.Scene();
-		var ambientLight = new THREE.AmbientLight(0xffffff);
+		var ambientLight = new THREE.AmbientLight(0xFFFFFF);
 		scene.add(ambientLight);
 
 		var world = new World(scene, conn, clientId, clock);

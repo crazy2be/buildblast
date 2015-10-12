@@ -1,14 +1,11 @@
 define(function(require) {
-var Controls = require("player/controls");
+
 var Chat = require("player/chat");
 var Scoreboard = require("player/scoreboard");
-
 var THREE = require("THREE");
-
 var Inventory = require("player/inventory");
-
+var ToolEditor = require("player/toolEditor");
 var PerfChart = require("perf/chart");
-
 var Protocol = require("core/protocol");
 
 return function PlayerUI(world, conn, clock, container, controls, playerEntity, playerController) {
@@ -19,6 +16,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
+	//var toolEditor = new ToolEditor();
 
 	var speedChart = initSpeedChart();
 	function initSpeedChart() {
@@ -49,6 +47,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 	function initRenderer() {
 		var renderer = new THREE.WebGLRenderer();
 		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setClearColor(0xBFD1E5);
 
 		container.querySelector('#opengl').appendChild(renderer.domElement);
 		document.querySelector('#splash h1').innerHTML = 'Click to play!';
@@ -72,11 +71,13 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 	self.render = function (scene) {
 		renderer.render(scene, camera);
+		//toolEditor.render();
 	};
 
 	self.update = function () {
 		chat.update(clock.dt());
 		scoreBoard.update(clock.dt());
+		//toolEditor.update(clock.dt());
 
 		var c = controls.sample();
 		conn.queue(Protocol.MSG_CONTROLS_STATE, [c.controlFlags, c.lat, c.lon, clock.time(),
@@ -163,4 +164,5 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 		return Math.round(n * factor) / factor;
 	}
 };
+
 });

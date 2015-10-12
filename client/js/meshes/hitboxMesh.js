@@ -10,7 +10,7 @@ return function HitboxMesh(halfExtents) {
 		wireframe: true
 	});
 
-	var geometry = new THREE.CubeGeometry(
+	var geometry = new THREE.BoxGeometry(
 			halfExtents.x * 2,
 			halfExtents.y * 2,
 			halfExtents.z * 2);

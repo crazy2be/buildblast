@@ -93,27 +93,24 @@ return function Geometry() {
 			position: {
 				itemSize: 3,
 				array: vertsa,
-				numItems: verts.length,
 			},
 			index: {
 				itemSize: 1,
 				array: indicesa,
-				numItems: indices.length,
 			},
 			uv: {
 				itemSize: 2,
 				array: uvsa,
-				numItems: uvsa.length,
 			},
 		};
 
 		// TODO: We actually want to have more than one entry here if we have
 		// > ~65000 verticies in a chunk. See
 		// https://github.com/crazy2be/buildblast/issues/29
-		var offsets = [{
+		var drawcalls = [{
 			start: 0,
 			count: indices.length,
-			indices: 0,
+			index: 0
 		}];
 
 		var transferables = [
@@ -124,7 +121,7 @@ return function Geometry() {
 
 		return {
 			attributes: attributes,
-			offsets: offsets,
+			drawcalls: drawcalls,
 			transferables: transferables,
 		};
 	};

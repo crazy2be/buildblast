@@ -26,12 +26,12 @@ return function World(scene, conn, clientId, clock) {
 		entityManager.update(dt, playerPos);
 	};
 
-	var smallCube = new THREE.CubeGeometry(0.1, 0.1, 0.1);
+	var smallCube = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 	var smallCubeMat = new THREE.MeshNormalMaterial();
 	self.addSmallCube = function (position) {
 		if (!position) throw "Position required!";
 		var cube = new THREE.Mesh( smallCube, smallCubeMat );
-		cube.position = position;
+		cube.position.copy(position);
 		scene.add(cube);
 	};
 
@@ -84,11 +84,10 @@ return function World(scene, conn, clientId, clock) {
 		return findIntersection(camera.position, getLookedAtDirection(camera), entityAt, precision);
 	};
 
-	var projector = new THREE.Projector();
 	function getLookedAtDirection(camera) {
 		var look = new THREE.Vector3(0, 0, 1);
 		// http://myweb.lmu.edu/dondi/share/cg/unproject-explained.pdf
-		projector.unprojectVector(look, camera);
+		look.unproject(camera);
 		return look.sub(camera.position);
 	}
 
@@ -129,4 +128,5 @@ return function World(scene, conn, clientId, clock) {
 		chunkManager.queueBlockChange(msgDataView);
 	}
 }
+
 });

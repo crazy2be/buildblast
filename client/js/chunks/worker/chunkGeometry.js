@@ -16,19 +16,17 @@ return function ChunkGeometry(cc, blocks, manager, chunkMesher) {
 	self.chunkMesher = chunkMesher;
 
 	self.calculateGeometry = function () {
-		var geometry = {};
-		var transferables = [];
-
 		var res = self.chunkMesher(self.blocks, self.cc, manager);
 
+		var geometry = {};
 		geometry.attributes = res.attributes;
-		geometry.offsets = res.offsets;
+		geometry.drawcalls = res.drawcalls;
 
 		return {
 			geometry: geometry,
 			transferables: res.transferables,
 		};
-	}
+	};
 
 	self.block = function block(ocX, ocY, ocZ) {
 		return blocks[common.offsetIndex(ocX, ocY, ocZ)];

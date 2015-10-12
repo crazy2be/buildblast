@@ -1,4 +1,5 @@
 define(function(require) {
+
 return function PerfChart(opts) {
 	var self = this;
 
@@ -106,4 +107,5 @@ return function PerfChart(opts) {
 		return str + suffix;
 	}
 }
+
 });
