@@ -96,7 +96,7 @@ return function EntityInputPredictor(entity, predictor) {
 	// This lets us ensure we are updated *before* any
 	// of the other entities.
 	self.realUpdate = function (clock, controls, camera) {
-		var latest = buf.add(clock.time(), controls.sample());
+		var latest = buf.add(clock.time(), controls.sampleGame());
 		entity.update(latest, clock, camera);
 	};
 

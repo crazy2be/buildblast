@@ -16,7 +16,7 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 	var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1024);
 	var inventory = new Inventory(world, camera, conn, controls);
-	//var toolEditor = new ToolEditor();
+	var toolEditor = new ToolEditor(controls);
 
 	var speedChart = initSpeedChart();
 	function initSpeedChart() {
@@ -71,23 +71,22 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 	self.render = function (scene) {
 		renderer.render(scene, camera);
-		//toolEditor.render();
+		toolEditor.render();
 	};
 
 	self.update = function () {
 		chat.update(clock.dt());
 		scoreBoard.update(clock.dt());
-		//toolEditor.update(clock.dt());
 
 		var c = controls.sample();
-		conn.queue(Protocol.MSG_CONTROLS_STATE, [c.controlFlags, c.lat, c.lon, clock.time(),
-				clock.entityTime()]);
+		conn.queue(Protocol.MSG_CONTROLS_STATE, [c.game.controlFlags, c.game.lat, c.game.lon,
+			clock.time(), clock.entityTime()]);
 		playerController.realUpdate(clock, controls, playerEntity);
 
 		var camPos = pos().clone();
 
 		if (localStorage.thirdPerson) {
-			var target = calcTarget(camPos, c.lat, c.lon);
+			var target = calcTarget(camPos, c.game.lat, c.game.lon);
 			var look = target.clone().sub(camPos);
 			look.setLength(3);
 			camPos.sub(look);
@@ -95,8 +94,9 @@ return function PlayerUI(world, conn, clock, container, controls, playerEntity, 
 
 		camera.position.set(camPos.x, camPos.y, camPos.z);
 
-		doLook(camera, camPos, c);
+		doLook(camera, camPos, c.game);
 		inventory.update(pos(), c);
+		toolEditor.update(c);
 
 		updatePositionText(pos(), pos().dy);
 		updateHealthBar(playerEntity.health());

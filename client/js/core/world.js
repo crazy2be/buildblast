@@ -1,5 +1,7 @@
 define(function(require) {
 
+var THREE = require("THREE");
+
 var ChunkManager = require("chunks/chunkManager");
 var EntityManager = require("entities/entityManager");
 var Block = require("chunks/block");
@@ -30,7 +32,7 @@ return function World(scene, conn, clientId, clock) {
 	var smallCubeMat = new THREE.MeshNormalMaterial();
 	self.addSmallCube = function (position) {
 		if (!position) throw "Position required!";
-		var cube = new THREE.Mesh( smallCube, smallCubeMat );
+		var cube = new THREE.Mesh(smallCube, smallCubeMat);
 		cube.position.copy(position);
 		scene.add(cube);
 	};

@@ -26,7 +26,7 @@ func NewInventory() *Inventory {
 	for item := range EveryItem() {
 		// Don't give people spawn blocks...
 		if item == ITEM_SPAWN {
-			continue;
+			continue
 		}
 		if item.Stackable() {
 			inv[i] = NewStackOf(item, MAX_STACK)

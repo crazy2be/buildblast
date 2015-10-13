@@ -35,7 +35,7 @@ return function Chat(controls, conn, container) {
 	self.update = function (dt) {
 		updateTweens(dt);
 
-		if (!controls.sample().chat()) return;
+		if (!controls.sampleUI().chat()) return;
 
 		if (focused) return;
 

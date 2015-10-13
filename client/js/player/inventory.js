@@ -6,7 +6,6 @@ var Item = require("player/item");
 var Protocol = require("core/protocol");
 
 var $ = require("jquery");
-var jqueryUi = require("jqueryui");
 var jqueryWaitImgs = require("jqueryWaitImgs");
 
 // TODO: Move a lot of this logic to entity. We want
@@ -189,11 +188,11 @@ function Inventory(world, camera, conn, controls) {
 		var leftWasDown = updateSide(true);
 		var rightWasDown = updateSide(false);
 
-		if (!toggleBagWasDown && controls.toggleBag()) {
+		if (!toggleBagWasDown && controls.ui.toggleBag()) {
 			bagIsShowing = !bagIsShowing;
 			updateBagVisibility();
 		}
-		toggleBagWasDown = controls.toggleBag();
+		toggleBagWasDown = controls.ui.toggleBag();
 
 		swapLeftWasDown = leftWasDown;
 		swapRightWasDown = rightWasDown;
@@ -213,7 +212,7 @@ function Inventory(world, camera, conn, controls) {
 			var swapTrigger = "swap" + side;
 			var activateTrigger = "activate" + side;
 
-			var swapDown = controls[swapTrigger]();
+			var swapDown = controls.ui[swapTrigger]();
 			if (!swapWasDown && swapDown) {
 				if (isLeft) leftIsPrimary = !leftIsPrimary;
 				else rightIsPrimary = !rightIsPrimary;
@@ -225,9 +224,9 @@ function Inventory(world, camera, conn, controls) {
 			}
 
 			var invModel = isLeft ? leftInventoryModel : rightInventoryModel;
-			invModel.update(playerPosition, controls.lat, controls.lon);
+			invModel.update(playerPosition, controls.game.lat, controls.game.lon);
 
-			if (controls[activateTrigger]()) {
+			if (controls.game[activateTrigger]()) {
 				activateStack(isLeft ? leftStack() : rightStack());
 			}
 

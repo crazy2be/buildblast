@@ -1,4 +1,4 @@
-requirejs.config({
+﻿requirejs.config({
 	baseUrl: '/js/',
 	// On slow connections, THREE and jQuery can cause timeouts with the
 	// default settings.
@@ -6,6 +6,7 @@ requirejs.config({
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '../lib/three',
+		TrackballControls: '../lib/TrackballControls',
 		jquery: '../lib/jquery.min',
 		jqueryui: '../lib/jquery-ui.min',
 		jqueryWaitImgs: '../lib/jquery.waitforimages.min',

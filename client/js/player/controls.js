@@ -1,4 +1,5 @@
 define(function() {
+
 return function Controls(elm) {
 	// Key codes for a bunch of the keys we need. Need more
 	// keys or these keycodes aren't working for you?
@@ -12,7 +13,9 @@ return function Controls(elm) {
 		Q: 81,
 		E: 69,
 		C: 67,
+		F: 70,
 		J: 74,
+		O: 79,
 
 		Left: 37,
 		Up: 38,
@@ -30,8 +33,6 @@ return function Controls(elm) {
 
 		Comma: 188,
 
-		E: 69,
-		O: 79,
 		Semicolon: 186,
 		Period: 190,
 
@@ -46,6 +47,8 @@ return function Controls(elm) {
 		Right: 2,
 	};
 
+	// Action mappings for in game controls
+
 	var ActionMasks = {
 		forward:       1 << 0,
 		left:          1 << 1,
@@ -53,12 +56,7 @@ return function Controls(elm) {
 		back:          1 << 3,
 		jump:          1 << 4,
 		activateLeft:  1 << 5,
-		activateRight: 1 << 6,
-		swapLeft:      1 << 7,
-		swapRight:     1 << 8,
-		toggleBag:     1 << 9,
-		scoreBoard:    1 << 10,
-		chat:          1 << 11
+		activateRight: 1 << 6
 	};
 
 	var ActionMappingsBase = {
@@ -68,11 +66,8 @@ return function Controls(elm) {
 		back: [Keys.Down],
 		jump: [Keys.Space],
 
-		chat: [Keys.Enter],
-		scoreBoard: [Keys.Tab],
-
 		activateLeft: [MouseButtons.Left],
-		activateRight: [MouseButtons.Right],
+		activateRight: [MouseButtons.Right]
 	};
 
 	var ActionMappingsQwerty = {
@@ -82,9 +77,10 @@ return function Controls(elm) {
 		back: [Keys.S],
 
 		toggleBag: [Keys.C],
+		toggleTools: [Keys.F],
 
 		swapLeft: [Keys.Q],
-		swapRight: [Keys.E],
+		swapRight: [Keys.E]
 	};
 
 	var ActionMappingsDvorak = {
@@ -94,35 +90,99 @@ return function Controls(elm) {
 		back: [Keys.O],
 
 		toggleBag: [Keys.J],
+		toggleTools: [Keys.F],
 
 		swapLeft: [Keys.Semicolon],
-		swapRight: [Keys.Period],
+		swapRight: [Keys.Period]
 	};
 
-	var mapping;
+	// UI mappings for interacting with menus and such
+
+	var UIMasks = {
+		leftMouse:   1 << 0,
+		rightMouse:  1 << 1,
+		scoreBoard:  1 << 2,
+		chat:        1 << 3,
+		toggleBag:   1 << 4,
+		toggleTools: 1 << 5,
+		swapLeft:    1 << 6,
+		swapRight:   1 << 7
+	};
+
+	var UIMappingsBase = {
+		leftMouse: [MouseButtons.Left],
+		rightMouse: [MouseButtons.Right],
+
+		chat: [Keys.Enter],
+		scoreBoard: [Keys.Tab],
+	};
+
+	var UIMappingsQwerty = {
+		toggleBag: [Keys.C],
+		toggleTools: [Keys.F],
+
+		swapLeft: [Keys.Q],
+		swapRight: [Keys.E]
+	};
+
+	var UIMappingsDvorak = {
+		toggleBag: [Keys.J],
+		toggleTools: [Keys.F],
+
+		swapLeft: [Keys.Semicolon],
+		swapRight: [Keys.Period]
+	};
+
+
+	var actionMapping;
+	var uiMapping;
 	if (window.localStorage["useDvorak"]) {
-		mapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
+		actionMapping = mergeMappings(ActionMappingsBase, ActionMappingsDvorak);
+		uiMapping = mergeMappings(UIMappingsBase, UIMappingsDvorak);
 	} else {
-		mapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
+		actionMapping = mergeMappings(ActionMappingsBase, ActionMappingsQwerty);
+		uiMapping = mergeMappings(UIMappingsBase, UIMappingsQwerty);
 	}
 
 	var self = this;
 
-	var actions = {
+	var gameInput = {
 		controlFlags: 0,
 		lat: -1/2 * Math.PI,
 		lon: 1/2 * Math.PI
 	};
-	for (var action in ActionMasks) {
-		actions[action] = function(action) {
-			return function () {
-				return (this.controlFlags & ActionMasks[action]) > 0;
-			}
-		}(action);
-    };
+	createBitFlagFunctions(gameInput, ActionMasks);
+
+	var uiInput = {
+		controlFlags: 0,
+		x: 0,
+		y: 0
+	};
+	createBitFlagFunctions(uiInput, UIMasks);
+
+	function createBitFlagFunctions(inputs, masks) {
+		for (var action in masks) {
+			inputs[action] = function (action) {
+				return function () {
+					return (this.controlFlags & masks[action]) > 0;
+				}
+			}(action);
+		}
+	}
+
+	var gameInputSet = { masks: ActionMasks, mapping: actionMapping, input: gameInput };
+	var uiInputSet = { masks: UIMasks, mapping: uiMapping, input: uiInput };
 
 	self.sample = function() {
-		return clone(actions);
+		return { game: self.sampleGame(), ui: self.sampleUI() };
+	};
+
+	self.sampleGame = function() {
+		return clone(gameInput);
+	};
+
+	self.sampleUI = function() {
+		return clone(uiInput);
 	};
 
 	var isLocked = false;
@@ -137,75 +197,96 @@ return function Controls(elm) {
 		requestPointerUnlock();
 	};
 
-	function findAction(trigger) {
+	function findAction(mapping, trigger) {
 		for (var action in mapping) {
 			var triggers = mapping[action];
 			for (var i = 0; i < triggers.length; i++) {
 				if (triggers[i] === trigger) return action;
 			}
 		}
-		console.log("Warning: Unrecognized trigger: ", trigger);
 	}
 
-	function actionStart(trigger) {
-		var action = findAction(trigger);
+	function updateInput(inputSet, trigger, active) {
+		var action = findAction(inputSet.mapping, trigger);
 		if (!action) return false;
-		actions.controlFlags |= ActionMasks[action];
+		if (active) {
+			inputSet.input.controlFlags |= inputSet.masks[action];
+		} else {
+			inputSet.input.controlFlags &= ~inputSet.masks[action];
+		}
 		return true;
 	}
 
-	function actionEnd(trigger) {
-		var action = findAction(trigger);
-		if (!action) return false;
-		actions.controlFlags &= ~ActionMasks[action];
-		return true;
+	function gameInputStart(trigger) {
+		updateInput(gameInputSet, trigger, true);
+	}
+
+	function gameInputEnd(trigger) {
+		updateInput(gameInputSet, trigger, false);
+	}
+
+	function uiInputStart(trigger) {
+		updateInput(uiInputSet, trigger, true);
+	}
+
+	function uiInputEnd(trigger) {
+		updateInput(uiInputSet, trigger, false);
 	}
 
 	function keyDown(event) {
-		if (actionStart(event.keyCode)) {
+		var consumed = gameInputStart(event.keyCode) || uiInputStart(event.keyCode);
+		if (consumed) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
 	}
 
 	function keyUp(event) {
-		if (actionEnd(event.keyCode)) {
+		var consumed = gameInputEnd(event.keyCode) || uiInputEnd(event.keyCode);
+		if (consumed) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
 	}
 
 	function mouseDown(event) {
-		if (!isLocked) return;
 		elm.focus();
+		event.preventDefault();
+
+		uiInputStart(event.button);
+
+		if (!isLocked) return;
 		attemptPointerLock();
 		if (!pointerLocked()) return;
-		event.preventDefault();
 		event.stopPropagation();
-
-		actionStart(event.button);
+		gameInputStart(event.button);
 	}
 
 	function mouseUp(event) {
-		if (!isLocked) return;
 		event.preventDefault();
-		event.stopPropagation();
 
-		actionEnd(event.button);
+		uiInputEnd(event.button);
+
+		if (!isLocked) return;
+		event.stopPropagation();
+		gameInputEnd(event.button);
 	}
 
 	var MOUSE_MOVE_DELTA_BUG = localStorage.mouseMoveBug;
 	function mouseMove(event) {
-		var lookSpeed = 0.005;
+		uiInput.x = event.clientX;
+		uiInput.y = event.clientY;
 
-		var x = event.movementX  ||
-			event.mozMovementX	||
-			event.webkitMovementX ||
-			0;
-		var y = event.movementY  ||
-			event.mozMovementY	||
-			event.webkitMovementY ||
-			0;
+		if (!pointerLocked()) return;
+
+		var x = event.movementX
+			|| event.mozMovementX
+			|| event.webkitMovementX
+			|| 0;
+		var y = event.movementY
+			|| event.mozMovementY
+			|| event.webkitMovementY
+			|| 0;
 
 		// This is needed on Justin's version of chrome.
 		// For some reason the mouse events are off by one.
@@ -215,10 +296,11 @@ return function Controls(elm) {
 			y = y + 1;
 		}
 
-		actions.lon += x * lookSpeed;
-		actions.lon %= 2 * Math.PI;
-		actions.lat -= y * lookSpeed;
-		actions.lat = clamp(actions.lat, -Math.PI + 0.01, -0.01);
+		var lookSpeed = 0.005;
+		gameInput.lon += x * lookSpeed;
+		gameInput.lon %= 2 * Math.PI;
+		gameInput.lat -= y * lookSpeed;
+		gameInput.lat = clamp(gameInput.lat, -Math.PI + 0.01, -0.01);
 	}
 
 	onPointerLock(pointerLockChange);
@@ -227,10 +309,11 @@ return function Controls(elm) {
 	elm.addEventListener('contextmenu', function (event) {
 		event.preventDefault();
 	}, false);
-	elm.addEventListener('mousedown', mouseDown, false);
-	elm.addEventListener('mouseup', mouseUp, false);
 	elm.addEventListener('keydown', keyDown, false);
 	elm.addEventListener('keyup', keyUp, false);
+	elm.addEventListener('mousedown', mouseDown, false);
+	elm.addEventListener('mouseup', mouseUp, false);
+	elm.addEventListener('mousemove', mouseMove, false);
 
 	function attemptPointerLock() {
 		if (pointerLocked()) return;
@@ -249,12 +332,8 @@ return function Controls(elm) {
 
 	function pointerLockChange() {
 		if (pointerLocked()) {
-			// Pointer was just locked, enable the mousemove listener
-			elm.addEventListener('mousemove', mouseMove, false);
 			elm.classList.add('interactive');
 		} else {
-			// Pointer was just unlocked, disable the mousemove listener
-			elm.removeEventListener('mousemove', mouseMove, false);
 			if (isLocked) {
 				elm.classList.remove('interactive');
 			}
@@ -293,15 +372,15 @@ return function Controls(elm) {
 	}
 
 	function mergeMappings(base, more) {
-		var mappings = clone(base);
+		var result = clone(base);
 		for (var action in more) {
 			if (base[action]) {
-				mappings[action] = base[action].concat(more[action]);
+				result[action] = base[action].concat(more[action]);
 			} else {
-				mappings[action] = more[action].slice();
+				result[action] = more[action].slice();
 			}
 		}
-		return mappings;
+		return result;
 	}
 
 	function clone(o) {
@@ -312,4 +391,5 @@ return function Controls(elm) {
 		return newO;
 	}
 };
+
 });
