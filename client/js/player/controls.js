@@ -16,6 +16,8 @@ return function Controls(elm) {
 		F: 70,
 		J: 74,
 		O: 79,
+		U: 85,
+
 
 		Left: 37,
 		Up: 38,
@@ -127,7 +129,7 @@ return function Controls(elm) {
 
 	var UIMappingsDvorak = {
 		toggleBag: [Keys.J],
-		toggleTools: [Keys.F],
+		toggleTools: [Keys.U],
 
 		swapLeft: [Keys.Semicolon],
 		swapRight: [Keys.Period]
