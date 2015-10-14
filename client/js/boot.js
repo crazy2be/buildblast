@@ -6,11 +6,12 @@
 	//We need paths because min files are annoying to handle with magicWrapper...
 	paths: {
 		THREE: '../lib/three',
-		TrackballControls: '../lib/TrackballControls',
+		OrbitControls: '../lib/OrbitControls',
 		jquery: '../lib/jquery.min',
 		jqueryui: '../lib/jquery-ui.min',
 		jqueryWaitImgs: '../lib/jquery.waitforimages.min',
-		async: '../lib/async'
+		async: '../lib/async',
+		spectrum: '../lib/spectrum/spectrum'
 	},
 	shim: {
 		THREE: {

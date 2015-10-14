@@ -1,9 +1,16 @@
-#teOpenGl {
-	position: fixed;
+#toolEditor {
+	position:fixed;
     z-index: 200;
-	top: 50%;
-	left: 50%;
-	margin: -300px 0 0 -400px;
+	width: 800px;
+	height: 700px;
+	test-align: left;
+}
+
+#teOpenGl {
 	width: 800px;
 	height: 600px;
+}
+
+#colorPicker {
+
 }

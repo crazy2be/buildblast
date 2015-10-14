@@ -1,8 +1,9 @@
 define(function(require) {
 
 var $ = require("jquery");
+/* $ Extension */ require("spectrum");
 var THREE = require("THREE");
-/* THREE Extension */ require("TrackballControls");
+/* THREE Extension */ require("OrbitControls");
 
 return function ToolEditor(controls) {
 	var self = this;
@@ -10,6 +11,19 @@ return function ToolEditor(controls) {
 	updateVisibility();
 
 	var $container = $("#teOpenGl");
+	var $color = $("#colorPicker");
+	$color.spectrum({
+		color: "#f00",
+		preferredFormat: "hex"
+	});
+
+	function parseColor() {
+		var result = new THREE.Color();
+		var color = $color.spectrum('get');
+		result.setRGB(color._r / 255, color._g / 255, color._b / 255);
+		return result;
+	}
+	console.log(parseColor());
 
 	var renderer = initRenderer();
 	function initRenderer() {
@@ -39,9 +53,11 @@ return function ToolEditor(controls) {
 		1, 10000);
 
 	camera.position.set(width * 2, height / 2, depth / 2);
-	camera.lookAt(new THREE.Vector3(width / 2, height / 2, depth / 2));
 
-	var trackControls = new THREE.TrackballControls(camera);
+	var viewControls = new THREE.OrbitControls(camera, renderer.domElement);
+	viewControls.target.set(width / 2, height / 2, depth / 2);
+	viewControls.enableDamping = true;
+	viewControls.dampingFactor = 0.60;
 
 	// Render the gridlines.
 
@@ -120,15 +136,22 @@ return function ToolEditor(controls) {
 
 	// Cube ghost
 	var ghostCubeGeo = new THREE.BoxGeometry(scale, scale, scale);
-	var ghostCubeMat = new THREE.MeshNormalMaterial();
+	var ghostCubeMat = new THREE.MeshBasicMaterial({
+		color: parseColor(),
+		transparent: true,
+		opacity: 0.6
+	});
 	var ghostCube = new THREE.Mesh(ghostCubeGeo, ghostCubeMat);
+	var ghostWire = new THREE.EdgesHelper(ghostCube, 0x000000);
+	var voxelWire = null;
 	var added = false;
 
 	var voxels = [];
 
 	self.render = function() {
 		if (!isShowing) return;
-		trackControls.update();
+		viewControls.update();
+		ghostCube.material.color.copy(parseColor());
 		renderer.render(scene, camera);
 	};
 
@@ -157,6 +180,7 @@ return function ToolEditor(controls) {
 			if (!added) {
 				added = true;
 				scene.add(ghostCube);
+				scene.add(ghostWire);
 			}
 			var hit = intersects[0];
 			var pos = hit.point;
@@ -168,11 +192,25 @@ return function ToolEditor(controls) {
 			var gridPos = ghostCube.position.clone();
 			ghostCube.position.multiplyScalar(scale).addScalar(scale/2);
 
+			var voxelIndex = voxels.indexOf(hit.object);
+			if (voxelIndex >= 0) {
+				scene.remove(voxelWire);
+				voxelWire = new THREE.EdgesHelper(hit.object, 0x000000);
+				scene.add(voxelWire);
+				scene.remove(ghostWire);
+			} else {
+				scene.remove(voxelWire);
+				scene.add(ghostWire);
+			}
+
 			if (!placeWasDown && controls.ui.leftMouse()) {
 				downGridPos = gridPos;
 			}
-			if (placeWasDown && !controls.ui.leftMouse() && downGridPos.equals(gridPos)) {
-				var voxel = new THREE.Mesh(ghostCubeGeo, ghostCubeMat);
+			if (placeWasDown && !controls.ui.leftMouse()
+					&& downGridPos && downGridPos.equals(gridPos))
+			{
+				var voxel = new THREE.Mesh(ghostCubeGeo,
+					new THREE.MeshBasicMaterial({color: parseColor() }));
 				voxel.position.copy(ghostCube.position);
 				scene.add(voxel);
 				voxels.push(voxel);
@@ -184,18 +222,22 @@ return function ToolEditor(controls) {
 				downGridPos = gridPos;
 			}
 			if (!leftWasActive && removeWasDown && !controls.ui.rightMouse()
-					&& downGridPos.equals(gridPos))
+					&& downGridPos && downGridPos.equals(gridPos))
 			{
-				var index = voxels.indexOf(hit.object);
-				if (index >= 0) {
+				if (voxelIndex >= 0) {
 					scene.remove(hit.object);
-					voxels.splice(index, 1);
+					voxels.splice(voxelIndex, 1);
 				}
 			}
 		} else {
 			if (added) {
 				added = false;
 				scene.remove(ghostCube);
+				scene.remove(ghostWire);
+			}
+			if (voxelWire) {
+				scene.remove(voxelWire);
+				voxelWire = null;
 			}
 		}
 		placeWasDown = controls.ui.leftMouse();
