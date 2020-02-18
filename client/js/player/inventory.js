@@ -85,7 +85,6 @@ function Inventory(world, camera, conn, controls) {
 			$(this).children("div").draggable({
 				helper: "clone",
 				appendTo: "body",
-				containment: "body",
 				scroll: false,
 				start: function (event, ui) {
 					$(this).attr("index", index);
