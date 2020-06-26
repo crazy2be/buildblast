@@ -1,0 +1,29 @@
+How to deploy to nfs.net:
+-------------------------
+
+1. Cross compile the buildblast executable for the
+   amd64 / freebsd architecture used:
+
+diff --git a/runserver b/runserver
+index b58e7fe..2919c23 100755
+--- a/runserver
++++ b/runserver
+@@ -14,9 +14,11 @@ if go version; then
+        fi
+
+        export GOBIN="`pwd`/bin"
++       #export GOOS="freebsd"
++       #export GOARCH="amd64"
+        echo "Compiling server..."
+        mkdir -p "$GOBIN"
+-       go get buildblast/server
++       (cd bin && go build -v buildblast/server)
+
+        cd client
+        if [ -n "$BUILDBLAST_PROD" ]; then
+
+2. Rsync to nfs host
+
+rsync -avr . nfs_buildblast:/home/protected/buildblast
+
+3. Go into the nfs web interface and manually restart the web daemon.
