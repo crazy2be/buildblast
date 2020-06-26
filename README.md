@@ -6,106 +6,20 @@ BuildBlast
 
 Try it at **[BuildBlast.com](https://www.buildblast.com)**
 
-Dev servers: [crazy2be](http://bb.jmcgirr.com), [yeerkkiller1](http://quentinbrooks.com)
+Or try it on a [dev server](http://bb2.jmcgirr.com)
 
 Installation
 ------------
 
-[Install go](http://golang.org/doc/install), set up your [GOPATH](http://golang.org/doc/code.html#GOPATH), then
+[Install go](http://golang.org/doc/install), (or `sudo apt install golang` on a modern ubuntu)
 
-	cd $GOPATH/src
-	git clone git@github.com:crazy2be/buildblast.git buildblast
-
-To play, copy the `server_config.template.json` to `server_config.json` and enter the following:
-```
-{
-    "host": "localhost",
-    "port": 8080,
-    "client_assets": ".",
-    "persist_enabled": true,
-    "world_base_dir": "../world/",
-
-    "db_pass": "",
-    "mail_pass": "",
-    "cookie_key_pairs": [
-        "",
-        ""
-    ]
-}
-```
-
-	./runserver --config="../server_config.json"
+	git clone https://github.com/crazy2be/buildblast.git buildblast
+	cd buildblast && ./runserver
 	google-chrome http://localhost:8081
 
-To run the www server and enable authentication:
+You may need to do some config setup due to some things being slightly broken, see [#189](https://github.com/crazy2be/buildblast/issues/189)
 
-Linux:
-
-- Follow instructions to add apt-get repository and install postgresql-9.4 at [postgresql.org](http://www.postgresql.org/download/linux/ubuntu/)
-- `sudo apt-get install nodejs`
-- `sudo apt-get install ruby-full`
-- `sudo apt-get install libgemplugin-ruby`
-- `sudo gem install compass`
-- Change the db port to 5566:
-  - `sudo vim /etc/postgresql/9.4/main/postgresql.conf`
-- `sudo service postgresql start`
-- `sudo -u postgres psql -p 5566`
-- `ALTER USER postgres WITH ENCRYPTED PASSWORD '<generate a password>';`
-- `\q`
-- Create a user with no password
-  - `sudo adduser buildblast`
-- `sudo -u postgres createuser -S -D -R -l -P -E -e -h localhost -p 5566 buildblast`
-  - (It will ask to create a password, generate one. The password it asks for afterwards is for the postgres user created above)
-- `sudo -u postgres createdb -p 5566 --encoding=unicode --owner buildblast buildblast`
-- Go to `/src/buildblast/db/`
-  - `./execsql schema-000.sql (etc… for each schema in order)`
-  
-Copy the `server_config.template.json` to `server_config.json` and enter the following:
-```
-{
-    "host": "localhost",
-    "port": 8080,
-    "client_assets": "./client",
-    "persist_enabled": true,
-    "world_base_dir": "~/buildblast-world/",
-
-    "db_pass": "<ENTER PASSWORD>",
-    "mail_pass": "",
-    "cookie_key_pairs": [
-        "<ENTER A GENERATED AUTH KEY, 64 CHAR HEX STRING>",
-        "<ENTER A GENERATED ENCR KEY, 64 CHAR HEX STRING>"
-    ]
-}
-```
-
-- `./prod-build`
-- `cd ~/buildblast-production/`
-- Start both servers (different terminal sessions)
-  - `./server`
-  - `cd www-content && ../www --config="../server_config.json"`
-
-Note: Confirmation emails will not work, since it's set to use the buildblast.com domain accounts.
-
-<!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. (Kevin feels it's okay to be agressive though.) -->
-Development
------------
-Make a branch, develop your feature/bugfix, and send a pull request. A couple tips:
-- **Read your diffs**. We all change things casually when learning a system, and poke at various things, but you should revert these changes before committing (or stash them somewhere), to ensure your pull request is focused on one particular thing that needs changing, and to reduce the time it takes to review.
-- **Keep pull requests small and incremental**. If you want a really big, awesome feature, develop it one piece at a time, so that each of them can be evaluated individually, and so that we can all discuss how we want the feature to look *before* you've built the whole thing. This also allows other to build other awesome things you haven't though of yet from your pieces, and reduces the pain of merging to master (which is very quickly changing at this point).
-- **Format your code**.
-	- Things are a little looser on the JS side, but try to match the existing code. Always use tabs. Use semicolons. Braces on the same line. I'm sure you can figure it out :).
-	- On the go side, always run `go fmt buildblast/...` before submitting a pull request.
-
-Architecture (client side)
----------------
-The architecture is based on a few fairly simple structures, which communicate through a few objects (similar to http://yuml.me/d5f4fb7b). Specifically:
-- **container**: Just a div in the html, we use this to hook up the actual rendering. There are some hardcoded elements in this, which we hook up to to give THREE.js a place to render (amoung other things).
-- **Conn**: A wrapper for a WebSocket, used to communicate to the server.
-- **Scene**: A THREE.Scene, this holds all the meshes and models which THREE.js will render.
-- **ChunkManager**: Manages the chunks (of blocks), and handles adding and removing them from the THREE.Scene.
-- **EntityManager**: Manages the entities (players for now, in the future hopefully more) and add/removes them from the THREE.Scene.
-- **World**: Holds both the ChunkManager and EntityManager and provides useful logic to interface with them. Can directly expose blocks but also provides most of the helper functions you should need.
-- **PlayerUI**: Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
+To run the www server, enable authentication, and enable multiple worlds, see [WEBREADME.md]
 
 Coordinate Systems
 ----------------------------
@@ -138,6 +52,18 @@ The server may send messages at a varying speed, and we may receive them at a va
 
  - https://developer.valvesoftware.com/wiki/Interpolation
 
+
+Architecture (client side)
+---------------
+The architecture is based on a few fairly simple structures, which communicate through a few objects (similar to http://yuml.me/d5f4fb7b). Specifically:
+- **container**: Just a div in the html, we use this to hook up the actual rendering. There are some hardcoded elements in this, which we hook up to to give THREE.js a place to render (among other things).
+- **Conn**: A wrapper for a WebSocket, used to communicate to the server.
+- **Scene**: A THREE.Scene, this holds all the meshes and models which THREE.js will render.
+- **ChunkManager**: Manages the chunks (of blocks), and handles adding and removing them from the THREE.Scene.
+- **EntityManager**: Manages the entities (players for now, in the future hopefully more) and add/removes them from the THREE.Scene.
+- **World**: Holds both the ChunkManager and EntityManager and provides useful logic to interface with them. Can directly expose blocks but also provides most of the helper functions you should need.
+- **PlayerUI**: Handles displaying the interface elements and rendering the scene. Shouldn't hold any game data, or be required for the game to run.
+
 Bugs
 -------
 If you find any bugs, please report them in the issue tracker with your hardware specs, screenshot, and steps taken to trigger the issue.
@@ -150,3 +76,16 @@ If you want to try out something hard, and possibly impossible, attempt one of t
 - Change the network protocol to have unreliable delivery semantics for certain types of packets, namely player-position and entity-position packets (which are sent a LOT). WebRTC might help here.
 
 Or checkout the bug list (for bugs or features, whichever suits your fancy).
+
+
+<!-- TODO: This section is a bit... agressive. Might want to make it kinder sounding. (Kevin feels it's okay to be agressive though.) -->
+<!-- Commenting out for now, we can add this back sometime if we find it needed.
+Development
+-----------
+Make a branch, develop your feature/bugfix, and send a pull request. A couple tips:
+- **Read your diffs**. We all change things casually when learning a system, and poke at various things, but you should revert these changes before committing (or stash them somewhere), to ensure your pull request is focused on one particular thing that needs changing, and to reduce the time it takes to review.
+- **Keep pull requests small and incremental**. If you want a really big, awesome feature, develop it one piece at a time, so that each of them can be evaluated individually, and so that we can all discuss how we want the feature to look *before* you've built the whole thing. This also allows other to build other awesome things you haven't though of yet from your pieces, and reduces the pain of merging to master (which is very quickly changing at this point).
+- **Format your code**.
+	- Things are a little looser on the JS side, but try to match the existing code. Always use tabs. Use semicolons. Braces on the same line. I'm sure you can figure it out :).
+	- On the go side, always run `go fmt buildblast/...` before submitting a pull request.
+  -->
