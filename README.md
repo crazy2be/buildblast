@@ -4,7 +4,7 @@ BuildBlast
 ![BuildBlast Screenshot](screenshot.png)
 
 
-Try it at **[BuildBlast.com](https://www.buildblast.com)**
+Try it at **[buildblast.jmcgirr.com](https://buildblast.jmcgirr.com)**
 
 Or try it on a [dev server](http://bb2.jmcgirr.com)
 
