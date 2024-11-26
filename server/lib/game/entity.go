@@ -17,6 +17,7 @@ const (
 )
 
 type Entity interface {
+	Simulator
 	EntityId() EntityId
 	Body() physics.Body
 	LastUpdated() float64

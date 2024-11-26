@@ -70,7 +70,7 @@ func (c *Client) handleMessage(g *Game, w *game.World, m proto.Message) {
 		c.handleControlState(g, w, m)
 
 	case *proto.MsgChatSend:
-		g.Chat(c.name, m.(*proto.MsgChatSend).Message)
+		g.Chat(c, m.(*proto.MsgChatSend).Message)
 
 	case *proto.MsgInventorySelect:
 		m := m.(*proto.MsgInventorySelect)
@@ -140,8 +140,8 @@ func (c *Client) handleControlState(g *Game, w *game.World, m *proto.MsgControls
 func (c *Client) Connected(g *Game, w *game.World) {
 	p := game.NewPlayer(w, c.name)
 
-	for id, b := range w.Biotics() {
-		c.BioticCreated(id, b)
+	for id, b := range w.Players() {
+		c.PlayerCreated(id, b)
 		c.Send(&proto.MsgScoreboardAdd{
 			Name:  string(id),
 			Score: g.scores[string(id)],
@@ -152,9 +152,14 @@ func (c *Client) Connected(g *Game, w *game.World) {
 		c.WorldItemAdded(id, wi)
 	}
 
+	for id, b := range w.Biotics() {
+		c.BioticCreated(id, b)
+	}
+
 	w.AddEntity(p)
 
 	w.AddBlockListener(c)
+	w.AddPlayerListener(c)
 	w.AddBioticListener(c)
 	w.AddWorldItemListener(c)
 
@@ -167,6 +172,7 @@ func (c *Client) Connected(g *Game, w *game.World) {
 func (c *Client) Disconnected(g *Game, w *game.World) {
 	w.RemoveEntity(c.player)
 	w.RemoveBlockListener(c)
+	w.RemovePlayerListener(c)
 	w.RemoveBioticListener(c)
 	w.RemoveWorldItemListener(c)
 	c.conn.Close()
@@ -188,8 +194,38 @@ func (c *Client) BlockChanged(bc coords.Block, old mapgen.Block, new mapgen.Bloc
 	c.sendBlockChanged(bc, new)
 }
 
+func (c *Client) PlayerCreated(id game.EntityId, player *game.Player) {
+	c.Send(makePlayerEntityCreatedMessage(id, player.State()))
+}
+
+func (c *Client) PlayerUpdated(id game.EntityId, player *game.Player) {
+	c.SendLossy(&proto.MsgEntityState{
+		Id:    id,
+		Kind:  game.EntityKindBiotic,
+		State: player.State(),
+	})
+}
+
+func (c *Client) PlayerDamaged(id game.EntityId, player *game.Player) {
+	c.BioticUpdated(id, player)
+}
+
+func (c *Client) PlayerDied(id game.EntityId, player *game.Player, killer string) {
+	c.BioticUpdated(id, player)
+}
+
+func (c *Client) PlayerRemoved(id game.EntityId) {
+	c.Send(&proto.MsgEntityRemove{
+		Id: id,
+	})
+}
+
 func (c *Client) BioticCreated(id game.EntityId, biotic game.Biotic) {
-	c.Send(makePlayerEntityCreatedMessage(id, biotic.State()))
+	c.Send(&proto.MsgEntityCreate{
+		Id:    id,
+		Kind:  game.EntityKindBiotic,
+		State: biotic.State(),
+	})
 }
 
 func (c *Client) BioticUpdated(id game.EntityId, biotic game.Biotic) {
@@ -204,7 +240,7 @@ func (c *Client) BioticDamaged(id game.EntityId, biotic game.Biotic) {
 	c.BioticUpdated(id, biotic)
 }
 
-func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+func (c *Client) BioticDied(id game.EntityId, biotic game.Biotic) {
 	c.BioticUpdated(id, biotic)
 }
 

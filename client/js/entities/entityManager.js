@@ -7,6 +7,7 @@ var EntityLagInducer = require("./entityLagInducer");
 var EntityBar = require("meshes/entityBar");
 var PlayerMesh = require("meshes/playerMesh");
 var WorldItemMesh = require("meshes/worldItemMesh");
+var SlimeMesh = require("meshes/slimeMesh");
 
 function EntityManager(scene, conn, world, clock) {
 	var self = this;
@@ -50,6 +51,9 @@ function EntityManager(scene, conn, world, clock) {
 		if (kind === Protocol.EntityKindPlayer) {
 			entity = new Biotic(state);
 			entity.add(new PlayerMesh());
+		} else if (kind === Protocol.EntityKindBiotic) {
+			entity = new Biotic(state);
+			entity.add(new SlimeMesh());
 		} else if (kind === Protocol.EntityKindWorldItem) {
 			entity = new WorldItem(state);
 			entity.add(new WorldItemMesh(entity.kind(), entity.halfExtents()));

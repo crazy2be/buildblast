@@ -6,6 +6,8 @@ import (
 
 	"buildblast/server/lib/game"
 	"buildblast/server/lib/proto"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -111,15 +113,39 @@ func (g *Game) disconnect(id, reason string) {
 }
 
 func (g *Game) Announce(message string) {
-	g.Chat("SERVER", message)
+	g.Chat(nil, message)
 }
 
-func (g *Game) Chat(user string, message string) {
-	log.Println("[CHAT]", user+":", message)
-	g.Broadcast(&proto.MsgChatBroadcast{
-		DisplayName: user,
-		Message:     message,
-	})
+func (g *Game) Chat(c *Client, message string) {
+	if strings.HasPrefix(message, "./") {
+		command := message[2:]
+		log.Println("[CHAT_COMMAND]", c.name+":", command)
+		switch command {
+		case "togBlastSlimes":
+			c.player.BlastSlimes = !c.player.BlastSlimes
+			c.Send(&proto.MsgChatBroadcast{
+				DisplayName: "SERVER",
+				Message:     "blastSlimes = " + strconv.FormatBool(c.player.BlastSlimes),
+			})
+		default:
+			c.Send(&proto.MsgChatBroadcast{
+				DisplayName: "SERVER",
+				Message:     "Unknown command.",
+			})
+		}
+	} else {
+		var name string
+		if c == nil {
+			name = "SERVER"
+		} else {
+			name = c.name
+		}
+		log.Println("[CHAT]", name+":", message)
+		g.Broadcast(&proto.MsgChatBroadcast{
+			DisplayName: name,
+			Message:     message,
+		})
+	}
 }
 
 func (g *Game) Broadcast(m proto.Message) {
@@ -151,19 +177,19 @@ func (g *Game) Tick(dt int64) {
 	}
 }
 
-func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {
+func (g *Game) PlayerCreated(id game.EntityId, player *game.Player) {
 	g.Broadcast(&proto.MsgScoreboardAdd{
 		Name:  string(id),
 		Score: g.scores[string(id)],
 	})
 }
 
-func (g *Game) BioticUpdated(id game.EntityId, biotic game.Biotic) {}
-func (g *Game) BioticDamaged(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) PlayerUpdated(id game.EntityId, player *game.Player) {}
+func (g *Game) PlayerDamaged(id game.EntityId, player *game.Player) {}
 
-func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
+func (g *Game) PlayerDied(id game.EntityId, player *game.Player, killer string) {
 	g.Announce(killer + " killed " + string(id))
-	g.BioticDamaged(id, biotic)
+	g.BioticDamaged(id, player)
 	g.scores[killer]++
 	g.scores[string(id)]--
 	g.Broadcast(&proto.MsgScoreboardSet{
@@ -176,8 +202,14 @@ func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic, killer string) {
 	})
 }
 
-func (g *Game) BioticRemoved(id game.EntityId) {
+func (g *Game) PlayerRemoved(id game.EntityId) {
 	g.Broadcast(&proto.MsgScoreboardRemove{
 		Name: string(id),
 	})
 }
+
+func (g *Game) BioticCreated(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticUpdated(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticDamaged(id game.EntityId, biotic game.Biotic) {}
+func (g *Game) BioticDied(id game.EntityId, biotic game.Biotic)    {}
+func (g *Game) BioticRemoved(id game.EntityId)                     {}
