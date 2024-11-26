@@ -1,6 +1,6 @@
 {
-    "host": "localhost",
-    "port": 8080,
+    "host": "",
+    "port": 8079,
     "//port_comment": [
         "Web uses this port, server uses port+1",
         "(TODO: seperate config for these two ports)"],
